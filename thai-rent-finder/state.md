@@ -1,4 +1,4 @@
-**TEST 2026-05-02 22:25**: confirming GitHub→agent flow.
+
 # thai-rent-finder — State
 
 > Living document. Update at the end of every working session.
