@@ -4,6 +4,28 @@ History of Codex auto-fix activities. Newest first.
 
 ---
 
+## PR #63 — feat(ci): trigger Codex on site-health issues automatically
+**Date:** 2026-05-04T21:16:32Z
+**Reviewed commit:** unknown
+**Source:** [PR comment](https://github.com/funzi7/thai-rent-finder/pull/63#issuecomment-4374543591)
+
+### Summary
+* Tightened the `trigger_codex_on_health_issue` job gate so it only runs for relevant `issues` actions:
+  * `opened` events where the issue already includes `site-health`
+  * `labeled` events where the newly added label is exactly `site-health` [.github/workflows/codex-auto-fix.ymlL327-L336](https://github.com/funzi7/thai-rent-finder/blob/cdcb8f93ed6c617e7e1b4b8edb8cc8c23584dbf8/.github/workflows/codex-auto-fix.yml#L327-L336)
+* This avoids unnecessary workflow runs on unrelated label additions while keeping the existing dedupe/comment logic unchanged. [.github/workflows/codex-auto-fix.ymlL348-L355](https://github.com/funzi7/thai-rent-finder/blob/cdcb8f93ed6c617e7e1b4b8edb8cc8c23584dbf8/.github/workflows/codex-auto-fix.yml#L348-L355)
+
+**Testing**
+* ✅ `python3 -m pip install --user pyyaml >/tmp/pip.log && tail -n 5 /tmp/pip.log`
+* ✅ `python3 -c "import yaml, pathlib; yaml.safe_load(pathlib.Path('.github/workflows/codex-auto-fix.yml').read_text()); print('ok')"`
+
+Committed on branch `work`:
+* `87f3dae` — `fix(ci): scope health trigger to relevant issue actions`
+
+ [View task →](https://chatgpt.com/s/cd_69f90c502cf88191bef44845ee1fe720)
+
+---
+
 ## PR #62 — feat(ci): site health workflow + /api/admin/health endpoint
 **Date:** 2026-05-04T19:14:50Z
 **Reviewed commit:** unknown
