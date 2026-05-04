@@ -1,70 +1,60 @@
-
 # thai-rent-finder — State
 
-> Living document. Update at the end of every working session.
-> Last updated: 2026-05-02
+`Last updated: 2026-05-05 04:30 ICT`
 
-## Current focus
+## Sources status (current)
 
-Multi-source scraping infrastructure. Adding rental listing sources one at a time, validating each on live data before moving to the next.
+| Source            | Tier            | Cron (ICT) | Status                          | Listings 7d |
+|-------------------|-----------------|------------|---------------------------------|-------------|
+| FAZWAZ            | 2 (GH Actions)  | 03:00      | ✅ active                       | 73          |
+| RENTHUB           | 2 (GH Actions)  | 03:30      | ✅ active                       | 542         |
+| LIVING_INSIDER    | 2 (GH Actions)  | 04:00      | ✅ active                       | 156         |
+| LAZUDI            | 2 (GH Actions)  | 05:30      | ✅ active                       | 50          |
+| THAILAND_PROPERTY | 1 (Vercel)      | n/a        | ⚠️ suspect (0 in 7d)            | 0           |
+| HIPFLAT           | 3               | n/a        | 🔴 deferred (Cloudflare 403)    | n/a         |
 
-## Active PRs
+## Recently merged PRs
 
-| # | Title | Status | Notes |
-|---|---|---|---|
-| #46 | Renthub + Living Insider scrapers, P2 fixes | **awaiting merge** | All Codex reviews addressed. Crons disabled until live verification. |
+- **#54** — Lazudi scraper + min-term filter (Codex P1 fix)
+- **#55** — CI Watcher endpoint at `/api/admin/ci-runs`
+- **#56** — Codex auto-fix workflow (P1/P2 trigger)
+- **#57** — Codex Summary archive to agent-memory
+- **#58** — UX batch: RTL sqm, Apply button, persistent filters, max 40K
+- **#59** — Filter persistence real fix (useEffect ordering race)
+- **#60** — `archive_codex_summary` catches PR reviews
+- **#61** — Migrate legacy `maxPrice=25000` in saved filters
+- **#62** — Site Health workflow + `/api/admin/health` endpoint
+- **#63** — Codex trigger on site-health issues
 
-## Recently merged
+## Pending issues
 
-| # | Title | Date | Outcome |
-|---|---|---|---|
-| #35 | Rescrape-all with 6h freshness | — | Working in prod |
-| #36 | Concerns recompute | — | Status uncertain — verify before assuming closed |
-| #44 | GH Actions runner + FazWaz migration | 2026-05-02 | Working. PTY produced 4 listings on first run. |
-| #45 | Renthub + Living Insider stubs + photo dedup + source filter | 2026-05-02 | Stubs only. Bodies implemented in #46. |
+- ⚠️ **THAILAND_PROPERTY scraper investigation** — 0 listings in 7 days, status unknown. Tier 1 (Vercel-hosted, no GH Actions cron), so the freshness signal didn't surface in scraper workflow logs. First action: hit `/api/scrape/THAILAND_PROPERTY?key=...` and inspect response.
+- ⚠️ **Scheduled scrape run id 25328922523** — cancelled after 30 min, needs root cause. Check `/api/admin/ci-runs?key=...&run_id=25328922523` for structured-event log.
 
-## Source status
+## Automation infrastructure
 
-| Source | Runs on | State | Last verified | Notes |
-|---|---|---|---|---|
-| THAILAND_PROPERTY | Vercel | ✅ Working | — | Original scraper, ~45 listings |
-| FAZWAZ | GH Actions | ✅ Working | 2026-05-02 PTY | 4 listings on first run — low; may indicate pagination not paging |
-| RENTHUB | GH Actions | 🟡 Implemented, unverified | — | Pending live workflow_dispatch run |
-| LIVING_INSIDER | GH Actions | 🟡 Implemented, PTY only | — | Other cities throw "zone not yet mapped" |
-| DDPROPERTY | — | ⏳ Not started | — | Batch 3 |
-| HIPFLAT | — | ⏳ Not started | — | Batch 3 |
-| LAZUDI | — | ⏳ Not started | — | Batch 3 |
-| PROPERTY_SCOUT | — | ⏳ Not started | — | Batch 4 (needs Playwright) |
+### Active workflows
 
-## Cron schedule (Asia/Bangkok)
+- `scrape-fazwaz.yml` — daily 20:00 UTC (03:00 ICT)
+- `scrape-renthub.yml` — daily 20:30 UTC (03:30 ICT)
+- `scrape-living-insider.yml` — daily 21:00 UTC (04:00 ICT)
+- `scrape-lazudi.yml` — daily 22:30 UTC (05:30 ICT)
+- `site-health.yml` — daily 01:00 UTC (08:00 ICT, after all scrapers)
+- `codex-auto-fix.yml` — on PR review/comment + on issue with label `site-health`
 
-| Workflow | Time | Status |
-|---|---|---|
-| scrape-fazwaz | 03:00 | Active (UTC 20:00) |
-| scrape-renthub | 03:30 | **Disabled** (uncomment when verified) |
-| scrape-living-insider | 04:00 | **Disabled** (uncomment when verified) |
+### Endpoints
 
-## Open questions / next decisions
+- `/api/admin/ci-runs?key=...` — GitHub Actions runs (used by CI Watcher Project)
+- `/api/admin/health?key=...` — DB freshness + uptime
+- `/api/admin/cleanup-icon-photos?key=...` — Renthub LINE icon cleanup
+- `/api/admin/audit-listings?key=...` — listing audit
 
-- Verify Renthub `koh-samui` slug — flagged as best-guess in PR #46
-- Discover Living Insider zone IDs for BKK, CMI, PHK, SAM
-- After Renthub + LI verified live → re-enable crons → start Batch 3 (DDProperty + Hipflat + Lazudi)
-- FazWaz only returned 4 PTY listings — investigate if pagination needs a fix or if that's the real long-term inventory
+### Claude.ai Projects
 
-## Known active blockers
-
-None right now. PR #46 is the only blocker on the critical path.
-
-## Recent gotchas (full list in gotchas.md)
-
-- DATABASE_URL must be `postgres://` — Vercel's `prisma://` URL fails on GH Actions
-- Playwright cannot run on Vercel functions (libnss3 missing)
-- Renthub is mostly daily rentals — index card monthly filter is mandatory
-- Living Insider has expired + closed states that must be filtered
-
-## Repo
-
-- GitHub: `funzi7/thai-rent-finder`
-- Production: `https://thai-rent-finder.vercel.app`
-- Default branch: `main`
-- Branch naming: `claude/batch{N}-{description}`
+- TRF — State Tracker
+- TRF — Spec Writer
+- TRF — Bug Triage
+- TRF — PR Reviewer
+- TRF — Scraper Doctor
+- TRF — CI Watcher
+- TRF — Site Doctor
