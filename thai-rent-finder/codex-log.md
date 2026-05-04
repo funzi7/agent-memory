@@ -4,6 +4,38 @@ History of Codex auto-fix activities. Newest first.
 
 ---
 
+## PR #68 — feat(ci): codex auto-fix catches inline review comments too
+**Date:** 2026-05-04T23:17:54Z
+**Reviewed commit:** unknown
+**Source:** [PR comment](https://github.com/funzi7/thai-rent-finder/pull/68#pullrequestreview-4224208715)
+
+
+### 💡 Codex Review
+
+Here are some automated review suggestions for this pull request.
+
+**Reviewed commit:** `3b7bea5996`
+    
+
+<details> <summary>ℹ️ About Codex in GitHub</summary>
+<br/>
+
+[Your team has set up Codex to review pull requests in this repo](https://chatgpt.com/codex/cloud/settings/general). Reviews are triggered when you
+- Open a pull request for review
+- Mark a draft as ready
+- Comment "@codex review".
+
+If Codex has suggestions, it will comment; otherwise it will react with 👍.
+
+
+
+
+Codex can also answer questions or update the PR. Try commenting "@codex address that feedback".
+            
+</details>
+
+---
+
 ## PR #67 — feat(ci): daily Telegram checkup with health summary
 **Date:** 2026-05-04T23:10:08Z
 **Reviewed commit:** unknown
