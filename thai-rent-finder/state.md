@@ -1,5 +1,7 @@
 # thai-rent-finder — State
 
+> Living document. Update at the end of each working session.
+
 `Last updated: 2026-05-05 04:30 ICT`
 
 ## Sources status (current)
