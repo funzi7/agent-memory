@@ -1,57 +1,88 @@
 # thai-rent-finder — State
 
-> Living document. Update at the end of each working session.
-
-`Last updated: 2026-05-05 04:30 ICT`
+> Living document. Auto-updated daily at 02:00 UTC by `auto-update-state.yml`.
+> Last auto-update: 2026-05-05
+> Production: https://thai-rent-finder.vercel.app
+> Total listings in DB: 947
 
 ## Sources status (current)
 
-| Source            | Tier            | Cron (ICT) | Status                          | Listings 7d |
-|-------------------|-----------------|------------|---------------------------------|-------------|
-| FAZWAZ            | 2 (GH Actions)  | 03:00      | ✅ active                       | 73          |
-| RENTHUB           | 2 (GH Actions)  | 03:30      | ✅ active                       | 542         |
-| LIVING_INSIDER    | 2 (GH Actions)  | 04:00      | ✅ active                       | 156         |
-| LAZUDI            | 2 (GH Actions)  | 05:30      | ✅ active                       | 50          |
-| THAILAND_PROPERTY | 1 (Vercel)      | n/a        | ⚠️ suspect (0 in 7d)            | 0           |
-| HIPFLAT           | 3               | n/a        | 🔴 deferred (Cloudflare 403)    | n/a         |
+| Source | Tier | Cron (ICT) | Status | Listings 7d |
+|--------|------|------------|--------|-------------|
+| FAZWAZ | 2 (GH Actions) | 03:00 | ✅ active | 73 |
+| RENTHUB | 2 (GH Actions) | 03:30 | ✅ active | 602 |
+| LIVING_INSIDER | 2 (GH Actions) | 04:00 | ✅ active | 156 |
+| LAZUDI | 2 (GH Actions) | 05:30 | ✅ active | 51 |
+| THAILAND_PROPERTY | 1 (Vercel) | n/a | ⚠️ no fresh listings | 0 |
+| HIPFLAT | 3 (deferred) | n/a | 🔴 deferred (Cloudflare 403) | n/a |
 
-## Recently merged PRs
+## Recently merged PRs (last 7 days)
 
-- **#54** — Lazudi scraper + min-term filter (Codex P1 fix)
-- **#55** — CI Watcher endpoint at `/api/admin/ci-runs`
-- **#56** — Codex auto-fix workflow (P1/P2 trigger)
-- **#57** — Codex Summary archive to agent-memory
-- **#58** — UX batch: RTL sqm, Apply button, persistent filters, max 40K
-- **#59** — Filter persistence real fix (useEffect ordering race)
-- **#60** — `archive_codex_summary` catches PR reviews
-- **#61** — Migrate legacy `maxPrice=25000` in saved filters
-- **#62** — Site Health workflow + `/api/admin/health` endpoint
-- **#63** — Codex trigger on site-health issues
+- **#68** — feat(ci): codex auto-fix catches inline review comments too
+- **#67** — feat(ci): daily Telegram checkup with health summary
+- **#66** — feat(ci): auto-update state.md daily from production data
+- **#63** — feat(ci): trigger Codex on site-health issues automatically
+- **#62** — feat(ci): site health workflow + /api/admin/health endpoint
+- **#61** — fix(ui): migrate legacy maxPrice=25000 in saved filters (Codex P1 from PR #58)
+- **#60** — fix(ci): archive_codex_summary catches pull_request_review events
+- **#59** — fix(ui): filter persistence actually applies on mount (B5 follow-up)
+- **#58** — fix(ui): RTL sqm display, Apply button, persistent filters, max price 40K
+- **#57** — feat(ci): archive Codex summaries to agent-memory automatically
+- **#56** — feat(ci): auto-trigger Codex fix on P1/P2 reviews
+- **#55** — feat(api): CI Watcher endpoint for Claude Project automation
+- **#54** — feat: Hipflat + Lazudi scrapers (Tier 2 GH Actions) + Living Insider polish
+- **#53** — fix: Living Insider price extraction (multiple formats + URL fallback) + tighter title heuristic
+- **#52** — fix: Living Insider title/specs/price extraction + Codex reviews
+- **#51** — fix: LI anchor-first by source_id + FazWaz process hang
+- **#50** — fix: FazWaz pre-fetch limit + Living Insider debug + Codex P1/P2 fixes
+- **#49** — fix: FazWaz selector waits + Living Insider live selectors + DB photo cleanup
+- **#48** — fix: FazWaz city stamping + Living Insider v1 index-only + source filter on /listings
+- **#47** — fix: Renthub city/photo/limit bugs + Living Insider diagnostics + CLI case-insensitive
+- **#46** — feat: implement Renthub + Living Insider scrapers, fix CLI exit, disable failing crons
+- **#45** — feat: photo dedup + source filter + Renthub/LivingInsider infra (scrapers stubbed)
+- **#44** — feat: GH Actions scraper runner + FazWaz migration
+- **#43** — fix: heart auto-trigger + Codex PR#38 P1/P2 followups
+- **#42** — feat: enforce SHORTLISTED+ gates on AI reviews (manual) and AI concerns (auto)
+- **#41** — fix: candidateWhere honors refresh_after backoff on stale rows
+- **#40** — fix: regenerate-summaries cycle filter force-only
+- **#39** — fix: harden regenerate-summaries against stale-flag leak and force-mode non-termination
+- **#38** — feat: bulk-regenerate building summaries with persistent empty-result caching
+- **#37** — fix: harden concerns-recompute against empty AI responses and missing UserStatus rows
 
-## Pending issues
+## Open issues
 
-- ⚠️ **THAILAND_PROPERTY scraper investigation** — 0 listings in 7 days, status unknown. Tier 1 (Vercel-hosted, no GH Actions cron), so the freshness signal didn't surface in scraper workflow logs. First action: hit `/api/scrape/THAILAND_PROPERTY?key=...` and inspect response.
-- ⚠️ **Scheduled scrape run id 25328922523** — cancelled after 30 min, needs root cause. Check `/api/admin/ci-runs?key=...&run_id=25328922523` for structured-event log.
+- **#69** — Telegram daily checkup fails: Markdown parse error on underscores _(site-health)_
+- **#65** — THAILAND_PROPERTY scraper appears stale — 0 listings in 7 days _(site-health)_
+- **#64** — Site Health Alert — 2026-05-04 _(site-health, auto-detected)_
 
-## Automation infrastructure
+## Active workflows
 
-### Active workflows
+- `scrape-fazwaz.yml` — cron `0 20 * * *` UTC
+- `scrape-hipflat.yml` — cron `0 22 * * *` UTC
+- `scrape-lazudi.yml` — cron `30 22 * * *` UTC
+- `scrape-living-insider.yml` — cron `0 21 * * *` UTC
+- `scrape-renthub.yml` — cron `30 20 * * *` UTC
+- `auto-update-state.yml` — cron `0 2 * * *` UTC
+- `codex-auto-fix.yml`
+- `daily-checkup.yml` — cron `30 1 * * *` UTC
+- `scrape.yml` — cron `0 2,14 * * *` UTC
+- `site-health.yml` — cron `0 1 * * *` UTC
 
-- `scrape-fazwaz.yml` — daily 20:00 UTC (03:00 ICT)
-- `scrape-renthub.yml` — daily 20:30 UTC (03:30 ICT)
-- `scrape-living-insider.yml` — daily 21:00 UTC (04:00 ICT)
-- `scrape-lazudi.yml` — daily 22:30 UTC (05:30 ICT)
-- `site-health.yml` — daily 01:00 UTC (08:00 ICT, after all scrapers)
-- `codex-auto-fix.yml` — on PR review/comment + on issue with label `site-health`
+## Admin endpoints
 
-### Endpoints
+- `/api/admin/audit-listings`
+- `/api/admin/backfill-buildings`
+- `/api/admin/ci-runs`
+- `/api/admin/cleanup-icon-photos`
+- `/api/admin/cleanup-seeded`
+- `/api/admin/concerns-recompute-all`
+- `/api/admin/health`
+- `/api/admin/recompute-cities`
+- `/api/admin/regenerate-summaries-all`
+- `/api/admin/rescrape-all`
+- `/api/admin/review-costs`
 
-- `/api/admin/ci-runs?key=...` — GitHub Actions runs (used by CI Watcher Project)
-- `/api/admin/health?key=...` — DB freshness + uptime
-- `/api/admin/cleanup-icon-photos?key=...` — Renthub LINE icon cleanup
-- `/api/admin/audit-listings?key=...` — listing audit
-
-### Claude.ai Projects
+## Claude.ai Projects (manual list)
 
 - TRF — State Tracker
 - TRF — Spec Writer
@@ -60,3 +91,7 @@
 - TRF — Scraper Doctor
 - TRF — CI Watcher
 - TRF — Site Doctor
+
+---
+
+_Auto-generated. Add manual content between `<!-- manual-section-start -->` and `<!-- manual-section-end -->` markers — the workflow appends preserved blocks at the file tail._
