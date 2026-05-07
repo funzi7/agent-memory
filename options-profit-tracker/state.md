@@ -12,54 +12,60 @@
 ## Repo + state
 
 - **Repo:** funzi7/OptionsProfitTracker
-- **DB version:** 30 (planned bump to 31 in FIX 1/D for `initial_implied_volatility` column)
-- **Branch (current work):** `claude/analyze-project-structure-TC5ZG`
-- **Last verified commit:** `8a44bd4` (1d497fa before)
-- **Local path:** `C:\Users\DELL\Downloads\projects claude\OptionsProfitTracker_git`
-- **Note on commit `8a44bd4`:** Result NOT yet verified on device — most fixes from prior round did not stick.
+- **DB version:** 30 (planned bump to 31 in FIX 1/F for `initial_implied_volatility` column)
+- **Branch (current work):** `main`
+- **Last commit:** `fdc1cf1` (Group D' — social regression + CSP net + reports all-years + per-bar remaining)
+- **Recent commits:** `8a44bd4` → `9ddca1c` (Group A) → `f1c3e9a` (Group B) → `16fd852` (Group C) → `fdc1cf1` (Group D')
 
-## Active issues — failed/incomplete from `8a44bd4`
+## Active issues
 
-These are open critical regressions. Fix priority is ordered A → D below.
-
-### Group A — Image + sort + alerts (FIX 4 — first to run)
+### Group A — Image + sort + alerts (FIX 4) ✅ COMPLETE
 
 | # | Issue | Status |
 |---|---|---|
-| A1 | Strategy distribution unsorted (should be sortedByDescending by count) | ⏳ |
-| A2 | Source column header click does nothing (sort not wired) | ⏳ |
-| A3 | "קנייה +" not shortened to "ק+" in source column | ⏳ |
-| A4 | Image re-fetch on every dialog open (Coil cache disabled or missing config) | ⏳ |
-| A5 | Telegram emoji thumbs FAILED — relative URL bug (`//telegram.org/img/emoji/...`) | ⏳ |
-| A6 | Abnormal alerts empty even when ticker shows -6% in top losers | ⏳ |
+| A1 | Strategy distribution sortedByDescending | ✅ verified |
+| A2 | Source column header click logs PORTFOLIO_SORT + sorts list | ✅ verified |
+| A3 | Source column shortened "ק+" / "מ-" / "הקצ" / "פק" | ✅ verified |
+| A4 | Image cache (Coil ImageLoader, mem 25% + disk 5%) | ✅ verified |
+| A5 | Telegram URL normalize | ✅ verified — minor: some posts show emoji as inline image |
+| A6 | Abnormal alerts no shares filter, threshold strict 5% | 🟡 partial — only 1 ticker shown when multiple should appear |
 
-### Group B — Dashboard regressions that didn't stick (FIX 3)
-
-| # | Issue | Status |
-|---|---|---|
-| B1 | "בתהליך" duplicate Text in monthly target area | 🔴 didn't stick |
-| B2 | Yearly target "24%" appears twice (above row + in row) | 🔴 didn't stick |
-| B3 | Minus sign on losers still on right side of number (need `\u200E` LRM marker) | 🔴 didn't stick |
-| B4 | "נותר: $X" overlay missing on monthly target progress bar | 🔴 didn't stick |
-| B5 | Monthly target $5086 (Settings) vs $5116 (Dashboard) — needs single-source-of-truth function | 🔴 didn't stick |
-
-### Group C — CSP + report aggregation (FIX 2)
+### Group B — Dashboard regressions (FIX 3) ✅ COMPLETE
 
 | # | Issue | Status |
 |---|---|---|
-| C1 | CSP cash recommendation: should subtract premium (collateral = (strike × 100 - premium) × contracts), already locked at entry | 🔴 |
-| C2 | `CSP_CASH` log empty — branch not reaching this code path | 🔴 |
-| C3 | Profitable tickers: INTC shows $4052 (single trade) instead of $2050 (4052 - 2000 aggregate) | 🔴 |
-| C4 | `PROFITABLE_REPORT` log empty | 🔴 |
+| B1 | "בתהליך" duplicate removed | ✅ verified |
+| B2 | Yearly "24%" duplicate removed | ✅ verified |
+| B3 | Minus on right side | ✅ N/A — verified already correct |
+| B4 | "נותר: $X" overlay on monthly bar | ✅ initial done, refined in D'4 |
+| B5 | $5066 vs $5116 — Settings recompute on open | ✅ verified |
 
-### Group D — IV diagnostics + initial preservation (FIX 1)
+### Group C — CSP + report aggregation (FIX 2) — PARTIAL
 
 | # | Issue | Status |
 |---|---|---|
-| D1 | Massive returns 0 contracts for every ticker — RAW JSON shape unknown | 🔴 |
-| D2 | Strike/expiration changes return "contract cache miss forever" — prefetch is async, lookup returns null before completion | 🔴 |
-| D3 | Initial IV = current IV (migration backfilled them identically) | 🔴 |
-| D4 | Need new column `initial_implied_volatility` in DB v31 with captured-once write semantics | ⏳ |
+| C1 | CSP cash net of premium | 🔄 IN PROGRESS — see E'1 below |
+| C2 | INTC profitable tickers aggregation | ✅ verified (2026-only correct; All-Years added in D'3) |
+| C3 | (was B5 retry) Settings recomputes target on open | ✅ verified |
+| C4 | Posts paragraph breaks | ✅ verified — caused D'1 regression now fixed |
+
+### Group D' — Social regression + CSP + reports + per-bar (NEW)
+
+| # | Issue | Status |
+|---|---|---|
+| D'1 | Social Feed regression fix | ✅ verified — section restored |
+| D'2 | CSP "ייצא מהקאש" rewrite | 🔴 broken — not right-aligned, still shows $14991, missing cash balance |
+| D'3 | Reports "כל השנים" toggle | ✅ verified |
+| D'4 | Per-bar "נותר" overlay + total row RTL | 🔴 partial — "סה\"כ" still left, missing target amount on each bar |
+
+### Group E' (NEXT) — UI rendering corrections + activity feed dedup
+
+| # | Issue | Source | Status |
+|---|---|---|---|
+| E'1 | CSP card: right-align + show cash balance + correct net amount | retry of D'2 | ⏳ |
+| E'2 | Monthly target: "סה\"כ" right + restore target amount per bar | retry of D'4 | ⏳ |
+| E'3 | Phantom IREN in abnormal alerts (Dima doesn't hold) | new from device test | ⏳ |
+| E'4 | Activity feed: edit-then-close creates duplicate row | new from device test | ⏳ |
 
 ### Other open items not yet addressed
 
