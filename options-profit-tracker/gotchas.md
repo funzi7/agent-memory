@@ -290,6 +290,19 @@ When debugging, filter `adb logcat` by these tags:
 
 ---
 
+## Color regression watchlist (OPT-specific reminder)
+
+The color semantics defined in `shared/conventions.md` (green = realized profit, blue = premium received, red = realized loss) have been broken multiple times in OPT — most recently after the activity feed dedup change in commit `7df9465`, where editing a position changed the row color from blue (premium) to green (realized profit) even though no realization happened.
+
+**Pattern to watch:** any change to ActivityEventEntity insert/update logic, ProfitCalculator coloring, or feed rendering can silently swap blue↔green. PR Reviewer should grep for `PrimaryGreen\|AccentBlue` near event/feed code on every PR touching those areas.
+
+**Common confusion:**
+- An OPEN CC has both: premium received ($1.50 collected) AND unrealized P&L (mark price moves). The premium portion is BLUE (locked income, no realization yet — but it's already yours). Unrealized portion has its own coloring.
+- A CLOSED position has only realized P&L → GREEN if profit, RED if loss.
+- A position that gets EDITED but stays open should retain its prior coloring (blue if it was a premium-received row, etc.).
+
+---
+
 ## Critical: verification logs MUST appear in logcat before declaring "done"
 
 There's a pattern of "fix committed but didn't actually take effect." From now on, EVERY fix that includes a log tag MUST be verified by Dima running `adb logcat | grep <TAG>` after a Clean Build. If the expected log line doesn't appear, the fix is NOT done — even if `git log` shows the commit.

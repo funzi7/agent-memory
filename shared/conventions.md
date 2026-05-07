@@ -36,42 +36,55 @@ Test on a real Hebrew device — emulator RTL behavior often differs.
 
 ---
 
-## Numbers, dates, signs — LTR Rule
+## Numbers, dates, signs — LTR Rule (REFINED)
 
-### ALL money/numbers/dates wrapped in LTR
+### Hebrew paragraphs
 
-Every Composable that displays a number, date, or English content MUST wrap in:
+- **Paragraph alignment:** Hebrew text aligns to the right edge (`textAlign = TextAlign.End` in RTL context, or `Modifier.fillMaxWidth() + horizontalAlignment = Alignment.End` in Column).
+- **First word/icon position:** First letter of Hebrew text sits on the visual right side of the screen.
+- **Section headers always include an icon, placed to the RIGHT of the title (visual right) since Hebrew reads right-to-left. Example: "📊 דוחות" — the bar-chart icon visually appears to the right of "דוחות" because reading direction starts at right.
 
-```kotlin
-CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-    Text(text = "$1,234.56", ...)
-}
-```
+### Numbers, dates, English content
 
-Without this wrapper, RTL locale flips the text and the sign ends up on the wrong side. This rule has been violated across 6+ screens in OPT — actively check for it in PR review.
+- **Always wrapped in LTR** via `CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr)`.
+- **Digits read left-to-right inside the LTR span.** Example: `1,234.56` not `65.432,1`.
+- **Currency symbol position:** Currency sign sits to the LEFT of the digits (LTR convention): `$1,234.56`, never `1,234.56$`. Same for ₪ and ฿.
+- **+/- sign position:** Sign sits to the LEFT of the digits and currency: `-$300.00`, never `$300.00-`. Same: `+$150.50`, never `$150.50+`.
+- **Percentages:** `45%` (not "45 אחוז" or "45 percent"). Sign to the right of the digits.
+- **Dates display:** `DD/MM/YYYY` (e.g. `28/04/2026`). Always inside an LTR wrapper inside Hebrew paragraphs.
+- **Dates storage:** ISO 8601 / `LocalDate` (e.g. `2026-04-28`).
 
-### +/- sign LEFT of the number
+### Combining Hebrew + numbers in a single line
 
-Always:
-- ✅ `-329.00`
-- ✅ `+150.50`
+When a line has Hebrew text and a number/currency together (e.g. "ייצא מהקאש: $14,060"):
 
-Never:
-- ❌ `329.00-`
-- ❌ `150.50+`
+- The whole line is paragraph-aligned to the right (Hebrew reading direction).
+- Hebrew text sits on the visual right.
+- The number sits to the LEFT of the Hebrew text — **immediately adjacent**, NOT pushed to the far left edge of the screen.
+- Use `Row(horizontalArrangement = Arrangement.End)` with the number wrapped in its own LTR `CompositionLocalProvider`.
 
-If RTL is flipping it visually, the LTR wrapper is missing.
+Wrong layout:
+  | ייצא מהקאש:                                          $14,060 |  (number flung to far left)
+Wrong layout:
+  | $14,060                                          ייצא מהקאש: |  (Hebrew on left)
+Correct layout:
+  |                              ייצא מהקאש: $14,060 |  (both adjacent on the right)
 
-### Financial numbers: 2 decimal places exactly
+### Strategy names language
 
-- `$1,234.56` not `$1,234.5` or `$1,234.567`
-- This applies even when the cents are zero: `$1,000.00` not `$1,000`
+- Strategy abbreviations stay in English: `CC`, `CSP`, `Wheel`, `Spread`, `Iron Condor`, `Straddle`, `Strangle`, `Long Call`, `Long Put`.
+- Status labels translate to Hebrew: `פתוח`, `סגור`, `הוקצה`, `פקע`, `התגלגל`, `טיוטה`.
 
-### Date formats
+### Color semantics (CRITICAL — shared across all financial apps)
 
-- Display: `DD/MM/YYYY` (Israeli convention) — e.g., `28/04/2026`
-- Storage: ISO 8601 — `LocalDate` parses to `2026-04-28`
-- Always store in `America/New_York` timezone for trading apps (matches IBKR/US markets), NOT device timezone (Dima is in Thailand → 12-hour offset).
+- **🟢 Green** = realized profit (רווח ממומש)
+- **🔵 Blue** = premium received (פרמיה שהתקבלה)
+- **🔴 Red** = realized loss (הפסד ממומש)
+- **⚪ Gray/secondary** = informational, neutral, totals
+- **🟡 Yellow/warning** = cautionary state, near-limit (e.g. close to capital cap)
+- **Other colors** = strategy-specific accents only (use `AppTheme.colors.strategy(StrategyType.X)`)
+
+These colors must NEVER swap meanings between contexts. If a number turns green it MUST be a realized profit; if it turns blue it MUST be premium received. Never use green for "premium" or blue for "profit". This rule is broken often — PR Reviewer must actively check.
 
 ---
 
