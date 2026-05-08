@@ -1,17 +1,17 @@
 # thai-rent-finder — State
 
 > Living document. Auto-updated daily at 02:00 UTC by `auto-update-state.yml`.
-> Last auto-update: 2026-05-07
+> Last auto-update: 2026-05-08
 > Production: https://thai-rent-finder.vercel.app
-> Total listings in DB: 1095
+> Total listings in DB: 1140
 
 ## Sources status (current)
 
 | Source | Tier | Cron (ICT) | Status | Listings 7d |
 |--------|------|------------|--------|-------------|
-| FAZWAZ | 2 (GH Actions) | 03:00 | ✅ active | 111 |
-| RENTHUB | 2 (GH Actions) | 03:30 | ✅ active | 692 |
-| LIVING_INSIDER | 2 (GH Actions) | 04:00 | ✅ active | 156 |
+| FAZWAZ | 2 (GH Actions) | 03:00 | ✅ active | 132 |
+| RENTHUB | 2 (GH Actions) | 03:30 | ✅ active | 709 |
+| LIVING_INSIDER | 2 (GH Actions) | 04:00 | ✅ active | 157 |
 | LAZUDI | 2 (GH Actions) | 05:30 | ✅ active | 55 |
 | THAILAND_PROPERTY | 1 (Vercel) | n/a | ⚠️ no fresh listings | 0 |
 | HIPFLAT | 3 (deferred) | n/a | 🔴 deferred (Cloudflare 403) | n/a |
@@ -98,4 +98,5 @@ _Auto-generated. Add manual content between `<!-- manual-section-start -->` and 
 
 _Auto-generated. Add manual content between `<!-- manual-section-start -->` and `<!-- manual-section-end -->` markers — the workflow appends preserved blocks at the file tail._
 
+_Auto-generated. Add manual content between `<!-- manual-section-start -->` and `<!-- manual-section-end -->` markers — the workflow appends preserved blocks at the file tail._
 _Auto-generated. Add manual content between `<!-- manual-section-start -->` and `<!-- manual-section-end -->` markers — the workflow appends preserved blocks at the file tail._
