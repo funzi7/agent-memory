@@ -1,18 +1,18 @@
 # thai-rent-finder — State
 
 > Living document. Auto-updated daily at 02:00 UTC by `auto-update-state.yml`.
-> Last auto-update: 2026-05-08
+> Last auto-update: 2026-05-09
 > Production: https://thai-rent-finder.vercel.app
-> Total listings in DB: 1140
+> Total listings in DB: 1180
 
 ## Sources status (current)
 
 | Source | Tier | Cron (ICT) | Status | Listings 7d |
 |--------|------|------------|--------|-------------|
-| FAZWAZ | 2 (GH Actions) | 03:00 | ✅ active | 132 |
-| RENTHUB | 2 (GH Actions) | 03:30 | ✅ active | 709 |
+| FAZWAZ | 2 (GH Actions) | 03:00 | ✅ active | 150 |
+| RENTHUB | 2 (GH Actions) | 03:30 | ✅ active | 716 |
 | LIVING_INSIDER | 2 (GH Actions) | 04:00 | ✅ active | 157 |
-| LAZUDI | 2 (GH Actions) | 05:30 | ✅ active | 55 |
+| LAZUDI | 2 (GH Actions) | 05:30 | ✅ active | 57 |
 | THAILAND_PROPERTY | 1 (Vercel) | n/a | ⚠️ no fresh listings | 0 |
 | HIPFLAT | 3 (deferred) | n/a | 🔴 deferred (Cloudflare 403) | n/a |
 
@@ -38,16 +38,6 @@
 - **#49** — fix: FazWaz selector waits + Living Insider live selectors + DB photo cleanup
 - **#48** — fix: FazWaz city stamping + Living Insider v1 index-only + source filter on /listings
 - **#47** — fix: Renthub city/photo/limit bugs + Living Insider diagnostics + CLI case-insensitive
-- **#46** — feat: implement Renthub + Living Insider scrapers, fix CLI exit, disable failing crons
-- **#45** — feat: photo dedup + source filter + Renthub/LivingInsider infra (scrapers stubbed)
-- **#44** — feat: GH Actions scraper runner + FazWaz migration
-- **#43** — fix: heart auto-trigger + Codex PR#38 P1/P2 followups
-- **#42** — feat: enforce SHORTLISTED+ gates on AI reviews (manual) and AI concerns (auto)
-- **#41** — fix: candidateWhere honors refresh_after backoff on stale rows
-- **#40** — fix: regenerate-summaries cycle filter force-only
-- **#39** — fix: harden regenerate-summaries against stale-flag leak and force-mode non-termination
-- **#38** — feat: bulk-regenerate building summaries with persistent empty-result caching
-- **#37** — fix: harden concerns-recompute against empty AI responses and missing UserStatus rows
 
 ## Open issues
 
@@ -98,5 +88,6 @@ _Auto-generated. Add manual content between `<!-- manual-section-start -->` and 
 
 _Auto-generated. Add manual content between `<!-- manual-section-start -->` and `<!-- manual-section-end -->` markers — the workflow appends preserved blocks at the file tail._
 
+_Auto-generated. Add manual content between `<!-- manual-section-start -->` and `<!-- manual-section-end -->` markers — the workflow appends preserved blocks at the file tail._
 _Auto-generated. Add manual content between `<!-- manual-section-start -->` and `<!-- manual-section-end -->` markers — the workflow appends preserved blocks at the file tail._
 _Auto-generated. Add manual content between `<!-- manual-section-start -->` and `<!-- manual-section-end -->` markers — the workflow appends preserved blocks at the file tail._
