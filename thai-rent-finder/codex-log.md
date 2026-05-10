@@ -5,6 +5,28 @@ History of Codex auto-fix activities. Newest first.
 ---
 
 ## PR #71 — feat(ci): codex review gate blocks merge until Codex signals
+**Date:** 2026-05-10T05:09:53Z
+**Reviewed commit:** unknown
+**Source:** [PR comment](https://github.com/funzi7/thai-rent-finder/pull/71#discussion_r3214337952)
+
+**Summary**
+* Hardened Codex Gate’s P1 regex so badge fragments like `/P1-orange` are caught while still avoiding alphanumeric false positives such as `P10` and `P1A`. 
+* Switched inline review-comment fetching to `github.paginate(...)`, so inline-only Codex findings are evaluated across long PR review threads. 
+* Updated the Codex Gate docs to describe re-checks from `pull_request_review_comment` / `issue_comment` events and paginated inline review-comment coverage. 
+
+**Testing**
+* ✅ `ruby -e "require 'yaml'; YAML.load_file('.github/workflows/codex-gate.yml'); puts 'yaml ok'"`
+* ✅ `node - <<'NODE' ... NODE`
+
+Created PR: `fix(ci): harden Codex Gate P1 detection`
+
+Note: `package-lock.json` had pre-existing unstaged changes and was intentionally left out of the commit.
+
+ [View task →](https://chatgpt.com/s/cd_6a0012aec9408191aef7f7ebd928b8e7)
+
+---
+
+## PR #71 — feat(ci): codex review gate blocks merge until Codex signals
 **Date:** 2026-05-10T05:02:20Z
 **Reviewed commit:** unknown
 **Source:** [PR comment](https://github.com/funzi7/thai-rent-finder/pull/71#discussion_r3214331130)
