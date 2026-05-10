@@ -4,6 +4,19 @@ History of Codex auto-fix activities. Newest first.
 
 ---
 
+## PR #70 — fix: 4 critical CI automation issues (closes #65, #69)
+**Date:** 2026-05-10T03:29:06Z
+**Reviewed commit:** unknown
+**Source:** [PR comment](https://github.com/funzi7/thai-rent-finder/pull/70#discussion_r3214249986)
+
+**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Include Thailand-Property in the checkup summary**
+
+When `THAILAND_PROPERTY` has zero fresh rows, adding it here makes `/api/admin/health` return `healthy: false` and site-health report a stale source, but `scripts/build-checkup-message.js` still hard-codes the per-source list to only `FAZWAZ`, `RENTHUB`, `LIVING_INSIDER`, and `LAZUDI` (lines 77-83). The daily Telegram alert can therefore say “Needs Attention” while showing all listed sources as green, hiding the newly monitored stale source from the main triage summary. Please keep the checkup source list in sync with the health endpoint or derive it from the health response.
+
+Useful? React with 👍 / 👎.
+
+---
+
 ## PR #68 — feat(ci): codex auto-fix catches inline review comments too
 **Date:** 2026-05-04T23:17:54Z
 **Reviewed commit:** unknown
