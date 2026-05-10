@@ -3,17 +3,17 @@
 > Living document. Auto-updated daily at 02:00 UTC by `auto-update-state.yml`.
 > Last auto-update: 2026-05-10
 > Production: https://thai-rent-finder.vercel.app
-> Total listings in DB: 1226
+> Total listings in DB: 1230
 
 ## Sources status (current)
 
 | Source | Tier | Cron (ICT) | Status | Listings 7d |
 |--------|------|------------|--------|-------------|
 | FAZWAZ | 2 (GH Actions) | 03:00 | ✅ active | 164 |
-| RENTHUB | 2 (GH Actions) | 03:30 | ✅ active | 712 |
+| RENTHUB | 2 (GH Actions) | 03:30 | ✅ active | 709 |
 | LIVING_INSIDER | 2 (GH Actions) | 04:00 | ✅ active | 159 |
 | LAZUDI | 2 (GH Actions) | 05:30 | ✅ active | 58 |
-| THAILAND_PROPERTY | 1 (Vercel) | n/a | ✅ active | 62 |
+| THAILAND_PROPERTY | 1 (Vercel) | n/a | ✅ active | 63 |
 | HIPFLAT | 3 (deferred) | n/a | 🔴 deferred (Cloudflare 403) | n/a |
 
 ## Recently merged PRs (last 7 days)
@@ -37,7 +37,7 @@
 
 ## Open issues
 
-- **#64** — Site Health Alert — 2026-05-04 _(site-health, auto-detected)_
+- **#72** — Site Health Alert — 2026-05-10 _(site-health, auto-detected)_
 
 ## Active workflows
 
@@ -82,6 +82,7 @@ _Auto-generated. Add manual content between `<!-- manual-section-start -->` and 
 
 _Auto-generated. Add manual content between `<!-- manual-section-start -->` and `<!-- manual-section-end -->` markers — the workflow appends preserved blocks at the file tail._
 
+_Auto-generated. Add manual content between `<!-- manual-section-start -->` and `<!-- manual-section-end -->` markers — the workflow appends preserved blocks at the file tail._
 _Auto-generated. Add manual content between `<!-- manual-section-start -->` and `<!-- manual-section-end -->` markers — the workflow appends preserved blocks at the file tail._
 _Auto-generated. Add manual content between `<!-- manual-section-start -->` and `<!-- manual-section-end -->` markers — the workflow appends preserved blocks at the file tail._
 _Auto-generated. Add manual content between `<!-- manual-section-start -->` and `<!-- manual-section-end -->` markers — the workflow appends preserved blocks at the file tail._
