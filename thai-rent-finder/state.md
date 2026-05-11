@@ -1,23 +1,24 @@
 # thai-rent-finder — State
 
 > Living document. Auto-updated daily at 02:00 UTC by `auto-update-state.yml`.
-> Last auto-update: 2026-05-10
+> Last auto-update: 2026-05-11
 > Production: https://thai-rent-finder.vercel.app
-> Total listings in DB: 1230
+> Total listings in DB: 1259
 
 ## Sources status (current)
 
 | Source | Tier | Cron (ICT) | Status | Listings 7d |
 |--------|------|------------|--------|-------------|
-| FAZWAZ | 2 (GH Actions) | 03:00 | ✅ active | 164 |
-| RENTHUB | 2 (GH Actions) | 03:30 | ✅ active | 709 |
-| LIVING_INSIDER | 2 (GH Actions) | 04:00 | ✅ active | 159 |
-| LAZUDI | 2 (GH Actions) | 05:30 | ✅ active | 58 |
-| THAILAND_PROPERTY | 1 (Vercel) | n/a | ✅ active | 63 |
+| FAZWAZ | 2 (GH Actions) | 03:00 | ✅ active | 154 |
+| RENTHUB | 2 (GH Actions) | 03:30 | ✅ active | 707 |
+| LIVING_INSIDER | 2 (GH Actions) | 04:00 | ✅ active | 69 |
+| LAZUDI | 2 (GH Actions) | 05:30 | ✅ active | 57 |
+| THAILAND_PROPERTY | 1 (Vercel) | n/a | ✅ active | 58 |
 | HIPFLAT | 3 (deferred) | n/a | 🔴 deferred (Cloudflare 403) | n/a |
 
 ## Recently merged PRs (last 7 days)
 
+- **#71** — feat(ci): codex review gate blocks merge until Codex signals
 - **#70** — fix: 4 critical CI automation issues (closes #65, #69)
 - **#68** — feat(ci): codex auto-fix catches inline review comments too
 - **#67** — feat(ci): daily Telegram checkup with health summary
@@ -26,14 +27,6 @@
 - **#62** — feat(ci): site health workflow + /api/admin/health endpoint
 - **#61** — fix(ui): migrate legacy maxPrice=25000 in saved filters (Codex P1 from PR #58)
 - **#60** — fix(ci): archive_codex_summary catches pull_request_review events
-- **#59** — fix(ui): filter persistence actually applies on mount (B5 follow-up)
-- **#58** — fix(ui): RTL sqm display, Apply button, persistent filters, max price 40K
-- **#57** — feat(ci): archive Codex summaries to agent-memory automatically
-- **#56** — feat(ci): auto-trigger Codex fix on P1/P2 reviews
-- **#55** — feat(api): CI Watcher endpoint for Claude Project automation
-- **#54** — feat: Hipflat + Lazudi scrapers (Tier 2 GH Actions) + Living Insider polish
-- **#53** — fix: Living Insider price extraction (multiple formats + URL fallback) + tighter title heuristic
-- **#52** — fix: Living Insider title/specs/price extraction + Codex reviews
 
 ## Open issues
 
@@ -48,6 +41,7 @@
 - `scrape-renthub.yml` — cron `30 20 * * *` UTC
 - `auto-update-state.yml` — cron `0 2 * * *` UTC
 - `codex-auto-fix.yml`
+- `codex-gate.yml`
 - `daily-checkup.yml` — cron `30 1 * * *` UTC
 - `scrape.yml` — cron `0 2,14 * * *` UTC
 - `site-health.yml` — cron `0 1 * * *` UTC
@@ -82,6 +76,7 @@ _Auto-generated. Add manual content between `<!-- manual-section-start -->` and 
 
 _Auto-generated. Add manual content between `<!-- manual-section-start -->` and `<!-- manual-section-end -->` markers — the workflow appends preserved blocks at the file tail._
 
+_Auto-generated. Add manual content between `<!-- manual-section-start -->` and `<!-- manual-section-end -->` markers — the workflow appends preserved blocks at the file tail._
 _Auto-generated. Add manual content between `<!-- manual-section-start -->` and `<!-- manual-section-end -->` markers — the workflow appends preserved blocks at the file tail._
 _Auto-generated. Add manual content between `<!-- manual-section-start -->` and `<!-- manual-section-end -->` markers — the workflow appends preserved blocks at the file tail._
 _Auto-generated. Add manual content between `<!-- manual-section-start -->` and `<!-- manual-section-end -->` markers — the workflow appends preserved blocks at the file tail._
