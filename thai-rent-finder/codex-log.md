@@ -4,6 +4,38 @@ History of Codex auto-fix activities. Newest first.
 
 ---
 
+## PR #75 — chore(automation): bootstrap sync from automation-core
+**Date:** 2026-05-12T11:08:34Z
+**Reviewed commit:** unknown
+**Source:** [PR comment](https://github.com/funzi7/thai-rent-finder/pull/75#pullrequestreview-4271661051)
+
+
+### 💡 Codex Review
+
+Here are some automated review suggestions for this pull request.
+
+**Reviewed commit:** `fd0141e172`
+    
+
+<details> <summary>ℹ️ About Codex in GitHub</summary>
+<br/>
+
+[Your team has set up Codex to review pull requests in this repo](https://chatgpt.com/codex/cloud/settings/general). Reviews are triggered when you
+- Open a pull request for review
+- Mark a draft as ready
+- Comment "@codex review".
+
+If Codex has suggestions, it will comment; otherwise it will react with 👍.
+
+
+
+
+Codex can also answer questions or update the PR. Try commenting "@codex address that feedback".
+            
+</details>
+
+---
+
 ## PR #71 — feat(ci): codex review gate blocks merge until Codex signals
 **Date:** 2026-05-10T05:09:53Z
 **Reviewed commit:** unknown
