@@ -84,23 +84,52 @@
 
 ---
 
-## Active issues — failed/incomplete from `8a44bd4`
+## Active groups — Groups A through F prime ✅ DONE
 
-Detailed in `state.md` "Active issues" section. Summary:
+All six groups merged into `main`. Detailed status per group in `state.md`.
 
-### Group A → FIX 4 (FIRST to run — biggest visual impact per Dima)
-A1 strategy distribution sort, A2 source column click, A3 "ק+" shorten, A4 image cache, A5 Telegram URL normalize, A6 abnormal alerts empty
+### Group A → FIX 4 ✅ (commit `9ddca1c`)
+A1 strategy sort, A2/A3 source column click+shorten, A4/A5 image cache + Telegram URL normalize — all verified. A6 abnormal alerts partial (only 1 ticker shown when multiple should appear) — now tracked as N-item.
 
-### Group B → FIX 3
-B1 "בתהליך" duplicate, B2 yearly 24% twice, B3 minus left side LRM, B4 "נותר: $X" overlay, B5 monthly target $5086 vs $5116 unify
+### Group B → FIX 3 ✅ (commit `f1c3e9a`)
+B1 "בתהליך" duplicate removed, B2 yearly 24% duplicate removed, B4 "נותר" overlay, B5 monthly target unified to $5066. B3 minus-on-right skipped (was already correct).
 
-### Group C → FIX 2
-C1 CSP cash net of premium, C2 CSP_CASH log empty, C3 INTC aggregation, C4 PROFITABLE_REPORT log empty
+### Group C → FIX 2 ✅ (commit `16fd852`)
+C2 INTC aggregation (2026-only correct), C3 settings target reload, C4 post paragraph breaks — all verified. C1 CSP cash superseded by E prime / F-area work.
 
-### Group D → FIX 1
-D1 Massive 0 contracts (RAW JSON dump), D2 await prefetch in lookup, D3 initial vs current IV identical, D4 add `initial_implied_volatility` column in DB v31
+### Group D prime ✅ (commit `fdc1cf1`)
+D1 social regression fixed, D3 reports all-years toggle verified, D4 per-bar remaining done. D2 CSP text superseded by E prime.
 
-### Other open (not in 4-FIX series)
+### Group E prime ✅ (commit `7df9465`)
+E1 CSP card root cause: premium is per-share not per-contract. ASTS net = (150 − 9.31) × 100 × 1 = 14069, not 14991. Card restructured RTL with 3 rows (exit cash / available now / after assignment). E2 monthly bar realized/target/remaining + RTL total row. E3 phantom IREN labeled via AlertSource enum + badges (root cause not fixed — superseded by F4). E4 feed dedup: edit-then-close updates same row instead of stacking.
+
+### Group F prime ✅ (commit `589b44e`)
+F1 assignment probability: DELTA_DEBUG log added, BlackScholesCalculator made unit-tolerant (IV accepted as percent or decimal via <5.0 heuristic), EWY ~95% awaiting device verify. F2 IV autofill removed: stripped all 8 `lookupIvForExpiry` call sites + init `cachedIv` overwrite — IV is now manual-only and survives field changes. F3 feed color: POSITION_EDITED moved to blue (`PremiumReceivedColor`) branch. F4 phantom prune: `isFullSync` param added so prune only runs on `fullResync()`, removes snapshot tickers absent from Flex with no open position and no manual override.
+
+---
+
+## Current backlog — N-items (from device test 2026-05-13)
+
+Full table lives in `state.md` under "New active issues from device test 2026-05-13 (N-items)". Summary:
+
+- **N4** off-market-hours stock prices stale → cascades to CC reminder, abnormal alerts, per-ticker numbers/percent
+- **N5** monthly target dashboard: total progress percent disappeared
+- **N6** assignment probability inverted (EWY deep ITM showed 28%) — fixed in F prime, awaiting device verify
+- **N7** RTL alignment on "betachonot"/"maniot" in open-position card
+- **N8** phantom tickers MULL/MU persist — fixed in F prime, awaiting device verify
+- **N9** "bitachon nidrash" appears on CALL positions (should be PUT only)
+- **N10** IV 99% wrong / reverts on field change — fixed in F prime (autofill removed), awaiting device verify
+- **N11** edit-open-position shows spurious "sale opportunity" texts
+- **N12** feed: updated position shows green instead of blue — fixed in F prime, awaiting device verify
+- **N13** social dashboard shows old posts, not newest across channels
+- **N14** system notifications "X fired/created" / main activity — remove entirely
+- **N15** alerts: surface highest IVs across current portfolio tickers + dates (feature)
+
+Next prompt should bundle the still-open items (N4, N5, N7, N9, N11, N13, N14) per 4-fix limit. F-prime device-verify items (N6, N8, N10, N12) get confirmed on next device session before being closed.
+
+---
+
+## Other open (not in A-F prime series)
 E1 Spread leg-matching, E2 Annual target screen bars, E3 B-S auto-fill device verify, E4 ML Kit 16 KB, E5 cents-level P&L, E6 Dashboard 3-card layout
 
 ---

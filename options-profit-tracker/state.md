@@ -14,69 +14,51 @@
 - **Repo:** funzi7/OptionsProfitTracker
 - **DB version:** 30 (planned bump to 31 in FIX 1/F for `initial_implied_volatility` column)
 - **Branch (current work):** `main`
-- **Last commit:** `fdc1cf1` (Group D' — social regression + CSP net + reports all-years + per-bar remaining)
-- **Recent commits:** `8a44bd4` → `9ddca1c` (Group A) → `f1c3e9a` (Group B) → `16fd852` (Group C) → `fdc1cf1` (Group D')
+- **Last commit:** `589b44e` (Group F prime — assignment prob + remove IV autofill + feed color + phantom prune)
+- **Recent commits:** `8a44bd4` → `9ddca1c` (Group A) → `f1c3e9a` (Group B) → `16fd852` (Group C) → `fdc1cf1` (Group D prime) → `7df9465` (Group E prime) → `589b44e` (Group F prime)
 
 ## Active issues
 
-### Group A — Image + sort + alerts (FIX 4) ✅ COMPLETE
+### Group A (FIX 4) - COMPLETE
+A1 strategy sort, A2/A3 source column click+shorten, A4/A5 image cache+URL normalize: all verified. A6 abnormal alerts: partial - only one ticker shows when multiple should (still open, see N-items).
+
+### Group B (FIX 3) - COMPLETE
+B1 duplicate removed, B2 yearly 24 percent removed, B4 remaining overlay, B5 monthly target unified 5066: all verified. B3 skipped (minus already correct).
+
+### Group C (FIX 2) - COMPLETE
+C2 INTC aggregation verified (2026-only correct), C3 settings target reload verified, C4 post paragraphs verified. C1 CSP cash: superseded by E prime and F-area work.
+
+### Group D prime - COMPLETE
+D1 social regression fixed (section restored), D3 reports all-years toggle verified, D4 per-bar remaining done. D2 CSP text: superseded by E prime.
+
+### Group E prime - COMPLETE
+E1 CSP card: found root cause - premium is per-share not per-contract. ASTS net = (150 - 9.31) x 100 x 1 = 14069 not 14991. Number now correct. Card restructured RTL with 3 rows (exit cash, available now, after assignment).
+E2 monthly bar: realized/target/remaining on each bar, total row RTL.
+E3 phantom IREN: added AlertSource enum + badges (bait/watchlist/draft/other). Root cause NOT fixed - just labeled. Superseded by F4.
+E4 feed dedup: edit-then-close now updates same row instead of stacking.
+
+### Group F prime - COMPLETE (commit 589b44e)
+F1 assignment prob: added DELTA_DEBUG log, made BlackScholesCalculator unit-tolerant (accepts IV as percent or decimal via <5.0 heuristic). Awaiting device verification of EWY showing ~95 percent.
+F2 remove IV autofill: stripped all 8 lookupIvForExpiry call sites, removed init cachedIv overwrite. IV now manual-only, user-typed value survives field changes.
+F3 feed color: POSITION_EDITED moved to blue (PremiumReceivedColor) branch.
+F4 phantom prune: added isFullSync param, prune runs only on fullResync, removes snapshot tickers absent from Flex with no open position and no manual override.
+
+## New active issues from device test 2026-05-13 (N-items)
 
 | # | Issue | Status |
 |---|---|---|
-| A1 | Strategy distribution sortedByDescending | ✅ verified |
-| A2 | Source column header click logs PORTFOLIO_SORT + sorts list | ✅ verified |
-| A3 | Source column shortened "ק+" / "מ-" / "הקצ" / "פק" | ✅ verified |
-| A4 | Image cache (Coil ImageLoader, mem 25% + disk 5%) | ✅ verified |
-| A5 | Telegram URL normalize | ✅ verified — minor: some posts show emoji as inline image |
-| A6 | Abnormal alerts no shares filter, threshold strict 5% | 🟡 partial — only 1 ticker shown when multiple should appear |
-
-### Group B — Dashboard regressions (FIX 3) ✅ COMPLETE
-
-| # | Issue | Status |
-|---|---|---|
-| B1 | "בתהליך" duplicate removed | ✅ verified |
-| B2 | Yearly "24%" duplicate removed | ✅ verified |
-| B3 | Minus on right side | ✅ N/A — verified already correct |
-| B4 | "נותר: $X" overlay on monthly bar | ✅ initial done, refined in D'4 |
-| B5 | $5066 vs $5116 — Settings recompute on open | ✅ verified |
-
-### Group C — CSP + report aggregation (FIX 2) — PARTIAL
-
-| # | Issue | Status |
-|---|---|---|
-| C1 | CSP cash net of premium | 🔄 IN PROGRESS — see E'1 below |
-| C2 | INTC profitable tickers aggregation | ✅ verified (2026-only correct; All-Years added in D'3) |
-| C3 | (was B5 retry) Settings recomputes target on open | ✅ verified |
-| C4 | Posts paragraph breaks | ✅ verified — caused D'1 regression now fixed |
-
-### Group D' — Social regression + CSP + reports + per-bar (NEW)
-
-| # | Issue | Status |
-|---|---|---|
-| D'1 | Social Feed regression fix | ✅ verified — section restored |
-| D'2 | CSP "ייצא מהקאש" rewrite | 🔴 broken — not right-aligned, still shows $14991, missing cash balance |
-| D'3 | Reports "כל השנים" toggle | ✅ verified |
-| D'4 | Per-bar "נותר" overlay + total row RTL | 🔴 partial — "סה\"כ" still left, missing target amount on each bar |
-
-### Group E' (NEXT) — UI rendering corrections + activity feed dedup
-
-| # | Issue | Source | Status |
-|---|---|---|---|
-| E'1 | CSP card: right-align + show cash balance + correct net amount | retry of D'2 | ⏳ |
-| E'2 | Monthly target: "סה\"כ" right + restore target amount per bar | retry of D'4 | ⏳ |
-| E'3 | Phantom IREN in abnormal alerts (Dima doesn't hold) | new from device test | ⏳ |
-| E'4 | Activity feed: edit-then-close creates duplicate row | new from device test | ⏳ |
-
-### Other open items not yet addressed
-
-| # | Issue | Notes |
-|---|---|---|
-| E1 | Spread display leg-matching | 🔴 broken — 3-pass SELL+BUY matching, not addressed in `8a44bd4` |
-| E2 | Annual target screen | 🟡 partial — needs bars for previous months + year selector |
-| E3 | Black-Scholes premium auto-fill | 🟡 implemented, unconfirmed by Dima on device |
-| E4 | APK 16 KB page-size warning | ⏳ open — ML Kit `text-recognition:16.0.0` |
-| E5 | Cents-level P&L mismatch (BTCI: 349.49 vs IBKR 349.50) | 🔴 open |
-| E6 | Dashboard layout: 3 cards same row + bigger annual target at bottom | ⏳ |
+| N4 | Off-market-hours: all data wrong (CC reminder, abnormal alerts, per-ticker numbers/percent) - stock prices do not update outside market hours | open |
+| N5 | Monthly target dashboard: total progress percent disappeared | open |
+| N6 | Assignment probability inverted (EWY deep ITM showed 28 percent) | fixed in F prime, awaiting device verify |
+| N7 | "betachonot"/"maniot" in open-position card need right-align (word right, number left) | open |
+| N8 | Phantom tickers MULL/MU persist | fixed in F prime, awaiting device verify |
+| N9 | "bitachon nidrash" appears on CALL position - should be PUT only | open |
+| N10 | IV 99 percent wrong, reverts to old value on field change | fixed in F prime (removed), awaiting device verify |
+| N11 | Edit-open-position shows "sale opportunity" texts that should not appear | open |
+| N12 | Feed: updated position shows green instead of blue | fixed in F prime, awaiting device verify |
+| N13 | Social dashboard shows old posts, not newest from all channels | open |
+| N14 | System notifications "X fired/created", main activity - remove entirely | open |
+| N15 | Alerts: show all highest IVs by current portfolio tickers + dates | open (feature) |
 
 ## ✅ Confirmed working as of `8a44bd4`
 
