@@ -14,8 +14,8 @@
 - **Repo:** funzi7/OptionsProfitTracker
 - **DB version:** 30 (planned bump to 31 in FIX 1/F for `initial_implied_volatility` column)
 - **Branch (current work):** `main`
-- **Last commit:** `3da5058` (Group L prime — extended-hours price pulled from v8 candle array; meta.preMarketPrice / postMarketPrice don't exist on the chart endpoint)
-- **Recent commits:** `8a44bd4` → `9ddca1c` (Group A) → `f1c3e9a` (Group B) → `16fd852` (Group C) → `fdc1cf1` (Group D prime) → `7df9465` (Group E prime) → `589b44e` (Group F prime) → `646a1e0` (Group G prime) → `be9a23e` (Group H prime) → `996ffe6` (Group I prime) → `9f79c9f` (Group J prime) → `75722b0` (Group K prime) → `6684fa4` (L' step 1 diag) → `3da5058` (Group L prime)
+- **Last commit:** `91fa735` (Group M prime — stop demoting current→previous in Flex/import paths, IV_TRACE diagnostic, expected-move range UI)
+- **Recent commits:** `8a44bd4` → `9ddca1c` (Group A) → `f1c3e9a` (Group B) → `16fd852` (Group C) → `fdc1cf1` (Group D prime) → `7df9465` (Group E prime) → `589b44e` (Group F prime) → `646a1e0` (Group G prime) → `be9a23e` (Group H prime) → `996ffe6` (Group I prime) → `9f79c9f` (Group J prime) → `75722b0` (Group K prime) → `6684fa4` (L' step 1 diag) → `3da5058` (Group L prime) → `91fa735` (Group M prime)
 
 ## Active issues
 
@@ -80,11 +80,17 @@ Step 2 (fix, commit 3da5058): on the v8 chart endpoint the latest extended-hours
 The L1 / CANDLES / FINAL PREPOST_DEBUG logs are left in place so the next device test can verify the new logic produces sensible values.
 v7 batch `fetchYahooPrices` (used by workers, alerts, anything outside the dashboard refresh) left alone — only the v8 single-ticker path changed.
 
+### Group M prime - COMPLETE (commit 91fa735)
+Device test with markets OPEN: top gainers/losers + abnormal alerts still showed ASTS at +20% when reality was +6%. Current price was correct (127.4 fresh from L' candle-array fix), but the snapshot's "previous" baseline was 105.86 — a value from 2 days ago, not yesterday's close of 119.7.
+M1 stop the current→previous demote in Flex/import paths: the dashboard refresh paths (Yahoo) had been writing the correct previous from `regularMarketPreviousClose` since I'/J'/K'. The corruption was coming from THREE non-dashboard sites that did `existing.put("previous", lastCurrent)` on every Flex/sync run — exactly the demote anti-pattern fixed in H' for the dashboard. Locations: `FlexSyncWorker.kt:259-264` (background Flex sync), `ImportViewModel.kt:617-624` (mark-price sync for open positions), and `ImportViewModel.kt:659-666` (stock-holding merge loop). All three now write `current` only; `previous` is owned by Yahoo refresh paths. Added a `snapshot write` PRICE_REFRESH log in the init refresh path showing the written current/previous/pct so the next device test can verify.
+M2 IV_TRACE diagnostic (no calc change): once on commit 3da5058 device test, an open CSP position showed delta=-0.999 (vs broker -0.191) and BS=$62.51 (vs broker mid $3.24), self-corrected after the user re-entered IV minutes later. Added `IV_TRACE` log inside `ReportGenerator.summarize` printing `ticker / optionType / K / S / storedIv / dteUsed / delta / prob` at the exact moment estimatedDelta + assignmentProbability are computed. No calc changes — purely diagnostic so next recurrence reveals whether `entity.impliedVolatility` momentarily held the wrong value (stale sync IV, race between user input and persist, etc.).
+M3 expected-move range in add-position risk panel: next to the existing "תנועה צפויה (1σ) ±$X" row, added a "טווח צפוי" row showing `$low – $high` (currentPrice ± expectedMove), both wrapped in LTR per CLAUDE.md money-sign rule. Renders only when currentPrice > 0 && expectedMove > 0 so the panel doesn't show a zero-zero range on bare/blank forms.
+
 ## New active issues from device test 2026-05-13 (N-items)
 
 | # | Issue | Status |
 |---|---|---|
-| N4 | Off-market-hours: all data wrong (CC reminder, abnormal alerts, per-ticker numbers/percent) - stock prices do not update outside market hours | fixed in L prime (K' switched to v8 chart endpoint but `meta.preMarketPrice` / `postMarketPrice` don't actually exist there — they live in the per-minute candle array `result[0].indicators.quote[0].close`; L' reads the latest non-null close from there and compares timestamp vs regularMarketTime to detect extended-hours prints), awaiting device verify |
+| N4 | Off-market-hours: all data wrong (CC reminder, abnormal alerts, per-ticker numbers/percent) - stock prices do not update outside market hours | fixed in M prime (L' got "current" fresh from candles, but top-movers/abnormal-alerts still showed +20% for ASTS because the Flex/import paths kept demoting current→previous, corrupting the baseline; M' removes the demote in all three sync sites so previous stays at Yahoo's regularMarketPreviousClose), awaiting device verify |
 | N5 | Monthly target dashboard: total progress percent disappeared | fixed in J prime (I' added fallback bar but a Flex sync kept zeroing the user's living/growth via ImportViewModel.applyPortfolioToSettings overwriting MonthlyTargetEntity without the breakdown fields; J' preserves on write + carries forward from prior month + repairs in-memory at read-time), awaiting device verify |
 | N6 | Assignment probability inverted (EWY deep ITM showed 28 percent) | fixed across F/G prime, awaiting final verify |
 | N7 | "betachonot"/"maniot" in open-position card need right-align (word right, number left) | open |
