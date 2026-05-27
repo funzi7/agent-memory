@@ -14,8 +14,8 @@
 - **Repo:** funzi7/OptionsProfitTracker
 - **DB version:** 30 (planned bump to 31 in FIX 1/F for `initial_implied_volatility` column)
 - **Branch (current work):** `main`
-- **Last commit:** `be9a23e` (Group H prime — monthly bar reverted + PercentPill, BS fill cache-IV fallback, stale price baseline)
-- **Recent commits:** `8a44bd4` → `9ddca1c` (Group A) → `f1c3e9a` (Group B) → `16fd852` (Group C) → `fdc1cf1` (Group D prime) → `7df9465` (Group E prime) → `589b44e` (Group F prime) → `646a1e0` (Group G prime) → `be9a23e` (Group H prime)
+- **Last commit:** `996ffe6` (Group I prime — single-bar fallback when no living/growth breakdown, BS fill IV-parse hardening + Hebrew-message guard, stale "previous" fix in resume + pull-to-refresh paths)
+- **Recent commits:** `8a44bd4` → `9ddca1c` (Group A) → `f1c3e9a` (Group B) → `16fd852` (Group C) → `fdc1cf1` (Group D prime) → `7df9465` (Group E prime) → `589b44e` (Group F prime) → `646a1e0` (Group G prime) → `be9a23e` (Group H prime) → `996ffe6` (Group I prime)
 
 ## Active issues
 
@@ -54,12 +54,17 @@ H1 monthly bar reverted: removed the G3 row addition below the bar. Replaced wit
 H2 BS fill cache-IV fallback: `fillPremiumFromBS` now reads `ivCacheDao.getLatestIvForTicker(ticker)` when the IV field is empty, sets it into state, and re-runs `recalculate()`. If still no BS price, surface a Hebrew autoFillStatus message ("הזן IV..." or "לא ניתן לחשב...") instead of silently writing 0.00. Added BS_FILL log inside `BlackScholesCalculator.calculate` to confirm inputs.
 H3 stale price baseline: removed the `else if (oldCurrent != null && oldCurrent != yahooCurrent) obj.put("previous", oldCurrent)` fallback from BOTH price-refresh paths in DashboardViewModel. The fallback was mutating "previous" forward over refreshes, inflating daily change (ASTS real +6% → app +13%). Also flipped abnormal-alert base order to `previous ?: dailyOpen` (was `dailyOpen ?: previous`) — dailyOpen is captured opportunistically and drifts.
 
+### Group I prime - COMPLETE (commit 996ffe6)
+I1 monthly bars fallback: rewrote the `else` branch of `MonthlyTargetCard` (when `living > 0 && growth > 0` fails). Now always renders a single 22.dp bar with a centered LTR overlay showing `realized / target · נותר remaining` (or `✓ הושג realized / target` when met). Previously it showed only "נותר: $X" centered on a thin 5%-wide bar, which the user perceived as "no bar". Added MONTHLY_BARS diagnostic log in ReportGenerator that prints `target=<bool> living=<n> growth=<n> overallTarget=<n>` so we can tell if the breakdown is missing because the user never saved one (most likely) vs. a data-load failure.
+I2 BS fill IV-parse hardening: in BOTH `recalculate()` AND `fillPremiumFromBS()` the IV is now parsed via `.trim().removeSuffix("%").trim().toDoubleOrNull()` so "45%" / " 45.0 " / "45.0  " all yield 45.0 (previously they parsed to null and BS computed nothing). Comprehensive BS_FILL diagnostic log added showing every parsed input (S, K, dte, ivField, ivParsed, type, bsTheoretical). The "near-zero" guard widened from `<= 0` to `< 0.005` so a positive-but-rounds-to-0.00 BS result triggers the Hebrew explanation branch instead of silently writing "0.00" into the premium field. Added a dedicated "פרמיה תיאורטית קרובה ל-0 — האופציה מאוד OTM" message for that case.
+I3 stale price baseline (continuation): H' fixed the `triggerPriceRefresh` path but missed `refreshOnResume` (line 607) and `pullToRefresh` (line 660) — those still had `else if (oldCurrent != null && oldCurrent != yahooCurrent) obj.put("previous", oldCurrent)` which mutated "previous" forward on every resume / pull. Removed in both paths; only Yahoo's regularMarketPreviousClose can update "previous". Added PRICE_REFRESH logs in both paths showing `oldCurrent → newCurrent` and `oldPrev / yahooPrev` so the next device test can confirm fresh baselines.
+
 ## New active issues from device test 2026-05-13 (N-items)
 
 | # | Issue | Status |
 |---|---|---|
-| N4 | Off-market-hours: all data wrong (CC reminder, abnormal alerts, per-ticker numbers/percent) - stock prices do not update outside market hours | fixed in H prime (G prime wrote current; H prime fixes previous-close baseline + abnormal-alert base order), awaiting device verify |
-| N5 | Monthly target dashboard: total progress percent disappeared | fixed in H prime (G prime restored but redesigned bar; H prime reverts to original bar + adds PercentPill matching annual style) |
+| N4 | Off-market-hours: all data wrong (CC reminder, abnormal alerts, per-ticker numbers/percent) - stock prices do not update outside market hours | fixed in I prime (H' missed the resume + pull-to-refresh paths, both still had the stale-current fallback for "previous"; I' removes from both), awaiting device verify |
+| N5 | Monthly target dashboard: total progress percent disappeared | fixed in I prime (H' brought the percent back but the bar still showed as empty when no living/growth breakdown; I' renders a single fallback bar with realized/target/remaining overlay), awaiting device verify |
 | N6 | Assignment probability inverted (EWY deep ITM showed 28 percent) | fixed across F/G prime, awaiting final verify |
 | N7 | "betachonot"/"maniot" in open-position card need right-align (word right, number left) | open |
 | N8 | Phantom tickers MULL/MU persist | fixed in F prime, awaiting device verify |
