@@ -14,8 +14,8 @@
 - **Repo:** funzi7/OptionsProfitTracker
 - **DB version:** 30 (planned bump to 31 in FIX 1/F for `initial_implied_volatility` column)
 - **Branch (current work):** `main`
-- **Last commit:** `646a1e0` (Group G prime — assignment prob IV-free fallback + off-hours price write-back + monthly progress restored + collateral PUT-only)
-- **Recent commits:** `8a44bd4` → `9ddca1c` (Group A) → `f1c3e9a` (Group B) → `16fd852` (Group C) → `fdc1cf1` (Group D prime) → `7df9465` (Group E prime) → `589b44e` (Group F prime) → `646a1e0` (Group G prime)
+- **Last commit:** `be9a23e` (Group H prime — monthly bar reverted + PercentPill, BS fill cache-IV fallback, stale price baseline)
+- **Recent commits:** `8a44bd4` → `9ddca1c` (Group A) → `f1c3e9a` (Group B) → `16fd852` (Group C) → `fdc1cf1` (Group D prime) → `7df9465` (Group E prime) → `589b44e` (Group F prime) → `646a1e0` (Group G prime) → `be9a23e` (Group H prime)
 
 ## Active issues
 
@@ -49,12 +49,17 @@ G2 stale prices off-hours: triggerPriceRefresh now writes fetched Yahoo prices b
 G3 monthly progress percent restored as single LTR row.
 G4 required-collateral label now PUT-only (CC no longer shows it).
 
+### Group H prime - COMPLETE (commit be9a23e)
+H1 monthly bar reverted: removed the G3 row addition below the bar. Replaced with a PercentPill above the bar matching the AnnualTargetCard pattern (single source of truth). Negative percent clamped to 0 for the pill so a net-loss month doesn't render as nonsense. Added MONTHLY_PCT log to diagnose any sign issue from `realizedForProgress / monthlyTarget`.
+H2 BS fill cache-IV fallback: `fillPremiumFromBS` now reads `ivCacheDao.getLatestIvForTicker(ticker)` when the IV field is empty, sets it into state, and re-runs `recalculate()`. If still no BS price, surface a Hebrew autoFillStatus message ("הזן IV..." or "לא ניתן לחשב...") instead of silently writing 0.00. Added BS_FILL log inside `BlackScholesCalculator.calculate` to confirm inputs.
+H3 stale price baseline: removed the `else if (oldCurrent != null && oldCurrent != yahooCurrent) obj.put("previous", oldCurrent)` fallback from BOTH price-refresh paths in DashboardViewModel. The fallback was mutating "previous" forward over refreshes, inflating daily change (ASTS real +6% → app +13%). Also flipped abnormal-alert base order to `previous ?: dailyOpen` (was `dailyOpen ?: previous`) — dailyOpen is captured opportunistically and drifts.
+
 ## New active issues from device test 2026-05-13 (N-items)
 
 | # | Issue | Status |
 |---|---|---|
-| N4 | Off-market-hours: all data wrong (CC reminder, abnormal alerts, per-ticker numbers/percent) - stock prices do not update outside market hours | fixed in G prime, awaiting device verify |
-| N5 | Monthly target dashboard: total progress percent disappeared | fixed in G prime |
+| N4 | Off-market-hours: all data wrong (CC reminder, abnormal alerts, per-ticker numbers/percent) - stock prices do not update outside market hours | fixed in H prime (G prime wrote current; H prime fixes previous-close baseline + abnormal-alert base order), awaiting device verify |
+| N5 | Monthly target dashboard: total progress percent disappeared | fixed in H prime (G prime restored but redesigned bar; H prime reverts to original bar + adds PercentPill matching annual style) |
 | N6 | Assignment probability inverted (EWY deep ITM showed 28 percent) | fixed across F/G prime, awaiting final verify |
 | N7 | "betachonot"/"maniot" in open-position card need right-align (word right, number left) | open |
 | N8 | Phantom tickers MULL/MU persist | fixed in F prime, awaiting device verify |
