@@ -14,8 +14,8 @@
 - **Repo:** funzi7/OptionsProfitTracker
 - **DB version:** 30 (planned bump to 31 in FIX 1/F for `initial_implied_volatility` column)
 - **Branch (current work):** `main`
-- **Last commit:** `91fa735` (Group M prime — stop demoting current→previous in Flex/import paths, IV_TRACE diagnostic, expected-move range UI)
-- **Recent commits:** `8a44bd4` → `9ddca1c` (Group A) → `f1c3e9a` (Group B) → `16fd852` (Group C) → `fdc1cf1` (Group D prime) → `7df9465` (Group E prime) → `589b44e` (Group F prime) → `646a1e0` (Group G prime) → `be9a23e` (Group H prime) → `996ffe6` (Group I prime) → `9f79c9f` (Group J prime) → `75722b0` (Group K prime) → `6684fa4` (L' step 1 diag) → `3da5058` (Group L prime) → `91fa735` (Group M prime)
+- **Last commit:** `8bd1aea` (Group N prime — PercentPill realized source aligned with bars, RTL collateral labels, debug toast/notification removal + silent foreground channel, IV-hint hidden on edit)
+- **Recent commits:** `8a44bd4` → `9ddca1c` (Group A) → `f1c3e9a` (Group B) → `16fd852` (Group C) → `fdc1cf1` (Group D prime) → `7df9465` (Group E prime) → `589b44e` (Group F prime) → `646a1e0` (Group G prime) → `be9a23e` (Group H prime) → `996ffe6` (Group I prime) → `9f79c9f` (Group J prime) → `75722b0` (Group K prime) → `6684fa4` (L' step 1 diag) → `3da5058` (Group L prime) → `91fa735` (Group M prime) → `8bd1aea` (Group N prime)
 
 ## Active issues
 
@@ -86,21 +86,27 @@ M1 stop the current→previous demote in Flex/import paths: the dashboard refres
 M2 IV_TRACE diagnostic (no calc change): once on commit 3da5058 device test, an open CSP position showed delta=-0.999 (vs broker -0.191) and BS=$62.51 (vs broker mid $3.24), self-corrected after the user re-entered IV minutes later. Added `IV_TRACE` log inside `ReportGenerator.summarize` printing `ticker / optionType / K / S / storedIv / dteUsed / delta / prob` at the exact moment estimatedDelta + assignmentProbability are computed. No calc changes — purely diagnostic so next recurrence reveals whether `entity.impliedVolatility` momentarily held the wrong value (stale sync IV, race between user input and persist, etc.).
 M3 expected-move range in add-position risk panel: next to the existing "תנועה צפויה (1σ) ±$X" row, added a "טווח צפוי" row showing `$low – $high` (currentPrice ± expectedMove), both wrapped in LTR per CLAUDE.md money-sign rule. Renders only when currentPrice > 0 && expectedMove > 0 so the panel doesn't show a zero-zero range on bare/blank forms.
 
+### Group N prime - COMPLETE (commit 8bd1aea)
+N'1 PercentPill realized source aligned with bars: the pill showed 0% while the bars were full and the total row said "✓ הושג היעד". Root cause: `progressPercent` in `ReportGenerator` was computed from `realizedForProgress = ibkrTotalRealized ?: totalRealized` (= 0 for this user — they had no IBKR-tagged closes this month so `ibkrTotalRealized` resolved to a non-null but 0-summed value), while the bars use `combinedTotalRealized` (= ibkrPnl ?: calc per-position, which sums to the real number). Switched `progressPercent` to use `combinedTotalRealized / monthlyTarget * 100`, same value the bars and `totalRealizedProfitThisMonth` flow from. Single source of truth restored. Added `MONTHLY_PCT` log printing both values for verification.
+N'2 RTL collateral labels (N7): in `DashboardScreen.kt:2249` the open-position card's "בטחונות: $X" / "מניות: $X" was wrapped in `LayoutDirection.Ltr`, which forced left-to-right reading order and put the Hebrew label visually before the number. Replaced with an RTL Row containing a Hebrew label Text followed by an LTR-wrapped number Text — now label sits on the visual right with the number to its left, matching the rest of the Hebrew card.
+N'3 removed debug notifications (N14): three debug surfaces were leaking into the system tray / on-screen — `MainActivity.kt:69-73` Toast "MainActivity.onCreate fired", `OptionsTrackerApp.kt:40-46` Toast "App.onCreate fired @ ...", and `AlertWorker.getForegroundInfo()` notification "בודק התראות..." on the HIGH-importance ALERT channel. Removed both Toasts; kept the logcat MAIN_ONCREATE / APP_ONCREATE entries for diagnostics. AlertWorker's foreground-service notification (Android-required for foreground workers) moved to a new `SILENT_WORKER_CHANNEL_ID` channel (IMPORTANCE_MIN, no sound/vibration/lights), title stripped, `setSilent(true)` + `PRIORITY_MIN`. Real user features (MonthlyReminderWorker reminder, NotificationHelper.showAlertNotification price alerts) left as-is.
+N'4 hide IV-opportunity hint on edit (N11): in `AddPositionScreen.kt:458-469` the "🔥 IV גבוה — הזדמנות למכירה" / "📈 IV מעל ממוצע. פרמיות סבירות" / etc. recommendation was rendering on edit-of-existing-open-position too, where the "sell now" framing made no sense (the trade is already open). Wrapped the recommendation block in `if (state.editingPositionId == null || state.isEditingDraft)` so it only shows when adding a new position or editing a draft. The surrounding IV/price/earnings info row is left visible in all modes — that data is useful regardless.
+
 ## New active issues from device test 2026-05-13 (N-items)
 
 | # | Issue | Status |
 |---|---|---|
 | N4 | Off-market-hours: all data wrong (CC reminder, abnormal alerts, per-ticker numbers/percent) - stock prices do not update outside market hours | fixed in M prime (L' got "current" fresh from candles, but top-movers/abnormal-alerts still showed +20% for ASTS because the Flex/import paths kept demoting current→previous, corrupting the baseline; M' removes the demote in all three sync sites so previous stays at Yahoo's regularMarketPreviousClose), awaiting device verify |
-| N5 | Monthly target dashboard: total progress percent disappeared | fixed in J prime (I' added fallback bar but a Flex sync kept zeroing the user's living/growth via ImportViewModel.applyPortfolioToSettings overwriting MonthlyTargetEntity without the breakdown fields; J' preserves on write + carries forward from prior month + repairs in-memory at read-time), awaiting device verify |
+| N5 | Monthly target dashboard: total progress percent disappeared | fixed in N prime (J' restored the pill via the carry-forward repair but the pill source diverged from the bars and showed 0% next to a full bar; N' aligns progressPercent to use the same combinedTotalRealized the bars consume), awaiting device verify |
 | N6 | Assignment probability inverted (EWY deep ITM showed 28 percent) | fixed across F/G prime, awaiting final verify |
-| N7 | "betachonot"/"maniot" in open-position card need right-align (word right, number left) | open |
+| N7 | "betachonot"/"maniot" in open-position card need right-align (word right, number left) | fixed in N prime (DashboardScreen.kt:2249 — replaced LTR-wrapped single Text with an RTL Row containing a label Text and an LTR-wrapped number Text), awaiting device verify |
 | N8 | Phantom tickers MULL/MU persist | fixed in F prime, awaiting device verify |
 | N9 | "bitachon nidrash" appears on CALL position - should be PUT only | fixed in G prime |
 | N10 | IV 99 percent wrong, reverts to old value on field change | fixed in F prime (removed), awaiting device verify |
-| N11 | Edit-open-position shows "sale opportunity" texts that should not appear | open |
+| N11 | Edit-open-position shows "sale opportunity" texts that should not appear | fixed in N prime (AddPositionScreen.kt:458-469 IV-recommendation block now guarded by `isNewOrDraft` — hidden when editing an existing open position; surrounding price/IV/earnings info row stays visible in all modes), awaiting device verify |
 | N12 | Feed: updated position shows green instead of blue | fixed in F prime, awaiting device verify |
 | N13 | Social dashboard shows old posts, not newest from all channels | open |
-| N14 | System notifications "X fired/created", main activity - remove entirely | open |
+| N14 | System notifications "X fired/created", main activity - remove entirely | fixed in N prime (removed Toasts in MainActivity.onCreate + OptionsTrackerApp.onCreate; AlertWorker's foreground-service notification moved to a new SILENT_WORKER_CHANNEL with IMPORTANCE_MIN + no title + setSilent(true); real user-alert channel + monthly reminder untouched), awaiting device verify |
 | N15 | Alerts: show all highest IVs by current portfolio tickers + dates | open (feature) |
 
 ## ✅ Confirmed working as of `8a44bd4`
