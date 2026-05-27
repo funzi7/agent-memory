@@ -14,8 +14,8 @@
 - **Repo:** funzi7/OptionsProfitTracker
 - **DB version:** 30 (planned bump to 31 in FIX 1/F for `initial_implied_volatility` column)
 - **Branch (current work):** `main`
-- **Last commit:** `589b44e` (Group F prime — assignment prob + remove IV autofill + feed color + phantom prune)
-- **Recent commits:** `8a44bd4` → `9ddca1c` (Group A) → `f1c3e9a` (Group B) → `16fd852` (Group C) → `fdc1cf1` (Group D prime) → `7df9465` (Group E prime) → `589b44e` (Group F prime)
+- **Last commit:** `646a1e0` (Group G prime — assignment prob IV-free fallback + off-hours price write-back + monthly progress restored + collateral PUT-only)
+- **Recent commits:** `8a44bd4` → `9ddca1c` (Group A) → `f1c3e9a` (Group B) → `16fd852` (Group C) → `fdc1cf1` (Group D prime) → `7df9465` (Group E prime) → `589b44e` (Group F prime) → `646a1e0` (Group G prime)
 
 ## Active issues
 
@@ -43,16 +43,22 @@ F2 remove IV autofill: stripped all 8 lookupIvForExpiry call sites, removed init
 F3 feed color: POSITION_EDITED moved to blue (PremiumReceivedColor) branch.
 F4 phantom prune: added isFullSync param, prune runs only on fullResync, removes snapshot tickers absent from Flex with no open position and no manual override.
 
+### Group G prime - COMPLETE (commit 646a1e0)
+G1 assignment prob IV-free fallback: added assignmentProbability field, BS-delta when IV present else logistic moneyness fallback, hides row when null/zero (no more "very low 0 percent"). Awaiting device verify of RIOT/PLUG now showing probability.
+G2 stale prices off-hours: triggerPriceRefresh now writes fetched Yahoo prices back to currentStockPrice (the field ReportGenerator reads), not just the snapshot. Awaiting device verify.
+G3 monthly progress percent restored as single LTR row.
+G4 required-collateral label now PUT-only (CC no longer shows it).
+
 ## New active issues from device test 2026-05-13 (N-items)
 
 | # | Issue | Status |
 |---|---|---|
-| N4 | Off-market-hours: all data wrong (CC reminder, abnormal alerts, per-ticker numbers/percent) - stock prices do not update outside market hours | open |
-| N5 | Monthly target dashboard: total progress percent disappeared | open |
-| N6 | Assignment probability inverted (EWY deep ITM showed 28 percent) | fixed in F prime, awaiting device verify |
+| N4 | Off-market-hours: all data wrong (CC reminder, abnormal alerts, per-ticker numbers/percent) - stock prices do not update outside market hours | fixed in G prime, awaiting device verify |
+| N5 | Monthly target dashboard: total progress percent disappeared | fixed in G prime |
+| N6 | Assignment probability inverted (EWY deep ITM showed 28 percent) | fixed across F/G prime, awaiting final verify |
 | N7 | "betachonot"/"maniot" in open-position card need right-align (word right, number left) | open |
 | N8 | Phantom tickers MULL/MU persist | fixed in F prime, awaiting device verify |
-| N9 | "bitachon nidrash" appears on CALL position - should be PUT only | open |
+| N9 | "bitachon nidrash" appears on CALL position - should be PUT only | fixed in G prime |
 | N10 | IV 99 percent wrong, reverts to old value on field change | fixed in F prime (removed), awaiting device verify |
 | N11 | Edit-open-position shows "sale opportunity" texts that should not appear | open |
 | N12 | Feed: updated position shows green instead of blue | fixed in F prime, awaiting device verify |
