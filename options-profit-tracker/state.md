@@ -14,8 +14,8 @@
 - **Repo:** funzi7/OptionsProfitTracker
 - **DB version:** 30 (planned bump to 31 in FIX 1/F for `initial_implied_volatility` column)
 - **Branch (current work):** `main`
-- **Last commit:** `996ffe6` (Group I prime — single-bar fallback when no living/growth breakdown, BS fill IV-parse hardening + Hebrew-message guard, stale "previous" fix in resume + pull-to-refresh paths)
-- **Recent commits:** `8a44bd4` → `9ddca1c` (Group A) → `f1c3e9a` (Group B) → `16fd852` (Group C) → `fdc1cf1` (Group D prime) → `7df9465` (Group E prime) → `589b44e` (Group F prime) → `646a1e0` (Group G prime) → `be9a23e` (Group H prime) → `996ffe6` (Group I prime)
+- **Last commit:** `9f79c9f` (Group J prime — stop zeroing living/growth on recompute + carry-forward repair, price refresh fires for open-position tickers not just snapshot)
+- **Recent commits:** `8a44bd4` → `9ddca1c` (Group A) → `f1c3e9a` (Group B) → `16fd852` (Group C) → `fdc1cf1` (Group D prime) → `7df9465` (Group E prime) → `589b44e` (Group F prime) → `646a1e0` (Group G prime) → `be9a23e` (Group H prime) → `996ffe6` (Group I prime) → `9f79c9f` (Group J prime)
 
 ## Active issues
 
@@ -59,12 +59,21 @@ I1 monthly bars fallback: rewrote the `else` branch of `MonthlyTargetCard` (when
 I2 BS fill IV-parse hardening: in BOTH `recalculate()` AND `fillPremiumFromBS()` the IV is now parsed via `.trim().removeSuffix("%").trim().toDoubleOrNull()` so "45%" / " 45.0 " / "45.0  " all yield 45.0 (previously they parsed to null and BS computed nothing). Comprehensive BS_FILL diagnostic log added showing every parsed input (S, K, dte, ivField, ivParsed, type, bsTheoretical). The "near-zero" guard widened from `<= 0` to `< 0.005` so a positive-but-rounds-to-0.00 BS result triggers the Hebrew explanation branch instead of silently writing "0.00" into the premium field. Added a dedicated "פרמיה תיאורטית קרובה ל-0 — האופציה מאוד OTM" message for that case.
 I3 stale price baseline (continuation): H' fixed the `triggerPriceRefresh` path but missed `refreshOnResume` (line 607) and `pullToRefresh` (line 660) — those still had `else if (oldCurrent != null && oldCurrent != yahooCurrent) obj.put("previous", oldCurrent)` which mutated "previous" forward on every resume / pull. Removed in both paths; only Yahoo's regularMarketPreviousClose can update "previous". Added PRICE_REFRESH logs in both paths showing `oldCurrent → newCurrent` and `oldPrev / yahooPrev` so the next device test can confirm fresh baselines.
 
+### Group J prime - COMPLETE (commit 9f79c9f)
+J1 stop zeroing living/growth + carry-forward repair: MONTHLY_BARS log on commit 996ffe6 proved `target=true living=0.0 growth=0.0 overallTarget=5073.0` — a Flex sync was overwriting the user's living/growth with zeros. Root cause was `ImportViewModel.applyPortfolioToSettings` constructing a `MonthlyTargetEntity` without the breakdown fields, defaulting them to 0.0. Fix:
+  - `applyPortfolioToSettings`: now calls `resolveBreakdown(existing)` which preserves the existing record's living/growth, OR carries forward from the most recent month that has a non-zero breakdown.
+  - `FlexSyncWorker.upsertMonthlyFinancialMetrics`: when creating a new-month target, also copies forward prior month's living/growth (so month rollovers don't wipe).
+  - `ReportGenerator` (read-time repair): when the current-month target has zero breakdown but a prior month has one, in-memory borrows that breakdown so the two-bar `SegmentedTargetBar` renders again immediately — no need to wait for a Flex sync to persist the repair.
+  - New repository helper `getLatestTargetWithBreakdown(excludeYearMonth)` (and corresponding `MonthlyTargetDao.getAllOnce()` filter in Kotlin) finds the latest month with non-zero breakdown excluding a given month.
+  - SettingsScreen's existing `getLatestTarget()` fallback at load is already correct — its `defaultTarget` creation only fires when no target exists anywhere, so leaving breakdown=0 there is fine.
+J2 price refresh fires for open-position tickers: PRICE_REFRESH log was empty because `refreshOnResume` and `pullToRefresh` only iterated `snapshot.keys()`, and ASTS (a pure-CSP underlying with no shares) never lived in the stock snapshot. Both paths now build `tickers = snapshotTickers ∪ openPositionTickers` (matching what `triggerPriceRefresh` already did from G'), CREATE a fresh snapshot entry for any open-position ticker not yet present, and persist the new price to `position.currentStockPrice` so ReportGenerator's per-position daily-change calculations see fresh values. Added unconditional `refreshOnResume ENTERED` / `triggerPriceRefresh ENTERED` logs at the top of each function so an empty log unambiguously means lifecycle wiring is broken (rather than empty-ticker early-return).
+
 ## New active issues from device test 2026-05-13 (N-items)
 
 | # | Issue | Status |
 |---|---|---|
-| N4 | Off-market-hours: all data wrong (CC reminder, abnormal alerts, per-ticker numbers/percent) - stock prices do not update outside market hours | fixed in I prime (H' missed the resume + pull-to-refresh paths, both still had the stale-current fallback for "previous"; I' removes from both), awaiting device verify |
-| N5 | Monthly target dashboard: total progress percent disappeared | fixed in I prime (H' brought the percent back but the bar still showed as empty when no living/growth breakdown; I' renders a single fallback bar with realized/target/remaining overlay), awaiting device verify |
+| N4 | Off-market-hours: all data wrong (CC reminder, abnormal alerts, per-ticker numbers/percent) - stock prices do not update outside market hours | fixed in J prime (I' had refresh wired but it only iterated snapshot tickers, missing pure-CSP underlyings like ASTS; J' unions snapshot ∪ open-position tickers and persists fresh prices to position.currentStockPrice in resume + pull-to-refresh), awaiting device verify |
+| N5 | Monthly target dashboard: total progress percent disappeared | fixed in J prime (I' added fallback bar but a Flex sync kept zeroing the user's living/growth via ImportViewModel.applyPortfolioToSettings overwriting MonthlyTargetEntity without the breakdown fields; J' preserves on write + carries forward from prior month + repairs in-memory at read-time), awaiting device verify |
 | N6 | Assignment probability inverted (EWY deep ITM showed 28 percent) | fixed across F/G prime, awaiting final verify |
 | N7 | "betachonot"/"maniot" in open-position card need right-align (word right, number left) | open |
 | N8 | Phantom tickers MULL/MU persist | fixed in F prime, awaiting device verify |
