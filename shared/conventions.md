@@ -70,12 +70,15 @@ Wrong layout:
 Correct layout:
   |                              ייצא מהקאש: $14,060 |  (both adjacent on the right)
 
-### Number stays adjacent to its Hebrew noun (grammatical RTL order)
+### Hebrew label + number reads RIGHT-to-LEFT (number on the RIGHT) — use natural RTL, NOT forced LTR
 
-Hebrew text combining a label + number must always read grammatically correct in RTL — the number stays adjacent to its noun (e.g. `148 ימים (40.5%)`, NOT `ימים (40.5%) 148`). Wrap mixed number+unit spans so Hebrew controls order, or prefix the value with an LRM (`‎`) so the number leads in an LTR-resolved span. Never leave numbers flung to the wrong side of their noun.
+A Hebrew label+number line reads RIGHT->LEFT: the NUMBER sits on the RIGHT, then its Hebrew unit/noun, then any trailing token (percent/sign) on the LEFT. Example: "עברו מהשנה: 148 ימים (40.5%)" → 148 on the visual RIGHT, ימים in the middle, (40.5%) on the LEFT. Money rows are the same: Hebrew label on the right, the LTR-wrapped amount immediately to its left.
 
-- **Why:** a value like `"$days ימים ($pct%)"` has its first STRONG character be the Hebrew "ימים", so a `TextDirection.Content` Text resolves the whole span RTL and pushes the leading number to the far (wrong) end — even inside a `LocalLayoutDirection.Ltr` Composable. Seen repeatedly on the OPT annual page ("ימים (40.5%) 148").
-- **How to apply:** for a number+Hebrew-unit value, prefix the string with `‎` (LRM) so the LTR run leads (same trick `formatCurrency` uses), OR wrap the whole `realized / target`-style group in ONE `CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) { Row { … } }` so it lays out left-to-right as a unit (NOT two separate LTR Texts in an RTL Row — those flip order). Verify on a real Hebrew device.
+- **DON'T force LTR on the whole value.** An LRM prefix (U+200E), an LTR isolate (U+2066 … U+2069), String(Character.toChars(0x2066)), AND a forced-`LocalLayoutDirection.Ltr` Row ALL push the number to the LEFT (English order) = WRONG. Every one of these was tried on the OPT annual "עברו מהשנה" line over many rounds and looked reversed. Forcing LTR is the bug, not the fix.
+- **DO render the value group in the screen's natural RTL** (a plain `Row` that inherits the global RTL). Children then place right->left automatically: the FIRST child is the RIGHTMOST. For "148 ימים (40.5%)" put `Text("148")` first (rightmost), then `Text("ימים")`, then the percent (leftmost).
+- **Wrap ONLY a parenthesized / sign-bearing sub-token in LTR** (e.g. the percent `Text("(40.5%)")`, or a `$`/`-` amount) so its glyphs render literally — `(40.5%)` not `)40.5%(`. The inner LTR affects that one Text's internal glyph order only, NOT its placement in the RTL Row.
+- A single combined string works ONLY when it's pure number+sign with no Hebrew word between digits (that's why `formatCurrency`'s U+200E-prefixed amount is fine). The hard case — a Hebrew WORD between numbers — must be split into separate single-token Texts in a natural-RTL Row.
+- Verify on a real Hebrew device — emulator/preview bidi differs.
 
 ### Strategy names language
 
