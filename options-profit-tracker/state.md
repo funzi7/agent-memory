@@ -1,11 +1,11 @@
 # OptionsProfitTracker — State
 
 > Living document. Update at the end of every working session.
-> Last updated: 2026-05-28 (post commit `ec0a56e`)
+> Last updated: 2026-05-28 (post commit `8734bdb`)
 
 ## Current focus
 
-Stabilization rounds A → R2 prime are all merged (latest OPT commit `ec0a56e`). Pattern to keep: every fix carries a verification log tag that must appear in logcat before it's declared done — "done in code" has bitten us before (CLAUDE.md "already correct" rule).
+Stabilization rounds A → S0 prime are all merged (latest OPT commit `8734bdb`). Pattern to keep: every fix carries a verification log tag that must appear in logcat before it's declared done — "done in code" has bitten us before (CLAUDE.md "already correct" rule).
 
 Next up: **Group S prime** (watchlist add-button + ±3% alerts + auto-update available capital from IBKR sync — see "In-progress feature plan" below). Two device-verification items still pending (pre/post-market price + abnormal-alert percent — see "Awaiting" section). Current backlog + verified-fixed list are below.
 
@@ -14,8 +14,8 @@ Next up: **Group S prime** (watchlist add-button + ±3% alerts + auto-update ava
 - **Repo:** funzi7/OptionsProfitTracker
 - **DB version:** 30 (planned bump to 31 in FIX 1/F for `initial_implied_volatility` column)
 - **Branch (current work):** `main`
-- **Last commit:** `ec0a56e` (Group R2 prime — PremiumIncomeScreen weekly day-table column clarity: renamed/recolored headers "נאספו"(blue)/"מומשו"(green), matched data weights to header, collected/realized week totals split right/left)
-- **Recent commits:** `8a44bd4` → `9ddca1c` (Group A) → `f1c3e9a` (Group B) → `16fd852` (Group C) → `fdc1cf1` (Group D prime) → `7df9465` (Group E prime) → `589b44e` (Group F prime) → `646a1e0` (Group G prime) → `be9a23e` (Group H prime) → `996ffe6` (Group I prime) → `9f79c9f` (Group J prime) → `75722b0` (Group K prime) → `6684fa4` (L' step 1 diag) → `3da5058` (Group L prime) → `91fa735` (Group M prime) → `8bd1aea` (Group N prime) → `3e477be` (Group P prime) → `d8ba47f` (Group Q prime) → `ac6bbd6` (Group R prime) → `ec0a56e` (Group R2 prime)
+- **Last commit:** `8734bdb` (Group S0 prime — pre/post-market daily-change baseline now uses regularMarketPrice (yesterday's regular close) instead of previousClose (one session older) when current is an extended-hours candle; top-movers rows now show the current price next to the signed %)
+- **Recent commits:** `8a44bd4` → `9ddca1c` (Group A) → `f1c3e9a` (Group B) → `16fd852` (Group C) → `fdc1cf1` (Group D prime) → `7df9465` (Group E prime) → `589b44e` (Group F prime) → `646a1e0` (Group G prime) → `be9a23e` (Group H prime) → `996ffe6` (Group I prime) → `9f79c9f` (Group J prime) → `75722b0` (Group K prime) → `6684fa4` (L' step 1 diag) → `3da5058` (Group L prime) → `91fa735` (Group M prime) → `8bd1aea` (Group N prime) → `3e477be` (Group P prime) → `d8ba47f` (Group Q prime) → `ac6bbd6` (Group R prime) → `ec0a56e` (Group R2 prime) → `8734bdb` (Group S0 prime)
 - **Agent-memory last commit:** `ad5cf15`+ (this state.md repo, funzi7/agent-memory)
 
 ## Active issues
@@ -120,15 +120,19 @@ R2'1 column clarity: renamed + recolored the two headers to one-word, color-code
 R2'2 week totals split: the week header was restructured from a `Row(SpaceBetween){ title; Column(End){totals} }` into a `Column(clickable){ title Row; totals Row }`. The totals Row is full-width `SpaceBetween` → "סה\"כ נאספו: $X" collected on the visual RIGHT (blue, first child in RTL), "סה\"כ מומשו: $Y" realized on the visual LEFT (green/red). Hebrew label + LTR-wrapped number in each. The bottom "סה\"כ שבוע" footer row was left untouched (out of scope).
 NOTE: R2'2 was written via PowerShell line-splice because the new strings contain `\"` (סה\"כ) which the Edit tool's JSON layer mangles; the Hebrew-only / ASCII R2'1 edits used the Edit tool fine.
 
+### Group S0 prime - COMPLETE (commit 8734bdb)
+S0'1 pre/post-market baseline corrected (THE root cause of the long-running ASTS % mismatch): device logs at pre-market open PROVED it — `CANDLES ASTS lastClose=125.2 regMarketTime=... regularMarketPrice=129.6` and `DAILY-CHK ASTS current=125.5 prev=119.7 pct=4.85`, while IBKR showed -3.5%. During extended hours the code took `current = lastClose` (the pre-market candle, correct) but `previous = meta.previousClose` (119.7 = the close from TWO sessions ago). The correct baseline is YESTERDAY's regular close = `meta.regularMarketPrice` (129.6). Real math (125.2-129.6)/129.6 = -3.4% ✓ matches IBKR; app's wrong math (125.5-119.7)/119.7 = +4.85% ✗. Fix in `IvService.fetchYahooPrice` (v8 chart path): introduced `isExtendedHours = lastTs != null && lastTs > regMarketTime && lastClose>0`; when true → `current = lastClose`, `previous = regularPrice ?: previousClose`; else (regular session / closed) → `current = regularPrice ?: lastClose`, `previous = previousClose` (UNCHANGED regular-hours behavior). Updated PREPOST_DEBUG FINAL log to print `isExt`, current, previous, regular, prevClose, lastClose. NOTE this is the v8 single-ticker path only; the v7 batch `fetchYahooPrices` (workers/alerts) was not touched.
+S0'2 top-movers show price: top gainers/losers rows previously showed only "TICKER ±x%". Added the current stock price between ticker and percent (e.g. "ASTS $125.20 -3.5%"). Threaded a new `stockPriceByTicker: Map<String,Double>` (uppercase ticker → current price) through `DashboardSummary` (DomainModels.kt), built in `ReportGenerator` from the stock snapshot's `current` field right after `stockMovers`, and rendered in `DashboardScreen` movers rows: ticker (Hebrew RTL → visual right) + LTR `$price` (textSecondary) + LTR signed `%` (bold, pnl color). Sign stays left of the number per CLAUDE.md.
+
 ## Verified fixed (device-confirmed)
 
 N5 monthly bars + percent (J'/N'1 — pill shows 104%), N6 assignment prob (F'/G'), N7 collateral/maniot RTL (N'2/P1), N8 phantom tickers (F'), N9 collateral PUT-only (G'), N10 IV autofill removed (F'), N11 IV-opportunity hidden on edit (N'4), N12 feed color blue (F'), N13 social chronological + timestamps (P3), N14 debug notifications removed (N'3), "% on equity" (Q1), edit-screen ticker leak (P2/Q4), BS fill (I2), CSP card RTL (P1).
 
 ## Awaiting PRE/POST-MARKET device verification (time-dependent)
 
-- ASTS dashboard price shows live pre-market (~125-127), not stuck at 119.7 close (L' fix — extended-hours from v8 candle array).
-- ASTS top-gainers + abnormal-alerts percent shows ~+5-6% (from yesterday close 119.7), not +20% (M1 fix — snapshot "previous" no longer demoted by sync paths).
-- (This pair is the old N4 "off-market-hours data wrong" — both sub-items must check out on a pre/post-market device test.)
+- ASTS dashboard price shows live pre-market (~125-127), not stuck at 119.7 close (L' fix — extended-hours from v8 candle array). CONFIRMED working in the S0' device logs (current=125.x came from the pre-market candle).
+- ASTS pre/post-market daily-change % matches IBKR (e.g. ~-3.4%, not +4.85% or +20%). **Fixed in S0'1, awaiting re-verify** — the residual mismatch was NOT the sync-path demote (M1) but a wrong baseline: extended-hours `previous` used `previousClose` (2 sessions old, 119.7) instead of `regularMarketPrice` (yesterday's close, 129.6). Now corrected. Re-check on the next pre/post-market session that the PREPOST_DEBUG FINAL log shows `previous=129.6` (regular) and the dashboard %/abnormal-alerts read negative like IBKR.
+- (This pair is the old N4 "off-market-hours data wrong" — first sub-item confirmed; second now hinges on the S0'1 baseline fix.)
 
 ## NEW backlog (reported, not yet built)
 
