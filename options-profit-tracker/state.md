@@ -1,13 +1,13 @@
 # OptionsProfitTracker — State
 
 > Living document. Update at the end of every working session.
-> Last updated: 2026-05-28 (post commit `d8ba47f`)
+> Last updated: 2026-05-28 (post commit `ac6bbd6`)
 
 ## Current focus
 
-ייצוב באגים פעילים שלא נסגרו ב-commit `8a44bd4`. יש פטרן של "הצהרת done שלא תפסה בקוד" — לכן כל FIX מכאן ואילך כולל verification בלוג שחייב להופיע לפני סגירה.
+Stabilization rounds A → R prime are all merged (latest OPT commit `ac6bbd6`). Pattern to keep: every fix carries a verification log tag that must appear in logcat before it's declared done — "done in code" has bitten us before (CLAUDE.md "already correct" rule).
 
-הבא בתור: סדרה של 4 פרומפטים (A/B/C/D) שמבוססים על הסיכום מ-2026-05-05 — סדר ההרצה: A (FIX 4 image+sort) → B (FIX 3 dashboard) → C (FIX 2 CSP+INTC) → D (FIX 1 IV).
+Next up: **Group S prime** (watchlist add-button + ±3% alerts + auto-update available capital from IBKR sync — see "In-progress feature plan" below). Two device-verification items still pending (pre/post-market price + abnormal-alert percent — see "Awaiting" section). Current backlog + verified-fixed list are below.
 
 ## Repo + state
 
@@ -16,6 +16,7 @@
 - **Branch (current work):** `main`
 - **Last commit:** `ac6bbd6` (Group R prime — PremiumIncomeScreen/income journal: renamed losers, centered stat cards, RTL weekly summary, hid empty day sub-sections, aligned day-table columns to headers, contained the month bar)
 - **Recent commits:** `8a44bd4` → `9ddca1c` (Group A) → `f1c3e9a` (Group B) → `16fd852` (Group C) → `fdc1cf1` (Group D prime) → `7df9465` (Group E prime) → `589b44e` (Group F prime) → `646a1e0` (Group G prime) → `be9a23e` (Group H prime) → `996ffe6` (Group I prime) → `9f79c9f` (Group J prime) → `75722b0` (Group K prime) → `6684fa4` (L' step 1 diag) → `3da5058` (Group L prime) → `91fa735` (Group M prime) → `8bd1aea` (Group N prime) → `3e477be` (Group P prime) → `d8ba47f` (Group Q prime) → `ac6bbd6` (Group R prime)
+- **Agent-memory last commit:** `ad5cf15` (this state.md repo, funzi7/agent-memory)
 
 ## Active issues
 
@@ -113,22 +114,39 @@ R5 align day-table columns: the header Row uses weights יום=0.8 / תאריך=
 R6 contain "רווח לפי חודש" month bar: the per-month bar `Box(weight(1f))` sat directly adjacent to the amount (no gap) so the bar visually ran into the number. Added `Spacer(Modifier.width(8.dp))` between the weighted bar Box and the LTR amount, and changed the amount from `Modifier.width(72.dp)` to `Modifier.widthIn(min = 64.dp)` so long values aren't clipped. The bar lives inside its weighted Box and can no longer overlap the number's area.
 NOTE on editing this file: it stores `●` (bullet) and `‎` (LTR mark) as LITERAL backslash-escapes and uses `\"` inside Hebrew strings ("סה\"כ:"). The Edit tool's JSON layer mangles `\uXXXX`/`\"`, so the data-row + day-detail rewrite (R3/R4/R5) was done via PowerShell line-splice with single-quoted here-strings (which keep Hebrew, `"`, `\`, `$` literal). Simple Hebrew-only edits (R1, R2, R3 header, R6) went through the Edit tool fine.
 
-## New active issues from device test 2026-05-13 (N-items)
+## Verified fixed (device-confirmed)
 
-| # | Issue | Status |
-|---|---|---|
-| N4 | Off-market-hours: all data wrong (CC reminder, abnormal alerts, per-ticker numbers/percent) - stock prices do not update outside market hours | fixed in M prime (L' got "current" fresh from candles, but top-movers/abnormal-alerts still showed +20% for ASTS because the Flex/import paths kept demoting current→previous, corrupting the baseline; M' removes the demote in all three sync sites so previous stays at Yahoo's regularMarketPreviousClose), awaiting device verify |
-| N5 | Monthly target dashboard: total progress percent disappeared | fixed in N prime (J' restored the pill via the carry-forward repair but the pill source diverged from the bars and showed 0% next to a full bar; N' aligns progressPercent to use the same combinedTotalRealized the bars consume). Q' extended the SAME realized-source fix to the dashboard "% על ההון" card (was using `realizedOnly` = broken ~-435 → -0.80%; now uses combinedTotalRealized). Awaiting device verify |
-| N6 | Assignment probability inverted (EWY deep ITM showed 28 percent) | fixed across F/G prime, awaiting final verify |
-| N7 | "betachonot"/"maniot" in open-position card need right-align (word right, number left) | fixed in N prime (DashboardScreen.kt:2249 — replaced LTR-wrapped single Text with an RTL Row containing a label Text and an LTR-wrapped number Text). P' also fixed the related EditAssignmentCard middle rows ("ייצא מהקאש", etc.) which had a redundant RTL wrapper double-inverting them to the visual left. Awaiting device verify. |
-| N8 | Phantom tickers MULL/MU persist | fixed in F prime, awaiting device verify |
-| N9 | "bitachon nidrash" appears on CALL position - should be PUT only | fixed in G prime |
-| N10 | IV 99 percent wrong, reverts to old value on field change | fixed in F prime (removed), awaiting device verify |
-| N11 | Edit-open-position shows "sale opportunity" texts that should not appear | fixed in N prime (AddPositionScreen.kt:458-469 IV-recommendation block now guarded by `isNewOrDraft` — hidden when editing an existing open position; surrounding price/IV/earnings info row stays visible in all modes), awaiting device verify |
-| N12 | Feed: updated position shows green instead of blue | fixed in F prime, awaiting device verify |
-| N13 | Social dashboard shows old posts, not newest from all channels | fixed in P prime (added publishedAtEpochSec to TelegramPost + SocialFeedPost, extract <time datetime> from t.me/s/ HTML, sort allPosts newest-first before filtering, render dd/MM HH:mm timestamp on each card), awaiting device verify |
-| N14 | System notifications "X fired/created", main activity - remove entirely | fixed in N prime (removed Toasts in MainActivity.onCreate + OptionsTrackerApp.onCreate; AlertWorker's foreground-service notification moved to a new SILENT_WORKER_CHANNEL with IMPORTANCE_MIN + no title + setSilent(true); real user-alert channel + monthly reminder untouched), awaiting device verify |
-| N15 | Alerts: show all highest IVs by current portfolio tickers + dates | open (feature) |
+N5 monthly bars + percent (J'/N'1 — pill shows 104%), N6 assignment prob (F'/G'), N7 collateral/maniot RTL (N'2/P1), N8 phantom tickers (F'), N9 collateral PUT-only (G'), N10 IV autofill removed (F'), N11 IV-opportunity hidden on edit (N'4), N12 feed color blue (F'), N13 social chronological + timestamps (P3), N14 debug notifications removed (N'3), "% on equity" (Q1), edit-screen ticker leak (P2/Q4), BS fill (I2), CSP card RTL (P1).
+
+## Awaiting PRE/POST-MARKET device verification (time-dependent)
+
+- ASTS dashboard price shows live pre-market (~125-127), not stuck at 119.7 close (L' fix — extended-hours from v8 candle array).
+- ASTS top-gainers + abnormal-alerts percent shows ~+5-6% (from yesterday close 119.7), not +20% (M1 fix — snapshot "previous" no longer demoted by sync paths).
+- (This pair is the old N4 "off-market-hours data wrong" — both sub-items must check out on a pre/post-market device test.)
+
+## NEW backlog (reported, not yet built)
+
+NEW1. Feed "position edited": show what changed from→to (old value → new value).
+NEW2. Abnormal alerts: +/- sign LEFT of number in "ירידה %"/"עלייה %".
+NEW3. PLUG edit (price 4.07, call strike 2.50 = ITM) still shows "מחיר/עסקה מופלאה" — wrong BS calc, likely same IV-stale root as the delta -0.999 issue. Use IV_TRACE log (added in M2) to catch the bad IV value.
+NEW4. Dashboard annual target: growth bar shows 0.
+NEW5. Portfolio news: right-align AI summary + CACHE it (don't re-summarize on every open of the same article).
+NEW6. Portfolio news: improve article content shown (lots of junk).
+NEW7. Portfolio news: per-article summary with sentiment (pos/neg) + how the stock moved since the news (% up/down).
+NEW8. Portfolio events: dividends not showing.
+NEW9. Option to merge news + portfolio events into the social feed.
+NEW10. (was N15) Alerts: show all highest IVs by current portfolio tickers + dates.
+
+## Deferred (by user)
+
+- Social: filter out irrelevant posts (e.g. Israeli market) — "future".
+- Watchlist ±3% alert verification (needs device check, not code).
+
+## In-progress feature plan (Group S prime — next)
+
+S1: "Add to watchlist" button in add-position (always shown unless ticker already in watchlist); when added, ticker enters watchlist with all data and alerts on a target (e.g. price move ≥3%).
+S2: Verify/ensure watchlist tickers trigger ±3% abnormal-move alerts.
+S3: Available capital ("הון זמין") should auto-update from IBKR sync instead of manual entry in Settings.
 
 ## ✅ Confirmed working as of `8a44bd4`
 
@@ -153,26 +171,9 @@ This list is the source of truth — don't re-prompt items from here.
 - IV per-contract trigger runs (but cache stays empty — that's Group D)
 - Posts: LTR for English text in posts, POST_IMAGE callbacks run, new put starts at 0% (not 100%)
 
-## Ungrouped TODO (from Dima's roadmap, post-stabilization)
+## Longer-term roadmap
 
-Re-classified from prior summary — see `roadmap.md` for the full list. Main groups:
-
-- **F1.** AI per-post analysis (only for posts containing portfolio tickers — saves API calls)
-- **F2.** Watchlist alerts → click opens AddPosition with ticker/strategy pre-filled
-- **F3.** News inside position-open screen (per-ticker only, no sector filter)
-- **F4.** Pre-market mode in dashboard header ("17 פוזיציות פתוחות") + price refresh in pre-market
-- **F5.** CC reminder updates in pre-market (data starts 15:00 Bangkok / 04:00 ET)
-- **F6.** Twitter/Nitter (free instances only — no paid API)
-- **F7.** Reddit + Bloomberg + private Telegram bot integration
-- **F8.** Filtered subreddits per watchlist
-- **F9.** Home-screen widgets
-- **F10.** AI chat for position analysis (Anthropic + Gemini keys ready)
-- **F11.** Paper trading simulator
-- **F12.** stockanalysis.com regex broken — try digrin.com / dividend.com fallback
-- **F13.** Annual tax forms + Israeli Form 1325 + 1042-S parse
-- **F14.** Spread redesign + drill-down + "best trades to repeat" (R5)
-- **F15.** Delete confirmations across all screens — verification audit
-- **F16.** Transfer commissions (multi-currency living)
+The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlist→AddPosition prefill, per-ticker news, pre-market mode, more social sources, home-screen widgets, paper trading, tax forms, spread redesign + drill-down, delete-confirm audit, transfer commissions, etc.) lives in `roadmap.md` — that file is the canonical source. The "NEW backlog" + "Group S prime" sections above are the actively-prioritized slice pulled from it.
 
 ## Validated environment notes
 
