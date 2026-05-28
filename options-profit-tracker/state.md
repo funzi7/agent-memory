@@ -1,11 +1,11 @@
 # OptionsProfitTracker — State
 
 > Living document. Update at the end of every working session.
-> Last updated: 2026-05-28 (post commit `550dbaa`)
+> Last updated: 2026-05-28 (post commit `bfe3f37`)
 
 ## Current focus
 
-Stabilization rounds A → U prime are all merged (latest OPT commit `550dbaa`). Pattern to keep: every fix carries a verification log tag that must appear in logcat before it's declared done — "done in code" has bitten us before (CLAUDE.md "already correct" rule).
+Stabilization rounds A → V prime are all merged (latest OPT commit `bfe3f37`). Pattern to keep: every fix carries a verification log tag that must appear in logcat before it's declared done — "done in code" has bitten us before (CLAUDE.md "already correct" rule).
 
 Next up: **Group S prime** (watchlist add-button + ±3% alerts + auto-update available capital from IBKR sync — see "In-progress feature plan" below). Two device-verification items still pending (pre/post-market price + abnormal-alert percent — see "Awaiting" section). Current backlog + verified-fixed list are below.
 
@@ -14,8 +14,8 @@ Next up: **Group S prime** (watchlist add-button + ±3% alerts + auto-update ava
 - **Repo:** funzi7/OptionsProfitTracker
 - **DB version:** 30 (planned bump to 31 in FIX 1/F for `initial_implied_volatility` column)
 - **Branch (current work):** `main`
-- **Last commit:** `550dbaa` (Group U prime — journal weekly headers right-anchored (RTL) + numbers aligned under them; day sub-detail realized column locked to LEFT half via two fixed-weight Boxes; centered "חשיפת דלתא"/"הפסד מקסימלי ברצף" cards; losers summary % wrapped LTR so minus hugs the digits; U5 verified gainers-vs-P&L-count are different metrics, no-op + log)
-- **Recent commits:** `8a44bd4` → `9ddca1c` (Group A) → `f1c3e9a` (Group B) → `16fd852` (Group C) → `fdc1cf1` (Group D prime) → `7df9465` (Group E prime) → `589b44e` (Group F prime) → `646a1e0` (Group G prime) → `be9a23e` (Group H prime) → `996ffe6` (Group I prime) → `9f79c9f` (Group J prime) → `75722b0` (Group K prime) → `6684fa4` (L' step 1 diag) → `3da5058` (Group L prime) → `91fa735` (Group M prime) → `8bd1aea` (Group N prime) → `3e477be` (Group P prime) → `d8ba47f` (Group Q prime) → `ac6bbd6` (Group R prime) → `ec0a56e` (Group R2 prime) → `8734bdb` (Group S0 prime) → `752b8cb` (Group T prime) → `550dbaa` (Group U prime)
+- **Last commit:** `bfe3f37` (Group V prime — realized "פרמיות שמומשו" header uses pnlColor (red on loss); weekly column headers CENTERED; UnrealizedPnlScreen P&L columns no longer overflow into נוכחי (spacedBy gaps + maxLines + P&L weight bump) and total grouped right; PortfolioBreakdownScreen "לא נכלל" table rebuilt with header + DataCell columns + aligned total)
+- **Recent commits:** `8a44bd4` → `9ddca1c` (Group A) → `f1c3e9a` (Group B) → `16fd852` (Group C) → `fdc1cf1` (Group D prime) → `7df9465` (Group E prime) → `589b44e` (Group F prime) → `646a1e0` (Group G prime) → `be9a23e` (Group H prime) → `996ffe6` (Group I prime) → `9f79c9f` (Group J prime) → `75722b0` (Group K prime) → `6684fa4` (L' step 1 diag) → `3da5058` (Group L prime) → `91fa735` (Group M prime) → `8bd1aea` (Group N prime) → `3e477be` (Group P prime) → `d8ba47f` (Group Q prime) → `ac6bbd6` (Group R prime) → `ec0a56e` (Group R2 prime) → `8734bdb` (Group S0 prime) → `752b8cb` (Group T prime) → `550dbaa` (Group U prime) → `bfe3f37` (Group V prime)
 - **Agent-memory last commit:** `ad5cf15`+ (this state.md repo, funzi7/agent-memory)
 
 ## Active issues
@@ -139,6 +139,12 @@ U2 realized column always LEFT: the day sub-detail rendered each side only `if (
 U3 centered stat cards: "חשיפת דלתא" and "הפסד מקסימלי ברצף" cards had `Column(CenterHorizontally)` but no `fillMaxWidth`, so the wrap-content column hugged the RTL start edge. Added `Modifier.fillMaxWidth()` to both Columns and `Modifier.fillMaxWidth()` + `textAlign = TextAlign.Center` to their label/value/sub Texts (same pattern as the R2 StatMini fix).
 U4 losers-summary minus placement: the "N יורדות (-X.X%)" line (T4) was a single Text NOT wrapped in LTR, so in RTL the parens/minus could mis-place. Split into a Hebrew "N יורדות " Text + an LTR-wrapped "(-X.X%)" Text so the minus stays glued left of the digits. (The per-row losers % was already inside an LTR span and rendered "-3.5%" correctly — left as-is.)
 U5 gainers-vs-count VERIFIED (no bug): confirmed `topGainers = stockMovers.filter { it.second > 0 }` where `it.second` is the daily *price* change — i.e. tickers that moved UP in price today. "N עולות (X%)" is `profitablePositionCount`/`avgProfitPercent` (open-position P&L) — a DIFFERENT metric. An empty top-gainers list next to a non-zero "N עולות" is correct when nothing moved up in price (e.g. all red pre-market). No behavior change; added a clarifying MOVERS_UI log only.
+
+### Group V prime - COMPLETE (commit bfe3f37)
+V1 realized color = pnlColor: in `PremiumIncomeScreen.kt` the day sub-detail "פרמיות שמומשו:" header was hard-coded `PrimaryGreen` even on loss days. Changed to `pnlColor(dayRealized)` (green ≥0, red <0). The realized VALUES (per-position lines, the day "סה\"כ", the weekly "סה\"כ מומשו", the week-total row) ALREADY used `pnlColor` — only the sub-header was wrong. Left the small weekly "מומשו" column-header label green (it's a column label, not a value, per the prompt's "minimal" note).
+V2 centered weekly headers: the "נאספו"/"מומשו" header Boxes were `contentAlignment = Alignment.CenterStart` (U1's right-anchor). User wanted them centered over their columns. Changed ONLY the two header Boxes to `Alignment.Center` (matched each by its inner Text so the per-day data Boxes — same `Box(weight 1.3f, …)` string — were NOT touched and keep their CenterStart number alignment).
+V3 UnrealizedPnlScreen column overflow (the "P&L לא ממומש" page): P&L numbers ran into the "נוכחי" column. Root cause = the row used `horizontalArrangement = Arrangement.SpaceBetween` WITH weighted children — weights fill the row so SpaceBetween leaves ZERO inter-column gap, and a wide P&L could touch the adjacent column. Fixes (header + data rows kept identical): switched both to `Arrangement.spacedBy(8.dp)`; re-weighted to give P&L room (ticker 1.2→1.0, premium/current 1→0.9, P&L 1→1.3); added `maxLines = 1` to the premium/current/P&L number Texts. Bottom total row regrouped from SpaceBetween to `Arrangement.End` with a Spacer so "סה\"כ: <amount>" sits together on the right (amount near the P&L column). The top summary card was already correct.
+V4 PortfolioBreakdownScreen "לא נכלל" (excluded) table cleanup: it used raw mismatched weights (1/0.5/0.7/0.8/1) with no header and a 2-column total that didn't line up with the 5-column rows. Rebuilt the excluded card's Column to mirror the INCLUDED table exactly — a `PlainHeaderCell` header row (טיקר/מניות/מחיר/שווי/מקור), `DataCell(W_*)` data rows using the shared `W_TICKER/W_SHARES/W_PRICE/W_VALUE/W_SOURCE` constants, dividers/spacing, and a total row (`"סה\"כ לא נכלל"` weight W_TICKER + Spacer W_SHARES+W_PRICE + LTR amount weight W_VALUE+W_SOURCE) so the excluded total aligns under the value column. Muted excluded colors (textTertiary/textSecondary) preserved. (PowerShell line-splice — the block contains `\"`.)
 
 ## Verified fixed (device-confirmed)
 
