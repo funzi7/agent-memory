@@ -1,11 +1,11 @@
 # OptionsProfitTracker — State
 
 > Living document. Update at the end of every working session.
-> Last updated: 2026-05-28 (post commit `ac6bbd6`)
+> Last updated: 2026-05-28 (post commit `ec0a56e`)
 
 ## Current focus
 
-Stabilization rounds A → R prime are all merged (latest OPT commit `ac6bbd6`). Pattern to keep: every fix carries a verification log tag that must appear in logcat before it's declared done — "done in code" has bitten us before (CLAUDE.md "already correct" rule).
+Stabilization rounds A → R2 prime are all merged (latest OPT commit `ec0a56e`). Pattern to keep: every fix carries a verification log tag that must appear in logcat before it's declared done — "done in code" has bitten us before (CLAUDE.md "already correct" rule).
 
 Next up: **Group S prime** (watchlist add-button + ±3% alerts + auto-update available capital from IBKR sync — see "In-progress feature plan" below). Two device-verification items still pending (pre/post-market price + abnormal-alert percent — see "Awaiting" section). Current backlog + verified-fixed list are below.
 
@@ -14,9 +14,9 @@ Next up: **Group S prime** (watchlist add-button + ±3% alerts + auto-update ava
 - **Repo:** funzi7/OptionsProfitTracker
 - **DB version:** 30 (planned bump to 31 in FIX 1/F for `initial_implied_volatility` column)
 - **Branch (current work):** `main`
-- **Last commit:** `ac6bbd6` (Group R prime — PremiumIncomeScreen/income journal: renamed losers, centered stat cards, RTL weekly summary, hid empty day sub-sections, aligned day-table columns to headers, contained the month bar)
-- **Recent commits:** `8a44bd4` → `9ddca1c` (Group A) → `f1c3e9a` (Group B) → `16fd852` (Group C) → `fdc1cf1` (Group D prime) → `7df9465` (Group E prime) → `589b44e` (Group F prime) → `646a1e0` (Group G prime) → `be9a23e` (Group H prime) → `996ffe6` (Group I prime) → `9f79c9f` (Group J prime) → `75722b0` (Group K prime) → `6684fa4` (L' step 1 diag) → `3da5058` (Group L prime) → `91fa735` (Group M prime) → `8bd1aea` (Group N prime) → `3e477be` (Group P prime) → `d8ba47f` (Group Q prime) → `ac6bbd6` (Group R prime)
-- **Agent-memory last commit:** `ad5cf15` (this state.md repo, funzi7/agent-memory)
+- **Last commit:** `ec0a56e` (Group R2 prime — PremiumIncomeScreen weekly day-table column clarity: renamed/recolored headers "נאספו"(blue)/"מומשו"(green), matched data weights to header, collected/realized week totals split right/left)
+- **Recent commits:** `8a44bd4` → `9ddca1c` (Group A) → `f1c3e9a` (Group B) → `16fd852` (Group C) → `fdc1cf1` (Group D prime) → `7df9465` (Group E prime) → `589b44e` (Group F prime) → `646a1e0` (Group G prime) → `be9a23e` (Group H prime) → `996ffe6` (Group I prime) → `9f79c9f` (Group J prime) → `75722b0` (Group K prime) → `6684fa4` (L' step 1 diag) → `3da5058` (Group L prime) → `91fa735` (Group M prime) → `8bd1aea` (Group N prime) → `3e477be` (Group P prime) → `d8ba47f` (Group Q prime) → `ac6bbd6` (Group R prime) → `ec0a56e` (Group R2 prime)
+- **Agent-memory last commit:** `ad5cf15`+ (this state.md repo, funzi7/agent-memory)
 
 ## Active issues
 
@@ -113,6 +113,12 @@ R4 hide empty day sub-sections: the two-column day detail used to always render 
 R5 align day-table columns: the header Row uses weights יום=0.8 / תאריך=1 / פרמיות=1.2 / ממומש=1.2 (total 4.2) but the data row used 0.8/1/0.4 (a single bullet dot, total 2.2) so nothing lined up. Replaced the dot with two LTR amount columns at weight 1.2 each: premium = `day.premiumReceived - day.premiumPaid` (PremiumReceivedColor), realized = `day.realizedOnDay` (pnlColor), both `formatCurrency`, `textAlign = End`, empty string when 0. Data row now 0.8/1/1.2/1.2 matching the header.
 R6 contain "רווח לפי חודש" month bar: the per-month bar `Box(weight(1f))` sat directly adjacent to the amount (no gap) so the bar visually ran into the number. Added `Spacer(Modifier.width(8.dp))` between the weighted bar Box and the LTR amount, and changed the amount from `Modifier.width(72.dp)` to `Modifier.widthIn(min = 64.dp)` so long values aren't clipped. The bar lives inside its weighted Box and can no longer overlap the number's area.
 NOTE on editing this file: it stores `●` (bullet) and `‎` (LTR mark) as LITERAL backslash-escapes and uses `\"` inside Hebrew strings ("סה\"כ:"). The Edit tool's JSON layer mangles `\uXXXX`/`\"`, so the data-row + day-detail rewrite (R3/R4/R5) was done via PowerShell line-splice with single-quoted here-strings (which keep Hebrew, `"`, `\`, `$` literal). Simple Hebrew-only edits (R1, R2, R3 header, R6) went through the Edit tool fine.
+
+### Group R2 prime - COMPLETE (commit ec0a56e)
+Follow-up to R5: the two weekly day-table amount columns were ambiguous — a per-day number (e.g. $331.19) looked like it floated between the "פרמיות"/"ממומש" headers. Root cause was a header/data mismatch: each amount cell is LTR-wrapped with `textAlign.End` (number hugs the right edge of its slot) while the RTL headers used `textAlign.End` too (label hugs the left edge of the same slot), so label and number sat at opposite ends of the column — and identical-but-tight 1.2/1.2 weights gave no clear separation or color cue. All in `PremiumIncomeScreen.kt` WeekCard. No realizedPnL / DB changes.
+R2'1 column clarity: renamed + recolored the two headers to one-word, color-coded labels — "נאספו" (collected, `PremiumReceivedColor` blue) and "מומשו" (realized, `PrimaryGreen`). Header + data row now use IDENTICAL order and weights (יום 0.7 / תאריך 0.9 / נאספו 1.3 / מומשו 1.3), both inherit global RTL, `maxLines = 1` on the amount cells, numbers still LTR-wrapped. The color match (blue header over blue number, green header over green/red number) is the real disambiguator. Also renamed the day sub-detail left header "ממומש:" → "פרמיות שמומשו:" and recolored it `PrimaryGreen` (the right sub-header "פרמיות שנאספו:" stays blue).
+R2'2 week totals split: the week header was restructured from a `Row(SpaceBetween){ title; Column(End){totals} }` into a `Column(clickable){ title Row; totals Row }`. The totals Row is full-width `SpaceBetween` → "סה\"כ נאספו: $X" collected on the visual RIGHT (blue, first child in RTL), "סה\"כ מומשו: $Y" realized on the visual LEFT (green/red). Hebrew label + LTR-wrapped number in each. The bottom "סה\"כ שבוע" footer row was left untouched (out of scope).
+NOTE: R2'2 was written via PowerShell line-splice because the new strings contain `\"` (סה\"כ) which the Edit tool's JSON layer mangles; the Hebrew-only / ASCII R2'1 edits used the Edit tool fine.
 
 ## Verified fixed (device-confirmed)
 
