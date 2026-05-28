@@ -1,11 +1,11 @@
 # OptionsProfitTracker — State
 
 > Living document. Update at the end of every working session.
-> Last updated: 2026-05-28 (post commit `752b8cb`)
+> Last updated: 2026-05-28 (post commit `550dbaa`)
 
 ## Current focus
 
-Stabilization rounds A → T prime are all merged (latest OPT commit `752b8cb`). Pattern to keep: every fix carries a verification log tag that must appear in logcat before it's declared done — "done in code" has bitten us before (CLAUDE.md "already correct" rule).
+Stabilization rounds A → U prime are all merged (latest OPT commit `550dbaa`). Pattern to keep: every fix carries a verification log tag that must appear in logcat before it's declared done — "done in code" has bitten us before (CLAUDE.md "already correct" rule).
 
 Next up: **Group S prime** (watchlist add-button + ±3% alerts + auto-update available capital from IBKR sync — see "In-progress feature plan" below). Two device-verification items still pending (pre/post-market price + abnormal-alert percent — see "Awaiting" section). Current backlog + verified-fixed list are below.
 
@@ -14,8 +14,8 @@ Next up: **Group S prime** (watchlist add-button + ±3% alerts + auto-update ava
 - **Repo:** funzi7/OptionsProfitTracker
 - **DB version:** 30 (planned bump to 31 in FIX 1/F for `initial_implied_volatility` column)
 - **Branch (current work):** `main`
-- **Last commit:** `752b8cb` (Group T prime — income-journal weekly column divider + realized sub-label RTL (Start); top-movers price/percent spacing + forced minus on losers; pre/post session badge moved to open-positions card header; CC reminder excludes tickers with no options market)
-- **Recent commits:** `8a44bd4` → `9ddca1c` (Group A) → `f1c3e9a` (Group B) → `16fd852` (Group C) → `fdc1cf1` (Group D prime) → `7df9465` (Group E prime) → `589b44e` (Group F prime) → `646a1e0` (Group G prime) → `be9a23e` (Group H prime) → `996ffe6` (Group I prime) → `9f79c9f` (Group J prime) → `75722b0` (Group K prime) → `6684fa4` (L' step 1 diag) → `3da5058` (Group L prime) → `91fa735` (Group M prime) → `8bd1aea` (Group N prime) → `3e477be` (Group P prime) → `d8ba47f` (Group Q prime) → `ac6bbd6` (Group R prime) → `ec0a56e` (Group R2 prime) → `8734bdb` (Group S0 prime) → `752b8cb` (Group T prime)
+- **Last commit:** `550dbaa` (Group U prime — journal weekly headers right-anchored (RTL) + numbers aligned under them; day sub-detail realized column locked to LEFT half via two fixed-weight Boxes; centered "חשיפת דלתא"/"הפסד מקסימלי ברצף" cards; losers summary % wrapped LTR so minus hugs the digits; U5 verified gainers-vs-P&L-count are different metrics, no-op + log)
+- **Recent commits:** `8a44bd4` → `9ddca1c` (Group A) → `f1c3e9a` (Group B) → `16fd852` (Group C) → `fdc1cf1` (Group D prime) → `7df9465` (Group E prime) → `589b44e` (Group F prime) → `646a1e0` (Group G prime) → `be9a23e` (Group H prime) → `996ffe6` (Group I prime) → `9f79c9f` (Group J prime) → `75722b0` (Group K prime) → `6684fa4` (L' step 1 diag) → `3da5058` (Group L prime) → `91fa735` (Group M prime) → `8bd1aea` (Group N prime) → `3e477be` (Group P prime) → `d8ba47f` (Group Q prime) → `ac6bbd6` (Group R prime) → `ec0a56e` (Group R2 prime) → `8734bdb` (Group S0 prime) → `752b8cb` (Group T prime) → `550dbaa` (Group U prime)
 - **Agent-memory last commit:** `ad5cf15`+ (this state.md repo, funzi7/agent-memory)
 
 ## Active issues
@@ -131,6 +131,14 @@ T3 top-movers price/percent spacing: gainers had price glued to the % while lose
 T4 losers percent minus sign: the "N יורדות (x%)" line showed no minus. Root: `avgLossPercent` is the average of `profitPercentOnPosition` (which for OPEN positions uses `expectedProfitAtExpiration`) over positions filtered by *unrealized* < 0 — so it can resolve POSITIVE. Forced the sign for the down-positions label: `(-${"%.1f".format(kotlin.math.abs(summary.avgLossPercent))}%)`. (No P&L logic touched — display only.)
 T5 session badge to card header: the "פרה"/"אחה״צ" pre/post badge was rendered next to the top-gainers title. Hoisted the nyTime/isPremarket/isAfterHours/sessionBadge computation above the open-positions card title row and rendered the badge there (after "N פוזיציות פתוחות"); removed it from the gainers title.
 T6 CC reminder excludes no-options-market tickers: a held stock with no listed options was showing in the CC reminder. No offline options-chain flag exists and ReportGenerator has no IvCacheDao, so used the heuristic — a ticker "has an options market" only if it appears in `allPositions` (any open/closed option trade we've ever made). Added `val tickersWithOptions = allPositions.map { it.ticker.uppercase() }.toSet()` and a `.filter` guard (with a `CC_SKIP` log) at the top of the `ccReminderItems` filter. Also cleaned the header text grammar to "💡 תזכורת Covered Call · N טיקרים זמינים". Accepted tradeoff: a stock you hold with a real options market but never traded options on would also be excluded — acceptable per the user's heuristic.
+
+### Group U prime - COMPLETE (commit 550dbaa)
+Follow-ups to T prime, all in `PremiumIncomeScreen.kt` + `DashboardScreen.kt`. No realizedPnL / DB changes.
+U1 weekly-table headers RTL: the "נאספו"/"מומשו" header Boxes (and the per-day number Boxes) used `contentAlignment = Alignment.CenterEnd` — in global RTL End = visual LEFT, so the Hebrew headers sat on the left and read "LTR-like". There was no LTR wrapper to remove (single Hebrew words don't reorder). Fix = flipped all four amount Boxes (2 header + 2 data, the `Box(Modifier.weight(1.3f), …)`) from `CenterEnd` → `CenterStart` (Start = visual RIGHT in RTL) via a replace-all. Headers now right-anchored (RTL-natural) AND the numbers move with them so each amount still sits under its header (T1 divider preserved between the two columns).
+U2 realized column always LEFT: the day sub-detail rendered each side only `if (showPremiumCol)/(showRealizedCol)`, so when there was no collected premium the realized Column became the only child and shifted to the right. Restructured to TWO always-present fixed-weight slots — `Box(Modifier.weight(1f)){ if (showPremiumCol) Column(Start){…} }` (RIGHT) + `Spacer(8.dp)` + `Box(Modifier.weight(1f)){ if (showRealizedCol) Column(Start){…} }` (LEFT). Each half is reserved regardless of content, so realized stays in the LEFT half and premium in the RIGHT half. (Done via PowerShell line-splice reusing the original inner content verbatim — it contains `\"` in "סה\"כ:" which the Edit tool mangles.)
+U3 centered stat cards: "חשיפת דלתא" and "הפסד מקסימלי ברצף" cards had `Column(CenterHorizontally)` but no `fillMaxWidth`, so the wrap-content column hugged the RTL start edge. Added `Modifier.fillMaxWidth()` to both Columns and `Modifier.fillMaxWidth()` + `textAlign = TextAlign.Center` to their label/value/sub Texts (same pattern as the R2 StatMini fix).
+U4 losers-summary minus placement: the "N יורדות (-X.X%)" line (T4) was a single Text NOT wrapped in LTR, so in RTL the parens/minus could mis-place. Split into a Hebrew "N יורדות " Text + an LTR-wrapped "(-X.X%)" Text so the minus stays glued left of the digits. (The per-row losers % was already inside an LTR span and rendered "-3.5%" correctly — left as-is.)
+U5 gainers-vs-count VERIFIED (no bug): confirmed `topGainers = stockMovers.filter { it.second > 0 }` where `it.second` is the daily *price* change — i.e. tickers that moved UP in price today. "N עולות (X%)" is `profitablePositionCount`/`avgProfitPercent` (open-position P&L) — a DIFFERENT metric. An empty top-gainers list next to a non-zero "N עולות" is correct when nothing moved up in price (e.g. all red pre-market). No behavior change; added a clarifying MOVERS_UI log only.
 
 ## Verified fixed (device-confirmed)
 
