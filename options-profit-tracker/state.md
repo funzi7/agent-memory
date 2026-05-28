@@ -1,11 +1,11 @@
 # OptionsProfitTracker — State
 
 > Living document. Update at the end of every working session.
-> Last updated: 2026-05-28 (post commit `635543a`)
+> Last updated: 2026-05-28 (post commit `2a49f28`)
 
 ## Current focus
 
-Stabilization rounds A → X prime are all merged (latest OPT commit `635543a`). Pattern to keep: every fix carries a verification log tag that must appear in logcat before it's declared done — "done in code" has bitten us before (CLAUDE.md "already correct" rule).
+Stabilization rounds A → Y prime are all merged (latest OPT commit `2a49f28`). Pattern to keep: every fix carries a verification log tag that must appear in logcat before it's declared done — "done in code" has bitten us before (CLAUDE.md "already correct" rule).
 
 Next up: **Group S prime** (watchlist add-button + ±3% alerts + auto-update available capital from IBKR sync — see "In-progress feature plan" below). Two device-verification items still pending (pre/post-market price + abnormal-alert percent — see "Awaiting" section). Current backlog + verified-fixed list are below.
 
@@ -14,8 +14,8 @@ Next up: **Group S prime** (watchlist add-button + ±3% alerts + auto-update ava
 - **Repo:** funzi7/OptionsProfitTracker
 - **DB version:** 30 (planned bump to 31 in FIX 1/F for `initial_implied_volatility` column)
 - **Branch (current work):** `main`
-- **Last commit:** `635543a` (Group X prime — X1a earliest-target fallback (pre-history months show earliest stored target, not 0) in both getMonthlyReport + annual breakdown; X1b Settings can now edit a PAST month's target via month arrows (setEditingMonth); X2 "מתחילת השנה" value LRM-prefixed so "148 ימים (40.5%)" reads in order; X3 "פער צפוי" double-plus removed; X4 monthly breakdown "realized / target" wrapped in one LTR Row)
-- **Recent commits:** `8a44bd4` → `9ddca1c` (Group A) → `f1c3e9a` (Group B) → `16fd852` (Group C) → `fdc1cf1` (Group D prime) → `7df9465` (Group E prime) → `589b44e` (Group F prime) → `646a1e0` (Group G prime) → `be9a23e` (Group H prime) → `996ffe6` (Group I prime) → `9f79c9f` (Group J prime) → `75722b0` (Group K prime) → `6684fa4` (L' step 1 diag) → `3da5058` (Group L prime) → `91fa735` (Group M prime) → `8bd1aea` (Group N prime) → `3e477be` (Group P prime) → `d8ba47f` (Group Q prime) → `ac6bbd6` (Group R prime) → `ec0a56e` (Group R2 prime) → `8734bdb` (Group S0 prime) → `752b8cb` (Group T prime) → `550dbaa` (Group U prime) → `bfe3f37` (Group V prime) → `65252dc` (Group W prime) → `635543a` (Group X prime)
+- **Last commit:** `2a49f28` (Group Y prime — Y1 annual "מתחילת השנה" value now rendered as SEPARATE ordered Text pieces in a forced-LTR Row (concatenated string + LRM from X2 still bidi-reordered "148 ימים (40.5%)"); Y2 Settings target editor no longer auto-saves — target persists only via an explicit "שמור יעד" button (target fields removed from autoSave keys + target-write stripped from autoSave); non-target settings still auto-save)
+- **Recent commits:** `8a44bd4` → `9ddca1c` (Group A) → `f1c3e9a` (Group B) → `16fd852` (Group C) → `fdc1cf1` (Group D prime) → `7df9465` (Group E prime) → `589b44e` (Group F prime) → `646a1e0` (Group G prime) → `be9a23e` (Group H prime) → `996ffe6` (Group I prime) → `9f79c9f` (Group J prime) → `75722b0` (Group K prime) → `6684fa4` (L' step 1 diag) → `3da5058` (Group L prime) → `91fa735` (Group M prime) → `8bd1aea` (Group N prime) → `3e477be` (Group P prime) → `d8ba47f` (Group Q prime) → `ac6bbd6` (Group R prime) → `ec0a56e` (Group R2 prime) → `8734bdb` (Group S0 prime) → `752b8cb` (Group T prime) → `550dbaa` (Group U prime) → `bfe3f37` (Group V prime) → `65252dc` (Group W prime) → `635543a` (Group X prime) → `2a49f28` (Group Y prime)
 - **Agent-memory last commit:** `ad5cf15`+ (this state.md repo, funzi7/agent-memory)
 
 ## Active issues
@@ -162,6 +162,10 @@ X2 "מתחילת השנה" word order: value rendered "ימים (40.5%) 148" bec
 X3 "פער צפוי" double-plus: code did `(if (yearGap>=0) "+" else "") + formatCurrency(yearGap)` but `formatCurrency` ALREADY signs (+/-), giving "++$X". Removed the manual prefix → single sign.
 X4 monthly breakdown "realized / target": the realized Text and the "/ target" Text were two separate LTR-wrapped Texts inside an RTL Row, so they laid right-to-left (slash/target flipped left of realized). Wrapped the WHOLE group in one `CompositionLocalProvider(Ltr) { Row { realized; "/"; target } }` so it reads "$realized / $target" left-to-right.
 ALSO added a cross-app rule to `shared/conventions.md` ("Number stays adjacent to its Hebrew noun") capturing the X2 LRM/single-LTR-Row lesson.
+
+### Group Y prime - COMPLETE (commit 2a49f28)
+Y1 annual "days elapsed" grammar (the persistent one): the value STILL rendered "ימים (40.5%) 148" even after X2's LRM prefix + the ProjectionRow's LTR wrapper — a concatenated `"$days ימים ($pct%)"` string bidi-reorders because the Hebrew word sits BETWEEN numbers, and a single LRM at the start isn't enough. Real fix: stop concatenating — replaced that one `ProjectionRow(...)` in `AnnualTargetScreen.kt` with an inline `Row { Hebrew label (weight 1f); CompositionLocalProvider(Ltr){ Row { Text(days); Spacer; Text("ימים"); Spacer; Text("($pct%)") } } }`. Each piece is its own Text in a forced-LTR Row, so the visual order is guaranteed: `148  ימים  (40.5%)`. Kept the W5 label "מתחילת השנה:" (did not revert to "עברו מהשנה:"). The other ProjectionRows use pure `formatCurrency` (LTR-clean) so they were fine; line ~254's "💡 כדי להגיע ליעד: $X נוספים בחודש" hint (number mid-sentence, Hebrew both sides) was left as-is — not flagged, and the separate-pieces pattern doesn't fit a full sentence. Reinforces the conventions.md rule added in X'.
+Y2 target editor: explicit save button instead of per-keystroke auto-save. The Settings target fields were in the autoSave `LaunchedEffect` key list, so every keystroke debounce-saved — annoying, and risky with the X1b past-month editor (a freshly-switched blank month could auto-write a default 2000). Changes in `SettingsScreen.kt`: (1) removed the 8 target/portfolio keys (portfolioValue, capitalAllocated, targetAmount, targetPercent, livingTarget, livingCurrency, growthTarget, growthCurrency) from the autoSave `LaunchedEffect` — it now keys only on rates + API keys + availableFunds; (2) stripped the `saveMonthlyTarget` write (and the target readback log) OUT of `autoSave()` so it never persists the target; (3) `save()` (the button path, writes to `currentMonth` = the X1b edited month) now also sets `dataMessage = "היעד נשמר"` for a Toast; (4) added a `Button("שמור יעד")` at the end of the target editor section. Net: typing/switching months no longer saves; target persists ONLY on the button. Non-target settings (rates, API keys, funds) still auto-save exactly as before. This removes the X1b auto-default-write caveat.
 
 ## Verified fixed (device-confirmed)
 
