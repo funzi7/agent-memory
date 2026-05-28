@@ -1,11 +1,11 @@
 # OptionsProfitTracker — State
 
 > Living document. Update at the end of every working session.
-> Last updated: 2026-05-28 (post commit `65252dc`)
+> Last updated: 2026-05-28 (post commit `635543a`)
 
 ## Current focus
 
-Stabilization rounds A → W prime are all merged (latest OPT commit `65252dc`). Pattern to keep: every fix carries a verification log tag that must appear in logcat before it's declared done — "done in code" has bitten us before (CLAUDE.md "already correct" rule).
+Stabilization rounds A → X prime are all merged (latest OPT commit `635543a`). Pattern to keep: every fix carries a verification log tag that must appear in logcat before it's declared done — "done in code" has bitten us before (CLAUDE.md "already correct" rule).
 
 Next up: **Group S prime** (watchlist add-button + ±3% alerts + auto-update available capital from IBKR sync — see "In-progress feature plan" below). Two device-verification items still pending (pre/post-market price + abnormal-alert percent — see "Awaiting" section). Current backlog + verified-fixed list are below.
 
@@ -14,8 +14,8 @@ Next up: **Group S prime** (watchlist add-button + ±3% alerts + auto-update ava
 - **Repo:** funzi7/OptionsProfitTracker
 - **DB version:** 30 (planned bump to 31 in FIX 1/F for `initial_implied_volatility` column)
 - **Branch (current work):** `main`
-- **Last commit:** `65252dc` (Group W prime — W1 historical monthly target uses getEffectiveTargetForMonth (target in effect that month, not the latest) in BOTH getMonthlyReport and the annual breakdown; W2 unrealized total now "סה\"כ" right / number left, no truncation; W3 "אסטרטגיה"→"אסט'"; W4 journal day numbers centered under headers; W5 annual page "עברו מהשנה"→"מתחילת השנה")
-- **Recent commits:** `8a44bd4` → `9ddca1c` (Group A) → `f1c3e9a` (Group B) → `16fd852` (Group C) → `fdc1cf1` (Group D prime) → `7df9465` (Group E prime) → `589b44e` (Group F prime) → `646a1e0` (Group G prime) → `be9a23e` (Group H prime) → `996ffe6` (Group I prime) → `9f79c9f` (Group J prime) → `75722b0` (Group K prime) → `6684fa4` (L' step 1 diag) → `3da5058` (Group L prime) → `91fa735` (Group M prime) → `8bd1aea` (Group N prime) → `3e477be` (Group P prime) → `d8ba47f` (Group Q prime) → `ac6bbd6` (Group R prime) → `ec0a56e` (Group R2 prime) → `8734bdb` (Group S0 prime) → `752b8cb` (Group T prime) → `550dbaa` (Group U prime) → `bfe3f37` (Group V prime) → `65252dc` (Group W prime)
+- **Last commit:** `635543a` (Group X prime — X1a earliest-target fallback (pre-history months show earliest stored target, not 0) in both getMonthlyReport + annual breakdown; X1b Settings can now edit a PAST month's target via month arrows (setEditingMonth); X2 "מתחילת השנה" value LRM-prefixed so "148 ימים (40.5%)" reads in order; X3 "פער צפוי" double-plus removed; X4 monthly breakdown "realized / target" wrapped in one LTR Row)
+- **Recent commits:** `8a44bd4` → `9ddca1c` (Group A) → `f1c3e9a` (Group B) → `16fd852` (Group C) → `fdc1cf1` (Group D prime) → `7df9465` (Group E prime) → `589b44e` (Group F prime) → `646a1e0` (Group G prime) → `be9a23e` (Group H prime) → `996ffe6` (Group I prime) → `9f79c9f` (Group J prime) → `75722b0` (Group K prime) → `6684fa4` (L' step 1 diag) → `3da5058` (Group L prime) → `91fa735` (Group M prime) → `8bd1aea` (Group N prime) → `3e477be` (Group P prime) → `d8ba47f` (Group Q prime) → `ac6bbd6` (Group R prime) → `ec0a56e` (Group R2 prime) → `8734bdb` (Group S0 prime) → `752b8cb` (Group T prime) → `550dbaa` (Group U prime) → `bfe3f37` (Group V prime) → `65252dc` (Group W prime) → `635543a` (Group X prime)
 - **Agent-memory last commit:** `ad5cf15`+ (this state.md repo, funzi7/agent-memory)
 
 ## Active issues
@@ -152,6 +152,16 @@ W2 unrealized P&L total RTL: V3 had used `Arrangement.End` inside an LTR wrapper
 W3 "אסטרטגיה" → "אסט'": abbreviated the strategy column header on the unrealized P&L page so it fits.
 W4 center journal day numbers: V2 centered the weekly headers but the per-day number Boxes were still `CenterStart`. Flipped the two data Boxes (`Box(weight 1.3f, …)`) to `Alignment.Center` (replace-all; the header Boxes were already Center) so each נאספו/מומשו number sits centered under its centered header. Vertical divider between columns kept.
 W5 annual page grammar: `ProjectionRow` label "עברו מהשנה:" → "מתחילת השנה:" (pairs naturally with the "X ימים (Y%)" value).
+
+### Group X prime - COMPLETE (commit 635543a)
+Follow-ups to W1's effective-target work + annual-page polish. NO realizedPnL / DB schema changes (new DAO queries are read-only).
+X1 historical targets for Jan/Feb/Mar 2026 are MISSING from the DB (ANNUAL_TARGET log: effective=null for 2026-01/02/03; first stored = 2026-04). The user set them but they were lost (overwritten pre-J', or never persisted per-month). Two parts:
+  - X1a fallback: a month that predates ANY stored target now falls back to the EARLIEST stored target (not 0). New read-only DAO `getEarliestTarget()` (`ORDER BY year_month ASC LIMIT 1`) + repo passthrough; applied in BOTH `getMonthlyReport` (`monthTarget ?: getEffectiveTargetForMonth ?: getEarliestTarget`) and `AnnualTargetViewModel.loadYear`. `ANNUAL_TARGET` log now prints `viaEarliestFallback`. So Jan/Feb/Mar show the earliest target (e.g. 5116) until real values are entered.
+  - X1b edit a PAST month's target: Settings target editor was locked to `YearMonth.now()`. Added `SettingsViewModel.setEditingMonth(month)` (updates `currentMonth` — already the field that `save()`/`autoSave()` write to — and loads that month's stored target, or CLEARS the target fields if none, with NO fallback-to-latest and NO auto-saved default). UI: replaced the static "יעד חודשי - <month>" header with a month selector (prev/next chevrons + LTR "MM/YYYY" + "עורך יעד לחודש:" sublabel). So the user can switch to January, type 2000, save; February 2500; etc.
+X2 "מתחילת השנה" word order: value rendered "ימים (40.5%) 148" because its first STRONG char (Hebrew "ימים") made the span resolve RTL even inside the ProjectionRow's LTR wrapper, flinging the leading number to the end. Prefixed the value string with `‎` (LRM) so the LTR number leads → "148 ימים (40.5%)". (Wrote the literal `‎` escape via PowerShell since the Edit/JSON layer turns `‎` into the actual char.)
+X3 "פער צפוי" double-plus: code did `(if (yearGap>=0) "+" else "") + formatCurrency(yearGap)` but `formatCurrency` ALREADY signs (+/-), giving "++$X". Removed the manual prefix → single sign.
+X4 monthly breakdown "realized / target": the realized Text and the "/ target" Text were two separate LTR-wrapped Texts inside an RTL Row, so they laid right-to-left (slash/target flipped left of realized). Wrapped the WHOLE group in one `CompositionLocalProvider(Ltr) { Row { realized; "/"; target } }` so it reads "$realized / $target" left-to-right.
+ALSO added a cross-app rule to `shared/conventions.md` ("Number stays adjacent to its Hebrew noun") capturing the X2 LRM/single-LTR-Row lesson.
 
 ## Verified fixed (device-confirmed)
 

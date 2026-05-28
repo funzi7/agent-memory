@@ -70,6 +70,13 @@ Wrong layout:
 Correct layout:
   |                              ייצא מהקאש: $14,060 |  (both adjacent on the right)
 
+### Number stays adjacent to its Hebrew noun (grammatical RTL order)
+
+Hebrew text combining a label + number must always read grammatically correct in RTL — the number stays adjacent to its noun (e.g. `148 ימים (40.5%)`, NOT `ימים (40.5%) 148`). Wrap mixed number+unit spans so Hebrew controls order, or prefix the value with an LRM (`‎`) so the number leads in an LTR-resolved span. Never leave numbers flung to the wrong side of their noun.
+
+- **Why:** a value like `"$days ימים ($pct%)"` has its first STRONG character be the Hebrew "ימים", so a `TextDirection.Content` Text resolves the whole span RTL and pushes the leading number to the far (wrong) end — even inside a `LocalLayoutDirection.Ltr` Composable. Seen repeatedly on the OPT annual page ("ימים (40.5%) 148").
+- **How to apply:** for a number+Hebrew-unit value, prefix the string with `‎` (LRM) so the LTR run leads (same trick `formatCurrency` uses), OR wrap the whole `realized / target`-style group in ONE `CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) { Row { … } }` so it lays out left-to-right as a unit (NOT two separate LTR Texts in an RTL Row — those flip order). Verify on a real Hebrew device.
+
 ### Strategy names language
 
 - Strategy abbreviations stay in English: `CC`, `CSP`, `Wheel`, `Spread`, `Iron Condor`, `Straddle`, `Strangle`, `Long Call`, `Long Put`.
