@@ -1,7 +1,7 @@
 # OptionsProfitTracker — Roadmap
 
 > History of completed work + forward plan. Update at end of each round.
-> עדכון אחרון: 2026-05-29 (post commit `61f4dc4` — Group BB prime)
+> עדכון אחרון: 2026-05-29 (post commit `d44bb7c` — Group BF prime, NEW10 done)
 
 ---
 
@@ -187,16 +187,18 @@ E1 Spread leg-matching, E2 Annual target screen bars, E3 B-S auto-fill device ve
 
 ## NEW backlog items (open, as of 2026-05-29)
 
-Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summary RTL + per-URL cache) ✅ Group BB; NEW32 (watchlist row → Add-Position prefilled) ✅ Group BB.
+Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summary RTL + per-URL cache) ✅ Group BB; NEW32 (watchlist row → Add-Position prefilled) ✅ Group BB; NEW33 phase 1/1.5 (watchScan + buy recommendation) ✅ Groups BC/BD; NEW10 (high-IV portfolio list) ✅ Group BF.
 
 | # | Item | Notes |
 |---|---|---|
 | DI | Refactor ~10+ ad-hoc Room builders → single Hilt singleton | ⏳ Data-integrity hardening. Each call site re-lists MIGRATION_21_22…29_30 and previously `.fallbackToDestructiveMigrationOnDowngrade()` (the data-loss bug, removed in Group BA across 16 sites/11 files by hand). One injected `OptionsDatabase` would kill the copy-paste drift and this whole bug class. |
+| NEW3 | PLUG / IV-stale Black-Scholes | ⏳ PLUG (price 4.07, call strike 2.50 = ITM) shows a wrong "מחיר/עסקה מופלאה" — likely a stale-IV BS calc; use the IV_TRACE log (M2) to catch the bad IV value. |
 | NEW6 | News article content has junk | ⏳ Extraction cleanup — the `<p>`/`<div>` scrape in `PortfolioNewsScreen` pulls nav/boilerplate/ads. Needs better readability extraction. |
 | NEW7 | Per-article sentiment + stock move since news | ⏳ Show bullish/bearish tag and the ticker's price change since the article timestamp. |
 | NEW9 | Merge news + events into the social feed | ⏳ Unify the news feed and portfolio events into the single social/activity feed. |
-| NEW10 | List highest IVs by portfolio tickers | ⏳ (= old N15/F-area) Surface the highest current IVs across held tickers + expiry dates in alerts. |
+| NEW10 | List highest IVs by portfolio tickers | ✅ Group BF (`HighIvScreen`, ivByTicker sorted desc, pinned header, nav entry "IV גבוה בתיק ←"). |
 | NEW23 | Pre-open ticker intelligence | ⏳ BIG feature — pre-market briefing per held ticker (overnight move, news, events, gap risk) before US open. |
+| CLEANUP | Remove `ABNORMAL_DIAG` diagnostic log | ⏳ Added in Group BE to diagnose RKLX; BF2 (10% floor) is the fix. Remove the per-ticker `ABNORMAL_DIAG` log once Dima confirms on device that RKLX/MRAM now alert. |
 
 ---
 

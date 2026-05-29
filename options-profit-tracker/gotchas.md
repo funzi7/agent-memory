@@ -1,7 +1,7 @@
 # OptionsProfitTracker — Gotchas
 
 > Hard-won lessons specific to OPT. Add to this file every time something burns hours of debugging.
-> Verified against codebase: 2026-05-29 (Group BB prime)
+> Verified against codebase: 2026-05-29 (Group BF prime)
 >
 > **For cross-app rules** (RTL, LTR, +/-, 2-decimal, KSP-not-kapt, build conventions, branch naming): see `shared/conventions.md`.
 
@@ -145,6 +145,12 @@ For an open CC, three numbers matter:
 - `implied_volatility` — current IV, refreshed during sync
 
 When showing "IV change since open", use both. When showing "current IV", use only the live one.
+
+### Abnormal-move alert threshold clamps out big drops on super-volatile tickers (use an absolute floor)
+**Symptom:** RKLX dropped **-17.85%** but never appeared in the pre-market abnormal alerts.
+**Reason:** the per-ticker threshold is `2× avgDailyMovePct`, clamped to `[3%, 25%]`. RKLX's avg daily move is ~13.28%, so its threshold = `min(2×13.28, 25) = 25%` — a -17.85% drop is "normal" for it and never fires. The relative-only test silently swallows meaningful moves on the most volatile tickers (exactly the ones worth an alert).
+**Fix (BF2, commit `d44bb7c`):** added `val ABS_MOVE_FLOOR = 10.0` in the `ReportGenerator` preMarketAlerts loop and fire on EITHER condition: `abs(changePct) >= threshold || abs(changePct) >= ABS_MOVE_FLOOR`. Floor-only fires append "ירידה גדולה (תנודתי רגיל לטיקר זה)" so the user knows it's big-in-points but normal-vol. The BC4 buy recommendation also got a `>= ABS_MOVE_FLOOR → 100`-share tier so floor-fired drops still get a rec (RKLX rarity ≈1.34 < 1.5 would otherwise yield 0). The 10% floor is tunable. (`ABNORMAL_DIAG` per-ticker log added in BE is what pinned this down — remove it once confirmed on device.)
+**Note:** `DashboardSummary.ivByTicker: Map<String,Double>` already exists (built from open positions' `impliedVolatility`); the NEW10 high-IV screen reads it directly. There is no per-ticker IV timestamp — only a global `lastIvRefresh`.
 
 ### `unrealizedPnL` must match IBKR mark-to-market — NO commission on unrealized
 Per CLAUDE.md domain rule. Commission is deducted only on realized P&L (close).
