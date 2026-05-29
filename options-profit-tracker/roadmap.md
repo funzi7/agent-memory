@@ -1,7 +1,7 @@
 # OptionsProfitTracker — Roadmap
 
 > History of completed work + forward plan. Update at end of each round.
-> עדכון אחרון: 2026-05-05 (post commit `8a44bd4`)
+> עדכון אחרון: 2026-05-29 (post commit `61f4dc4` — Group BB prime)
 
 ---
 
@@ -19,7 +19,7 @@
 
 - **Repo:** funzi7/OptionsProfitTracker
 - **DB version:** 30 (planned: 31 with new `initial_implied_volatility` column in FIX 1/D)
-- **Active branch:** `claude/analyze-project-structure-TC5ZG`
+- **Active branch:** `main`
 
 ---
 
@@ -182,6 +182,21 @@ E1 Spread leg-matching, E2 Annual target screen bars, E3 B-S auto-fill device ve
 | F12 | Dividend scrape fallback | digrin.com / dividend.com after stockanalysis.com regex broke |
 | F13 | Twitter popular tweets | Filter to portfolio tickers |
 | F14 | Tax forms + calculations | 1042-S + Israeli Form 1325 (post-R2) |
+
+---
+
+## NEW backlog items (open, as of 2026-05-29)
+
+Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summary RTL + per-URL cache) ✅ Group BB; NEW32 (watchlist row → Add-Position prefilled) ✅ Group BB.
+
+| # | Item | Notes |
+|---|---|---|
+| DI | Refactor ~10+ ad-hoc Room builders → single Hilt singleton | ⏳ Data-integrity hardening. Each call site re-lists MIGRATION_21_22…29_30 and previously `.fallbackToDestructiveMigrationOnDowngrade()` (the data-loss bug, removed in Group BA across 16 sites/11 files by hand). One injected `OptionsDatabase` would kill the copy-paste drift and this whole bug class. |
+| NEW6 | News article content has junk | ⏳ Extraction cleanup — the `<p>`/`<div>` scrape in `PortfolioNewsScreen` pulls nav/boilerplate/ads. Needs better readability extraction. |
+| NEW7 | Per-article sentiment + stock move since news | ⏳ Show bullish/bearish tag and the ticker's price change since the article timestamp. |
+| NEW9 | Merge news + events into the social feed | ⏳ Unify the news feed and portfolio events into the single social/activity feed. |
+| NEW10 | List highest IVs by portfolio tickers | ⏳ (= old N15/F-area) Surface the highest current IVs across held tickers + expiry dates in alerts. |
+| NEW23 | Pre-open ticker intelligence | ⏳ BIG feature — pre-market briefing per held ticker (overnight move, news, events, gap risk) before US open. |
 
 ---
 

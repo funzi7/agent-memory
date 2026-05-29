@@ -1,7 +1,7 @@
 # OptionsProfitTracker — Gotchas
 
 > Hard-won lessons specific to OPT. Add to this file every time something burns hours of debugging.
-> Verified against codebase: 2026-05-05
+> Verified against codebase: 2026-05-29 (Group BB prime)
 >
 > **For cross-app rules** (RTL, LTR, +/-, 2-decimal, KSP-not-kapt, build conventions, branch naming): see `shared/conventions.md`.
 
@@ -90,8 +90,14 @@ Each schema change has a migration in the chain. **NEVER bump version without ad
 
 Every new migration must be appended to `addMigrations(...)` in EVERY one of these. Migration Guard agent enforces this.
 
-### `fallbackToDestructiveMigrationOnDowngrade()` is the policy — don't change it
-OPT explicitly tolerates data loss on **downgrade** (rare — would only happen during dev rollbacks). Upgrades MUST have a real migration. Don't switch to the broader `fallbackToDestructiveMigration()` — that would wipe user data on any missing migration.
+**Planned fix (roadmap item DI):** consolidate all 11 into a single Hilt-injected `OptionsDatabase` singleton. This whole copy-paste hazard — plus the destructive-downgrade data-loss bug below — exists only because the DB is built in 11 separate places. One source of truth kills both. Until then, treat all 11 as a unit.
+
+### ⚠️ NEVER use `fallbackToDestructiveMigrationOnDowngrade()` — it silently WIPES data (CONFIRMED data loss)
+**This reverses the previous note in this file.** That builder option was assumed harmless ("only dev rollbacks"). It is NOT: it caused Dima to lose ALL app data after a reboot. When an OLDER-versioned build (e.g. a Play rollback, or simply opening with an older APK) touches the newer v30 DB, Room treats it as a downgrade and **destroys the database** instead of failing. There is no warning and no recovery.
+**Group BA (commit `594a0d5`) removed `.fallbackToDestructiveMigrationOnDowngrade()` from all 16 builder sites across 11 files.** A downgrade now THROWS (recoverable — the user keeps their data, you fix the version) rather than wiping.
+- Do NOT re-add it, and do NOT switch to the broader `fallbackToDestructiveMigration()` either — that wipes on ANY missing migration. We want NO destructive fallback at all. The correct builder chain is `databaseBuilder(...).addMigrations(...).build()`.
+- The safety net is the **auto-backup folder** (Group BA2): `BackupService.autoBackup()` writes a dated JSON to `getExternalFilesDir/auto_backups` once per day (rotated to the newest 15), so even a catastrophic wipe is restorable.
+- Upgrades still MUST ship a real migration in the unbroken chain.
 
 ### Position status `CLOSED` does not exist
 The enum is: `OPEN | CLOSED_BTC | EXPIRED | ASSIGNED | ROLLED | DRAFT`. Use `CLOSED_BTC` (closed by buy-to-close), not `CLOSED`. Other close paths are tracked via `EXPIRED`, `ASSIGNED`, `ROLLED` as their own statuses.
@@ -205,6 +211,12 @@ Background agent did 29 `Color(0x...)` → `AppTheme.colors.X` replacements acro
 
 ### LTR rule has been broken in 6+ screens repeatedly
 The general LTR rule lives in `shared/conventions.md`. For OPT specifically, the violation pattern is consistent — newly-added Composables miss the wrapper. Active issue tracked in `state.md`.
+
+### Dates rendering "wrong" was an ISO-FORMAT issue, NOT a bidi/RTL problem
+**Symptom:** dividend/event dates showed as `2026-06-16` and looked reversed/foreign to Dima, who wanted `16-06-2026`.
+**The trap:** Groups AV→AX burned multiple rounds treating this as an RTL bidi bug — adding `textDirection = TextDirection.Ltr`, then a Left-To-Right-Mark (U+200E) prefix, then both. None were the real fix.
+**Root cause + fix (Group AZ, commit `bfbbcc1`):** the dates were simply in ISO `yyyy-MM-dd`. Dima wanted day-month-year. The fix is to **reformat the string** to `dd-MM-yyyy` (a file-scope `fmtDate(iso)` using `DateTimeFormatter.ofPattern("dd-MM-yyyy")`). A plain `dd-MM-yyyy` numeric string renders LTR naturally — once reformatted, ALL the LRM/textDirection hacks were removed.
+**Lesson:** when a date "looks wrong," first ask whether it's the **format** (ISO vs dd-MM-yyyy) before reaching for bidi tooling. Money amounts with +/- still need the LTR wrapper (that's a genuine bidi concern); bare dates usually just need reformatting.
 
 ### Calendar arrows feel reversed in RTL
 **Symptom:** Right arrow goes to next month, left arrow to previous (per Dima).
