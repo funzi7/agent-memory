@@ -1,7 +1,7 @@
 # OptionsProfitTracker — Roadmap
 
 > History of completed work + forward plan. Update at end of each round.
-> עדכון אחרון: 2026-05-29 (post commit `d44bb7c` — Group BF prime, NEW10 done)
+> עדכון אחרון: 2026-05-29 (post commit `0363fa8` — Group BH prime, NEW10 dashboard section + full screen)
 
 ---
 
@@ -187,7 +187,7 @@ E1 Spread leg-matching, E2 Annual target screen bars, E3 B-S auto-fill device ve
 
 ## NEW backlog items (open, as of 2026-05-29)
 
-Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summary RTL + per-URL cache) ✅ Group BB; NEW32 (watchlist row → Add-Position prefilled) ✅ Group BB; NEW33 phase 1/1.5 (watchScan + buy recommendation) ✅ Groups BC/BD; NEW10 (high-IV portfolio list) ✅ Group BF.
+Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summary RTL + per-URL cache) ✅ Group BB; NEW32 (watchlist row → Add-Position prefilled) ✅ Group BB; NEW33 phase 1/1.5 (watchScan + buy recommendation) ✅ Groups BC/BD; NEW10 (high-IV list) ✅ Group BF, expanded to dashboard top-5 section + full all-tickers/sync/tap screen ✅ Group BH.
 
 | # | Item | Notes |
 |---|---|---|
@@ -196,7 +196,7 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 | NEW6 | News article content has junk | ⏳ Extraction cleanup — the `<p>`/`<div>` scrape in `PortfolioNewsScreen` pulls nav/boilerplate/ads. Needs better readability extraction. |
 | NEW7 | Per-article sentiment + stock move since news | ⏳ Show bullish/bearish tag and the ticker's price change since the article timestamp. |
 | NEW9 | Merge news + events into the social feed | ⏳ Unify the news feed and portfolio events into the single social/activity feed. |
-| NEW10 | List highest IVs by portfolio tickers | ✅ Group BF (`HighIvScreen`, ivByTicker sorted desc, pinned header, nav entry "IV גבוה בתיק ←"). |
+| NEW10 | List highest IVs by portfolio tickers | ✅ Group BF → expanded in Group BH: dashboard "🔥 IV גבוה — הזדמנויות" top-5 section (tap→Add-Position prefill, "ראה הכל ←") + full `HighIvScreen` listing ALL tracked tickers (open∪draft∪watchlist, no-IV last as "—") with a "סנכרן IV" refetch button and tap-to-open. |
 | NEW23 | Pre-open ticker intelligence | ⏳ BIG feature — pre-market briefing per held ticker (overnight move, news, events, gap risk) before US open. |
 | CLEANUP | Remove `ABNORMAL_DIAG` diagnostic log | ⏳ Added in Group BE to diagnose RKLX; BF2 (10% floor) is the fix. Remove the per-ticker `ABNORMAL_DIAG` log once Dima confirms on device that RKLX/MRAM now alert. |
 

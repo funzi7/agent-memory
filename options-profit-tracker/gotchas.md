@@ -1,7 +1,7 @@
 # OptionsProfitTracker — Gotchas
 
 > Hard-won lessons specific to OPT. Add to this file every time something burns hours of debugging.
-> Verified against codebase: 2026-05-29 (Group BF prime)
+> Verified against codebase: 2026-05-29 (Group BH prime)
 >
 > **For cross-app rules** (RTL, LTR, +/-, 2-decimal, KSP-not-kapt, build conventions, branch naming): see `shared/conventions.md`.
 
@@ -161,6 +161,22 @@ Captured on first save. DRAFT B-S updates may overwrite `premiumPerContract` (fo
 ---
 
 ## External APIs
+
+### IV source try-order (and the outdated comment/settings text)
+`IvService.fetchIv(ticker, avKey, tradierKey, rapidKey, mdKey, …)` is the single IV entry point. The **actual** runtime order (verified in code, follow the `IV_SOURCE` logs):
+1. **Cache** (`IvCacheEntity` / `iv_cache` JSON)
+2. **Marketdata.app** (primary — `mdKey`)
+3. **Massive.com** (`massiveKey`, only if key present; 60s cooldown after 429)
+4. **Yahoo** (no key)
+5. **Alpha Vantage** (`avKey`, skipped if blank — demo key doesn't work)
+6. **Tradier** (`tradierKey`, dev token, 15-min delayed)
+7. **RapidAPI** (`rapidKey`, Yahoo wrapper)
+8. **Historical volatility** (last-resort fallback computed locally)
+
+**Gotchas to remember:**
+- The KDoc comment above `fetchIv` (line ~88) lists a DIFFERENT order ("Cache → Yahoo → Alpha Vantage → Tradier → Marketdata → RapidAPI → Historical") and is **OUTDATED** — Marketdata is actually first after cache, and Massive isn't even in the comment. Trust the code / `IV_SOURCE` logs, not the comment. The Settings IV-key description text is likewise stale.
+- Settings exposes **4** IV key fields: **AlphaVantage, MarketData, Massive, RapidAPI**. **Tradier is used in code (source #6) but has NO settings field** — so `tradierKey` is effectively always blank unless added. Worth a settings field if Tradier coverage is wanted.
+- IV is persisted on `PositionEntity.impliedVolatility` (open positions) → that's what `DashboardSummary.ivByTicker` is built from. There's **no per-ticker IV row** for watchlist-only tickers; Group BH's `HighIvScreen` holds those in an in-memory `_extraIv` map (not persisted — no DB row, no schema change).
 
 ### Alpha Vantage free tier: 25 req/day + 1.5s between calls
 **Symptom:** "Note: Thank you for using Alpha Vantage…" returned instead of data; all calls fail rest of day.
