@@ -240,6 +240,14 @@ The general LTR rule lives in `shared/conventions.md`. For OPT specifically, the
 **Root cause + fix (Group AZ, commit `bfbbcc1`):** the dates were simply in ISO `yyyy-MM-dd`. Dima wanted day-month-year. The fix is to **reformat the string** to `dd-MM-yyyy` (a file-scope `fmtDate(iso)` using `DateTimeFormatter.ofPattern("dd-MM-yyyy")`). A plain `dd-MM-yyyy` numeric string renders LTR naturally — once reformatted, ALL the LRM/textDirection hacks were removed.
 **Lesson:** when a date "looks wrong," first ask whether it's the **format** (ISO vs dd-MM-yyyy) before reaching for bidi tooling. Money amounts with +/- still need the LTR wrapper (that's a genuine bidi concern); bare dates usually just need reformatting.
 
+### SignedFormatter drops the "+" for positives; per-position values after a Hebrew label need `.percent`; em-dash ranges need an LTR span (Group BI, commits `47a1dcf` BI1/BI2 + `65fac57` BI3)
+Three related number-formatting lessons from Group BI:
+- **`SignedFormatter.currency()`/`percent()` now OMIT the "+" for positives (GLOBAL change).** The positive branch returns `""`, not `"+"`. Only negatives show a sign (a "-", always after the ‎ LTR mark so it sits on the LEFT). This changed every call site of those two functions at once. Do NOT reintroduce a "+". `currencyUnsigned`/`percentUnsigned`/`number` were never signed and are unaffected. Verified nothing parses the "+" back out (`grep .startsWith("+")` = none).
+- **A signed value sitting AFTER a Hebrew label must use `SignedFormatter.percent`/`.currency`, not a raw `"%.1f%%".format(...)`.** The per-position "שנתי" annual badge had a `CompositionLocalProvider(LayoutDirection.Ltr)` wrap (BH3) yet the minus STILL rendered on the right — because the badge string starts with the Hebrew label, which sets an RTL paragraph for the whole Text and the layout-direction wrap doesn't change the text's bidi base. The embedded ‎ mark inside `SignedFormatter.percent` is what forces the number LTR. Lesson: layout-direction wrap ≠ bidi base; for a number glued to Hebrew, the ‎ mark is mandatory.
+- **Numeric ranges with an em-dash ("$X — $Y") or a "%-%" range reverse in RTL.** The cheapest fix that works: prepend `${SignedFormatter.LTR}` (the ‎ mark) to the START of the whole string — a leading ‎ forces the entire line to an LTR base so the range reads left-to-right while a trailing Hebrew word (e.g. " שנתי") still shapes correctly. That's exactly what BI3 did to the six New-Position premium-tier/annual strings (3 tier "<emoji> <hebrew>: $X — $Y" + 3 "12%-18%"/"18%-25%"/"25%+ שנתי"). A heavier alternative (LTR span via `CompositionLocalProvider(LayoutDirection.Ltr)` around just the numeric part, Hebrew label as a separate Text) also works but is rarely needed — reach for the leading-‎ first.
+- **Trap (cost me many rounds in BI3):** those premium tiers are INLINE `Row{Text}` blocks in `AddPositionScreen.kt` (~1690-1718), NOT a `PremiumTierBox` composable — don't trust a stale memory of that name; grep the actual file before editing.
+- **Edit-tool trap with emoji in source:** the tier Texts store the check/cross as LITERAL escape text `✅`/`❌` (not the rendered glyph). An Edit `old_string` containing the emoji glyph ✅/❌ will NEVER match (JSON decodes `\uXXXX` in your string to the codepoint, so you send a glyph; the file has the backslash-u text). Fix: either copy the literal `✅` text, or — better — anchor your Edit on a PURE-ASCII unique substring that avoids the emoji entirely (that's how BI3 finally landed: anchored on `"${if (minAchieved)` and `Text("12%-18%`).
+
 ### Calendar arrows feel reversed in RTL
 **Symptom:** Right arrow goes to next month, left arrow to previous (per Dima).
 **Reason:** RTL flips visual direction but logical "next" should still be ← in Hebrew.
@@ -285,7 +293,7 @@ Configured in Dima's git config. Don't assume it's a standard git command in oth
 - **Don't assume `CLOSED` enum value.** It's `CLOSED_BTC`. Other closes are `EXPIRED` / `ASSIGNED` / `ROLLED`.
 - **Don't store secrets in plain SharedPreferences** — use DataStore (which we do) until migration to EncryptedDataStore lands.
 - **Don't change `syncSource` enum semantics** — it's what protects manual data on `fullResync()`.
-- **Don't change the +/- left-of-number convention** — Dima will spot it immediately and ask for revert.
+- **Don't change the +/- left-of-number convention** — Dima will spot it immediately and ask for revert. NOTE (Group BI): positives now show NO sign at all (the "+" was dropped globally in `SignedFormatter`); only negatives show a "-", and it stays on the LEFT via the ‎ mark. Keep it that way — don't re-add "+".
 
 ---
 
