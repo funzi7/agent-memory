@@ -1,7 +1,13 @@
 # OptionsProfitTracker — Roadmap
 
 > History of completed work + forward plan. Update at end of each round.
-> עדכון אחרון: 2026-05-30 (post commit `34b5ba3` — Group BM prime: IV multi-key failover + 4s timeouts + historical fallback prices + Tradier field + key-log cleanup)
+> עדכון אחרון: 2026-05-30 (post commit `46f717f` — Group BP prime: accept MarketData HTTP 203 (delayed feed) so liquid tickers get IV; splitApiKeys no-space; fast build-check rule (`:app:compileDebugKotlin` + `grep "^e: "`))
+
+## Group BP prime ✅ (`942af85`+`46f717f`, 2026-05-30)
+- MarketData HTTP **203** (Non-Authoritative = 24h-delayed feed) now accepted in `fetchIvFromMarketdata` — was rejected as `!= 200`, so liquid tickers (NVDA/SOFI/SOXL) showed "—" despite spent credits. **DONE.**
+- `splitApiKeys` no longer splits on space (a stray space forged a phantom key) — splits on `\n , ;` only. **DONE.**
+- Build-check rule made FAST + strict in CLAUDE.md (`942af85`) + AGENTS.md (`46f717f`): `:app:compileDebugKotlin` + `grep "^e: "` (full `clean assembleDebug` only for APKs). **DONE.**
+- **Queue (in order):** (1) multi-key MONTHLY COOLDOWN — on a quota/credit error (402/429) skip that key until the 1st of next month, try the next; persist by a HASH of the key (never the key), auto-resets at month start. (2) 21-day historical-vol fallback (cached avgDailyMove ×√252 for tickers with no option IV). (3) NYSE-holidays helper (badge "סגור" + calendar gray-out). (4) expected-profit $1400→-$0.81 bug. (5) SOXL long-put mislabel; ASTS-shows-RKLB-news.
 
 ---
 
