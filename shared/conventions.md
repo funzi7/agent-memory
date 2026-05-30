@@ -258,3 +258,16 @@ Types:
 
 `claude/batch{N}-{description}` for Claude Code work.
 `claude/{round-label}-{description}` (e.g., `claude/r1-sync-correctness`) for round work.
+
+---
+
+## Shared agent guardrails (Group BN prime)
+
+BOTH Claude Code and Codex now share the same git-safety rules, recorded in the OPT repo's `CLAUDE.md` (Claude Code) and `AGENTS.md` (Codex):
+- `git pull --rebase origin main` before editing; STOP if there are uncommitted local changes.
+- `./gradlew clean assembleDebug` must pass (read the output, don't assume) before commit.
+- Never force-push; never rewrite remote history; never `git reset --hard` without explicit user approval.
+- Never delete user data or Room migrations.
+- Use the Edit tool, NOT regex/PowerShell mass-replace, on `.kt` files (a botched regex has corrupted files before).
+
+Both agents read THIS repo (`funzi7/agent-memory`) at the start of each task for current state — `options-profit-tracker/state.md`, `roadmap.md`, `gotchas.md`, and this file are the source of truth (e.g. Room DB is v30, not the v11 still listed in CLAUDE.md's historical section).
