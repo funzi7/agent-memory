@@ -1,7 +1,7 @@
 # OptionsProfitTracker — Roadmap
 
 > History of completed work + forward plan. Update at end of each round.
-> עדכון אחרון: 2026-05-29 (post commit `0363fa8` — Group BH prime, NEW10 dashboard section + full screen)
+> עדכון אחרון: 2026-05-30 (post commit `968ca89` — Group BL prime: weekend session badge + parallel IV sync + Tradier key field & corrected IV try-order text)
 
 ---
 
