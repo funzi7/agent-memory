@@ -15,6 +15,7 @@ See `current-session.md` for the full IV handoff from 2026-05-30.
 BO' just landed: MarketData filtered chain (`dte=30&strikeLimit=2`), real bounded-parallel IV sync, and LTR/multi-line API-key fields.
 Contract-specific IV, `massiveKey` passing, and multi-key failover already exist; verify the code and do not duplicate them.
 Next work is MarketData credit guard/cooldown, contract-IV verification for open positions, de-duped IV requests, and 21-day historical fallback.
+
 ## Repo + state
 
 - **Repo:** funzi7/OptionsProfitTracker
