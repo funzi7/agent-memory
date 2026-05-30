@@ -1,7 +1,7 @@
 # OptionsProfitTracker — State
 
 > Living document. Update at the end of every working session.
-> Last updated: 2026-05-30 (post commit `7562685` — Group BO prime: MarketData FILTERED chain (dte=30&strikeLimit=2) fixes credit burn + timeout + no-data; syncIvForTickers REALLY parallelized (Semaphore 6, 8s); all API-key fields LTR + multi-line incl Finnhub + the 4 AI keys)
+> Last updated: 2026-05-30 (post commit `46f717f` — Group BP prime: accept MarketData HTTP 203 (24h-delayed feed) so liquid tickers get IV instead of "—"; splitApiKeys no longer splits on space (a stray space forged a phantom key); routine build-check made FAST + strict in CLAUDE.md + AGENTS.md (`:app:compileDebugKotlin` + `grep "^e: "`, not `clean assembleDebug`))
 
 ## Current focus
 
