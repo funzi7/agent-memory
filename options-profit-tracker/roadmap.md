@@ -187,7 +187,11 @@ E1 Spread leg-matching, E2 Annual target screen bars, E3 B-S auto-fill device ve
 
 ## NEW backlog items (open, as of 2026-05-29)
 
-Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summary RTL + per-URL cache) ✅ Group BB; NEW32 (watchlist row → Add-Position prefilled) ✅ Group BB; NEW33 phase 1/1.5 (watchScan + buy recommendation) ✅ Groups BC/BD; NEW10 (high-IV list) ✅ Group BF, expanded to dashboard top-5 section + full all-tickers/sync/tap screen ✅ Group BH.
+Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summary RTL + per-URL cache) ✅ Group BB; NEW32 (watchlist row → Add-Position prefilled) ✅ Group BB; NEW33 phase 1/1.5 (watchScan + buy recommendation) ✅ Groups BC/BD; NEW10 (high-IV list) ✅ Group BF, expanded to dashboard top-5 section + full all-tickers/sync/tap screen ✅ Group BH; **IV-key settings (added Tradier field + corrected try-order text) + IV-sync performance (sequential→concurrent, ~10–20s) ✅ Group BL (`968ca89`)**; weekend session badge ✅ Group BL.
+
+**Public mirror — ❌ CANCELLED (2026-05-30):** user declined exposing the code; do not add any mirror workflow.
+
+**Next-up queue (open):** expected-profit $1400→−$0.81 bug (NEXT); SOXL long-put mislabel; ASTS shows RKLB news; calendar gray-out non-trading days; annual-target % inside both bars; dividend/events API-key section; multi-key failover.
 
 | # | Item | Notes |
 |---|---|---|
