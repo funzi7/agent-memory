@@ -385,3 +385,5 @@ Examples (currently broken):
 - `ALERT_SCHEDULE` log empty → AlertWorker not actually scheduled
 
 When a verification log is empty, the bug is upstream of the calc — find which composable/function should have triggered it and fix that path first.
+
+- (Group BQ) Update agent-memory by APPEND + injected `git rev-parse --short HEAD`, never Edit (anchor-matching fails repeatedly) and never hand-typed hashes. MarketCalendar centralizes NYSE non-trading days (weekend + computed holidays w/ observed shift + Good Friday). NOTE: the calendar grid renders day cells INLINE in CalendarScreen.kt — there IS a separate CalendarDayCell.kt component but it is NOT used by the month grid; edit the inline Text.

@@ -286,3 +286,7 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 - **F1-F14** = post-stabilization features (⏳)
 - **S1-S23** = small UX items
 - **E1-E6** = other open issues outside 4-FIX
+
+## Group BQ prime — 2026-05-31 (OPT 44f653a)
+- NYSE non-trading-days helper DONE (session badge "סגור" + calendar gray-out).
+- Queue (in order): (1) expected-profit assigned-CC realizedPnL — BLOCKED on user accounting decision; (2) SOXL long-put mislabel — need BUY vs SELL of the SOXL pos; (3) ASTS-shows-RKLB-news — locate news source; (4) multi-key monthly cooldown; (5) 21-day HV fallback (thin safety net).

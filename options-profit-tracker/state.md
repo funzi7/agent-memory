@@ -525,3 +525,8 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - **Active branch:** `claude/analyze-project-structure-TC5ZG`
 - **Branch naming convention:** `claude/batch{N}-{description}` or `claude/{round-label}-{description}`
 - **PR convention:** conventional commits (`fix:`, `feat:`, `chore:`, etc.)
+
+### 2026-05-31 Group BQ prime — NYSE non-trading-days + memory-append process
+- OPT: 44f653a
+- MarketCalendar util (NYSE holidays incl observed Sat/Sun shift + Good Friday); session badge "סגור" on weekends AND holidays; calendar non-trading days grayed (inline day-number Text alpha 0.35 in CalendarScreen, via MarketCalendar.isNonTradingDay) — gray-out DONE, not a TODO. The grid renders cells INLINE (no CalendarDayCell component call).
+- Memory updates now APPEND with injected short hash, never Edit/never hand-typed.
