@@ -1,7 +1,7 @@
 # OptionsProfitTracker — Roadmap
 
 > History of completed work + forward plan. Update at end of each round.
-> עדכון אחרון: 2026-05-30 (post commit `4f8a1c0` — Group BM prime: IV multi-key failover + 4s timeouts + historical fallback prices + Tradier field + key-log cleanup)
+> עדכון אחרון: 2026-05-30 (post commit `34b5ba3` — Group BM prime: IV multi-key failover + 4s timeouts + historical fallback prices + Tradier field + key-log cleanup)
 
 ---
 
@@ -191,7 +191,7 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 
 **Public mirror — ❌ CANCELLED (2026-05-30):** user declined exposing the code; do not add any mirror workflow.
 
-**IV multi-key failover + Tradier field + API-key-prefix log cleanup ✅ Group BM (`4f8a1c0`)** — also cut socket timeouts 10s→4s and wired snapshot prices into the historical-vol fallback.
+**IV multi-key failover + Tradier field + API-key-prefix log cleanup ✅ Group BM (`34b5ba3`)** — also cut socket timeouts 10s→4s and wired snapshot prices into the historical-vol fallback.
 
 **Next-up queue (open):** NYSE-holidays helper (badge "סגור" + calendar gray-out non-trading days); expected-profit $1400→−$0.81 bug (NEXT); SOXL long-put mislabel; ASTS shows RKLB news; annual-target % inside both bars; dividend/events API-key section.
 
