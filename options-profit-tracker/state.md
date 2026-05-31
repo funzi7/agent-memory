@@ -530,3 +530,8 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - OPT: 44f653a
 - MarketCalendar util (NYSE holidays incl observed Sat/Sun shift + Good Friday); session badge "סגור" on weekends AND holidays; calendar non-trading days grayed (inline day-number Text alpha 0.35 in CalendarScreen, via MarketCalendar.isNonTradingDay) — gray-out DONE, not a TODO. The grid renders cells INLINE (no CalendarDayCell component call).
 - Memory updates now APPEND with injected short hash, never Edit/never hand-typed.
+
+### 2026-05-31 Group BR prime — expected-profit mirrors assignment + calendar non-trading bg
+- OPT: 106fa90
+- expectedProfitAtExpiration now mirrors assignment reality for CC + CSP: ITM (will be assigned) -> $0 on the option (IBKR folds premium into stock cost basis; the gain shows on the STOCK), OTM (expires worthless) -> premium - commission, no price -> optimistic premium. Deleted the old premium+stock-gain ITM projections (they collapsed to $0 after assignment). NO realizedPnL change (do NOT confuse the two funcs: realizedPnL ~line 100, expectedProfitAtExpiration ~line 286).
+- Calendar: EMPTY non-trading days (weekends + NYSE holidays, incl today) now get a muted background (surfaceVariant alpha 0.4), placed AFTER the position/realized cases so a non-trading day with a position keeps its P&L color; today border + dimmed digit retained.

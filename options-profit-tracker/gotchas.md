@@ -387,3 +387,5 @@ Examples (currently broken):
 When a verification log is empty, the bug is upstream of the calc — find which composable/function should have triggered it and fix that path first.
 
 - (Group BQ) Update agent-memory by APPEND + injected `git rev-parse --short HEAD`, never Edit (anchor-matching fails repeatedly) and never hand-typed hashes. MarketCalendar centralizes NYSE non-trading days (weekend + computed holidays w/ observed shift + Good Friday). NOTE: the calendar grid renders day cells INLINE in CalendarScreen.kt — there IS a separate CalendarDayCell.kt component but it is NOT used by the month grid; edit the inline Text.
+
+- (Group BR) Realized P&L is DISPLAYED as ibkrRealizedPnl ?: calc, and IBKR reports $0 for assignments, so assigned options ALREADY show $0 — do NOT change realizedPnL to "fix" an assigned $0. Only the EXPECTED projection (expectedProfitAtExpiration ~line 286, NOT realizedPnL ~line 100) needed aligning: ITM/assigned->$0, OTM/expires->premium. The real wheel gain lives on the STOCK (fifoPnlRealized of STK trades), not the option.

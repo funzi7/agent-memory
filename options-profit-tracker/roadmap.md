@@ -290,3 +290,7 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 ## Group BQ prime — 2026-05-31 (OPT 44f653a)
 - NYSE non-trading-days helper DONE (session badge "סגור" + calendar gray-out).
 - Queue (in order): (1) expected-profit assigned-CC realizedPnL — BLOCKED on user accounting decision; (2) SOXL long-put mislabel — need BUY vs SELL of the SOXL pos; (3) ASTS-shows-RKLB-news — locate news source; (4) multi-key monthly cooldown; (5) 21-day HV fallback (thin safety net).
+
+## Group BR prime — 2026-05-31 (OPT 106fa90)
+- Expected-profit assignment/$0 vs expiry/premium + calendar non-trading-day background DONE.
+- Queue (in order): (1) STOCK realized-P&L display — capture IBKR fifoPnlRealized of STK trades per ticker + a UI section (the real wheel gain, e.g. RKLB ~$1504, lives there); (2) multi-key monthly cooldown; (3) SOXL CSP->LONG_PUT import mis-parse (needs user Flex rows); (4) ASTS-shows-RKLB-news.
