@@ -298,3 +298,8 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 ### Group BS prime — done + next (2026-05-31)
 - DONE: stock realized-P&L display (per-ticker + monthly + combined-total toggle, separate from options) + calendar today-digit dims on non-trading days.
 - NEXT: multi-key monthly cooldown (IV credit guard per key/month); SOXL CSP→LONG_PUT import mis-parse (needs the user's actual Flex rows to diagnose); ASTS-shows-RKLB-news (wrong-ticker news mapping).
+
+### Group BT prime — done + next (2026-05-31)
+- DONE: stock-P&L detail moved to its own StockRealizedScreen (compact dashboard card + "ראה הכל"); combined total now follows the SELECTED month (options+stock per period; "כל הזמן" = lifetime).
+- OPEN QUESTION (next, pending USER decision): optionally show UNREALIZED/projected stock P&L for OPEN CC holdings (e.g. PLUG's projected assignment loss) in a separate labeled view — do NOT mix into the realized section.
+- QUEUE: multi-key monthly cooldown (IV credit guard per key/month); SOXL CSP→LONG_PUT import mis-parse (needs user's actual Flex rows); ASTS-shows-RKLB-news (wrong-ticker news mapping).
