@@ -321,3 +321,7 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 - DONE: stock-screen month-format (chips show MM-YYYY via fmtMonth, LtrText keeps LTR) + header-wrap (title wraps, number one line — fixed BW3 title-truncation).
 - NEXT (user requested): multi-key monthly cooldown (IV credit guard per key/month).
 - QUEUE: SOXL CSP->LONG_PUT import mis-parse (needs user's actual Flex rows); ASTS-shows-RKLB-news (wrong-ticker news mapping).
+
+### Group BY prime — done + next (2026-06-01)
+- DONE: combined-section month MM-YYYY; multi-key MONTHLY quota cooldown (NaN quota signal → skip key whose hash is in cooldown for the current YearMonth, auto-reset on the 1st; wired from all 3 fetchIv sites; key hashed, never stored/logged).
+- QUEUE: SOXL CSP->LONG_PUT import mis-parse (needs user's actual Flex rows); ASTS-shows-RKLB-news (wrong-ticker news mapping); optional DAILY-granularity cooldown for AlphaVantage (currently treated as monthly).
