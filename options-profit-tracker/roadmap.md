@@ -325,3 +325,7 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 ### Group BY prime — done + next (2026-06-01)
 - DONE: combined-section month MM-YYYY; multi-key MONTHLY quota cooldown (NaN quota signal → skip key whose hash is in cooldown for the current YearMonth, auto-reset on the 1st; wired from all 3 fetchIv sites; key hashed, never stored/logged).
 - QUEUE: SOXL CSP->LONG_PUT import mis-parse (needs user's actual Flex rows); ASTS-shows-RKLB-news (wrong-ticker news mapping); optional DAILY-granularity cooldown for AlphaVantage (currently treated as monthly).
+
+### Group BZ prime — done + next (2026-06-01)
+- DONE: IV key-status display ("סטטוס מפתחות IV" card, ACTIVE/COOLDOWN/NONE per key, #N aligned to failover keyIndex); Finnhub own Settings section; shared IvService.keyHash (DashboardViewModel.hashKey delegates).
+- QUEUE: ASTS-shows-RKLB-news (locate news source / wrong-ticker mapping); SOXL long-put mislabel (need SOXL Flex rows); optional DAILY-granularity cooldown for AlphaVantage (currently treated as monthly).
