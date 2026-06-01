@@ -1,25 +1,24 @@
 # thai-rent-finder — State
 
 > Living document. Auto-updated daily at 02:00 UTC by `auto-update-state.yml`.
-> Last auto-update: 2026-05-12
+> Last auto-update: 2026-06-01
 > Production: https://thai-rent-finder.vercel.app
-> Total listings in DB: 1291
+> Total listings in DB: 1351
 
 ## Sources status (current)
 
 | Source | Tier | Cron (ICT) | Status | Listings 7d |
 |--------|------|------------|--------|-------------|
-| FAZWAZ | 2 (GH Actions) | 03:00 | ✅ active | 152 |
-| RENTHUB | 2 (GH Actions) | 03:30 | ✅ active | 702 |
-| LIVING_INSIDER | 2 (GH Actions) | 04:00 | ✅ active | 70 |
-| LAZUDI | 2 (GH Actions) | 05:30 | ✅ active | 59 |
-| THAILAND_PROPERTY | 1 (Vercel) | n/a | ✅ active | 61 |
+| FAZWAZ | 2 (GH Actions) | 03:00 | ⚠️ no fresh listings | 0 |
+| RENTHUB | 2 (GH Actions) | 03:30 | ✅ active | 137 |
+| LIVING_INSIDER | 2 (GH Actions) | 04:00 | ⚠️ no fresh listings | 0 |
+| LAZUDI | 2 (GH Actions) | 05:30 | ⚠️ no fresh listings | 0 |
+| THAILAND_PROPERTY | 1 (Vercel) | n/a | ✅ active | 13 |
 | HIPFLAT | 3 (deferred) | n/a | 🔴 deferred (Cloudflare 403) | n/a |
 
 ## Recently merged PRs (last 7 days)
 
-- **#71** — feat(ci): codex review gate blocks merge until Codex signals
-- **#70** — fix: 4 critical CI automation issues (closes #65, #69)
+_No PRs merged in last 7 days_
 
 ## Open issues
 
@@ -69,6 +68,7 @@ _Auto-generated. Add manual content between `<!-- manual-section-start -->` and 
 
 _Auto-generated. Add manual content between `<!-- manual-section-start -->` and `<!-- manual-section-end -->` markers — the workflow appends preserved blocks at the file tail._
 
+_Auto-generated. Add manual content between `<!-- manual-section-start -->` and `<!-- manual-section-end -->` markers — the workflow appends preserved blocks at the file tail._
 _Auto-generated. Add manual content between `<!-- manual-section-start -->` and `<!-- manual-section-end -->` markers — the workflow appends preserved blocks at the file tail._
 _Auto-generated. Add manual content between `<!-- manual-section-start -->` and `<!-- manual-section-end -->` markers — the workflow appends preserved blocks at the file tail._
 _Auto-generated. Add manual content between `<!-- manual-section-start -->` and `<!-- manual-section-end -->` markers — the workflow appends preserved blocks at the file tail._
