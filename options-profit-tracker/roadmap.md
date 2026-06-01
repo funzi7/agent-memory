@@ -311,3 +311,8 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 ### Group BV prime — done + next (2026-06-01)
 - DONE: PLUG-projected-fix — projectedStockPnl now resolves CC avgCost via AvgCostResolver.resolveFromSnapshot + shares/current from stockSnapshot, so IMPORTED ITM CCs (PLUG ~-$3000) show projected assignment P&L, not just manually-entered ones. Display-only.
 - QUEUE: multi-key monthly cooldown (IV credit guard per key/month); SOXL CSP->LONG_PUT import mis-parse (needs user's actual Flex rows); ASTS-shows-RKLB-news (wrong-ticker news mapping).
+
+### Group BW prime — done + next (2026-06-01)
+- DONE: stock-screen polish — reusable LtrText (LTR dates/numbers), month selector always includes the current month, header totals no longer wrap; LTR rule codified in CLAUDE.md/AGENTS.md.
+- NEXT (user requested): multi-key monthly cooldown (IV credit guard per key/month).
+- QUEUE: SOXL CSP->LONG_PUT import mis-parse (needs user's actual Flex rows); ASTS-shows-RKLB-news (wrong-ticker news mapping).
