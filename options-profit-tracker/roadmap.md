@@ -316,3 +316,8 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 - DONE: stock-screen polish — reusable LtrText (LTR dates/numbers), month selector always includes the current month, header totals no longer wrap; LTR rule codified in CLAUDE.md/AGENTS.md.
 - NEXT (user requested): multi-key monthly cooldown (IV credit guard per key/month).
 - QUEUE: SOXL CSP->LONG_PUT import mis-parse (needs user's actual Flex rows); ASTS-shows-RKLB-news (wrong-ticker news mapping).
+
+### Group BX prime — done + next (2026-06-01)
+- DONE: stock-screen month-format (chips show MM-YYYY via fmtMonth, LtrText keeps LTR) + header-wrap (title wraps, number one line — fixed BW3 title-truncation).
+- NEXT (user requested): multi-key monthly cooldown (IV credit guard per key/month).
+- QUEUE: SOXL CSP->LONG_PUT import mis-parse (needs user's actual Flex rows); ASTS-shows-RKLB-news (wrong-ticker news mapping).

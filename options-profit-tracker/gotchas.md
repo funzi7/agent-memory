@@ -410,3 +410,8 @@ When a verification log is empty, the bug is upstream of the calc — find which
 ### The recurring RTL-date bug is now solved by the shared LtrText component — USE IT
 **Symptom:** dates/numbers reverse inside the RTL Hebrew UI (e.g. "2026-06" → "50-2026"); totals wrap/truncate to a second line. This kept recurring because each new composable forgot the `CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr)` wrap.
 **Fix (Group BW prime):** use `com.dima.optionstracker.ui.components.LtrText` for EVERY date / number / price / English string (it wraps the LTR provider and defaults `maxLines=1, softWrap=false`). For a header row, give the Hebrew title `Modifier.weight(1f, fill=false)` + maxLines=1 + TextOverflow.Ellipsis and put the amount in an LtrText so the number never wraps. Hebrew labels stay a normal Text. Codified in CLAUDE.md + AGENTS.md.
+
+### LtrText fixes DIRECTION, not FORMAT — month/date format must be MM-YYYY / DD-MM-YYYY
+**Symptom:** even after LtrText (LTR), a month chip reads "2026-06" — correct direction but wrong order; the app convention is month-before-year.
+**Fix:** format the displayed string month-before-year (`fmtMonth("2026-06") -> "06-2026"`), keep LtrText so it stays left-to-right. Keep the underlying KEY ("YYYY-MM") for lookup — change only the shown string.
+**Header layout rule:** the TITLE wraps (`softWrap=true` + `Modifier.weight(1f)`, NO maxLines/ellipsis — never truncate the title) and only the NUMBER is one line (LtrText, maxLines=1, softWrap=false, no weight). BW3 had wrongly truncated the title with ellipsis.
