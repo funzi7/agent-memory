@@ -307,3 +307,7 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 ### Group BU prime — done + next (2026-05-31)
 - DONE: PLUG-style PROJECTED (unrealized) stock P&L for open ITM covered calls = (strike − avgCost) × shares; compact-card "צפוי (CC פתוח)" line + separate section in StockRealizedScreen; display-only (expected/realizedPnL untouched). Closes the BT open question.
 - QUEUE: multi-key monthly cooldown (IV credit guard per key/month); SOXL CSP→LONG_PUT import mis-parse (needs user's actual Flex rows); ASTS-shows-RKLB-news (wrong-ticker news mapping).
+
+### Group BV prime — done + next (2026-06-01)
+- DONE: PLUG-projected-fix — projectedStockPnl now resolves CC avgCost via AvgCostResolver.resolveFromSnapshot + shares/current from stockSnapshot, so IMPORTED ITM CCs (PLUG ~-$3000) show projected assignment P&L, not just manually-entered ones. Display-only.
+- QUEUE: multi-key monthly cooldown (IV credit guard per key/month); SOXL CSP->LONG_PUT import mis-parse (needs user's actual Flex rows); ASTS-shows-RKLB-news (wrong-ticker news mapping).
