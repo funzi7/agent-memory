@@ -329,3 +329,6 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 ### Group BZ prime — done + next (2026-06-01)
 - DONE: IV key-status display ("סטטוס מפתחות IV" card, ACTIVE/COOLDOWN/NONE per key, #N aligned to failover keyIndex); Finnhub own Settings section; shared IvService.keyHash (DashboardViewModel.hashKey delegates).
 - QUEUE: ASTS-shows-RKLB-news (locate news source / wrong-ticker mapping); SOXL long-put mislabel (need SOXL Flex rows); optional DAILY-granularity cooldown for AlphaVantage (currently treated as monthly).
+
+## Group CA prime ✅ (38f09aa)
+- IV status: refresh feedback + last-sync time — **DONE.**

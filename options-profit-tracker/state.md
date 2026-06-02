@@ -596,3 +596,8 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - BZ2: Finnhub pulled OUT of the "📊 IV" card into its own "📈 מחירים, חדשות ודיבידנדים" Settings section (Finnhub is a SHARED key — prices+news+dividends); Massive field marked "(משמש גם לדיבידנדים)". Both sections save via the existing viewModel.saveIvSettings() (already persists Finnhub — no new prefs/state/save fn).
 - BZ3: "סטטוס מפתחות IV" card (own item, between IV-keys and Finnhub). SettingsViewModel.computeIvKeyStatus() iterates IvService.splitApiKeys for the 5 keyed providers (MarketData, Massive, Alpha Vantage, Tradier, RapidAPI) and reads cooldown via IvService.keyHash + appPreferences.isKeyExhausted → IvKeyStatus(provider, index=i+1, ACTIVE/COOLDOWN/NONE). UI: green/red/grey dot + LtrText("<provider> #N") + Hebrew status; "רענן סטטוס" recomputes; #N matches the failover keyIndex; a key value is NEVER rendered or logged.
 - Pure UI + no-behavior refactor. NO realizedPnL/expected/DB/migration change, NO new prefs. FAST build gate PASSED (BUILD SUCCESSFUL, grep "^e: " empty) before push.
+
+### 2026-06-02 Group CA prime — IV status card: refresh-motion + last-IV-sync line
+- OPT: 38f09aa
+- CA1: 'רענן סטטוס' shows a CircularProgressIndicator for a min ~500ms (isRefreshingStatus) → visible refresh feedback.
+- CA2: status card shows 'סנכרון IV אחרון: dd.MM.yy HH:mm' from getLastIvRefresh() (existing pref); refresh re-reads it via SettingsViewModel.refreshLastIvRefresh(). UI-only, no new prefs.

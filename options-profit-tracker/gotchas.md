@@ -422,3 +422,6 @@ When a verification log is empty, the bug is upstream of the calc — find which
 
 ### IV key-status UI MUST reuse IvService.splitApiKeys + IvService.keyHash (1-based #N)
 The IV failover loop logs keyIndex=i+1/size (1-based) — any key-status UI MUST reuse `IvService.splitApiKeys` (now public) + `IvService.keyHash` so the displayed "#N" AND the cooldown hash both match the failover loop exactly (no second hash, no drift). Finnhub is a SHARED key (prices + news + dividends), Massive = IV + dividends → group Settings sections BY PROVIDER with usage notes, not a key per feature. Never render or log a key value — status shows provider + #N + state only.
+
+### IV status card #N count = IvService.splitApiKeys count
+The IV status card "#N" comes from IvService.splitApiKeys (delimiters: newline, comma, semicolon) — real API keys contain none of these, so "shows 3 but I entered 2" means two keys are comma/semicolon-joined on one line (or a hidden extra line) in the STORED value, NOT a bug; the failover loop sees the same count (Logcat keyIndex=X/N).
