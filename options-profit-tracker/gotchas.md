@@ -425,3 +425,5 @@ The IV failover loop logs keyIndex=i+1/size (1-based) — any key-status UI MUST
 
 ### IV status card #N count = IvService.splitApiKeys count
 The IV status card "#N" comes from IvService.splitApiKeys (delimiters: newline, comma, semicolon) — real API keys contain none of these, so "shows 3 but I entered 2" means two keys are comma/semicolon-joined on one line (or a hidden extra line) in the STORED value, NOT a bug; the failover loop sees the same count (Logcat keyIndex=X/N).
+
+- (Group CB) The rotating Sync icon on the dashboard is keyed on _isSyncing — any sync entry point (e.g. refreshAllPositionIVs) MUST set _isSyncing=true (guard + finally-false) or the icon will not spin and the buttons will not disable; one-shot getLastIvRefresh() reads go stale, observe the appPreferences.lastIvRefresh Flow for live UI.

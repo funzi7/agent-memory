@@ -332,3 +332,5 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 
 ## Group CA prime ✅ (38f09aa)
 - IV status: refresh feedback + last-sync time — **DONE.**
+
+- [done] sync-icon rotation on IV refresh + live last-sync in Settings (Group CB prime)

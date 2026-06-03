@@ -601,3 +601,8 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - OPT: 38f09aa
 - CA1: 'רענן סטטוס' shows a CircularProgressIndicator for a min ~500ms (isRefreshingStatus) → visible refresh feedback.
 - CA2: status card shows 'סנכרון IV אחרון: dd.MM.yy HH:mm' from getLastIvRefresh() (existing pref); refresh re-reads it via SettingsViewModel.refreshLastIvRefresh(). UI-only, no new prefs.
+
+### 2026-06-03 Group CB prime — sync-icon rotation on IV refresh + live last-IV-sync in Settings
+- OPT: 98ffd3e
+- CB1: DashboardViewModel.refreshAllPositionIVs now toggles _isSyncing (guard + true + finally-false) -> the existing rotating Sync icon spins and the 3 sync buttons disable during an IV-only refresh (previously it set only _syncStatus, so the icon never spun). No IV-math/P&L/DB change.
+- CB2: SettingsViewModel now reactively collects appPreferences.lastIvRefresh -> the 'iv אחרון' line updates live (CA2 was a one-shot read).
