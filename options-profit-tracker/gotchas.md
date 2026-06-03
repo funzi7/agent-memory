@@ -429,3 +429,5 @@ The IV status card "#N" comes from IvService.splitApiKeys (delimiters: newline, 
 - (Group CB) The rotating Sync icon on the dashboard is keyed on _isSyncing — any sync entry point (e.g. refreshAllPositionIVs) MUST set _isSyncing=true (guard + finally-false) or the icon will not spin and the buttons will not disable; one-shot getLastIvRefresh() reads go stale, observe the appPreferences.lastIvRefresh Flow for live UI.
 
 - (Group CC) NEVER associate news (or any text->ticker mapping) by substring contains() — short symbols like ASTS hit forec/broad/pod-CASTS and arbitrary URL paths; carry the fetched source ticker on the item and match extra mentions with word boundaries (TICKER) on headline+summary, never on url.
+
+- (Group CD) CompositionLocalProvider(LocalLayoutDirection=Ltr) sets LAYOUT direction only — it does NOT set a Text's bidi base direction. A Text whose string starts with a Hebrew char still resolves RTL and reverses embedded LTR number runs; force `style = TextStyle(textDirection = TextDirection.Ltr)` on mixed Hebrew+number labels that must read left-to-right.

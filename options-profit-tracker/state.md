@@ -610,3 +610,8 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 ### 2026-06-03 Group CC prime — portfolio news tagged by source ticker (fixes ASTS<->RKLB mis-tag)
 - OPT: 5712a4e
 - NewsItem gained a `ticker` field (the symbol it was fetched under, ~PortfolioNewsScreen:139). displayedNews filters by `it.ticker in tickers` (exact); the relevance tag = source ticker + OTHER portfolio tickers matched with word boundaries (TICKER) on headline+summary only — url match dropped. Root cause: 'ASTS' substring-matched inside forecasts/broadcasts/podcasts and inside arbitrary URLs. In-memory NewsItem, no DB/migration.
+
+### 2026-06-03 Group CD prime — monthly target bars RTL
+- OPT: e097dee
+- CD1: general bar status swapped to '$X נשאר' (was 'נשאר $X') so it reads right-to-left correctly.
+- CD2: OverlayProgressBar Text given textDirection=Ltr — the string starts with a Hebrew label so its content-based bidi base was RTL, reversing '$0 / $100,000'; now 0 is left of the slash, target right. Fixes both monthly (SegmentedTargetBar) and annual (SegmentedTargetBarSummed) bars. UI-only.

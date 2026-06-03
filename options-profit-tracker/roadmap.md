@@ -336,3 +336,5 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 - [done] sync-icon rotation on IV refresh + live last-sync in Settings (Group CB prime)
 
 - [done] ASTS-shows-RKLB-news (news->ticker mis-tag, Group CC prime). Queue still: SOXL long-put mislabel (BLOCKED — need SOXL Flex rows), optional daily cooldown for AlphaVantage.
+
+- [done] monthly target bars RTL (remaining + 0/target order, Group CD prime).
