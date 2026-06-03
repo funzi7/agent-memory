@@ -606,3 +606,7 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - OPT: 98ffd3e
 - CB1: DashboardViewModel.refreshAllPositionIVs now toggles _isSyncing (guard + true + finally-false) -> the existing rotating Sync icon spins and the 3 sync buttons disable during an IV-only refresh (previously it set only _syncStatus, so the icon never spun). No IV-math/P&L/DB change.
 - CB2: SettingsViewModel now reactively collects appPreferences.lastIvRefresh -> the 'iv אחרון' line updates live (CA2 was a one-shot read).
+
+### 2026-06-03 Group CC prime — portfolio news tagged by source ticker (fixes ASTS<->RKLB mis-tag)
+- OPT: 5712a4e
+- NewsItem gained a `ticker` field (the symbol it was fetched under, ~PortfolioNewsScreen:139). displayedNews filters by `it.ticker in tickers` (exact); the relevance tag = source ticker + OTHER portfolio tickers matched with word boundaries (TICKER) on headline+summary only — url match dropped. Root cause: 'ASTS' substring-matched inside forecasts/broadcasts/podcasts and inside arbitrary URLs. In-memory NewsItem, no DB/migration.

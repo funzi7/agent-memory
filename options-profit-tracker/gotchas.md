@@ -427,3 +427,5 @@ The IV failover loop logs keyIndex=i+1/size (1-based) — any key-status UI MUST
 The IV status card "#N" comes from IvService.splitApiKeys (delimiters: newline, comma, semicolon) — real API keys contain none of these, so "shows 3 but I entered 2" means two keys are comma/semicolon-joined on one line (or a hidden extra line) in the STORED value, NOT a bug; the failover loop sees the same count (Logcat keyIndex=X/N).
 
 - (Group CB) The rotating Sync icon on the dashboard is keyed on _isSyncing — any sync entry point (e.g. refreshAllPositionIVs) MUST set _isSyncing=true (guard + finally-false) or the icon will not spin and the buttons will not disable; one-shot getLastIvRefresh() reads go stale, observe the appPreferences.lastIvRefresh Flow for live UI.
+
+- (Group CC) NEVER associate news (or any text->ticker mapping) by substring contains() — short symbols like ASTS hit forec/broad/pod-CASTS and arbitrary URL paths; carry the fetched source ticker on the item and match extra mentions with word boundaries (TICKER) on headline+summary, never on url.
