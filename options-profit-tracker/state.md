@@ -646,3 +646,8 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 ### 2026-06-05 Group CK prime — Social: management moved to its own page
 - OPT: 29c4bd8
 - New Screen.SocialManage (route social_manage) + SocialManageScreen(socialSourceDao,onBack) holding the channel list + delete + delete-dialog. SocialSourcesScreen got an onManage param + a top-bar Settings icon -> navigates there; the inline 'ניהול ערוצים' section + deleteSourceId/delete-dialog were removed so the merged feed starts at the top (filter chips only above it). MainActivity wires the new route with the same inline Room builder. Add still lives in Settings.
+
+### 2026-06-05 Group CL prime — SocialManage: add-channel + per-channel health
+- OPT: d66cab5
+- SocialManageScreen: added a '➕ הוסף ערוץ' dialog (handle + Telegram/Twitter type, reusing the Settings normalize+dedup, inserts SocialSourceEntity handle='@norm') and a per-channel health line (TELEGRAM: ⏳/✓ פעיל · N פוסטים/✗ לא נמצא תוכן via cache-aware fetchTelegramPostsWithImages; TWITTER: —). Health doubles as the empty-channels diagnostic.
+- BUILD TRAP: AppTheme.colors.X is a @Composable getter — cannot be read inside a remember{ mutableStateOf(...) } lambda (e: @Composable invocations can only happen from a @Composable function); hoist it to a plain val ABOVE remember and seed mutableStateOf(thatVal).
