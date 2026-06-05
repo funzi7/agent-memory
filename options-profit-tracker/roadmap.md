@@ -358,3 +358,6 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 - [CK] move 'ניהול ערוצים' management to a separate page so the SocialSources feed starts at the top.
 - [CL] TrendSpider picks the channel AVATAR background-image instead of the post photo (image extraction grabs the first background-image:url) + diagnose mostly-empty channels (t.me/s fetch — regex fragility/throttling, check Logcat per channel).
 - [FUTURE] Twitter + private-Telegram-channel support for social sources.
+
+- [CL] TrendSpider picks the channel avatar background-image instead of the post photo + diagnose mostly-empty channels (t.me/s fetch, check Logcat per channel).
+- [FUTURE] Twitter + private-Telegram-channel support for social sources.

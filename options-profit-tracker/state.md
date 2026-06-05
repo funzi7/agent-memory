@@ -642,3 +642,7 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 ### 2026-06-05 Group CJ prime — Social post rendering polish
 - OPT: 5030734
 - SocialPostItem: channel label + body Text now use textDirection=Content + textAlign=Start + fillMaxWidth (English LTR/left, Hebrew RTL/right); ticker-tags Row wrapped in LocalLayoutDirection=Ltr; added onClick -> tap opens a Dialog with the full post (full text no maxLines + image ContentScale.Fit + LTR tags), tap closes (LazyColumn keeps scroll position).
+
+### 2026-06-05 Group CK prime — Social: management moved to its own page
+- OPT: 29c4bd8
+- New Screen.SocialManage (route social_manage) + SocialManageScreen(socialSourceDao,onBack) holding the channel list + delete + delete-dialog. SocialSourcesScreen got an onManage param + a top-bar Settings icon -> navigates there; the inline 'ניהול ערוצים' section + deleteSourceId/delete-dialog were removed so the merged feed starts at the top (filter chips only above it). MainActivity wires the new route with the same inline Room builder. Add still lives in Settings.
