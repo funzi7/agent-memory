@@ -338,3 +338,6 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 - [done] ASTS-shows-RKLB-news (news->ticker mis-tag, Group CC prime). Queue still: SOXL long-put mislabel (BLOCKED — need SOXL Flex rows), optional daily cooldown for AlphaVantage.
 
 - [done] monthly target bars RTL (remaining + 0/target order, Group CD prime).
+
+- [queued] AddPositionScreen AI-summary sentiment vs 'השפעה על התיק' card can look contradictory (article negative-for-stock but card shows חיובי because SELL positions benefit) — reconcile or add a one-line explanation of why they differ.
+- [queued] make the 'השפעה על התיק' card render RTL.

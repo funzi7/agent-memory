@@ -615,3 +615,7 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - OPT: e097dee
 - CD1: general bar status swapped to '$X נשאר' (was 'נשאר $X') so it reads right-to-left correctly.
 - CD2: OverlayProgressBar Text given textDirection=Ltr — the string starts with a Hebrew label so its content-based bidi base was RTL, reversing '$0 / $100,000'; now 0 is left of the slash, target right. Fixes both monthly (SegmentedTargetBar) and annual (SegmentedTargetBarSummed) bars. UI-only.
+
+### 2026-06-05 Group CE prime — target bars fill LTR + label right (supersedes CD2)
+- OPT: 5b0472c
+- OverlayProgressBar restructured: fill Box + overlay wrapped in one LocalLayoutDirection=Ltr so the fill grows from the LEFT (was RTL = filled from right); overlay is now a SpaceBetween Row with the numbers ('$filled / $target · נותר $remaining', textDirection=Ltr) on the LEFT and the Hebrew label (מחיה/גדילה) on the RIGHT. Fixes both monthly and annual bars. CD2 single-Text textDirection approach removed.

@@ -431,3 +431,5 @@ The IV status card "#N" comes from IvService.splitApiKeys (delimiters: newline, 
 - (Group CC) NEVER associate news (or any text->ticker mapping) by substring contains() — short symbols like ASTS hit forec/broad/pod-CASTS and arbitrary URL paths; carry the fetched source ticker on the item and match extra mentions with word boundaries (TICKER) on headline+summary, never on url.
 
 - (Group CD) CompositionLocalProvider(LocalLayoutDirection=Ltr) sets LAYOUT direction only — it does NOT set a Text's bidi base direction. A Text whose string starts with a Hebrew char still resolves RTL and reverses embedded LTR number runs; force `style = TextStyle(textDirection = TextDirection.Ltr)` on mixed Hebrew+number labels that must read left-to-right.
+
+- (Group CE) For a progress bar that must FILL left-to-right under an RTL app, wrap the fill Box in LocalLayoutDirection=Ltr (fillMaxWidth(fraction) aligns to start, which is RIGHT under RTL); and to mix a Hebrew label with LTR numbers, split them into separate Texts in a Row rather than one bidi-mixed string.
