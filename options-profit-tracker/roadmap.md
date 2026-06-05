@@ -352,3 +352,5 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 - [done] SocialSources chronological merged feed (Group CH prime).
 - [FUTURE] Twitter + private-Telegram-channel support for social sources.
 - [pending Dima] pull-to-refresh on DB-backed screens (would trigger a full sync).
+
+- [verify] Group CH SocialSources merge code is confirmed present + compiling; the per-channel/empty symptom Dima saw was a STALE APK (Claude Code only compiles+pushes, not install) — re-verify after a fresh build+install.

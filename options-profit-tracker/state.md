@@ -633,3 +633,8 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - CH1: dashboard '📱 רשתות חברתיות' header is now clickable (+ 'ראה הכל ›') -> onNavigateToSocialSources -> navController.navigate(Screen.SocialSources.route); inline preview kept.
 - CH2: SocialSourcesScreen restructured from per-source cards to ONE chronological feed — screen-level fetch loops all sources, collects (source,TelegramPost) pairs, sorts by publishedAtEpochSec desc (nulls last), renders via extracted SocialPostItem with a per-post channel label. Channel management (delete) moved to a compact section at the top; ticker filter + CF4 pull-to-refresh preserved.
 - EDIT-TOOL TRAP: the dashboard title stores the emoji as LITERAL escape text (\uD83D\uDCF1), so an Edit old_string containing the 📱 glyph never matches; anchor on a pure-ASCII unique substring (e.g. 'fontSize = 16.sp, color = AppTheme.colors.textPrimary)') and wrap via edits BEFORE/AFTER that line instead.
+
+### 2026-06-05 Group CI prime — remove social-header 'ראה הכל' + annual first bar fills left
+- OPT: de08d5a
+- CI1: removed the extra 'ראה הכל ›' Text + spacer from the dashboard '📱 רשתות חברתיות' header; the whole header Row stays clickable -> onNavigateToSocialSources (the title itself is the tap target, as requested).
+- CI2: AnnualTargetCard first progress Box wrapped in LocalLayoutDirection=Ltr so the fill aligns start=LEFT (was RTL = filled from the right); same gotcha as CG (wrap the PARENT Box, not just children).
