@@ -651,3 +651,7 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - OPT: d66cab5
 - SocialManageScreen: added a '➕ הוסף ערוץ' dialog (handle + Telegram/Twitter type, reusing the Settings normalize+dedup, inserts SocialSourceEntity handle='@norm') and a per-channel health line (TELEGRAM: ⏳/✓ פעיל · N פוסטים/✗ לא נמצא תוכן via cache-aware fetchTelegramPostsWithImages; TWITTER: —). Health doubles as the empty-channels diagnostic.
 - BUILD TRAP: AppTheme.colors.X is a @Composable getter — cannot be read inside a remember{ mutableStateOf(...) } lambda (e: @Composable invocations can only happen from a @Composable function); hoist it to a plain val ABOVE remember and seed mutableStateOf(thatVal).
+
+### 2026-06-05 Group CM prime — Telegram post image picks the photo, not an emoji icon
+- OPT: 371912a
+- fetchTelegramPostsWithImages: image extraction now prefers the tgme_widget_message_photo_wrap background-image, falling back to the first non-emoji background-image (skips /emoji/ and .svg). Fixes TrendSpider showing an enlarged inline icon instead of the post photo. The fetch is shared by the dashboard social (DashboardViewModel) and the full feed, so both are fixed.

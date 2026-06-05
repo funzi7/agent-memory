@@ -367,3 +367,8 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 - [Social] TrendSpider avatar-vs-post-photo image bug.
 - [Social][FUTURE] Twitter + private-Telegram-channel support.
 - [Social][NOTE] if many channels show ✗ in CL health, suspect t.me/s throttling from parallel fetches — investigate next.
+
+- [Social] shared post RENDER component to sync dashboard+full (CJ direction/tap-expand/tags to dashboard + consistent channel-name cleanup [bizportal/'בלומברג בעברית/Bloomberg' suffix not stripped in full feed] + ticker tap).
+- [Social] ticker -> TickerDetailScreen aggregation (news+events+social + open-position prefilled ticker only).
+- [Social][FUTURE] Twitter + private-Telegram-channel support.
+- [Social][NOTE] empty-channels appears resolved — was a stale APK; CL health shows all channels active.
