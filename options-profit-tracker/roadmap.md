@@ -354,3 +354,7 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 - [pending Dima] pull-to-refresh on DB-backed screens (would trigger a full sync).
 
 - [verify] Group CH SocialSources merge code is confirmed present + compiling; the per-channel/empty symptom Dima saw was a STALE APK (Claude Code only compiles+pushes, not install) — re-verify after a fresh build+install.
+
+- [CK] move 'ניהול ערוצים' management to a separate page so the SocialSources feed starts at the top.
+- [CL] TrendSpider picks the channel AVATAR background-image instead of the post photo (image extraction grabs the first background-image:url) + diagnose mostly-empty channels (t.me/s fetch — regex fragility/throttling, check Logcat per channel).
+- [FUTURE] Twitter + private-Telegram-channel support for social sources.

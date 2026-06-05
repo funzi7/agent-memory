@@ -638,3 +638,7 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - OPT: de08d5a
 - CI1: removed the extra 'ראה הכל ›' Text + spacer from the dashboard '📱 רשתות חברתיות' header; the whole header Row stays clickable -> onNavigateToSocialSources (the title itself is the tap target, as requested).
 - CI2: AnnualTargetCard first progress Box wrapped in LocalLayoutDirection=Ltr so the fill aligns start=LEFT (was RTL = filled from the right); same gotcha as CG (wrap the PARENT Box, not just children).
+
+### 2026-06-05 Group CJ prime — Social post rendering polish
+- OPT: 5030734
+- SocialPostItem: channel label + body Text now use textDirection=Content + textAlign=Start + fillMaxWidth (English LTR/left, Hebrew RTL/right); ticker-tags Row wrapped in LocalLayoutDirection=Ltr; added onClick -> tap opens a Dialog with the full post (full text no maxLines + image ContentScale.Fit + LTR tags), tap closes (LazyColumn keeps scroll position).
