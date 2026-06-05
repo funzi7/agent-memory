@@ -433,3 +433,5 @@ The IV status card "#N" comes from IvService.splitApiKeys (delimiters: newline, 
 - (Group CD) CompositionLocalProvider(LocalLayoutDirection=Ltr) sets LAYOUT direction only — it does NOT set a Text's bidi base direction. A Text whose string starts with a Hebrew char still resolves RTL and reverses embedded LTR number runs; force `style = TextStyle(textDirection = TextDirection.Ltr)` on mixed Hebrew+number labels that must read left-to-right.
 
 - (Group CE) For a progress bar that must FILL left-to-right under an RTL app, wrap the fill Box in LocalLayoutDirection=Ltr (fillMaxWidth(fraction) aligns to start, which is RIGHT under RTL); and to mix a Hebrew label with LTR numbers, split them into separate Texts in a Row rather than one bidi-mixed string.
+
+- (Group CG) To make a fill Box align to the LEFT under an RTL app, the LocalLayoutDirection=Ltr must wrap the PARENT Box (child alignment follows the parent's direction); wrapping only the children does NOT change where the fill sits.

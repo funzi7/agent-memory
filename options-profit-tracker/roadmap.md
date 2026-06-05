@@ -343,3 +343,7 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 - [queued] make the 'השפעה על התיק' card render RTL.
 
 - [done] pull-to-refresh on 4 network screens (News/Events/Watchlist/Social, Group CF prime). Remaining: pull-to-refresh on DB-backed screens (would trigger a full sync) — pending Dima's decision; and the CG news work (lazy company-name + persist News/Events cache to disk to fix empty-page-on-entry).
+
+- [queued] dashboard '📱 רשתות חברתיות' section -> navigate to SocialSourcesScreen (route social_sources).
+- [queued] SocialSourcesScreen: merge posts from all channels into ONE chronological feed sorted by TelegramPost.publishedAtEpochSec desc (currently per-channel), keep a per-post channel label, keep add/delete-channel management.
+- [queued][FUTURE] add Twitter and private-Telegram-channel support to the social sources.
