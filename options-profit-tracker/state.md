@@ -619,3 +619,7 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 ### 2026-06-05 Group CE prime — target bars fill LTR + label right (supersedes CD2)
 - OPT: 5b0472c
 - OverlayProgressBar restructured: fill Box + overlay wrapped in one LocalLayoutDirection=Ltr so the fill grows from the LEFT (was RTL = filled from right); overlay is now a SpaceBetween Row with the numbers ('$filled / $target · נותר $remaining', textDirection=Ltr) on the LEFT and the Hebrew label (מחיה/גדילה) on the RIGHT. Fixes both monthly and annual bars. CD2 single-Text textDirection approach removed.
+
+### 2026-06-05 Group CF prime — pull-to-refresh on the 4 network screens
+- OPT: 1d45278
+- PortfolioNewsScreen, PortfolioEventsScreen, WatchlistScreen, SocialSourcesScreen wrapped in Material3 PullToRefreshBox (mirrors DashboardScreen). onRefresh invalidates each screen's cache (NewsCache.lastFetch=0 / EventsCache.lastFetchTime=0 / SocialPostsCache.clear()) then bumps a refreshTrigger keyed into the fetch LaunchedEffect. Events reuses its existing refreshTrigger. Social uses a screen-level trigger + ~0.8s indicator (per-source spinners show real reload). No fetch-logic/DB/prefs changes.

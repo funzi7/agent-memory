@@ -341,3 +341,5 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 
 - [queued] AddPositionScreen AI-summary sentiment vs 'השפעה על התיק' card can look contradictory (article negative-for-stock but card shows חיובי because SELL positions benefit) — reconcile or add a one-line explanation of why they differ.
 - [queued] make the 'השפעה על התיק' card render RTL.
+
+- [done] pull-to-refresh on 4 network screens (News/Events/Watchlist/Social, Group CF prime). Remaining: pull-to-refresh on DB-backed screens (would trigger a full sync) — pending Dima's decision; and the CG news work (lazy company-name + persist News/Events cache to disk to fix empty-page-on-entry).
