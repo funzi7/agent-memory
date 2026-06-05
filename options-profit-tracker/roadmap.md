@@ -372,3 +372,7 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 - [Social] ticker -> TickerDetailScreen aggregation (news+events+social + open-position prefilled ticker only).
 - [Social][FUTURE] Twitter + private-Telegram-channel support.
 - [Social][NOTE] empty-channels appears resolved — was a stale APK; CL health shows all channels active.
+
+- [Social] ticker -> TickerDetailScreen aggregation (news+events+social + open-position prefilled, ticker only) + ticker-tap from posts (both feeds).
+- [Social] shared post RENDER component (optional cleanup — logic helpers socialTextDirection/formatSocialTime/normalizeChannelName now shared).
+- [Social][FUTURE] Twitter + private-Telegram-channel support. (Empty-channels confirmed resolved.)

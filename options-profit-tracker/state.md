@@ -655,3 +655,7 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 ### 2026-06-05 Group CM prime — Telegram post image picks the photo, not an emoji icon
 - OPT: 371912a
 - fetchTelegramPostsWithImages: image extraction now prefers the tgme_widget_message_photo_wrap background-image, falling back to the first non-emoji background-image (skips /emoji/ and .svg). Fixes TrendSpider showing an enlarged inline icon instead of the post photo. The fetch is shared by the dashboard social (DashboardViewModel) and the full feed, so both are fixed.
+
+### 2026-06-05 Group CN prime — Social timestamp + script-direction + channel /alias strip (both feeds)
+- OPT: b15fb6a
+- Added shared socialTextDirection(text) [Hebrew-vs-Latin majority -> Rtl/Ltr, replaces the unreliable TextDirection.Content that flipped some English TrendSpider posts to RTL] and formatSocialTime(epochSec) [LOCAL dd.MM.yy HH:mm]. normalizeChannelName now also strips a trailing '/alias' (בלומברג בעברית/Bloomberg -> בלומברג בעברית). Applied to the full feed (SocialPostItem + expand dialog) AND the dashboard SocialFeedPost: per-post local timestamp + majority-based direction. Both feeds share the helpers. (Dashboard already had a timestamp + isHebrewText majority direction, left as-is per spec; manage-screen channel name also moved off Content.)
