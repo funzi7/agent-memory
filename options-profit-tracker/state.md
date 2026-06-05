@@ -627,3 +627,9 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 ### 2026-06-05 Group CG prime — target bars fill-left + centered label (final)
 - OPT: 3dc6287
 - OverlayProgressBar: moved LocalLayoutDirection=Ltr to wrap the WHOLE outer Box (fill now aligns start=LEFT -> fills left-to-right; CE wrapped only the children so it still filled from the right). Overlay Row changed from SpaceBetween to spacedBy(4.dp, CenterHorizontally) -> centered block, label immediately right of the LTR numbers. Supersedes CE.
+
+### 2026-06-05 Group CH prime — Social: dashboard tap-through + chronological merged feed
+- OPT: c5c184a
+- CH1: dashboard '📱 רשתות חברתיות' header is now clickable (+ 'ראה הכל ›') -> onNavigateToSocialSources -> navController.navigate(Screen.SocialSources.route); inline preview kept.
+- CH2: SocialSourcesScreen restructured from per-source cards to ONE chronological feed — screen-level fetch loops all sources, collects (source,TelegramPost) pairs, sorts by publishedAtEpochSec desc (nulls last), renders via extracted SocialPostItem with a per-post channel label. Channel management (delete) moved to a compact section at the top; ticker filter + CF4 pull-to-refresh preserved.
+- EDIT-TOOL TRAP: the dashboard title stores the emoji as LITERAL escape text (\uD83D\uDCF1), so an Edit old_string containing the 📱 glyph never matches; anchor on a pure-ASCII unique substring (e.g. 'fontSize = 16.sp, color = AppTheme.colors.textPrimary)') and wrap via edits BEFORE/AFTER that line instead.
