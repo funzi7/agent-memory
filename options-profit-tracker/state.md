@@ -664,3 +664,8 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - OPT: bdca30f
 - normalizeChannelName: added trailing-URL strip (http/t.me/x.com/twitter.com/www), ANY-trailing-parenthetical strip, and invisible-char empty-paren strip. Shared by both feeds + manage screen, so all channel labels clean at once (fixes bizportal link / Coovis twitter link / TrendSpider '()' / Bloomberg).
 - Full feed SocialPostItem + expand dialog: timestamp moved from the top to the BOTTOM of the post, TextAlign.Left + fillMaxWidth (absolute Left — Start/Content resolve right under RTL, the recurring bug). Dashboard channel names now use socialTextDirection so English reads LTR (matches the full feed). Logic is shared via normalizeChannelName/socialTextDirection/formatSocialTime.
+
+### 2026-06-06 Group CP prime — dashboard card matches full feed + empty-paren strip
+- OPT: 559b251
+- CHANNEL_NORM log proved channel names are clean; the TrendSpider '()' was post-body residue from removing @TrendSpider out of '(@TrendSpider)'. CP2 strips empty parens + collapses spaces in both feeds' body text.
+- Dashboard alignment was an all-RTL header Row issue (textDirection alone can't move a content-sized Text). CP1 restructured the dashboard social cards + dialog to mirror the full feed: channel name = fillMaxWidth + textAlign Start + socialTextDirection (English left / Hebrew right); timestamp moved to the card BOTTOM via formatSocialTime (Ltr + TextAlign.Left + fillMaxWidth) so both feeds use identical dd.MM.yy HH:mm. (Main card kept its 1-child Row since its channel line stores the emoji as \uXXXX escape the Edit tool can't match — a single fillMaxWidth child renders full-width identically.)

@@ -380,3 +380,8 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 - [Social] ticker tap -> TickerDetailScreen aggregation (news+events+social + open-position prefilled, ticker only).
 - [Social] web-fetch the bizportal-style article link to read it in-app.
 - [Social][FUTURE] Twitter + private-Telegram-channel support. If a channel name still shows junk, check Logcat tag CHANNEL_NORM for the raw->normalized string.
+
+- [Social] Bloomberg channel name still showed a suffix but its raw handle was not in the CHANNEL_NORM log; get the raw->normalized line and fix the exact case.
+- [Social] ticker tap -> TickerDetailScreen aggregation (news+events+social + open-position prefilled, ticker only).
+- [Social] web-fetch article links (bizportal-style) in-app.
+- [Social][FUTURE] Twitter + private-Telegram-channel support.
