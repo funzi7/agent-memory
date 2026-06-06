@@ -394,3 +394,7 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 - [Social] ticker tap -> TickerDetailScreen aggregation (news+events+social + open-position prefilled, ticker only).
 - [Social] web-fetch article links in-app.
 - [Social][FUTURE] Twitter + private-Telegram-channel support.
+
+- [Social] NEXT: extend TickerDetailScreen (currently shows positions only) to also show the ticker news + events + social + an open-position button (prefill ticker only).
+- [Social] web-fetch article links in-app.
+- [Social][FUTURE] Twitter + private-Telegram-channel support.

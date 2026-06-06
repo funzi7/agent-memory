@@ -681,3 +681,8 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - OPT: f379e5a
 - Full-feed post body (card + expand dialog) was rendering multi-line English RTL because it relied on style.textDirection + textAlign=Start under an RTL ambient. Switched to the dashboard proven approach: wrap the body Text in CompositionLocalProvider(LocalLayoutDirection = socialTextDirection==Rtl ? Rtl : Ltr) so Start resolves correctly (English left / Hebrew right). Channel label/timestamp/tags unchanged.
 - GOTCHA reinforced: under RTL ambient, textAlign=Start follows AMBIENT direction, not the style textDirection — for reliable per-content alignment, set the ambient via CompositionLocalProvider(LocalLayoutDirection), do not rely on style.textDirection.
+
+### 2026-06-06 Group CU prime — dashboard body direction unified + clickable full-feed tickers
+- OPT: 152e483
+- CU1: dashboard social body now uses socialTextDirection (was isHebrewText) so English TrendSpider posts render LTR like the full feed — both feeds now share the same direction logic (all 3 sites: 2 cards + expand dialog).
+- CU2/CU3: full-feed ticker tags (card + expand dialog) are now clickable -> onNavigateToTicker -> Screen.TickerDetail.createRoute(ticker), wired in MainActivity. The dashboard social chips already navigated there; the full feed now matches. Chip modifier uses clip->background->clickable->padding so the ripple stays inside the rounded chip and the child tap wins over the cards open-dialog clickable.
