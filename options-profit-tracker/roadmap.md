@@ -376,3 +376,7 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 - [Social] ticker -> TickerDetailScreen aggregation (news+events+social + open-position prefilled, ticker only) + ticker-tap from posts (both feeds).
 - [Social] shared post RENDER component (optional cleanup — logic helpers socialTextDirection/formatSocialTime/normalizeChannelName now shared).
 - [Social][FUTURE] Twitter + private-Telegram-channel support. (Empty-channels confirmed resolved.)
+
+- [Social] ticker tap -> TickerDetailScreen aggregation (news+events+social + open-position prefilled, ticker only).
+- [Social] web-fetch the bizportal-style article link to read it in-app.
+- [Social][FUTURE] Twitter + private-Telegram-channel support. If a channel name still shows junk, check Logcat tag CHANNEL_NORM for the raw->normalized string.

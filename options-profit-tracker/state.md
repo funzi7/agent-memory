@@ -659,3 +659,8 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 ### 2026-06-05 Group CN prime — Social timestamp + script-direction + channel /alias strip (both feeds)
 - OPT: b15fb6a
 - Added shared socialTextDirection(text) [Hebrew-vs-Latin majority -> Rtl/Ltr, replaces the unreliable TextDirection.Content that flipped some English TrendSpider posts to RTL] and formatSocialTime(epochSec) [LOCAL dd.MM.yy HH:mm]. normalizeChannelName now also strips a trailing '/alias' (בלומברג בעברית/Bloomberg -> בלומברג בעברית). Applied to the full feed (SocialPostItem + expand dialog) AND the dashboard SocialFeedPost: per-post local timestamp + majority-based direction. Both feeds share the helpers. (Dashboard already had a timestamp + isHebrewText majority direction, left as-is per spec; manage-screen channel name also moved off Content.)
+
+### 2026-06-06 Group CO prime — Social channel cleanup + timestamp at bottom (both feeds)
+- OPT: bdca30f
+- normalizeChannelName: added trailing-URL strip (http/t.me/x.com/twitter.com/www), ANY-trailing-parenthetical strip, and invisible-char empty-paren strip. Shared by both feeds + manage screen, so all channel labels clean at once (fixes bizportal link / Coovis twitter link / TrendSpider '()' / Bloomberg).
+- Full feed SocialPostItem + expand dialog: timestamp moved from the top to the BOTTOM of the post, TextAlign.Left + fillMaxWidth (absolute Left — Start/Content resolve right under RTL, the recurring bug). Dashboard channel names now use socialTextDirection so English reads LTR (matches the full feed). Logic is shared via normalizeChannelName/socialTextDirection/formatSocialTime.
