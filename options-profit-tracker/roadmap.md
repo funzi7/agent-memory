@@ -398,3 +398,8 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 - [Social] NEXT: extend TickerDetailScreen (currently shows positions only) to also show the ticker news + events + social + an open-position button (prefill ticker only).
 - [Social] web-fetch article links in-app.
 - [Social][FUTURE] Twitter + private-Telegram-channel support.
+
+- [Social] if a post still renders RTL, read Logcat SOCIAL_DIR (he/la/text) and fix from the actual counts; then remove the temp log.
+- [Social] NEXT feature: extend TickerDetailScreen (positions-only today) with the ticker news + events + social + an open-position button (prefill ticker only).
+- [Social] web-fetch article links in-app.
+- [Social][FUTURE] Twitter + private-Telegram-channel support.

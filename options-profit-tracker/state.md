@@ -686,3 +686,8 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - OPT: 152e483
 - CU1: dashboard social body now uses socialTextDirection (was isHebrewText) so English TrendSpider posts render LTR like the full feed — both feeds now share the same direction logic (all 3 sites: 2 cards + expand dialog).
 - CU2/CU3: full-feed ticker tags (card + expand dialog) are now clickable -> onNavigateToTicker -> Screen.TickerDetail.createRoute(ticker), wired in MainActivity. The dashboard social chips already navigated there; the full feed now matches. Chip modifier uses clip->background->clickable->padding so the ripple stays inside the rounded chip and the child tap wins over the cards open-dialog clickable.
+
+### 2026-06-07 Group CV prime — robust socialTextDirection (strip noise) + dashboard body parity
+- OPT: 0a5f2a5
+- socialTextDirection now strips URLs/@mentions/digits/punct before counting Hebrew vs Latin (mirrors isHebrewText), so English posts with incidental Hebrew/symbols stop flipping RTL. Shared -> both feeds. Added a temporary SOCIAL_DIR Log.w (he/la/rtl/text) to diagnose any remaining case.
+- Verified the dashboard body Text matches the full feed: CompositionLocalProvider(LocalLayoutDirection = socialTextDirection(displayedText)==Rtl?Rtl:Ltr) + textAlign=Start + fillMaxWidth, no style.textDirection (both cards; main card keeps weight(1f) too). Dialog body is a ClickableText already wrapped in the same provider.
