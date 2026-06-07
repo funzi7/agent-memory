@@ -697,3 +697,9 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - CW1: TickerDetailScreen got onOpenPosition param + a (plus) פתח פוזיציה button -> Screen.AddPosition.createPrefillRoute(ticker, "") (ticker-only prefill); wired in MainActivity.
 - CW2: added a (newspaper) חדשות section — screen-level LaunchedEffect(ticker) fetching Finnhub company-news (parse copied from PortfolioNewsScreen, local TickerNewsItem data class) for the single ticker, last 14d, ~6 recent, clickable -> ACTION_VIEW url; loading/empty/no-key states.
 - CW3: removed the temporary SOCIAL_DIR Log.w from socialTextDirection.
+
+### 2026-06-07 Group CX prime — dashboard social area always visible + ticker news link fix + events section
+- OPT: f52f551
+- CX1: removed the if(socialPosts.isNotEmpty()) gate around the dashboard social section so the header + area always render; the posts container shows a loading placeholder (min-height 120 + spinner + "טוען פוסטים…") via an else-if(socialVisiblePosts.isEmpty()) until posts load (fixes the area vanishing on every fresh build).
+- CX2: ticker-page news cards now open via ACTION_VIEW + FLAG_ACTIVITY_NEW_TASK + LocalContext, with a blank-url guard (non-clickable if url blank) and a NEWS_OPEN catch log (the tap previously did nothing).
+- CX3: added a "📅 אירועים" section to TickerDetail — LaunchedEffect(ticker) fetching Finnhub calendar/earnings + stock/dividend2 (next 90d) for the single ticker (parse copied from PortfolioEventsScreen, local TickerEvent), sorted by date; ⏳/empty/no-key states.
