@@ -735,3 +735,9 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - DC1: ArticleReaderSheet no longer shows an AI summary when the article fetch failed; on failure shows fallbackSummary (Finnhub summary) + "לא ניתן לטעון את הכתבה המלאה" + "פתח בדפדפן"; AI summary + impact + paragraphs only on successful fetch; trailing footer paragraphs (len<25 / boilerplate) trimmed. Callers (TickerDetail + PortfolioNewsScreen) pass news.summary as fallbackSummary; TickerNewsItem gained a summary field.
 - DC2: the "$autoExpiredCount פוזיציות פקעו אוטומטית" dashboard banner is now clickable -> onNavigateToActivityFeed (+ a "›" affordance); ActivityFeedScreen already lists POSITION_EXPIRED and taps through to the position (reused, not rebuilt).
 - DC3: SocialPostsCache now persists to filesDir/social_cache.json — init(context) loads it (idempotent), put()/clear()/invalidate() save it, freshness window 30 min; SocialPostsCache.init(applicationContext) called in MainActivity.onCreate. Posts show instantly on relaunch and do not re-fetch every build.
+
+### 2026-06-07 Group DD prime — market-open countdown + days-to-expiry + log cleanup
+- OPT: 8d6289d
+- DD1: marketOpenCountdownText(now) helper (built on MarketCalendar.isNonTradingDay, holiday-aware); shown as a small centered line under the open-positions header whenever the market is not in regular hours (סגור/פרה/אחה״צ), hidden when open. Formats days/hours/minutes לפתיחה; reuses the existing nyNow.
+- DD2: daysToExpiryLabel(expiration) helper; per-position N ימים לפקיעה / פוקע היום / פוקע מחר next to the expiry date, WarningYellow when position.daysToExpiration in 0..3.
+- DD3: removed temp NEWS_REL + EVENTS_FETCH logs (features confirmed). MOVERS_UI left in place.
