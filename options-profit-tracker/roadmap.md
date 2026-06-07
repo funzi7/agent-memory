@@ -446,3 +446,5 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 - ALERTS EC: make AlertsScreen rows tap -> ticker page; target-price crossed; per-trigger settings toggles.
 
 - ALERTS EC (next): position expired/assigned alerts; upcoming-earnings (Finnhub) for holdings; differentiate banner-worthy vs notification-only triggers; AlertsScreen rows tap -> ticker; target-price crossed. NOTE: AlertWorker only runs in extended market hours — revisit if near-expiry should also fire pre-open. EB2 follow-up: persist the article-body cache to disk if cold-restart instant re-open is wanted.
+
+- ALERTS ED (next): position expired/assigned alerts; upcoming-earnings (Finnhub) for holdings; banner-worthy vs notification-only; AlertsScreen rows tap -> ticker; target-price crossed. Optional: persist ArticleBodyCache across restarts (EB2 is in-memory only); improve article body-fetch coverage for sites that fall back to the Finnhub summary.
