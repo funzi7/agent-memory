@@ -716,3 +716,10 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - CZ2: events render — added EVENTS_FETCH "parsed=N first=.." log after tickerEvents is set (parse already adds every earningsCalendar date, render iterates tickerEvents). Kept the EVENTS_FETCH counts log.
 - CZ3: DashboardViewModel now keeps posts that have an image even with a short caption (cleanText.length>20 || imageUrl!=null; same for twitter) so image-heavy posts appear like the full feed.
 - EDIT-TOOL NOTE: deleting a ~230-line block was done via chunked verbatim Edits (intermediate brace imbalance is fine — Edit does not validate Kotlin; the FAST build at the end confirms balance).
+
+### 2026-06-07 Group DA prime — ticker news relevance + reuse events card + article cleanup
+- OPT: 78cfc3a
+- DA1: TickerDetail news now filtered to ticker-relevant items (headline/summary/related must mention the ticker) + investor-noise blocklist, then a "ראה הכל"/"הצג פחות" expand (5 by default). Finnhub company-news was returning unrelated articles (NVDA->Apple/crypto).
+- DA2: extracted shared EventDisplayCard + EventDetailDialog (read-only, derived from PortfolioEventsScreen markup) into ui/screens/dashboard/EventDisplay.kt; TickerDetail events are now clickable with a detail dialog (were inert). PortfolioEventsScreen left unchanged (migration to the shared card queued).
+- DA3: ArticleReaderSheet drops boilerplate paragraphs (len<40 / ad-nav-legal keywords / duplicates), keeps order, falls back to the original list if all filtered.
+- BUILD NOTE: EventDisplay.kt needed an explicit import of androidx.compose.runtime.CompositionLocalProvider (runtime.Composable alone is not enough).

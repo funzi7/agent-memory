@@ -422,3 +422,9 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 - [Social] Remove EVENTS_FETCH log once events confirmed. Consider AutoDirText inside ArticleReaderSheet for Hebrew articles later.
 - [Social] TickerDetail remaining — social section (posts mentioning the ticker).
 - [Social][FUTURE] Twitter + private-Telegram-channel support.
+
+- [TODO] IBKR<->Claude connector launched (June 2026); evaluate upgrading OPT IBKR integration from Flex XML batch to the live IBKR Web/Client-Portal API (real-time positions/orders) the connector uses — separate project.
+- [TickerDetail] dedicated "ראה הכל" pages for news/events; trade-history pagination (10 -> 20 -> dedicated page).
+- [Events] migrate PortfolioEventsScreen to the shared EventDisplayCard.
+- [Dashboard] social post count (filter has no effect — investigate).
+- [NEXT] AddPosition intelligence panel reusing all shared pieces.
