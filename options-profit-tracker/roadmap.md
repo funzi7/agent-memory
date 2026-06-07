@@ -411,3 +411,9 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 - [Social] TickerDetail remaining — social section (posts from socialSourceDao via fetchTelegramPostsWithImages filtered to the ticker).
 - [Social] web-fetch article links in-app.
 - [Social][FUTURE] Twitter + private-Telegram-channel support.
+
+- [Social] Use AutoDirText for any future dynamic text (posts/news/labels).
+- [Social] TickerDetail remaining — social section (posts mentioning the ticker).
+- [Open Q for Dima] show news/events context ALSO on the AddPosition screen to help decide; dashboard social shows fewer posts due to the portfolio filter (show all vs portfolio-only?).
+- [Social] If NVDA still shows no events, read EVENTS_FETCH log; remove the log once confirmed.
+- [Social][FUTURE] Twitter + private-Telegram-channel support.

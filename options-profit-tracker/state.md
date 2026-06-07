@@ -703,3 +703,9 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - CX1: removed the if(socialPosts.isNotEmpty()) gate around the dashboard social section so the header + area always render; the posts container shows a loading placeholder (min-height 120 + spinner + "טוען פוסטים…") via an else-if(socialVisiblePosts.isEmpty()) until posts load (fixes the area vanishing on every fresh build).
 - CX2: ticker-page news cards now open via ACTION_VIEW + FLAG_ACTIVITY_NEW_TASK + LocalContext, with a blank-url guard (non-clickable if url blank) and a NEWS_OPEN catch log (the tap previously did nothing).
 - CX3: added a "📅 אירועים" section to TickerDetail — LaunchedEffect(ticker) fetching Finnhub calendar/earnings + stock/dividend2 (next 90d) for the single ticker (parse copied from PortfolioEventsScreen, local TickerEvent), sorted by date; ⏳/empty/no-key states.
+
+### 2026-06-07 Group CY prime — global AutoDirText + in-app article webview + events fetch fix
+- OPT: 1cc6284
+- CY1: added reusable AutoDirText (wraps Text in CompositionLocalProvider(LocalLayoutDirection = socialTextDirection==Rtl?Rtl:Ltr) + textAlign Start + fillMaxWidth) — the STANDARD for dynamic text so English never renders RTL again; applied to ticker news headlines.
+- CY2: news articles now open IN-APP via a WebView Dialog (ArticleWebViewDialog, full-screen Surface + close button) instead of an external ACTION_VIEW browser; wired via an articleUrl state.
+- CY3: fixed the TickerDetail events fetch — endpoints already matched PortfolioEventsScreen (calendar/earnings + stock/dividend2), the bug was the 90d window; widened to earnings today..+120d, dividends -30..+120d, and added a temporary EVENTS_FETCH log (earnings/divs counts + err) so e.g. NVDA earnings appear.
