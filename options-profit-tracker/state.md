@@ -691,3 +691,9 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - OPT: 0a5f2a5
 - socialTextDirection now strips URLs/@mentions/digits/punct before counting Hebrew vs Latin (mirrors isHebrewText), so English posts with incidental Hebrew/symbols stop flipping RTL. Shared -> both feeds. Added a temporary SOCIAL_DIR Log.w (he/la/rtl/text) to diagnose any remaining case.
 - Verified the dashboard body Text matches the full feed: CompositionLocalProvider(LocalLayoutDirection = socialTextDirection(displayedText)==Rtl?Rtl:Ltr) + textAlign=Start + fillMaxWidth, no style.textDirection (both cards; main card keeps weight(1f) too). Dialog body is a ClickableText already wrapped in the same provider.
+
+### 2026-06-07 Group CW prime — TickerDetail open-position + news (part 1/2)
+- OPT: 823b090
+- CW1: TickerDetailScreen got onOpenPosition param + a (plus) פתח פוזיציה button -> Screen.AddPosition.createPrefillRoute(ticker, "") (ticker-only prefill); wired in MainActivity.
+- CW2: added a (newspaper) חדשות section — screen-level LaunchedEffect(ticker) fetching Finnhub company-news (parse copied from PortfolioNewsScreen, local TickerNewsItem data class) for the single ticker, last 14d, ~6 recent, clickable -> ACTION_VIEW url; loading/empty/no-key states.
+- CW3: removed the temporary SOCIAL_DIR Log.w from socialTextDirection.
