@@ -444,3 +444,5 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 
 - ALERTS EB (next): wire near-expiry into AlertWorker via EXPIRY_ALERT_ENABLED/EXPIRY_ALERT_DAYS_BEFORE for OPEN positions; add position-expired/assigned alerts; add upcoming-earnings (Finnhub) for holdings; each feeds notification + banner; mark which triggers are banner-worthy vs notification-only.
 - ALERTS EC: make AlertsScreen rows tap -> ticker page; target-price crossed; per-trigger settings toggles.
+
+- ALERTS EC (next): position expired/assigned alerts; upcoming-earnings (Finnhub) for holdings; differentiate banner-worthy vs notification-only triggers; AlertsScreen rows tap -> ticker; target-price crossed. NOTE: AlertWorker only runs in extended market hours — revisit if near-expiry should also fire pre-open. EB2 follow-up: persist the article-body cache to disk if cold-restart instant re-open is wanted.
