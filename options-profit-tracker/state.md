@@ -709,3 +709,10 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - CY1: added reusable AutoDirText (wraps Text in CompositionLocalProvider(LocalLayoutDirection = socialTextDirection==Rtl?Rtl:Ltr) + textAlign Start + fillMaxWidth) — the STANDARD for dynamic text so English never renders RTL again; applied to ticker news headlines.
 - CY2: news articles now open IN-APP via a WebView Dialog (ArticleWebViewDialog, full-screen Surface + close button) instead of an external ACTION_VIEW browser; wired via an articleUrl state.
 - CY3: fixed the TickerDetail events fetch — endpoints already matched PortfolioEventsScreen (calendar/earnings + stock/dividend2), the bug was the 90d window; widened to earnings today..+120d, dividends -30..+120d, and added a temporary EVENTS_FETCH log (earnings/divs counts + err) so e.g. NVDA earnings appear.
+
+### 2026-06-07 Group CZ prime — shared ArticleReaderSheet + events render fix + dashboard image posts
+- OPT: 8c371b3
+- PRINCIPLE: extract working areas into shared components and reuse verbatim. Extracted PortfolioNewsScreen in-app article reader (fetch+parse <p> tags + AI summary + impact card + ModalBottomSheet) into ui/screens/dashboard/ArticleReaderSheet.kt (self-contained: AI cache via AppPreferences, impact tickers via optional portfolioTickers param). PortfolioNewsScreen + TickerDetail news both use it (replaced CY WebView). Removed ArticleWebViewDialog.
+- CZ2: events render — added EVENTS_FETCH "parsed=N first=.." log after tickerEvents is set (parse already adds every earningsCalendar date, render iterates tickerEvents). Kept the EVENTS_FETCH counts log.
+- CZ3: DashboardViewModel now keeps posts that have an image even with a short caption (cleanText.length>20 || imageUrl!=null; same for twitter) so image-heavy posts appear like the full feed.
+- EDIT-TOOL NOTE: deleting a ~230-line block was done via chunked verbatim Edits (intermediate brace imbalance is fine — Edit does not validate Kotlin; the FAST build at the end confirms balance).

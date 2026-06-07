@@ -417,3 +417,8 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 - [Open Q for Dima] show news/events context ALSO on the AddPosition screen to help decide; dashboard social shows fewer posts due to the portfolio filter (show all vs portfolio-only?).
 - [Social] If NVDA still shows no events, read EVENTS_FETCH log; remove the log once confirmed.
 - [Social][FUTURE] Twitter + private-Telegram-channel support.
+
+- [NEXT BIG] AddPosition intelligence panel reusing SHARED pieces (TickerDetail news/events/social + ArticleReaderSheet + AutoDirText): show price, news, events, social for the entered ticker to help decide whether/when/at what price/which strategy.
+- [Social] Remove EVENTS_FETCH log once events confirmed. Consider AutoDirText inside ArticleReaderSheet for Hebrew articles later.
+- [Social] TickerDetail remaining — social section (posts mentioning the ticker).
+- [Social][FUTURE] Twitter + private-Telegram-channel support.
