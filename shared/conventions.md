@@ -271,3 +271,6 @@ BOTH Claude Code and Codex now share the same git-safety rules, recorded in the 
 - Use the Edit tool, NOT regex/PowerShell mass-replace, on `.kt` files (a botched regex has corrupted files before).
 
 Both agents read THIS repo (`funzi7/agent-memory`) at the start of each task for current state — `options-profit-tracker/state.md`, `roadmap.md`, `gotchas.md`, and this file are the source of truth (e.g. Room DB is v30, not the v11 still listed in CLAUDE.md's historical section).
+
+## Shared-area files (reuse convention)
+Each reusable UI area lives in its OWN file holding the shared parts + per-area params: EventDisplay.kt = events card+detail; ArticleReaderSheet.kt = in-app article reader; (build NewsDisplay.kt for the news card+relevance; etc.). When building a similar area, IMPORT the existing file — never rebuild. Update the file on every new extraction. Same rule for text direction (AutoDirText) and any other cross-screen logic.

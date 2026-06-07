@@ -428,3 +428,10 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 - [Events] migrate PortfolioEventsScreen to the shared EventDisplayCard.
 - [Dashboard] social post count (filter has no effect — investigate).
 - [NEXT] AddPosition intelligence panel reusing all shared pieces.
+
+- Remove NEWS_REL log once confirmed.
+- Next: extract a shared NewsDisplay.kt (news card + relevance) used by TickerDetail + PortfolioNewsScreen.
+- "ראה הכל" dedicated pages for news/events; trade-history dedicated page for >20.
+- Migrate PortfolioEventsScreen to EventDisplayCard.
+- Dashboard social post count (filter has no effect — investigate).
+- AddPosition intelligence panel; IBKR<->Claude connector / live IBKR Web API eval.

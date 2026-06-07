@@ -723,3 +723,9 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - DA2: extracted shared EventDisplayCard + EventDetailDialog (read-only, derived from PortfolioEventsScreen markup) into ui/screens/dashboard/EventDisplay.kt; TickerDetail events are now clickable with a detail dialog (were inert). PortfolioEventsScreen left unchanged (migration to the shared card queued).
 - DA3: ArticleReaderSheet drops boilerplate paragraphs (len<40 / ad-nav-legal keywords / duplicates), keeps order, falls back to the original list if all filtered.
 - BUILD NOTE: EventDisplay.kt needed an explicit import of androidx.compose.runtime.CompositionLocalProvider (runtime.Composable alone is not enough).
+
+### 2026-06-07 Group DB prime — news relevance by company name + article not cut off + history pagination
+- OPT: c07c6fa
+- DB1: ticker news now fetches the company name (Finnhub profile2) and keeps only articles whose headline/summary contains the symbol or name (dropped the noisy "related" acceptance that let unrelated articles through, e.g. NVDA->MercadoLibre/Coca-Cola). NEWS_REL temp log added.
+- DB2: ArticleReaderSheet cleanup relaxed (min 15 chars, boilerplate only if EQUALS/startsWith a junk phrase, keep ALL <p> no cap) so articles are not cut off; "פתח בדפדפן" button covers the full text.
+- DB3: TickerDetail trade history shows 10 with "הצג הכל (N)"/"הצג פחות" expand (reuses the existing TickerPositionRow).
