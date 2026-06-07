@@ -729,3 +729,9 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - DB1: ticker news now fetches the company name (Finnhub profile2) and keeps only articles whose headline/summary contains the symbol or name (dropped the noisy "related" acceptance that let unrelated articles through, e.g. NVDA->MercadoLibre/Coca-Cola). NEWS_REL temp log added.
 - DB2: ArticleReaderSheet cleanup relaxed (min 15 chars, boilerplate only if EQUALS/startsWith a junk phrase, keep ALL <p> no cap) so articles are not cut off; "פתח בדפדפן" button covers the full text.
 - DB3: TickerDetail trade history shows 10 with "הצג הכל (N)"/"הצג פחות" expand (reuses the existing TickerPositionRow).
+
+### 2026-06-07 Group DC prime — article fallback + expired banner nav + persistent social cache
+- OPT: 0d0eaa8
+- DC1: ArticleReaderSheet no longer shows an AI summary when the article fetch failed; on failure shows fallbackSummary (Finnhub summary) + "לא ניתן לטעון את הכתבה המלאה" + "פתח בדפדפן"; AI summary + impact + paragraphs only on successful fetch; trailing footer paragraphs (len<25 / boilerplate) trimmed. Callers (TickerDetail + PortfolioNewsScreen) pass news.summary as fallbackSummary; TickerNewsItem gained a summary field.
+- DC2: the "$autoExpiredCount פוזיציות פקעו אוטומטית" dashboard banner is now clickable -> onNavigateToActivityFeed (+ a "›" affordance); ActivityFeedScreen already lists POSITION_EXPIRED and taps through to the position (reused, not rebuilt).
+- DC3: SocialPostsCache now persists to filesDir/social_cache.json — init(context) loads it (idempotent), put()/clear()/invalidate() save it, freshness window 30 min; SocialPostsCache.init(applicationContext) called in MainActivity.onCreate. Posts show instantly on relaunch and do not re-fetch every build.

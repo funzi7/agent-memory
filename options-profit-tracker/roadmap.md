@@ -435,3 +435,7 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 - Migrate PortfolioEventsScreen to EventDisplayCard.
 - Dashboard social post count (filter has no effect — investigate).
 - AddPosition intelligence panel; IBKR<->Claude connector / live IBKR Web API eval.
+
+- Remove NEWS_REL/EVENTS_FETCH temp logs once confirmed.
+- Pending Dima clarifications: open-position countdown label (expiry vs opening) and price-movement ALERTS scope.
+- Next: time-to-expiry on dashboard open positions; alerts feature; extract shared NewsDisplay.kt; "ראה הכל" dedicated pages; migrate PortfolioEventsScreen to EventDisplayCard; AddPosition intelligence panel; IBKR<->Claude connector / live IBKR Web API eval.
