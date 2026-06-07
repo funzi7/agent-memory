@@ -741,3 +741,10 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - DD1: marketOpenCountdownText(now) helper (built on MarketCalendar.isNonTradingDay, holiday-aware); shown as a small centered line under the open-positions header whenever the market is not in regular hours (סגור/פרה/אחה״צ), hidden when open. Formats days/hours/minutes לפתיחה; reuses the existing nyNow.
 - DD2: daysToExpiryLabel(expiration) helper; per-position N ימים לפקיעה / פוקע היום / פוקע מחר next to the expiry date, WarningYellow when position.daysToExpiration in 0..3.
 - DD3: removed temp NEWS_REL + EVENTS_FETCH logs (features confirmed). MOVERS_UI left in place.
+
+### 2026-06-07 Group EA prime — alerts phase 1 (extend existing AlertWorker + new dismissible banner)
+- OPT: edb7b9e
+- EA1: days-to-expiry label no longer wraps (date + label Texts maxLines=1, softWrap=false on the label).
+- EA2: AlertWorker abnormal-move trigger now uses 2x the 21-day avg daily move (IvService.fetchAvgDailyMovePct, clamp [3,25], fallback 5), alerting on BIG moves in BOTH directions (down/up arrows) instead of a fixed -3%. Everything else unchanged (watchlist-only, skip open-position tickers, notified-today de-dupe, background-only, navigate_to=alerts, cache).
+- EA3: new DismissibleAlertBanner at the top of the dashboard LazyColumn; reads getLastAlertCache(); the X dismisses the current alert signature (new key DISMISSED_ALERT_SIG) until a different cache appears; tap -> AlertsScreen (existing onNavigateToAlerts). DashboardViewModel.activeAlert/refreshActiveAlert/dismissActiveAlert; refreshed in init + refreshOnResume.
+- Existing alert infra reused: AlertWorker (periodic, market-hours), NotificationHelper (ALERT_CHANNEL_ID), AlertsScreen, MainActivity navigate_to routing, EXPIRY_ALERT_ENABLED/DAYS_BEFORE prefs (not yet wired — EB).
