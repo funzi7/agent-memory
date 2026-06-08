@@ -460,3 +460,6 @@ AddPosition intelligence panel — FB next: compact SOCIAL block for the entered
 
 ## Group FB prime ✅ (2026-06-08)
 AddPosition intelligence panel — FC next: compact SOCIAL block for the entered ticker (reuse the dashboard social rendering, filtered to posts mentioning the ticker; TickerDetail has no social section to extract from). Then FC polish: loading/layout.
+
+## Group FC prime ✅ (2026-06-08)
+AddPosition intelligence — FD next: field-level inline hints (warning next to the EXPIRY-DATE field when expiry falls after an earnings date — 'דוח לפני הפקיעה / IV crush'; strike-vs-price + IV hints near their fields). FE: social block inside the מודיעין card + layout polish; possibly fold PositionAnalysisCard into the card.
