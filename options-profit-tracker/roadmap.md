@@ -476,3 +476,8 @@ OPEN items:
 (1) Big-move alerts currently scan the WATCHLIST only (held-position tickers are excluded) — if Dima wants moves on HOLDINGS (his BTCI +6% example) alerted, add a holdings move-scan pass.
 (2) Premium/strike RECOMMENDATION engine for the open (DTE + closing IV + pre-market-implied delta shift -> target-delta strikes ~15-25 / ~10 leveraged -> est. premium per strike -> best strike/premium/tenor); design a delta/Black-Scholes estimator first.
 (3) Optionally persist AddPositionIntelCache across restarts.
+
+## Group FF prime ✅ (2026-06-08)
+OPEN items:
+(1) VERDICT correctness in AddPosition — qualityScore over-rewards annualized RoR + safety, so low-absolute-yield and deep-ITM (intrinsic-heavy) trades score 'מצוין/טוב' while the separate yield tier says 'חלש' (contradiction). Pending Dima's confirmation on thresholds: penalize mostly-intrinsic premium + cap the verdict when annualized RoR < ~15%.
+(2) Premium/strike RECOMMENDATION engine for the open (DTE + closing IV + pre-market delta shift -> target-delta strikes -> est. premium per strike -> best strike/premium/tenor) — needs a delta/Black-Scholes estimator.

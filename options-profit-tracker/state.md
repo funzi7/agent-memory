@@ -806,3 +806,8 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - FE1: runStrategicAnalysis() now called directly from updateStrikePrice + updatePremium (recalculate's CSP/Long early-return was bypassing recalculate's own runStrategicAnalysis), so the verdict line updates on a new strike/premium and clears when emptied (FD2 self-clear now actually runs). recalculate's own call left as-is (idempotent).
 - FE2: AlertWorker trading window widened 8..18 -> 4..19 ET (renamed isExtendedHours -> isTradingWindow) so move/expiry/earnings alerts + banner fire in pre-market and after-hours too (weekend/overnight still skipped).
 - FE3: AddPosition intel no longer blinks on return — new top-level in-memory AddPositionIntelCache (ticker -> news+events) loads instantly on re-entry, then refreshes in place; invalid ticker clears; different ticker with no cache clears then fetches + caches.
+
+### 2026-06-08 Group FF prime — big-move alerts on held positions
+- OPT: 2b095a4
+- FF1: AlertWorker now runs the 2x-avg big-move check over HELD-position tickers too (a new pass after the watchlist pass; the watchlist pass still skips held tickers). Held movers alert as 'TICKER ▲/▼X% (מחזיק)' (ticker FIRST so tap-to-ticker still parses) → notification + dashboard banner; de-duped via notifiedToday. Helps decide whether to keep a holding or open a new position (e.g. BTCI +6% pre-market).
+- Verified the Yahoo price source for pre-market: NO change needed — IvService.fetchYahooPrices already sets 'current' = preMarketPrice ?: postMarketPrice ?: regularMarketPrice (line ~1027), so the snapshot 'current' (and both alert passes) already reflect the pre/post-market price. Snapshot keys are uppercase tickers, matching the held pass's uppercase lookup.
