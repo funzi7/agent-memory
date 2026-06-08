@@ -481,3 +481,6 @@ OPEN items:
 OPEN items:
 (1) VERDICT correctness in AddPosition — qualityScore over-rewards annualized RoR + safety, so low-absolute-yield and deep-ITM (intrinsic-heavy) trades score 'מצוין/טוב' while the separate yield tier says 'חלש' (contradiction). Pending Dima's confirmation on thresholds: penalize mostly-intrinsic premium + cap the verdict when annualized RoR < ~15%.
 (2) Premium/strike RECOMMENDATION engine for the open (DTE + closing IV + pre-market delta shift -> target-delta strikes -> est. premium per strike -> best strike/premium/tenor) — needs a delta/Black-Scholes estimator.
+
+## Group FG prime ✅ (2026-06-08)
+OPEN: Premium/strike RECOMMENDATION engine for the open (DTE + closing IV + pre-market delta shift → target-delta strikes ~15-25 / ~10 leveraged → est. premium per strike → best strike/premium/tenor) — needs a delta/Black-Scholes estimator; big quant feature, design first.
