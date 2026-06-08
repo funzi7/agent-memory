@@ -457,3 +457,6 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 
 ## Group FA prime ✅ (2026-06-08)
 AddPosition intelligence panel — FB next: compact SOCIAL block for the entered ticker (reuse dashboard social rendering; TickerDetail has no social section) + richer events (dividends via shared EventDisplayCard). FC: loading/layout polish.
+
+## Group FB prime ✅ (2026-06-08)
+AddPosition intelligence panel — FC next: compact SOCIAL block for the entered ticker (reuse the dashboard social rendering, filtered to posts mentioning the ticker; TickerDetail has no social section to extract from). Then FC polish: loading/layout.

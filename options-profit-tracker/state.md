@@ -782,3 +782,9 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - FA1: created ui/screens/dashboard/NewsDisplay.kt — moved TickerNewsItem here, added suspend fetchTickerNews(ticker,key) (profile2 company-name relevance + blocklist, lifted from TickerDetail) and @Composable NewsDisplay(news,maxItems,onOpenArticle) (AutoDirText cards). TickerDetailScreen refactored to use both; news + 'ראה הכל' behavior preserved.
 - FA2: AddPositionScreen ticker-info panel now shows a compact '📰 חדשות' block (top 3, debounced 600ms fetch via fetchTickerNews, gated on Finnhub key + ticker regex) reusing NewsDisplay + the shared ArticleReaderSheet (fallbackSummary=summary); 'הראה הכל' → TickerDetail kept.
 - Shared-area files now: NewsDisplay.kt + EventDisplay.kt + ArticleReaderSheet.kt.
+
+### 2026-06-08 Group FB prime — AddPosition news unified + events block (shared fetchTickerEvents)
+- OPT: 1b01373
+- FB1: removed the old single '📰 latestHeadline' from AddPosition (redundant with the FA2 NewsDisplay block); added a 'ראה הכל' → TickerDetail link under the news block. (Kept the PositionAnalysisCard — re-sourced its bullish/bearish sentiment from the shared tickerNews summaries instead of the deleted latestSummary, so no feature lost.)
+- FB2: moved TickerEvent into EventDisplay.kt and added suspend fetchTickerEvents(ticker,key) (earnings calendar +120d + dividend2, lifted from TickerDetail); TickerDetail events refactored to use it (behavior preserved). AddPosition panel now shows a compact '📅 אירועים' block (nearest 3) via the shared EventDisplayCard + EventDetailDialog; removed the redundant plain '📊 דוח רווחים: <date>' line (kept the days-to-earnings recommendation hint).
+- Shared-area files now: NewsDisplay.kt (fetch+UI), EventDisplay.kt (fetchTickerEvents + EventDisplayCard/Dialog), ArticleReaderSheet.kt.
