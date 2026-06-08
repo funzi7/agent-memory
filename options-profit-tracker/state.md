@@ -800,3 +800,9 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - FD1: fixed strike-field keyboard focus loss on the first char — gave EVERY LazyColumn item a STABLE key (item(key=...)); root cause was the position_analysis item inserting ABOVE strike_premium when the first valid strike made the analysis appear, shifting positional keys and recycling the focused TextField. Stable keys keep item identity so focus is retained.
 - FD2: runStrategicAnalysis now sets strategicAnalysis=null on its invalid-input early return (strike/premium/price missing, blank, OR zero), so clearing the strike hides the FC3 verdict (was leaving a stale 'תנאים טובים').
 - FD3: inline earnings warning under the expiry-date field (Dates item) when an UPCOMING EARNINGS date (from fetchTickerEvents) falls on/before the entered expirationDate — 'דוח רווחים ב-<date> (לפני הפקיעה) — IV מתרסק אחרי הדוח; שקול פקיעה לפני הדוח', WarningOrange. Screen-level, independent of the analyzer (reliable).
+
+### 2026-06-08 Group FE prime — verdict trigger + pre/after-hours alerts + מודיעין cache
+- OPT: 0d11510
+- FE1: runStrategicAnalysis() now called directly from updateStrikePrice + updatePremium (recalculate's CSP/Long early-return was bypassing recalculate's own runStrategicAnalysis), so the verdict line updates on a new strike/premium and clears when emptied (FD2 self-clear now actually runs). recalculate's own call left as-is (idempotent).
+- FE2: AlertWorker trading window widened 8..18 -> 4..19 ET (renamed isExtendedHours -> isTradingWindow) so move/expiry/earnings alerts + banner fire in pre-market and after-hours too (weekend/overnight still skipped).
+- FE3: AddPosition intel no longer blinks on return — new top-level in-memory AddPositionIntelCache (ticker -> news+events) loads instantly on re-entry, then refreshes in place; invalid ticker clears; different ticker with no cache clears then fetches + caches.

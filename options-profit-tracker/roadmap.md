@@ -470,3 +470,9 @@ OPEN items surfaced this round:
 (2) Premium/strike RECOMMENDATION engine for the open: given DTE + the closing IV (e.g. 38.7%) + a pre-market-move-implied delta shift, suggest target-delta strikes (~15-25 delta normal, ~10 for leveraged tickers), estimate the premium for each candidate strike, and recommend the best strike + premium + tenor (weekly/daily if available). Big quant feature — design a Black-Scholes/delta estimator (or reuse IvService) first.
 (3) AddPosition מודיעין card should NOT vanish-and-reappear on return — cache tickerNews/tickerEvents per ticker and update in place.
 (4) Verify/fix the FC2 analyzer earnings feed (setAnalysisEarnings) so the analyzer's earnings flags + score reflect earnings, and surface a warning flag in the verdict preferentially over a positive one.
+
+## Group FE prime ✅ (2026-06-08)
+OPEN items:
+(1) Big-move alerts currently scan the WATCHLIST only (held-position tickers are excluded) — if Dima wants moves on HOLDINGS (his BTCI +6% example) alerted, add a holdings move-scan pass.
+(2) Premium/strike RECOMMENDATION engine for the open (DTE + closing IV + pre-market-implied delta shift -> target-delta strikes ~15-25 / ~10 leveraged -> est. premium per strike -> best strike/premium/tenor); design a delta/Black-Scholes estimator first.
+(3) Optionally persist AddPositionIntelCache across restarts.
