@@ -463,3 +463,10 @@ AddPosition intelligence panel — FC next: compact SOCIAL block for the entered
 
 ## Group FC prime ✅ (2026-06-08)
 AddPosition intelligence — FD next: field-level inline hints (warning next to the EXPIRY-DATE field when expiry falls after an earnings date — 'דוח לפני הפקיעה / IV crush'; strike-vs-price + IV hints near their fields). FE: social block inside the מודיעין card + layout polish; possibly fold PositionAnalysisCard into the card.
+
+## Group FD prime ✅ (2026-06-08)
+OPEN items surfaced this round:
+(1) Alerts/banners must fire in PRE-market and AFTER-hours too, not only regular market hours — relax AlertWorker's market-hours gate (user saw BTCI +6% pre-market with no alert).
+(2) Premium/strike RECOMMENDATION engine for the open: given DTE + the closing IV (e.g. 38.7%) + a pre-market-move-implied delta shift, suggest target-delta strikes (~15-25 delta normal, ~10 for leveraged tickers), estimate the premium for each candidate strike, and recommend the best strike + premium + tenor (weekly/daily if available). Big quant feature — design a Black-Scholes/delta estimator (or reuse IvService) first.
+(3) AddPosition מודיעין card should NOT vanish-and-reappear on return — cache tickerNews/tickerEvents per ticker and update in place.
+(4) Verify/fix the FC2 analyzer earnings feed (setAnalysisEarnings) so the analyzer's earnings flags + score reflect earnings, and surface a warning flag in the verdict preferentially over a positive one.

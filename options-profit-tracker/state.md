@@ -794,3 +794,9 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - FC1: AddPosition news + events merged into ONE '🧠 מודיעין' card (order: title, verdict, price/IV, recommendation hint, 📅 events, 📰 news + 'ראה הכל'); separate item{} blocks removed; data/fetches/ArticleReaderSheet/EventDetailDialog unchanged; PositionAnalysisCard still below (own item).
 - FC2: StrategicRiskAnalyzer now receives hasEarnings/earningsDaysAway — new VM state analysisEarningsDaysAway + setAnalysisEarnings(d) (re-runs analysis); screen computes nearest upcoming EARNINGS from fetchTickerEvents and feeds it. The analyzer's previously-dormant earnings flags (StrategicRiskAnalyzer.kt step 6) are now active.
 - FC3: prominent verdict line at the top of the מודיעין card from qualityScore (✅>=70 PrimaryGreen / 🟡 45-69 WarningOrange / 🔴 <45 LossRed + ' · label (score)' + first flag), shown only when a full analysis exists (strategicAnalysis != null).
+
+### 2026-06-08 Group FD prime — AddPosition focus/verdict/earnings-warning fixes
+- OPT: 7f85fd6
+- FD1: fixed strike-field keyboard focus loss on the first char — gave EVERY LazyColumn item a STABLE key (item(key=...)); root cause was the position_analysis item inserting ABOVE strike_premium when the first valid strike made the analysis appear, shifting positional keys and recycling the focused TextField. Stable keys keep item identity so focus is retained.
+- FD2: runStrategicAnalysis now sets strategicAnalysis=null on its invalid-input early return (strike/premium/price missing, blank, OR zero), so clearing the strike hides the FC3 verdict (was leaving a stale 'תנאים טובים').
+- FD3: inline earnings warning under the expiry-date field (Dates item) when an UPCOMING EARNINGS date (from fetchTickerEvents) falls on/before the entered expirationDate — 'דוח רווחים ב-<date> (לפני הפקיעה) — IV מתרסק אחרי הדוח; שקול פקיעה לפני הדוח', WarningOrange. Screen-level, independent of the analyzer (reliable).
