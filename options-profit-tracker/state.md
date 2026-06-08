@@ -776,3 +776,9 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - OPT: 3a9df72
 - EF1: IvKeyStatusRow dot Box gets padding(top=4.dp) so it sits beside the first text line (was slightly above under Alignment.Top); tunable, dot-only change.
 - EF2: AlertsScreen cached alert-text rows (near-expiry/earnings/expired/move strings) are now tappable -> TickerDetail — ticker parsed as the first whitespace token, validated by Regex ^[A-Z][A-Z0-9.]{0,5}$; valid rows get a Row layout + '›' affordance + clickable, invalid rows stay plain. New onNavigateToTicker param wired in MainActivity to Screen.TickerDetail.createRoute. Structured move-alert rows above still go to AddPosition prefill (untouched).
+
+### 2026-06-08 Group FA prime — shared NewsDisplay + news in AddPosition panel
+- OPT: a9d1913
+- FA1: created ui/screens/dashboard/NewsDisplay.kt — moved TickerNewsItem here, added suspend fetchTickerNews(ticker,key) (profile2 company-name relevance + blocklist, lifted from TickerDetail) and @Composable NewsDisplay(news,maxItems,onOpenArticle) (AutoDirText cards). TickerDetailScreen refactored to use both; news + 'ראה הכל' behavior preserved.
+- FA2: AddPositionScreen ticker-info panel now shows a compact '📰 חדשות' block (top 3, debounced 600ms fetch via fetchTickerNews, gated on Finnhub key + ticker regex) reusing NewsDisplay + the shared ArticleReaderSheet (fallbackSummary=summary); 'הראה הכל' → TickerDetail kept.
+- Shared-area files now: NewsDisplay.kt + EventDisplay.kt + ArticleReaderSheet.kt.

@@ -454,3 +454,6 @@ Tracked alongside `state.md` "NEW backlog". Recently shipped: NEW5 (news AI summ
 - ALERTS remaining: sync-driven ASSIGNMENT alert (needs IBKR data in a worker); target-price crossed; AlertsScreen rows tap -> ticker. Optional: per-trigger settings toggles (earnings/expiry/move) under the 'התראות' section.
 
 - ALERTS remaining (optional): sync-driven ASSIGNMENT alert (needs IBKR data in a worker); target-price-crossed alert (needs a target-price field); per-trigger settings toggles (earnings/expiry/move) under 'התראות'. Non-alerts backlog: dashboard social post-count vs portfolio-filter behavior; shared NewsDisplay.kt; 'ראה הכל' dedicated pages; migrate PortfolioEventsScreen to EventDisplayCard; AddPosition intelligence panel; IBKR live Web API eval.
+
+## Group FA prime ✅ (2026-06-08)
+AddPosition intelligence panel — FB next: compact SOCIAL block for the entered ticker (reuse dashboard social rendering; TickerDetail has no social section) + richer events (dividends via shared EventDisplayCard). FC: loading/layout polish.
