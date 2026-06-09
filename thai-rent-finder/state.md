@@ -1,19 +1,19 @@
 # thai-rent-finder — State
 
 > Living document. Auto-updated daily at 02:00 UTC by `auto-update-state.yml`.
-> Last auto-update: 2026-06-08
+> Last auto-update: 2026-06-09
 > Production: https://thai-rent-finder.vercel.app
-> Total listings in DB: 1593
+> Total listings in DB: 1620
 
 ## Sources status (current)
 
 | Source | Tier | Cron (ICT) | Status | Listings 7d |
 |--------|------|------------|--------|-------------|
-| FAZWAZ | 2 (GH Actions) | 03:00 | ✅ active | 142 |
-| RENTHUB | 2 (GH Actions) | 03:30 | ✅ active | 675 |
+| FAZWAZ | 2 (GH Actions) | 03:00 | ✅ active | 155 |
+| RENTHUB | 2 (GH Actions) | 03:30 | ✅ active | 671 |
 | LIVING_INSIDER | 2 (GH Actions) | 04:00 | ⚠️ no fresh listings | 0 |
-| LAZUDI | 2 (GH Actions) | 05:30 | ✅ active | 54 |
-| THAILAND_PROPERTY | 1 (Vercel) | n/a | ✅ active | 59 |
+| LAZUDI | 2 (GH Actions) | 05:30 | ✅ active | 55 |
+| THAILAND_PROPERTY | 1 (Vercel) | n/a | ✅ active | 54 |
 | HIPFLAT | 3 (deferred) | n/a | 🔴 deferred (Cloudflare 403) | n/a |
 
 ## Recently merged PRs (last 7 days)
@@ -68,6 +68,7 @@ _Auto-generated. Add manual content between `<!-- manual-section-start -->` and 
 
 _Auto-generated. Add manual content between `<!-- manual-section-start -->` and `<!-- manual-section-end -->` markers — the workflow appends preserved blocks at the file tail._
 
+_Auto-generated. Add manual content between `<!-- manual-section-start -->` and `<!-- manual-section-end -->` markers — the workflow appends preserved blocks at the file tail._
 _Auto-generated. Add manual content between `<!-- manual-section-start -->` and `<!-- manual-section-end -->` markers — the workflow appends preserved blocks at the file tail._
 _Auto-generated. Add manual content between `<!-- manual-section-start -->` and `<!-- manual-section-end -->` markers — the workflow appends preserved blocks at the file tail._
 _Auto-generated. Add manual content between `<!-- manual-section-start -->` and `<!-- manual-section-end -->` markers — the workflow appends preserved blocks at the file tail._
