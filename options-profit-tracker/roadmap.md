@@ -492,3 +492,6 @@ OPEN (queued):
 (C) CC reminder: '+' to the LEFT of the number on the 'לחוזה...' line + verify the premium calc.
 (D) Dashboard 'רשתות חברתיות' → unified 'מודיעין' feed (news+events+social, my-tickers-first chronological, then the rest).
 (E) BBAI +5% didn't alert — likely below its 2x-avg threshold; decide whether to lower the move threshold or add a fixed floor.
+
+## Group FI prime ✅ (2026-06-09)
+OPEN (queued): (D) price/IV visible from ticker entry; (C) CC 'לחוזה' line + sign + premium calc; (A) dashboard 'social' → unified מודיעין feed (big, design first). Apply BulletText more widely as the standard over time.
