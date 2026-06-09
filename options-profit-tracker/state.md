@@ -826,3 +826,7 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 ### 2026-06-09 Group FI prime — BulletText alignment rule
 - OPT: f61b4a5
 - FI1: added reusable @Composable BulletText(leading,text,style,color,fontWeight,modifier) next to AutoDirText in DashboardScreen.kt — Row(Alignment.Top){ Text(leading); Spacer 4dp; Text(text, weight 1f) } so the icon hangs left and wrapped text aligns under the FIRST WORD, not under the emoji. Applied in the AddPosition '🧠 מודיעין' card to the FG1 verdict line (titleSmall/SemiBold/tier color), the verdict flag line (labelSmall/textSecondary), and the IV/earnings recommendation hint (labelSmall/textSecondary) — each split via substringBefore/After(' '). The plain supporting-data line (no leading emoji) stays a normal Text. New standard for emoji-prefixed wrapping lines (display-only; no logic change).
+
+### 2026-06-09 Group FJ prime — price/IV inputs visible on ticker entry
+- OPT: 8af39b3
+- FJ1: AddPosition RiskAssessmentCard gate changed from requiring a strike (state.strikePrice != null) to requiring only a ticker (state.ticker.isNotBlank()), so the 'מחיר נוכחי'/'IV %' inputs (at the top of that card) now appear as soon as a ticker is entered. Verified the card degrades cleanly with no strike: all strike-dependent rows live inside 'if (strike != null && currentPrice != null && currentPrice > 0)'; with a ticker + no strike only the title + the two inputs render (+ the 'הכנס מחיר נוכחי' hint when price empty). No risk/assignment math changed; strategyType list unchanged.

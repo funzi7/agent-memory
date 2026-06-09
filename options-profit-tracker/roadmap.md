@@ -495,3 +495,6 @@ OPEN (queued):
 
 ## Group FI prime ✅ (2026-06-09)
 OPEN (queued): (D) price/IV visible from ticker entry; (C) CC 'לחוזה' line + sign + premium calc; (A) dashboard 'social' → unified מודיעין feed (big, design first). Apply BulletText more widely as the standard over time.
+
+## Group FJ prime ✅ (2026-06-09)
+OPEN (queued): (C) CC reminder 'CC ~$X לחוזה' line — move/add the '+' sign to the LEFT of the number (pending Dima confirming exactly which '+'). (A) dashboard 'social' section → unified 'מודיעין' feed (news+events+social, my-tickers-first chronological, then the rest) — big, design first.
