@@ -484,3 +484,11 @@ OPEN items:
 
 ## Group FG prime ✅ (2026-06-08)
 OPEN: Premium/strike RECOMMENDATION engine for the open (DTE + closing IV + pre-market delta shift → target-delta strikes ~15-25 / ~10 leveraged → est. premium per strike → best strike/premium/tenor) — needs a delta/Black-Scholes estimator; big quant feature, design first.
+
+## Group FH prime ✅ (2026-06-09)
+OPEN (queued):
+(A) AddPosition verdict 2nd line + GLOBAL rule: when text follows a leading emoji/icon, wrapped lines must align to the first word, not under the emoji.
+(B) AddPosition price/IV must show on ticker entry (currently hidden until a strike).
+(C) CC reminder: '+' to the LEFT of the number on the 'לחוזה...' line + verify the premium calc.
+(D) Dashboard 'רשתות חברתיות' → unified 'מודיעין' feed (news+events+social, my-tickers-first chronological, then the rest).
+(E) BBAI +5% didn't alert — likely below its 2x-avg threshold; decide whether to lower the move threshold or add a fixed floor.
