@@ -54,3 +54,5 @@ When working on one app, don't pull patterns from another unless explicitly aske
 - Hebrew RTL UI is primary across all apps.
 
 Round sizing UPDATED: pack more items per round (5-6 when they're small/display fixes); anything unclear or unfinished goes under a LEFTOVERS section at the end of the summary and rolls to the next prompt. Device tests are written in ENGLISH (the Windows terminal cannot render RTL Hebrew) but on-screen AREA NAMES stay in Hebrew quotes exactly as they appear in the app (e.g. "הערכת סיכון", "מודיעין", "תזכורת CC", "פירוט חודשי").
+
+Device-test flow UPDATED: Claude Code writes tests in ENGLISH with Hebrew on-screen area names; Claude (Desktop) translates them to proper Hebrew in chat and Dima answers there (the Windows terminal cannot render RTL).
