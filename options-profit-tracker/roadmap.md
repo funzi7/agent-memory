@@ -498,3 +498,5 @@ OPEN (queued): (D) price/IV visible from ticker entry; (C) CC 'לחוזה' line 
 
 ## Group FJ prime ✅ (2026-06-09)
 OPEN (queued): (C) CC reminder 'CC ~$X לחוזה' line — move/add the '+' sign to the LEFT of the number (pending Dima confirming exactly which '+'). (A) dashboard 'social' section → unified 'מודיעין' feed (news+events+social, my-tickers-first chronological, then the rest) — big, design first.
+
+OPEN: (1) CC premium boost formula review — boost uses the LAST closed position's DTE and fires on any |move|>3% incl. drops; Dima to decide new rule. (2) Recommendation should persist by PRICE LEVEL, not only daily move (proposal pending Dima's approval). (3) Social: if Telegram preview truncates long posts at SOURCE — full-post fetch (see FK5 finding: the t.me/s page itself carries full text, but the PARSER's non-greedy block regex tgme_widget_message_wrap...(.*?)</div></div></div> + text regex to the FIRST </div> can cut long/nested posts mid-way — fix is parser-side). (4) Dashboard social section → unified מודיעין feed (news+events+social, my-tickers-first chronological) — big, design first.
