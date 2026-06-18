@@ -866,3 +866,8 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - OPT: ac0261e
 - FP1: POSITION_EXPIRED (AutoExpirePositions) and manual EXPIRED/ASSIGNED close events (ClosePositionScreen) now timestamp at the expiration/close DATE @ 16:00 ET instead of System.currentTimeMillis() (detection moment) — fixes feed showing an option 'expiring' mid-session in the user's TZ.
 - FP2: CC reminder line 3 now shows the premium per CONTRACT (×100) keeping the 'לחוזה' label (estimatedPremium is per-share app-wide); display only.
+
+### 2026-06-18 Group FO+FQ — CSP assignment realizes $0 option P&L (matches IBKR)
+- OPT: 032ec36
+- FO (earlier, memory was missed): ClosePosition CSP-assignment PREVIEW no longer books the premium as realized — option $0, premium folds into shares' cost basis (strike − premiumPerShare), stock P&L only if shares sold; assignment doesn't subtract commission so a not-sold CSP assignment = $0; assignment summary card shows 'Option P&L: $0' + footnote. CC path + other methods untouched.
+- FQ (this round): SAME fix applied to the CENTRAL ProfitCalculator.realizedPnL (CSP-assigned branch) so the feed, reports, dashboard totals and exports all show $0 for CSP assignments — retroactive for every position since P&L is computed, not stored. Pattern app-wide is `pos.ibkrRealizedPnl ?: realizedPnL(pos)`: imported assignments already used IBKR's $0; this fixes the manual ones (ibkrRealizedPnl == null) and the direct realizedPnL callers.
