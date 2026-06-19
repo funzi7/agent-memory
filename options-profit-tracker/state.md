@@ -887,3 +887,6 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 
 ### 2026-06-19 Group FX prime — demote spammy CC debug logs (logging-only)
 - FX: demoted CC_ENTRY/UNREAL_DISPATCH/CC_CALL debug logs from Log.e→Log.d (ProfitCalculator ×5, ClosePositionScreen ×1, ReportGenerator ×1) — they flooded Logcat error view per recomposition. Logging-only, no logic change. OPT: 40ef02d
+
+### 2026-06-19 Group FY prime — run Flex import/sync in app scope (CRITICAL)
+- FY (CRITICAL): Flex import/sync (fullResync, importAll, syncFromIbkr) moved from viewModelScope → an app-scoped @Singleton CoroutineScope (AppModule.provideApplicationScope, SupervisorJob + Dispatchers.IO, injected into ImportViewModel). Switching tabs mid-import was clearing the Settings VM and cancelling doImport (JobCancellationException) before applyPortfolioToSettings (capital) + importStockSoldEvents ran, and truncating captureStockRealized — explaining missing STOCK_SOLD events, stale $7k capital, and MULL stock-realized missing the 19.6 sale. Only the 3 heavy launches moved; light helpers (cred save, deleteImportedPositions, deleteSelectedBatches, init) stay on viewModelScope. OPT: e209d16

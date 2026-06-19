@@ -447,3 +447,5 @@ Stock-sale realized P&L lives as STOCK_SOLD ActivityEvents (NOT positions) — f
 'מחק וייבא' must NEVER deleteAllPositions() — that wipes manual positions. Use deleteImportedNonDraftPositions() (sync_source!='MANUAL' AND status!='DRAFT'); don't wipe the stock snapshot (saveStockSyncSnapshot('{}')) either — BA3 prune handles refresh/removal while preserving manual entries.
 
 Much of the app logs DEBUG at Log.e level (CC_ENTRY/UNREAL_DISPATCH/CC_CALL etc.) — these flood 'level:error' in Logcat. CC ones demoted in FX (Log.e→Log.d); others (startup tags: APP_ONCREATE/FEED_FIX/BACKFILL/FEED_CLEANUP) remain at Log.e but are once-per-startup, not per-recomposition spam.
+
+NEVER run the Flex import/sync in viewModelScope — switching tabs clears the Settings VM and cancels it mid-way (JobCancellationException in doImport), silently aborting the capital update (applyPortfolioToSettings) + stock-sale capture (importStockSoldEvents/captureStockRealized). Use the app-scoped @Singleton CoroutineScope (AppModule.provideApplicationScope). Light helpers can stay on viewModelScope.
