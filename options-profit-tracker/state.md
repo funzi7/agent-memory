@@ -884,3 +884,6 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 ### 2026-06-19 Group FW prime — hybrid 'delete & reimport' (keep MANUAL + DRAFT)
 - FW: 'delete & reimport' is now hybrid — uses deleteImportedNonDraftPositions() (keeps MANUAL + DRAFT) instead of deleteAllPositions(), and no longer wipes the stock snapshot (import merge + BA3 prune refresh synced/keep manual). Button text updated. OPT: cdbe913
 - (DAO: PositionDao.deleteImportedNonDraftPositions = DELETE FROM positions WHERE sync_source != 'MANUAL' AND status != 'DRAFT'; removed appPreferences.saveStockSyncSnapshot('{}') from the clearAllBeforeNextImport block in ImportViewModel ~900.)
+
+### 2026-06-19 Group FX prime — demote spammy CC debug logs (logging-only)
+- FX: demoted CC_ENTRY/UNREAL_DISPATCH/CC_CALL debug logs from Log.e→Log.d (ProfitCalculator ×5, ClosePositionScreen ×1, ReportGenerator ×1) — they flooded Logcat error view per recomposition. Logging-only, no logic change. OPT: 40ef02d
