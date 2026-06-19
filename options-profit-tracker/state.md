@@ -871,3 +871,8 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - FT1: AutoExpirePositions now fires at 16:00 ET on the expiration date (nowEt.isAfter(expiry@16:00 ET)) instead of waiting for the ET date to roll — fixes positions staying open until ~11:00 Thailand and the one-expired-one-not inconsistency. The FP1 event timestamp reuses marketCloseEt (expiry @ 16:00 ET).
 - FT2: one-time feed migration in OptionsTrackerApp cleanup recomputes amount (= ibkrRealizedPnl ?: realizedPnL) and timestamp (expiry/close date @ 16:00 ET) for existing POSITION_CLOSED/ASSIGNED/EXPIRED events — fixes the old CSP-assignment feed row showing premium and stale expiry times; idempotent; going-forward already correct. INTERPRETATION: amount reconciled ONLY for rows that already carry a non-null amount (amount-less expiry rows keep null + only get the timestamp fixed) — honors 'leave amount-less events alone' and avoids old-vs-new expiry inconsistency.
 - OPT: 743ebb9
+
+### 2026-06-19 Group FU prime — feed +/- sign + assignment-date timestamp in feed migration
+- FU1: feed amount now shows explicit +/- sign (gain '+$', loss '-$', zero none) — ActivityFeedScreen amount Text prefix is now if(amt>0)'+' else if(amt<0)'-' else ''. Color logic (green/red/secondary) unchanged.
+- FU2: feed migration timestamp for POSITION_ASSIGNED uses the actual assignment date (assignmentDate ?: closeDate ?: expirationDate), not expirationDate — fixes early-assignment rows like ASTX (assigned before expiry). POSITION_EXPIRED still uses expirationDate; POSITION_CLOSED uses closeDate ?: expirationDate. Still row-updates only, @16:00 ET, idempotent, amount only for rows with non-null amount.
+- OPT: 74da25b
