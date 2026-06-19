@@ -511,3 +511,5 @@ OPEN (Tables UX, to scope with owner before building): (1) apply the PortfolioBr
 
 GD2: short value as MtM liability ((entry-current)*|shares|, not shares*price) + include in portfolio total + inverted unrealized P&L display. Also fix the GD1-flagged gaps: PortfolioEventsScreen shares*price/dividends for shorts; FlexSyncWorker background merge (currently keeps >0 so background sync drops shorts); snapshot reads using takeIf{>0}.
 GD3: split the 100-share assignment feed/realized into 46 close + 54 short-open so the share count isn't 154.
+
+GD2b STATUS: short P&L value DONE in PortfolioBreakdownScreen (GD2) + dashboard open-positions short ROW DONE (GF2). REMAINING: include shorts in summary.openPositionsCount (touches the option-counting summary builder). GD3 DONE (GF3): assignment share-count split to closed qty. STILL OPEN from GD1: PortfolioEventsScreen shares*price/dividends for shorts; FlexSyncWorker background merge keeps >0 (shorts persist via manual import only).
