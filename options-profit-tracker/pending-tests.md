@@ -32,3 +32,6 @@ On-device verification owed (run on the real Android app; Hebrew UI area names):
 - [ ] (GK1) Tap a STOCK_SOLD feed record for a ticker near the BOTTOM of the sort → 'רווח/הפסד מניות' scrolls so that ticker's expanded, highlighted row is visible (not stuck at top). The per-ticker table still reads as one card; manual taps don't auto-scroll.
 - [ ] (GK2) MULL 'פתיחת שורט (הקצאה)' shows 'התקבל $38,598' (54 @ 714.78) neutral, not in any realized total; SHORT_OPEN_PROCEEDS log shows costBasisPrice≈714.78 used=rawXml.
 - [ ] (GK3) Tapping the MULL 'פתיחת שורט (הקצאה)' feed row opens the 'שווי תיק' screen (MULL -54 + P&L), instead of doing nothing.
+- [ ] (GL1) Tap a STOCK_SOLD record for a ticker LOW in the sort (e.g. PLUG) → 'רווח/הפסד מניות' scrolls so its expanded, highlighted row is visible; SR_SCROLL log shows idx >= 0.
+- [ ] (GL2) MULL 'פתיחת שורט (הקצאה)' shows 'התקבל $38,598' (54 @ 714.78); SHORT_OPEN_PROCEEDS log shows costBasis≈714.78 (not $0).
+- [ ] (GL3) Tapping the MULL 'פתיחת שורט (הקצאה)' row opens a DIALOG showing -54 שורט, entry 714.78, received $38,598, and the date — not the general 'שווי תיק' page (a 'פתח בשווי תיק' button still navigates there).

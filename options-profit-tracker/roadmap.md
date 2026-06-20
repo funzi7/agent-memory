@@ -521,3 +521,8 @@ SHORT-STOCK STATUS (GH): GH1 feed-tap scroll-to-sale DONE; GH2 short as % mover 
 SHORT-STOCK STATUS (GI): GI1 feed-tap scroll-to-row WORKING (animateScrollToItem(1, measured-offset); GH1 BringIntoView failed on single-item table); GI2 short-open shows proceeds informationally (amount null, realized unchanged). Short-stock UX now complete through GI. REMAINING/minor: multi-flip-trade count attribution edge (GF3); the assignment trade's literal proceeds (qty×690) differ from the displayed qty×avg(714.78) — by design per spec (uses the position avg).
 
 SHORT-STOCK STATUS (GK): GK1 feed-tap scroll WORKING via discrete items (offset-math removed); GK2 short-open proceeds from rawXml costBasisPrice (snapshot avgCost was null); GK3 short-open row → PortfolioBreakdown. Short-stock UX complete through GK. REMAINING/minor: multi-flip-trade count attribution edge (GF3).
+
+User-reported TODO (to scope later):
+ - Expiry banner undercounts: shows only 1 expiring position when 4 are actually expiring — fix the banner's count/source.
+ - Risk-assessment + intel sanity bug: a put with current price ~25 and strike 24 (only ~$1 OTM) shows StrategicRiskAnalyzer 'סטרייק רחוק...' and intel 'התנאים תומכים בהמשך החזקה...'; after setting IV=122% the risk turns yellow 'איזון פרמיה/סיכון...' but intel stays green 'תומכים בהחזקה'. A ~$1 gap with 122% IV reading as 'strike far'/'supports holding' is illogical — audit the StrategicRiskAnalyzer distance/IV math and the intel recommendation logic.
+ - Alerts not firing: no unusual-movement alerts during pre-market despite several tickers moving sharply — investigate the alert trigger/scheduling.
