@@ -45,3 +45,8 @@ On-device verification owed (run on the real Android app; Hebrew UI area names):
 - [ ] Re-import MULL and verify FLIP_DBG shows netStockPos=-54, isFlip=true, shortOpenQty=54; SHORT_OPEN_PROCEEDS fires with costBasis about 714.78 and proceeds about $38,598; STOCK_SHORT_OPENED exists with amount=null and all realized totals are unchanged.
 
 - [ ] 2026-06-20 Device — re-import a long-to-short assignment and verify STOCK_SHORT_OPENED reads visually as 54 מניות שורט @ $714.78 · התקבל $38,598, with no event amount and unchanged realized totals (OPT d583a7e).
+
+### 2026-06-20 GL6 (Claude Code, OPT 4c9ee9a) — device test
+- [ ] Tap "ASTX פקע והוקצה" (and "MULL פקעה והוקצה") on BOTH the dashboard recent-activity card AND the full Activity Feed → must open the ASTX/MULL position page (ClosePositionScreen / "עריכת סגירה"), NOT the ticker page and NOT a "פוזיציה לא נמצאה" toast. Check Logcat FEED_CLICK "ASTX-case eventId=.. positionId=.. inIds=.. idsSize=.. resolved=.." — resolved should be a real id.
+- [ ] If a tickers position was TRULY removed (no row in פוזיציות) → tapping its assignment record opens the ticker detail page (graceful fallback), still never a dead toast.
+- [ ] Regression: working records (valid stored positionId, e.g. recent opens/closes) still open their exact position page; drafts still open the edit screen; STOCK_SOLD still deep-links to stock-realized; STOCK_SHORT_OPENED still opens the short detail page.
