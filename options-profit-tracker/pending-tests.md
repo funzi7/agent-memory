@@ -64,3 +64,8 @@ On-device verification owed (run on the real Android app; Hebrew UI area names):
 - [ ] Both screens: a month with NO stock sales shows NEITHER the stock line NOR the combined total (no "$0.00" rows); options figures and all date logic unchanged.
 
 - [ ] 2026-06-21 Device — on דוחות, select a month and a year/all-years containing stock sales: verify ממומש מניות equals the matching summed value in רווח/הפסד מניות, סהכ משולב equals options+stock, signs/numbers render LTR and green/red correctly, and both extra figures disappear for a zero-stock period (OPT f561eeb).
+
+### 2026-06-21 GL9 (Claude Code, OPT d9c94fd) — device test
+- [ ] Open "לוח שנה" and swipe/arrow through several months including a 5-week month (e.g. Feb) and a 6-week month, and months WITH vs WITHOUT stock-sale realized. The weekday header row and the day grid must NOT shift vertically — only the cell contents change. The grid always shows 6 week-rows (last row empty for short months).
+- [ ] "היום" appears as a small AccentBlue outlined chip immediately to the LEFT of the month name (RTL) when viewing any non-current month; tapping it jumps to the current month/day. On the current month the chip is hidden and the month name + grid sit in the SAME position as when it was shown (no jump).
+- [ ] Confirm the realized/stock/combined figures and the per-week "שבוע" totals still show correct values (just reserved-but-invisible when zero); no "$0.00" text is visible.
