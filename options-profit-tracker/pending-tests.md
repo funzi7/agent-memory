@@ -40,3 +40,6 @@ On-device verification owed (run on the real Android app; Hebrew UI area names):
 - [ ] Tap a STOCK_SHORT_OPENED feed row (e.g. MULL "פתיחת שורט (הקצאה)") on BOTH the dashboard recent-activity card AND the full Activity Feed → opens the new "פוזיציית שורט" detail PAGE (not a dialog). Verify מחיר כניסה ≈714.78 (NOT 690), שווי כניסה/התקבל = |qty|×entry, מחיר נוכחי = live snapshot, and רווח/הפסד לא ממומש = (entry-current)×|qty| colored green when price<entry / red when price>entry.
 - [ ] Tap "ASTX פקע והוקצה" → must NOT show "פוזיציה לא נמצאה"; it should open the ASTX ticker detail (position was removed on re-import). Check Logcat FEED_CLICK "resolve positionId=.. gone=true".
 - [ ] Regression: tap a same-day expiry/assignment record whose position STILL exists → still opens its position page (gone=false). STOCK_SOLD rows still deep-link to stock-realized. Other feed rows unchanged.
+
+### 2026-06-20 GL5 Codex (OPT fb8b538) — device test
+- [ ] Re-import MULL and verify FLIP_DBG shows netStockPos=-54, isFlip=true, shortOpenQty=54; SHORT_OPEN_PROCEEDS fires with costBasis about 714.78 and proceeds about $38,598; STOCK_SHORT_OPENED exists with amount=null and all realized totals are unchanged.
