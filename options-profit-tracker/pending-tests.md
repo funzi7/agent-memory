@@ -78,3 +78,7 @@ On-device verification owed (run on the real Android app; Hebrew UI area names):
 - [ ] The "היום" chip still works (jumps to current month) and the realized/stock/combined figures are still correct.
 
 - [ ] 2026-06-21 Device — edit a short PUT/CSP at price ~25, strike 24, IV 122%: risk must be cautionary (not "סטרייק רחוק"), intel must be yellow/cautious (not "התנאים תומכים בהמשך החזקה"), and RISK_DBG must show bufferPct~4, the entered IV, a larger expMovePct, and MEDIUM/HIGH. Regression: price 100/strike 80/IV 20% remains VERY_LOW/far; an ITM PUT remains VERY_HIGH/red (OPT 24c50b6).
+
+### 2026-06-21 Carry-forward (Claude Code) — calendar progress-bar jump + risk IV-buffer device test
+- [ ] Calendar "לוח שנה": navigate between a month that HAS a target (progress bar shown, monthlyTarget>0) and a month that has NO target (bar hidden) — the layout must NOT shift vertically. (Currently it STILL jumps because the bar is conditional; fix = reserve the bar's height in no-bar months via the alpha-reserved/maxLines approach used for the summary-card stock lines. The "היום" chip + summary card already stay put.)
+- [ ] Risk/intel IV-buffer (CODEX 24c50b6) — not yet device-verified (no open PUT at the time). On דוחות/AddPosition: a PUT at price≈25 / strike≈24 / IV≈122% → risk HIGH/caution AND intel cautionary (NOT "התנאים תומכים בהמשך החזקה"); a genuinely-far low-IV case (price 100 / strike 80 / IV 20%) → still far/VERY_LOW. Confirm RISK_DBG shows bufferPct/IV/expMovePct/band/verdict.
