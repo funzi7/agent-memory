@@ -50,3 +50,8 @@ On-device verification owed (run on the real Android app; Hebrew UI area names):
 - [ ] Tap "ASTX פקע והוקצה" (and "MULL פקעה והוקצה") on BOTH the dashboard recent-activity card AND the full Activity Feed → must open the ASTX/MULL position page (ClosePositionScreen / "עריכת סגירה"), NOT the ticker page and NOT a "פוזיציה לא נמצאה" toast. Check Logcat FEED_CLICK "ASTX-case eventId=.. positionId=.. inIds=.. idsSize=.. resolved=.." — resolved should be a real id.
 - [ ] If a tickers position was TRULY removed (no row in פוזיציות) → tapping its assignment record opens the ticker detail page (graceful fallback), still never a dead toast.
 - [ ] Regression: working records (valid stored positionId, e.g. recent opens/closes) still open their exact position page; drafts still open the edit screen; STOCK_SOLD still deep-links to stock-realized; STOCK_SHORT_OPENED still opens the short detail page.
+
+### 2026-06-21 GL7 (Claude Code, OPT ab3e00e) — device test
+- [ ] On the dashboard "יעד חודשי" card, in a month that HAS stock-sale realized (e.g. MULL/other STK sales this month), confirm a small grey subline "ממומש מניות: +$X" (or -$X) appears beneath "ממומש החודש", colored green for gains / red for losses, numbers LTR (sign on the left, no RTL reversal).
+- [ ] Confirm the value equals that month's total in the "רווח/הפסד מניות" screen for the current month (sum across tickers).
+- [ ] Confirm a month with NO stock sales shows NO subline (not "$0.00"). Confirm the options "ממומש החודש" figure, the target number, the percent pill, and the progress bar are all UNCHANGED.
