@@ -43,3 +43,5 @@ On-device verification owed (run on the real Android app; Hebrew UI area names):
 
 ### 2026-06-20 GL5 Codex (OPT fb8b538) — device test
 - [ ] Re-import MULL and verify FLIP_DBG shows netStockPos=-54, isFlip=true, shortOpenQty=54; SHORT_OPEN_PROCEEDS fires with costBasis about 714.78 and proceeds about $38,598; STOCK_SHORT_OPENED exists with amount=null and all realized totals are unchanged.
+
+- [ ] 2026-06-20 Device — re-import a long-to-short assignment and verify STOCK_SHORT_OPENED reads visually as 54 מניות שורט @ $714.78 · התקבל $38,598, with no event amount and unchanged realized totals (OPT d583a7e).
