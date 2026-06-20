@@ -71,3 +71,8 @@ On-device verification owed (run on the real Android app; Hebrew UI area names):
 - [ ] Confirm the realized/stock/combined figures and the per-week "שבוע" totals still show correct values (just reserved-but-invisible when zero); no "$0.00" text is visible.
 
 - [ ] 2026-06-21 Device — reopen דוחות after a cold start, select June and then 2026/all-years, and confirm ממומש מניות appears with the same signed value as dashboard/calendar, סהכ משולב equals options+stock, and Logcat REPORTS_STOCK shows the matching period key and non-zero stockRealized; a zero-stock month must hide both added rows (OPT 65014e2).
+
+### 2026-06-21 GL10 (Claude Code, OPT 9da346f) — device test
+- [ ] Calendar "לוח שנה": navigate between a month WITH stock-sale realized (shows "ממומש מניות" + "סה"כ החודש" lines, incl. a large combined value) and a month WITHOUT — the top summary card height must be IDENTICAL (the grid/weekday row below must not move). Verify a big combined number does NOT wrap to a 2nd line.
+- [ ] Navigate across months with different-length Hebrew names (e.g. מאי vs ספטמבר vs אוקטובר): the prev/next arrows and the "היום" chip must stay in the SAME horizontal positions; only the centered month name changes within its fixed slot. Entering/leaving the current month (chip shows/hides) must not move the name or arrows either.
+- [ ] The "היום" chip still works (jumps to current month) and the realized/stock/combined figures are still correct.
