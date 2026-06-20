@@ -35,3 +35,8 @@ On-device verification owed (run on the real Android app; Hebrew UI area names):
 - [ ] (GL1) Tap a STOCK_SOLD record for a ticker LOW in the sort (e.g. PLUG) → 'רווח/הפסד מניות' scrolls so its expanded, highlighted row is visible; SR_SCROLL log shows idx >= 0.
 - [ ] (GL2) MULL 'פתיחת שורט (הקצאה)' shows 'התקבל $38,598' (54 @ 714.78); SHORT_OPEN_PROCEEDS log shows costBasis≈714.78 (not $0).
 - [ ] (GL3) Tapping the MULL 'פתיחת שורט (הקצאה)' row opens a DIALOG showing -54 שורט, entry 714.78, received $38,598, and the date — not the general 'שווי תיק' page (a 'פתח בשווי תיק' button still navigates there).
+
+### 2026-06-20 GL4 (Claude Code, OPT bfdaf84) — device tests
+- [ ] Tap a STOCK_SHORT_OPENED feed row (e.g. MULL "פתיחת שורט (הקצאה)") on BOTH the dashboard recent-activity card AND the full Activity Feed → opens the new "פוזיציית שורט" detail PAGE (not a dialog). Verify מחיר כניסה ≈714.78 (NOT 690), שווי כניסה/התקבל = |qty|×entry, מחיר נוכחי = live snapshot, and רווח/הפסד לא ממומש = (entry-current)×|qty| colored green when price<entry / red when price>entry.
+- [ ] Tap "ASTX פקע והוקצה" → must NOT show "פוזיציה לא נמצאה"; it should open the ASTX ticker detail (position was removed on re-import). Check Logcat FEED_CLICK "resolve positionId=.. gone=true".
+- [ ] Regression: tap a same-day expiry/assignment record whose position STILL exists → still opens its position page (gone=false). STOCK_SOLD rows still deep-link to stock-realized. Other feed rows unchanged.
