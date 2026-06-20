@@ -57,3 +57,8 @@ On-device verification owed (run on the real Android app; Hebrew UI area names):
 - [ ] Confirm a month with NO stock sales shows NO subline (not "$0.00"). Confirm the options "ממומש החודש" figure, the target number, the percent pill, and the progress bar are all UNCHANGED.
 
 - [ ] 2026-06-21 Device — close/assign a CC or let it pass 16:00 ET, remove the ticker from current holdings, and verify it disappears immediately from the CC reminder. Confirm CC_REMINDER_FILTER reports the exclusion reason; then verify a genuinely current 100+ share snapshot/manual override still produces an uncovered-share reminder when appropriate (OPT f45e1f7).
+
+### 2026-06-21 GL8 (Claude Code, OPT 48ddf3b) — device tests
+- [ ] Dashboard "יעד חודשי" card: in a month WITH stock-sale realized, confirm a bold "סה"כ החודש: ±$X" line appears beneath the GL7 "ממומש מניות" subline, equal to ("ממומש החודש" options figure) + (the stock subline value), colored green/red by sign, numbers LTR. Confirm the target number, percent pill, and progress bar are UNCHANGED.
+- [ ] Calendar "לוח שנה": for a month with stock sales, confirm under the month-totals row (צפוי/ממומש/יעד) two centered lines appear — "ממומש מניות (חודש): ±$X" and "סה"כ החודש (כולל מניות): ±$Y" with Y = the month's options ממומש + stock. Navigate months (swipe / arrows): the stock + combined lines must follow the displayed month and match that month's value in the "רווח/הפסד מניות" screen.
+- [ ] Both screens: a month with NO stock sales shows NEITHER the stock line NOR the combined total (no "$0.00" rows); options figures and all date logic unchanged.
