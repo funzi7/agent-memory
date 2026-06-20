@@ -55,3 +55,5 @@ On-device verification owed (run on the real Android app; Hebrew UI area names):
 - [ ] On the dashboard "יעד חודשי" card, in a month that HAS stock-sale realized (e.g. MULL/other STK sales this month), confirm a small grey subline "ממומש מניות: +$X" (or -$X) appears beneath "ממומש החודש", colored green for gains / red for losses, numbers LTR (sign on the left, no RTL reversal).
 - [ ] Confirm the value equals that month's total in the "רווח/הפסד מניות" screen for the current month (sum across tickers).
 - [ ] Confirm a month with NO stock sales shows NO subline (not "$0.00"). Confirm the options "ממומש החודש" figure, the target number, the percent pill, and the progress bar are all UNCHANGED.
+
+- [ ] 2026-06-21 Device — close/assign a CC or let it pass 16:00 ET, remove the ticker from current holdings, and verify it disappears immediately from the CC reminder. Confirm CC_REMINDER_FILTER reports the exclusion reason; then verify a genuinely current 100+ share snapshot/manual override still produces an uncovered-share reminder when appropriate (OPT f45e1f7).
