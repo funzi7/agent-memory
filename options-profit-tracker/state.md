@@ -1025,3 +1025,8 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - OPT: e42cb0a
 - StockRealizedScreen.kt only: selectedMonth now SEEDS to currentMonthKey() (was null = all-time). New private currentMonthKey() mirrors monthKeyOf but for LocalDate.now(America/New_York) -> "YYYY-MM" (matches data.months ET tradeDate keys). A one-shot LaunchedEffect(data.months, initialSaleTs) guarded by didInitMonth: bails (sets didInitMonth) if a feed deep-link is active (initialSaleTs>0) so the deep-link still owns the month; else once data.months is non-empty it lands on the current month if present, else data.months.first() (newest), else leaves null (all-time) when there is no data. Fires once so it never fights recomposition or the deep-link.
 - Untouched/verified: deep-link LaunchedEffect(initialTicker,initialSaleTs) still sets selectedMonth=monthKeyOf(ts) + arms scroll/highlight; pendingScrollTicker/rows scroll effect, "כל הזמן"+per-month chips (manual tap clears highlight + cancels pending scroll), GM2 persisted sort, rows keyed on (sortMode,sortAsc,selectedMonth) all unchanged. compileDebugKotlin BUILD SUCCESSFUL, no e: errors. No DashboardViewModel/DashboardScreen/ProfitCalculator/IV/DB/prefs touched.
+
+### 2026-06-22 GN1 (Codex) — one dashboard banner per cached alert
+- OPT: 2cff525
+- Reverted the GM1 expiry-count summary. DashboardViewModel now exposes the full stale-filtered activeAlerts list, and DashboardScreen renders one independently dismissible banner for every cached expiry, move, or earnings alert.
+- Closing one banner removes only that line; closing the last banner saves the existing whole-cache dismissed signature so AlertWorker duplicate-notification suppression remains intact.
