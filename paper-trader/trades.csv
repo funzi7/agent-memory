@@ -1,0 +1,3 @@
+date,portfolio_id,strategy,ticker,side,shares,fill_price,commission,cash_after,equity_after,reason
+2026-06-23,benchmark_10k,benchmark,SPY,BUY,13.0,734.1769,1.0,454.7,9991.24,buy & hold init
+2026-06-23,trend200_10k,trend200,QQQ,BUY,13.0,716.0979,1.0,689.73,9967.18,close>200SMA (707.83>622.35)
