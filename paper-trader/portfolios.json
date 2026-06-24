@@ -1,20 +1,23 @@
 {
-  "last_processed_date": "2026-06-23",
+  "last_processed_date": "2026-06-24",
   "portfolios": {
     "benchmark_100": {
       "portfolio_id": "benchmark_100",
       "strategy": "benchmark",
       "account_size": 100.0,
-      "cash": 100.0,
-      "positions": {},
-      "pending_orders": [
-        {
+      "cash": 12.57111035861206,
+      "positions": {
+        "SPYM": {
           "ticker": "SPYM",
-          "side": "BUY",
-          "reason": "buy & hold init",
-          "orig": "SPY"
+          "shares": 1.0,
+          "avg_price": 86.56325664138794,
+          "entry_date": "2026-06-24",
+          "bars_held": 1,
+          "cost_basis": 87.42888964138794,
+          "high_water": 86.56325664138794
         }
-      ],
+      },
+      "pending_orders": [],
       "equity_history": [
         [
           "2026-06-09",
@@ -23,6 +26,20 @@
         [
           "2026-06-23",
           100.0
+        ],
+        [
+          "2026-06-24",
+          98.83111249484253
+        ]
+      ],
+      "cash_history": [
+        [
+          "__legacy__",
+          100.0
+        ],
+        [
+          "2026-06-24",
+          12.57111035861206
         ]
       ],
       "stats": {
@@ -31,7 +48,9 @@
         "gross_profit": 0.0,
         "gross_loss": 0.0
       },
-      "fees_paid_total": 0.0
+      "fees_paid_total": 0.865633,
+      "cash_change_today": -87.43,
+      "cash_change_since_inception": -87.43
     },
     "benchmark_10k": {
       "portfolio_id": "benchmark_10k",
@@ -44,7 +63,7 @@
           "shares": 13.0,
           "avg_price": 734.176902557373,
           "entry_date": "2026-06-23",
-          "bars_held": 1,
+          "bars_held": 2,
           "cost_basis": 9545.299733245849,
           "high_water": 734.176902557373
         }
@@ -58,6 +77,20 @@
         [
           "2026-06-23",
           9991.24048892212
+        ],
+        [
+          "2026-06-24",
+          9986.820139801026
+        ]
+      ],
+      "cash_history": [
+        [
+          "__legacy__",
+          454.700266754151
+        ],
+        [
+          "2026-06-24",
+          454.700266754151
         ]
       ],
       "stats": {
@@ -66,7 +99,9 @@
         "gross_profit": 0.0,
         "gross_loss": 0.0
       },
-      "fees_paid_total": 1.0
+      "fees_paid_total": 1.0,
+      "cash_change_today": 0.0,
+      "cash_change_since_inception": -9545.3
     },
     "rsi2_100": {
       "portfolio_id": "rsi2_100",
@@ -83,6 +118,20 @@
         [
           "2026-06-23",
           100.0
+        ],
+        [
+          "2026-06-24",
+          100.0
+        ]
+      ],
+      "cash_history": [
+        [
+          "__legacy__",
+          100.0
+        ],
+        [
+          "2026-06-24",
+          100.0
         ]
       ],
       "stats": {
@@ -91,7 +140,9 @@
         "gross_profit": 0.0,
         "gross_loss": 0.0
       },
-      "fees_paid_total": 0.0
+      "fees_paid_total": 0.0,
+      "cash_change_today": 0.0,
+      "cash_change_since_inception": 0.0
     },
     "rsi2_10k": {
       "portfolio_id": "rsi2_10k",
@@ -108,6 +159,20 @@
         [
           "2026-06-23",
           10000.0
+        ],
+        [
+          "2026-06-24",
+          10000.0
+        ]
+      ],
+      "cash_history": [
+        [
+          "__legacy__",
+          10000.0
+        ],
+        [
+          "2026-06-24",
+          10000.0
         ]
       ],
       "stats": {
@@ -116,7 +181,9 @@
         "gross_profit": 0.0,
         "gross_loss": 0.0
       },
-      "fees_paid_total": 0.0
+      "fees_paid_total": 0.0,
+      "cash_change_today": 0.0,
+      "cash_change_since_inception": 0.0
     },
     "trend200_100": {
       "portfolio_id": "trend200_100",
@@ -128,7 +195,7 @@
         {
           "ticker": "QQQM",
           "side": "BUY",
-          "reason": "close>200SMA (713.65>628.63)",
+          "reason": "close>200SMA (710.62>629.31)",
           "orig": "QQQ"
         }
       ],
@@ -140,6 +207,20 @@
         [
           "2026-06-23",
           100.0
+        ],
+        [
+          "2026-06-24",
+          100.0
+        ]
+      ],
+      "cash_history": [
+        [
+          "__legacy__",
+          100.0
+        ],
+        [
+          "2026-06-24",
+          100.0
         ]
       ],
       "stats": {
@@ -148,7 +229,9 @@
         "gross_profit": 0.0,
         "gross_loss": 0.0
       },
-      "fees_paid_total": 0.0
+      "fees_paid_total": 0.0,
+      "cash_change_today": 0.0,
+      "cash_change_since_inception": 0.0
     },
     "trend200_10k": {
       "portfolio_id": "trend200_10k",
@@ -161,7 +244,7 @@
           "shares": 13.0,
           "avg_price": 716.0978602294922,
           "entry_date": "2026-06-23",
-          "bars_held": 1,
+          "bars_held": 2,
           "cost_basis": 9310.272182983399,
           "high_water": 716.0978602294922
         }
@@ -175,6 +258,20 @@
         [
           "2026-06-23",
           9967.178134399413
+        ],
+        [
+          "2026-06-24",
+          9927.787753540038
+        ]
+      ],
+      "cash_history": [
+        [
+          "__legacy__",
+          689.727817016601
+        ],
+        [
+          "2026-06-24",
+          689.727817016601
         ]
       ],
       "stats": {
@@ -183,7 +280,9 @@
         "gross_profit": 0.0,
         "gross_loss": 0.0
       },
-      "fees_paid_total": 1.0
+      "fees_paid_total": 1.0,
+      "cash_change_today": 0.0,
+      "cash_change_since_inception": -9310.27
     },
     "rotation_100": {
       "portfolio_id": "rotation_100",
@@ -200,6 +299,20 @@
         [
           "2026-06-23",
           100.0
+        ],
+        [
+          "2026-06-24",
+          100.0
+        ]
+      ],
+      "cash_history": [
+        [
+          "__legacy__",
+          100.0
+        ],
+        [
+          "2026-06-24",
+          100.0
         ]
       ],
       "stats": {
@@ -208,7 +321,9 @@
         "gross_profit": 0.0,
         "gross_loss": 0.0
       },
-      "fees_paid_total": 0.0
+      "fees_paid_total": 0.0,
+      "cash_change_today": 0.0,
+      "cash_change_since_inception": 0.0
     },
     "rotation_10k": {
       "portfolio_id": "rotation_10k",
@@ -225,6 +340,20 @@
         [
           "2026-06-23",
           10000.0
+        ],
+        [
+          "2026-06-24",
+          10000.0
+        ]
+      ],
+      "cash_history": [
+        [
+          "__legacy__",
+          10000.0
+        ],
+        [
+          "2026-06-24",
+          10000.0
         ]
       ],
       "stats": {
@@ -233,45 +362,66 @@
         "gross_profit": 0.0,
         "gross_loss": 0.0
       },
-      "fees_paid_total": 0.0
+      "fees_paid_total": 0.0,
+      "cash_change_today": 0.0,
+      "cash_change_since_inception": 0.0
     },
     "momentum_scan_100": {
       "portfolio_id": "momentum_scan_100",
       "strategy": "momentum_scan",
       "account_size": 100.0,
-      "cash": 100.0,
-      "positions": {},
-      "pending_orders": [
-        {
+      "cash": 15.592518221313483,
+      "positions": {
+        "GFS": {
           "ticker": "GFS",
-          "side": "BUY",
-          "reason": "rank 3, 6-1 +147.6%"
-        },
+          "shares": 1.0,
+          "avg_price": 83.57176377868652,
+          "entry_date": "2026-06-24",
+          "bars_held": 1,
+          "cost_basis": 84.40748177868652,
+          "high_water": 83.69999694824219
+        }
+      },
+      "pending_orders": [
         {
           "ticker": "INTC",
           "side": "BUY",
-          "reason": "rank 1, 6-1 +245.2%"
+          "reason": "מילוי אמצע-חודש — דירוג #1, מומנטום 6-1 +241.3%"
         },
         {
           "ticker": "MRVL",
           "side": "BUY",
-          "reason": "rank 4, 6-1 +142.7%"
+          "reason": "מילוי אמצע-חודש — דירוג #5, מומנטום 6-1 +141.7%"
         },
         {
           "ticker": "MU",
           "side": "BUY",
-          "reason": "rank 2, 6-1 +233.8%"
+          "reason": "מילוי אמצע-חודש — דירוג #2, מומנטום 6-1 +232.7%"
         },
         {
           "ticker": "ON",
           "side": "BUY",
-          "reason": "rank 5, 6-1 +140.6%"
+          "reason": "מילוי אמצע-חודש — דירוג #4, מומנטום 6-1 +152.0%"
         }
       ],
       "equity_history": [
         [
           "2026-06-23",
           100.0
+        ],
+        [
+          "2026-06-24",
+          99.29251516955567
+        ]
+      ],
+      "cash_history": [
+        [
+          "__legacy__",
+          100.0
+        ],
+        [
+          "2026-06-24",
+          15.592518221313483
         ]
       ],
       "stats": {
@@ -280,45 +430,81 @@
         "gross_profit": 0.0,
         "gross_loss": 0.0
       },
-      "fees_paid_total": 0.0
+      "fees_paid_total": 0.835718,
+      "cash_change_today": -84.41,
+      "cash_change_since_inception": -84.41
     },
     "momentum_scan_10k": {
       "portfolio_id": "momentum_scan_10k",
       "strategy": "momentum_scan",
       "account_size": 10000.0,
-      "cash": 10000.0,
-      "positions": {},
-      "pending_orders": [
-        {
+      "cash": 1030.930246829987,
+      "positions": {
+        "GFS": {
           "ticker": "GFS",
-          "side": "BUY",
-          "reason": "rank 3, 6-1 +147.6%"
+          "shares": 23.0,
+          "avg_price": 83.57176377868652,
+          "entry_date": "2026-06-24",
+          "bars_held": 1,
+          "cost_basis": 1923.1505669097899,
+          "high_water": 83.69999694824219
         },
-        {
+        "INTC": {
           "ticker": "INTC",
-          "side": "BUY",
-          "reason": "rank 1, 6-1 +245.2%"
+          "shares": 15.0,
+          "avg_price": 132.98445826721192,
+          "entry_date": "2026-06-24",
+          "bars_held": 1,
+          "cost_basis": 1995.7668740081788,
+          "high_water": 132.98445826721192
         },
-        {
+        "MRVL": {
           "ticker": "MRVL",
-          "side": "BUY",
-          "reason": "rank 4, 6-1 +142.7%"
+          "shares": 7.0,
+          "avg_price": 281.63574261474605,
+          "entry_date": "2026-06-24",
+          "bars_held": 1,
+          "cost_basis": 1972.4501983032224,
+          "high_water": 281.63574261474605
         },
-        {
+        "MU": {
           "ticker": "MU",
-          "side": "BUY",
-          "reason": "rank 2, 6-1 +233.8%"
+          "shares": 1.0,
+          "avg_price": 1083.411430114746,
+          "entry_date": "2026-06-24",
+          "bars_held": 1,
+          "cost_basis": 1084.411430114746,
+          "high_water": 1083.411430114746
         },
-        {
+        "ON": {
           "ticker": "ON",
-          "side": "BUY",
-          "reason": "rank 5, 6-1 +140.6%"
+          "shares": 17.0,
+          "avg_price": 117.19356963729858,
+          "entry_date": "2026-06-24",
+          "bars_held": 1,
+          "cost_basis": 1993.290683834076,
+          "high_water": 117.19356963729858
         }
-      ],
+      },
+      "pending_orders": [],
       "equity_history": [
         [
           "2026-06-23",
           10000.0
+        ],
+        [
+          "2026-06-24",
+          9883.770143985748
+        ]
+      ],
+      "cash_history": [
+        [
+          "__legacy__",
+          10000.0
+        ],
+        [
+          "2026-06-24",
+          1030.930246829987
         ]
       ],
       "stats": {
@@ -327,45 +513,66 @@
         "gross_profit": 0.0,
         "gross_loss": 0.0
       },
-      "fees_paid_total": 0.0
+      "fees_paid_total": 5.0,
+      "cash_change_today": -8969.07,
+      "cash_change_since_inception": -8969.07
     },
     "leveraged_momentum_100": {
       "portfolio_id": "leveraged_momentum_100",
       "strategy": "leveraged_momentum",
       "account_size": 100.0,
-      "cash": 100.0,
-      "positions": {},
+      "cash": 32.296165000000016,
+      "positions": {
+        "AMDL": {
+          "ticker": "AMDL",
+          "shares": 1.0,
+          "avg_price": 67.03349999999999,
+          "entry_date": "2026-06-24",
+          "bars_held": 1,
+          "cost_basis": 67.70383499999998,
+          "high_water": 67.03349999999999
+        }
+      },
       "pending_orders": [
         {
-          "ticker": "AMDL",
+          "ticker": "BULZ",
           "side": "BUY",
-          "reason": "rank 3, 6-1 +187.4%"
+          "reason": "מילוי אמצע-חודש — דירוג #5, מומנטום 6-1 +86.0%"
         },
         {
           "ticker": "KORU",
           "side": "BUY",
-          "reason": "rank 1, 6-1 +473.8%"
+          "reason": "מילוי אמצע-חודש — דירוג #1, מומנטום 6-1 +451.6%"
         },
         {
           "ticker": "SOXL",
           "side": "BUY",
-          "reason": "rank 2, 6-1 +419.3%"
+          "reason": "מילוי אמצע-חודש — דירוג #2, מומנטום 6-1 +429.9%"
         },
         {
           "ticker": "TECL",
           "side": "BUY",
-          "reason": "rank 5, 6-1 +84.7%"
-        },
-        {
-          "ticker": "USD",
-          "side": "BUY",
-          "reason": "rank 4, 6-1 +94.3%"
+          "reason": "מילוי אמצע-חודש — דירוג #4, מומנטום 6-1 +86.5%"
         }
       ],
       "equity_history": [
         [
           "2026-06-23",
           100.0
+        ],
+        [
+          "2026-06-24",
+          99.03616286376955
+        ]
+      ],
+      "cash_history": [
+        [
+          "__legacy__",
+          100.0
+        ],
+        [
+          "2026-06-24",
+          32.296165000000016
         ]
       ],
       "stats": {
@@ -374,45 +581,81 @@
         "gross_profit": 0.0,
         "gross_loss": 0.0
       },
-      "fees_paid_total": 0.0
+      "fees_paid_total": 0.670335,
+      "cash_change_today": -67.7,
+      "cash_change_since_inception": -67.7
     },
     "leveraged_momentum_10k": {
       "portfolio_id": "leveraged_momentum_10k",
       "strategy": "leveraged_momentum",
       "account_size": 10000.0,
-      "cash": 10000.0,
-      "positions": {},
-      "pending_orders": [
-        {
+      "cash": 792.5010408401492,
+      "positions": {
+        "AMDL": {
           "ticker": "AMDL",
-          "side": "BUY",
-          "reason": "rank 3, 6-1 +187.4%"
+          "shares": 29.0,
+          "avg_price": 67.03349999999999,
+          "entry_date": "2026-06-24",
+          "bars_held": 1,
+          "cost_basis": 1944.9714999999997,
+          "high_water": 67.03349999999999
         },
-        {
+        "KORU": {
           "ticker": "KORU",
-          "side": "BUY",
-          "reason": "rank 1, 6-1 +473.8%"
+          "shares": 2.0,
+          "avg_price": 763.0913769836426,
+          "entry_date": "2026-06-24",
+          "bars_held": 1,
+          "cost_basis": 1527.1827539672852,
+          "high_water": 763.0913769836426
         },
-        {
+        "SOXL": {
           "ticker": "SOXL",
-          "side": "BUY",
-          "reason": "rank 2, 6-1 +419.3%"
+          "shares": 8.0,
+          "avg_price": 233.22655561065673,
+          "entry_date": "2026-06-24",
+          "bars_held": 1,
+          "cost_basis": 1866.8124448852539,
+          "high_water": 233.22655561065673
         },
-        {
+        "TECL": {
           "ticker": "TECL",
-          "side": "BUY",
-          "reason": "rank 5, 6-1 +84.7%"
+          "shares": 9.0,
+          "avg_price": 210.3050969467163,
+          "entry_date": "2026-06-24",
+          "bars_held": 1,
+          "cost_basis": 1893.7458725204467,
+          "high_water": 210.3050969467163
         },
-        {
+        "USD": {
           "ticker": "USD",
-          "side": "BUY",
-          "reason": "rank 4, 6-1 +94.3%"
+          "shares": 20.0,
+          "avg_price": 98.68931938934325,
+          "entry_date": "2026-06-24",
+          "bars_held": 1,
+          "cost_basis": 1974.7863877868651,
+          "high_water": 98.68931938934325
         }
-      ],
+      },
+      "pending_orders": [],
       "equity_history": [
         [
           "2026-06-23",
           10000.0
+        ],
+        [
+          "2026-06-24",
+          9824.431010627746
+        ]
+      ],
+      "cash_history": [
+        [
+          "__legacy__",
+          10000.0
+        ],
+        [
+          "2026-06-24",
+          792.5010408401492
         ]
       ],
       "stats": {
@@ -421,7 +664,9 @@
         "gross_profit": 0.0,
         "gross_loss": 0.0
       },
-      "fees_paid_total": 0.0
+      "fees_paid_total": 5.0,
+      "cash_change_today": -9207.5,
+      "cash_change_since_inception": -9207.5
     },
     "guru_track_100": {
       "portfolio_id": "guru_track_100",
@@ -434,6 +679,20 @@
         [
           "2026-06-23",
           100.0
+        ],
+        [
+          "2026-06-24",
+          100.0
+        ]
+      ],
+      "cash_history": [
+        [
+          "__legacy__",
+          100.0
+        ],
+        [
+          "2026-06-24",
+          100.0
         ]
       ],
       "stats": {
@@ -442,7 +701,9 @@
         "gross_profit": 0.0,
         "gross_loss": 0.0
       },
-      "fees_paid_total": 0.0
+      "fees_paid_total": 0.0,
+      "cash_change_today": 0.0,
+      "cash_change_since_inception": 0.0
     },
     "guru_track_10k": {
       "portfolio_id": "guru_track_10k",
@@ -455,119 +716,19 @@
         [
           "2026-06-23",
           10000.0
+        ],
+        [
+          "2026-06-24",
+          10000.0
         ]
       ],
-      "stats": {
-        "n_trades": 0,
-        "n_wins": 0,
-        "gross_profit": 0.0,
-        "gross_loss": 0.0
-      },
-      "fees_paid_total": 0.0
-    },
-    "screener_track_100": {
-      "portfolio_id": "screener_track_100",
-      "strategy": "screener_track",
-      "account_size": 100.0,
-      "cash": 100.0,
-      "positions": {},
-      "pending_orders": [
-        {
-          "ticker": "ADBE",
-          "side": "BUY",
-          "reason": "screener shortlist #5"
-        },
-        {
-          "ticker": "CELH",
-          "side": "BUY",
-          "reason": "screener shortlist #2"
-        },
-        {
-          "ticker": "FSLR",
-          "side": "BUY",
-          "reason": "screener shortlist #4"
-        },
-        {
-          "ticker": "NVDA",
-          "side": "BUY",
-          "reason": "screener shortlist #1"
-        },
-        {
-          "ticker": "PODD",
-          "side": "BUY",
-          "reason": "screener shortlist #6"
-        },
-        {
-          "ticker": "RBLX",
-          "side": "BUY",
-          "reason": "screener shortlist #7"
-        },
-        {
-          "ticker": "TSM",
-          "side": "BUY",
-          "reason": "screener shortlist #3"
-        }
-      ],
-      "equity_history": [
+      "cash_history": [
         [
-          "2026-06-23",
-          100.0
-        ]
-      ],
-      "stats": {
-        "n_trades": 0,
-        "n_wins": 0,
-        "gross_profit": 0.0,
-        "gross_loss": 0.0
-      },
-      "fees_paid_total": 0.0
-    },
-    "screener_track_10k": {
-      "portfolio_id": "screener_track_10k",
-      "strategy": "screener_track",
-      "account_size": 10000.0,
-      "cash": 10000.0,
-      "positions": {},
-      "pending_orders": [
-        {
-          "ticker": "ADBE",
-          "side": "BUY",
-          "reason": "screener shortlist #5"
-        },
-        {
-          "ticker": "CELH",
-          "side": "BUY",
-          "reason": "screener shortlist #2"
-        },
-        {
-          "ticker": "FSLR",
-          "side": "BUY",
-          "reason": "screener shortlist #4"
-        },
-        {
-          "ticker": "NVDA",
-          "side": "BUY",
-          "reason": "screener shortlist #1"
-        },
-        {
-          "ticker": "PODD",
-          "side": "BUY",
-          "reason": "screener shortlist #6"
-        },
-        {
-          "ticker": "RBLX",
-          "side": "BUY",
-          "reason": "screener shortlist #7"
-        },
-        {
-          "ticker": "TSM",
-          "side": "BUY",
-          "reason": "screener shortlist #3"
-        }
-      ],
-      "equity_history": [
+          "__legacy__",
+          10000.0
+        ],
         [
-          "2026-06-23",
+          "2026-06-24",
           10000.0
         ]
       ],
@@ -577,7 +738,166 @@
         "gross_profit": 0.0,
         "gross_loss": 0.0
       },
-      "fees_paid_total": 0.0
+      "fees_paid_total": 0.0,
+      "cash_change_today": 0.0,
+      "cash_change_since_inception": 0.0
+    },
+    "screener_track_100": {
+      "portfolio_id": "screener_track_100",
+      "strategy": "screener_track",
+      "account_size": 100.0,
+      "cash": 24.16160076332092,
+      "positions": {
+        "CELH": {
+          "ticker": "CELH",
+          "shares": 1.0,
+          "avg_price": 28.064024236679074,
+          "entry_date": "2026-06-24",
+          "bars_held": 1,
+          "cost_basis": 28.344664236679073,
+          "high_water": 28.520000457763672
+        },
+        "RBLX": {
+          "ticker": "RBLX",
+          "shares": 1.0,
+          "avg_price": 47.0235,
+          "entry_date": "2026-06-24",
+          "bars_held": 1,
+          "cost_basis": 47.493735,
+          "high_water": 47.939998626708984
+        }
+      },
+      "pending_orders": [],
+      "equity_history": [
+        [
+          "2026-06-23",
+          100.0
+        ],
+        [
+          "2026-06-24",
+          100.62159984779358
+        ]
+      ],
+      "cash_history": [
+        [
+          "__legacy__",
+          100.0
+        ],
+        [
+          "2026-06-24",
+          24.16160076332092
+        ]
+      ],
+      "stats": {
+        "n_trades": 0,
+        "n_wins": 0,
+        "gross_profit": 0.0,
+        "gross_loss": 0.0
+      },
+      "fees_paid_total": 0.750875,
+      "cash_change_today": -75.84,
+      "cash_change_since_inception": -75.84
+    },
+    "screener_track_10k": {
+      "portfolio_id": "screener_track_10k",
+      "strategy": "screener_track",
+      "account_size": 10000.0,
+      "cash": 550.1008944282546,
+      "positions": {
+        "ADBE": {
+          "ticker": "ADBE",
+          "shares": 7.0,
+          "avg_price": 195.98293700408934,
+          "entry_date": "2026-06-24",
+          "bars_held": 1,
+          "cost_basis": 1372.8805590286254,
+          "high_water": 196.57000732421875
+        },
+        "CELH": {
+          "ticker": "CELH",
+          "shares": 50.0,
+          "avg_price": 28.064024236679074,
+          "entry_date": "2026-06-24",
+          "bars_held": 1,
+          "cost_basis": 1404.2012118339537,
+          "high_water": 28.520000457763672
+        },
+        "FSLR": {
+          "ticker": "FSLR",
+          "shares": 5.0,
+          "avg_price": 249.84486122131347,
+          "entry_date": "2026-06-24",
+          "bars_held": 1,
+          "cost_basis": 1250.2243061065674,
+          "high_water": 249.84486122131347
+        },
+        "NVDA": {
+          "ticker": "NVDA",
+          "shares": 7.0,
+          "avg_price": 200.17004232788085,
+          "entry_date": "2026-06-24",
+          "bars_held": 1,
+          "cost_basis": 1402.190296295166,
+          "high_water": 200.17004232788085
+        },
+        "PODD": {
+          "ticker": "PODD",
+          "shares": 9.0,
+          "avg_price": 144.9024168319702,
+          "entry_date": "2026-06-24",
+          "bars_held": 1,
+          "cost_basis": 1305.121751487732,
+          "high_water": 148.8800048828125
+        },
+        "RBLX": {
+          "ticker": "RBLX",
+          "shares": 30.0,
+          "avg_price": 47.0235,
+          "entry_date": "2026-06-24",
+          "bars_held": 1,
+          "cost_basis": 1411.705,
+          "high_water": 47.939998626708984
+        },
+        "TSM": {
+          "ticker": "TSM",
+          "shares": 3.0,
+          "avg_price": 434.19199360656734,
+          "entry_date": "2026-06-24",
+          "bars_held": 1,
+          "cost_basis": 1303.575980819702,
+          "high_water": 440.8299865722656
+        }
+      },
+      "pending_orders": [],
+      "equity_history": [
+        [
+          "2026-06-23",
+          10000.0
+        ],
+        [
+          "2026-06-24",
+          10087.500934101106
+        ]
+      ],
+      "cash_history": [
+        [
+          "__legacy__",
+          10000.0
+        ],
+        [
+          "2026-06-24",
+          550.1008944282546
+        ]
+      ],
+      "stats": {
+        "n_trades": 0,
+        "n_wins": 0,
+        "gross_profit": 0.0,
+        "gross_loss": 0.0
+      },
+      "fees_paid_total": 7.0,
+      "cash_change_today": -9449.9,
+      "cash_change_since_inception": -9449.9
     }
   }
 }
