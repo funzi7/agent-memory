@@ -1,3 +1,25 @@
 date,portfolio_id,strategy,ticker,side,shares,fill_price,commission,cash_after,equity_after,reason
 2026-06-23,benchmark_10k,benchmark,SPY,BUY,13.0,734.1769,1.0,454.7,9991.24,buy & hold init
 2026-06-23,trend200_10k,trend200,QQQ,BUY,13.0,716.0979,1.0,689.73,9967.18,close>200SMA (707.83>622.35)
+2026-06-24,benchmark_100,benchmark,SPYM,BUY,1.0,86.5633,0.8656,12.57,98.83,buy & hold init
+2026-06-24,momentum_scan_100,momentum_scan,GFS,BUY,1.0,83.5718,0.8357,15.59,99.29,"rank 3, 6-1 +147.6%"
+2026-06-24,momentum_scan_10k,momentum_scan,GFS,BUY,23.0,83.5718,1.0,8076.85,10001.95,"rank 3, 6-1 +147.6%"
+2026-06-24,momentum_scan_10k,momentum_scan,INTC,BUY,15.0,132.9845,1.0,6081.08,9980.93,"rank 1, 6-1 +245.2%"
+2026-06-24,momentum_scan_10k,momentum_scan,MRVL,BUY,7.0,281.6357,1.0,4108.63,9945.38,"rank 4, 6-1 +142.7%"
+2026-06-24,momentum_scan_10k,momentum_scan,MU,BUY,1.0,1083.4114,1.0,3024.22,9909.48,"rank 2, 6-1 +233.8%"
+2026-06-24,momentum_scan_10k,momentum_scan,ON,BUY,17.0,117.1936,1.0,1030.93,9883.77,"rank 5, 6-1 +140.6%"
+2026-06-24,leveraged_momentum_100,leveraged_momentum,AMDL,BUY,1.0,67.0335,0.6703,32.3,99.04,"rank 3, 6-1 +187.4%"
+2026-06-24,leveraged_momentum_10k,leveraged_momentum,AMDL,BUY,29.0,67.0335,1.0,8055.03,9990.49,"rank 3, 6-1 +187.4%"
+2026-06-24,leveraged_momentum_10k,leveraged_momentum,KORU,BUY,2.0,763.0914,1.0,6527.85,9945.87,"rank 1, 6-1 +473.8%"
+2026-06-24,leveraged_momentum_10k,leveraged_momentum,SOXL,BUY,8.0,233.2266,1.0,4661.03,9915.61,"rank 2, 6-1 +419.3%"
+2026-06-24,leveraged_momentum_10k,leveraged_momentum,TECL,BUY,9.0,210.3051,1.0,2767.29,9877.22,"rank 5, 6-1 +84.7%"
+2026-06-24,leveraged_momentum_10k,leveraged_momentum,USD,BUY,20.0,98.6893,1.0,792.5,9824.43,"rank 4, 6-1 +94.3%"
+2026-06-24,screener_track_100,screener_track,CELH,BUY,1.0,28.064,0.2806,71.66,100.18,screener shortlist #2
+2026-06-24,screener_track_100,screener_track,RBLX,BUY,1.0,47.0235,0.4702,24.16,100.62,screener shortlist #7
+2026-06-24,screener_track_10k,screener_track,ADBE,BUY,7.0,195.9829,1.0,8627.12,10003.11,screener shortlist #5
+2026-06-24,screener_track_10k,screener_track,CELH,BUY,50.0,28.064,1.0,7222.92,10024.91,screener shortlist #2
+2026-06-24,screener_track_10k,screener_track,FSLR,BUY,5.0,249.8449,1.0,5972.69,10016.48,screener shortlist #4
+2026-06-24,screener_track_10k,screener_track,NVDA,BUY,7.0,200.17,1.0,4570.5,10007.29,screener shortlist #1
+2026-06-24,screener_track_10k,screener_track,PODD,BUY,9.0,144.9024,1.0,3265.38,10042.09,screener shortlist #6
+2026-06-24,screener_track_10k,screener_track,RBLX,BUY,30.0,47.0235,1.0,1853.68,10068.59,screener shortlist #7
+2026-06-24,screener_track_10k,screener_track,TSM,BUY,3.0,434.192,1.0,550.1,10087.5,screener shortlist #3
