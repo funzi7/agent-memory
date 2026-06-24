@@ -61,9 +61,12 @@ th{ color:var(--muted); font-weight:600; font-size:.72rem; }
 .pend.skip{ color:var(--amber); }
 .up{ color:var(--up); } .down{ color:var(--down); }
 .num{ font-variant-numeric:tabular-nums; }
-/* One isolated LTR block per mixed line: the bidi algorithm treats it as a single
-   left-to-right run and never reorders its insides (qty/ticker/price/rank/…). */
-.ltr{ unicode-bidi:isolate; direction:ltr; }
+/* BIDI: align each text line by its own first strong character (Hebrew lines go
+   right, pure-Latin lines go left), and isolate ONLY Latin-letter runs in markup
+   (<bdi> via app.js). Numbers/signs stay bare and ride the browser's bidi. */
+.pend, .cashline, .row, .sub, .pace, .pace div, .big, .desc, .tprev,
+.foot, .empty, .stat .k, .stat .v, .stat .s, td, th,
+h1, h2.sec, .back, .card h3, .col h3, .target-edit{ unicode-bidi:plaintext; }
 
 /* target tracker */
 .target-edit{ display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; margin:.2rem 0 .5rem;

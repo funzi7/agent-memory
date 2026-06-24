@@ -101,7 +101,7 @@
       <div class="big">${P.money(eq)}</div>
       <div class="cashline">${P.cashLineHTML(pf)}</div>
       <div class="row"><span class="lbl">תשואה מצטברת</span><span class="num ${P.cls(cr)}">${P.pct(cr)}</span></div>
-      <div class="row"><span class="lbl">עודף מול ‎SPY‎</span><span class="num ltr ${P.cls(ex)}">${ex == null ? "—" : (ex >= 0 ? "+" : "") + (ex * 100).toFixed(2) + "% pp"}</span></div>
+      <div class="row"><span class="lbl">עודף מול ${P.w("SPY")}</span><span class="num ${P.cls(ex)}">${ex == null ? "—" : P.w((ex >= 0 ? "+" : "") + (ex * 100).toFixed(2) + "% pp")}</span></div>
       ${body}
       ${P.paceTargetHTML(pf, strategy)}
     </div>`;
