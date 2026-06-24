@@ -11,13 +11,16 @@
  */
 "use strict";
 
-const VERSION = "pt-dash-v1";
+const VERSION = "pt-dash-v2";
 const SHELL_CACHE = VERSION + "-shell";
 const DATA_CACHE = VERSION + "-data";
 
 // Relative to the SW scope (paper-trader/), so it works under the Pages subpath.
 const SHELL_ASSETS = [
   "./dashboard.html",
+  "./strategy.html",
+  "./app.js",
+  "./style.css",
   "./manifest.webmanifest",
   "./icon-192.png",
   "./icon-512.png",

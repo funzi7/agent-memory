@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>פירוט אסטרטגיה — Paper Trading</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#0f1419">
+<meta name="color-scheme" content="dark">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<link rel="stylesheet" href="./style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="./app.js"></script>
+</head>
+<body>
+<header>
+  <h1 id="title">📊 פירוט אסטרטגיה</h1>
+  <span class="grow"></span>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;line-height:1.25">
+    <span id="asof" class="muted"></span>
+    <span id="ago" class="muted"></span>
+  </div>
+  <button id="refresh" aria-label="רענון">⟳ רענון</button>
+</header>
+
+<main>
+  <a class="back" href="./dashboard.html">‹ חזרה לדשבורד</a>
+  <div id="banner" class="empty panel" style="display:none">אין נתונים זמינים עדיין</div>
+
+  <div id="head"></div>
+  <div id="targetbox"></div>
+  <div id="cols" class="cols"></div>
+
+  <h2 class="sec">עקומת שווי (מנורמל ל-‎100‎)</h2>
+  <div class="panel">
+    <div id="chartEmpty" class="empty" style="display:none">אין מספיק היסטוריה לגרף עדיין</div>
+    <div class="chart-wrap"><canvas id="chart"></canvas></div>
+  </div>
+
+  <h2 class="sec">עסקאות אחרונות באסטרטגיה</h2>
+  <div class="panel">
+    <div id="tradesEmpty" class="empty" style="display:none">אין עסקאות עדיין</div>
+    <table id="trades"><thead><tr>
+      <th>תאריך</th><th>טיקר</th><th>פעולה</th><th>כמות</th><th>מחיר</th><th>סיבה</th>
+    </tr></thead><tbody></tbody></table>
+  </div>
+
+  <div class="disclaimer" id="disclaimer"></div>
+  <p class="foot">תיאור נתונים בלבד, לא המלצת מסחר. סימולציה (‎paper trading‎) — אין כסף אמיתי.
+    יעד התשואה ניתן לעריכה ונשמר לסשן הנוכחי בלבד.</p>
+</main>
+
+<script>
+"use strict";
+(function () {
+  const P = window.PT, $ = (id) => document.getElementById(id);
+  let chart = null;
+  $("disclaimer").textContent = P.DISCLAIMER;
+  const params = new URLSearchParams(location.search);
+  const strategy = params.get("id") || "";
+
+  function colHTML(pf, benchRet) {
+    const eq = P.lastEq(pf), cr = P.cumRet(pf), tag = P.sizeTag(pf.account_size);
+    const ex = (cr != null && benchRet[tag] != null) ? cr - benchRet[tag] : null;
+    const closes = P.state().closes;
+    const hold = P.holdingsHTML(pf, closes, { detailed: true }) || `<div class="muted" style="margin-top:.4rem">‎—‎ אין החזקות (מזומן)</div>`;
+    const pend = P.pendingHTML(pf, closes);
+    return `<div class="col card">
+      <h3>${P.sizeLabel(pf.account_size)}</h3>
+      <div class="big" style="font-size:1.2rem;font-weight:700">${P.money(eq)}</div>
+      <div class="cashline">${P.cashLineHTML(pf)}</div>
+      <div class="row"><span class="lbl">תשואה מצטברת</span><span class="num ${P.cls(cr)}">${P.pct(cr)}</span></div>
+      <div class="row"><span class="lbl">עודף מול ‎SPY‎</span><span class="num ${P.cls(ex)}">${ex == null ? P.w("—") : P.pct(ex) + " pp"}</span></div>
+      <div style="margin-top:.5rem;font-size:.8rem;color:var(--muted)">החזקות</div>
+      ${hold}
+      ${pend ? `<div style="margin-top:.5rem;font-size:.8rem;color:var(--muted)">פקודות מחר</div>${pend}` : ""}
+      ${P.paceTargetHTML(pf, strategy)}
+    </div>`;
+  }
+
+  function renderChart(g) {
+    const list = [];
+    if (g["100"]) list.push({ pf: g["100"], label: strategy + " $100", color: "#60a5fa" });
+    if (g["10k"]) list.push({ pf: g["10k"], label: strategy + " $10k", color: "#2ecc71" });
+    const bench = P.state().portfolios["benchmark_10k"];
+    if (bench && strategy !== "benchmark") list.push({ pf: bench, label: "benchmark (SPY)", color: "#e67e22" });
+    chart = P.renderEquityChart($("chart"), list, chart);
+    if (!chart) { $("chartEmpty").style.display = "block"; $("chart").style.display = "none"; }
+    else { $("chartEmpty").style.display = "none"; $("chart").style.display = ""; }
+  }
+
+  async function load() {
+    const btn = $("refresh"); if (btn) btn.disabled = true;
+    try {
+      const st = await P.loadAll();
+      const by = P.groupByStrategy(st.portfolios);
+      const g = by[strategy];
+      const nice = strategy || "—";
+      document.title = nice + " — Paper Trading";
+      $("title").innerHTML = "📊 " + P.w(P.esc(nice));
+      $("asof").textContent = st.last ? "נכון לתאריך " + P.w(st.last) : "";
+      $("ago").textContent = P.relTime(st.last);
+      if (!g) {
+        $("banner").style.display = "block";
+        $("head").innerHTML = ""; $("targetbox").innerHTML = ""; $("cols").innerHTML = "";
+        return;
+      }
+      $("banner").style.display = "none";
+      $("head").innerHTML = `<div class="desc muted" style="margin:.2rem 0 .4rem">${P.DESC[strategy] || ""}</div>`;
+      $("targetbox").innerHTML = `<div class="card">${P.targetEditorHTML(strategy)}<div class="muted" style="font-size:.74rem">היעד משותף לשני הגדלים; הערך הדולרי שונה לכל גודל חשבון.</div></div>`;
+      const benchRet = {};
+      for (const p of Object.values(st.portfolios)) if (p.strategy === "benchmark") benchRet[P.sizeTag(p.account_size)] = P.cumRet(p);
+      $("cols").innerHTML = ["100", "10k"].map(t => g[t] ? colHTML(g[t], benchRet) : "").join("");
+      renderChart(g);
+      const tb = document.querySelector("#trades tbody");
+      const html = P.tradesRowsHTML(st.trades, { strategy, limit: 30 });
+      tb.innerHTML = html; $("tradesEmpty").style.display = html ? "none" : "block";
+    } catch (e) {
+      $("banner").style.display = "block";
+      $("cols").innerHTML = ""; $("chartEmpty").style.display = "block"; $("chart").style.display = "none";
+      $("tradesEmpty").style.display = "block";
+    } finally { if (btn) btn.disabled = false; }
+  }
+
+  setInterval(() => { const st = P.state(); if (st && st.last) $("ago").textContent = P.relTime(st.last); }, 30000);
+  $("refresh").addEventListener("click", load);
+  load();
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => { navigator.serviceWorker.register("./sw.js").catch(() => {}); });
+  }
+})();
+</script>
+</body>
+</html>
