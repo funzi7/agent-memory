@@ -26,6 +26,7 @@
     <span id="asof" class="muted"></span>
     <span id="ago" class="muted"></span>
   </div>
+  <button id="reset" class="ghost" aria-label="אפס יעדים">↺ אפס יעדים</button>
   <button id="refresh" aria-label="רענון">⟳ רענון</button>
 </header>
 
@@ -58,7 +59,7 @@
   <p class="foot">
     תיאור נתונים בלבד, לא המלצת מסחר. קריאה-בלבד מ-state שמתפרסם אוטומטית.
     כל הנתונים הם סימולציה (‎paper trading‎) — אין כסף אמיתי.
-    יעדי התשואה ניתנים לעריכה בכל כרטיס ונשמרים לסשן הנוכחי בלבד (מתאפסים ברענון).
+    יעדי התשואה ניתנים לעריכה בכל כרטיס ונשמרים במכשיר זה (‎localStorage‎); לחצן ↺ מאפס לברירות המחדל.
     <span id="swstatus"></span>
   </p>
 </main>
@@ -167,6 +168,7 @@
 
   setInterval(() => { const st = P.state(); if (st && st.last) $("ago").textContent = P.relTime(st.last); }, 30000);
   $("refresh").addEventListener("click", load);
+  $("reset").addEventListener("click", () => { P.resetTargets(); load(); });
   load();
 
   if ("serviceWorker" in navigator) {

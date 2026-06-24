@@ -19,6 +19,8 @@ button{ background:var(--accent); color:#fff; border:0; border-radius:9px;
   padding:.5rem .9rem; cursor:pointer; font-size:.88rem; font-weight:600; }
 button:active{ transform:translateY(1px); }
 button:disabled{ opacity:.6; }
+button.ghost{ background:transparent; color:var(--muted); border:1px solid var(--line); font-weight:500; }
+button.ghost:hover{ color:var(--ink); border-color:#3a6fd0; }
 main{ padding:1rem; max-width:1160px; margin:0 auto; }
 h2.sec{ font-size:.95rem; margin:1.4rem .2rem .6rem; }
 .back{ display:inline-block; margin:.2rem 0 .4rem; font-size:.9rem; }

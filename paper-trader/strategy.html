@@ -23,6 +23,7 @@
     <span id="asof" class="muted"></span>
     <span id="ago" class="muted"></span>
   </div>
+  <button id="reset" class="ghost" aria-label="אפס יעדים">↺ אפס יעדים</button>
   <button id="refresh" aria-label="רענון">⟳ רענון</button>
 </header>
 
@@ -50,7 +51,7 @@
 
   <div class="disclaimer" id="disclaimer"></div>
   <p class="foot">תיאור נתונים בלבד, לא המלצת מסחר. סימולציה (‎paper trading‎) — אין כסף אמיתי.
-    יעד התשואה ניתן לעריכה ונשמר לסשן הנוכחי בלבד.</p>
+    יעד התשואה ניתן לעריכה ונשמר במכשיר זה (‎localStorage‎); לחצן ↺ מאפס לברירות המחדל.</p>
 </main>
 
 <script>
@@ -126,6 +127,7 @@
   }
 
   setInterval(() => { const st = P.state(); if (st && st.last) $("ago").textContent = P.relTime(st.last); }, 30000);
+  $("reset").addEventListener("click", () => { P.resetTargets(); load(); });
   $("refresh").addEventListener("click", load);
   load();
   if ("serviceWorker" in navigator) {

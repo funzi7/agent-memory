@@ -42,13 +42,18 @@ window.PT = (function () {
   const REF_SIZE = 10000;   // reference account size for the $-mode target input
 
   // session-only target state (resets on reload — by design, no localStorage)
-  const targets = Object.assign({}, TARGET_DEFAULTS);
-  const tmode = {};  // strategy -> '%' | '$'
+  let targets = Object.assign({}, TARGET_DEFAULTS);
+  let tmode = {};  // strategy -> '%' | '$'
+  const TKEY = "pt_targets_v1";  // localStorage key (GitHub Pages -> persists)
   let STATE = { portfolios: {}, closes: {}, trades: [] };
 
   // ---- bidi-safe formatting ----
-  const LRM = "‎";
-  const w = (s) => LRM + s + LRM;
+  // Wrap a Latin/number/ticker/price run in an LTR bidi ISOLATE (U+2066…U+2069)
+  // so it cannot reorder inside the surrounding RTL Hebrew. (The old LRM pairs
+  // only marked direction and still let mixed runs like "29 AMDL @ ~$66.99 — rank 3"
+  // visually scramble — that was the dashboard's bidi bug.)
+  const LRI = "⁦", PDI = "⁩";
+  const w = (s) => LRI + s + PDI;
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, c =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const pct = (x, dp) => (x == null || !isFinite(x)) ? w("—")
@@ -122,6 +127,50 @@ window.PT = (function () {
     while (s > 0 && s * price + commission(s, price) > cash + 1e-9) s -= 1;
     return s <= 0 ? 0 : s;
   }
+  const _rankKey = (r) => (r == null ? Infinity : r);
+  function _topup(kept, plan, cash) {
+    const price = {}, rk = {};
+    kept.forEach(s => { price[s.ticker] = s.price; rk[s.ticker] = _rankKey(s.rank); });
+    const cost = (tk, sh) => sh > 0 ? sh * price[tk] + commission(sh, price[tk]) : 0;
+    let remaining = cash - Object.keys(plan).reduce((a, tk) => a + cost(tk, plan[tk]), 0);
+    const order = Object.keys(plan).sort((a, b) => (rk[a] - rk[b]) || (price[a] - price[b]));
+    let improved = true;
+    while (improved) {
+      improved = false;
+      for (const tk of order) {
+        const delta = cost(tk, plan[tk] + 1) - cost(tk, plan[tk]);
+        if (delta <= remaining + 1e-9) { plan[tk] += 1; remaining -= delta; improved = true; break; }
+      }
+    }
+  }
+  // Mirror of papertrader.portfolio.plan_buys (rank-preferred greedy small-account
+  // fill) so the dashboard preview matches what the engine will actually buy.
+  function planBuys(specs, cash) {
+    const out = { bought: [], unbuyable: [], not_bought: [] };
+    if (cash <= 0 || !specs.length) { out.not_bought = specs.map(s => ({ ticker: s.ticker, rank: s.rank })); return out; }
+    const eligible = specs.filter(s => s.price <= cash + 1e-9);
+    out.unbuyable = specs.filter(s => s.price > cash + 1e-9).map(s => ({ ticker: s.ticker, price: s.price }));
+    if (!eligible.length) return out;
+    const sum = (pl) => Object.values(pl).reduce((a, b) => a + b, 0);
+    const equalWeight = (names) => { const slc = cash / names.length; const pl = {}; names.forEach(s => pl[s.ticker] = sizeWhole(slc, s.price)); return pl; };
+    let kept = eligible.slice(), plan = equalWeight(kept);
+    if (sum(plan) === 0) {
+      while (kept.length > 1 && sum(plan) === 0) {
+        let worst = kept[0];
+        for (const s of kept) if (s.price > worst.price || (s.price === worst.price && _rankKey(s.rank) > _rankKey(worst.rank))) worst = s;
+        kept = kept.filter(s => s.ticker !== worst.ticker);
+        plan = equalWeight(kept);
+      }
+      if (sum(plan) > 0) _topup(kept, plan, cash);
+    }
+    const keptSet = new Set(kept.map(s => s.ticker)), unbSet = new Set(out.unbuyable.map(u => u.ticker));
+    for (const s of specs) {
+      if (unbSet.has(s.ticker)) continue;
+      if (keptSet.has(s.ticker) && plan[s.ticker] > 0) out.bought.push({ ticker: s.ticker, shares: plan[s.ticker], price: s.price, rank: s.rank });
+      else out.not_bought.push({ ticker: s.ticker, rank: s.rank });
+    }
+    return out;
+  }
   function affordability(p, closes) {
     const pend = pendingOf(p);
     const sells = pend.filter(o => o.side === "SELL");
@@ -132,15 +181,21 @@ window.PT = (function () {
       const q = pos[o.ticker], px = closes[o.ticker];
       if (q && px != null) { const sp = px * (1 - FEES.slip); avail += q.shares * sp - commission(q.shares, sp); }
     }
-    const slice = buys.length ? avail / buys.length : 0;
-    const buyRows = buys.map(o => {
-      const px = closes[o.ticker], rk = parseRank(o.reason);
-      if (px == null) return { ticker: o.ticker, reason: o.reason, rk, price: null, qty: null, cost: null, affordable: null, slice };
-      const bp = px * (1 + FEES.slip), qty = sizeWhole(slice, bp);
-      const cost = qty > 0 ? qty * bp + commission(qty, bp) : null;
-      return { ticker: o.ticker, reason: o.reason, rk, price: px, qty, cost, affordable: qty > 0, slice };
-    });
-    return { sells: sells.map(o => o.ticker), buys: buyRows };
+    const specs = [], unpriced = [], meta = {};
+    for (const o of buys) {
+      const px = closes[o.ticker];
+      if (px == null) { unpriced.push({ ticker: o.ticker, reason: o.reason }); continue; }
+      specs.push({ ticker: o.ticker, price: px * (1 + FEES.slip), rank: parseRank(o.reason) });
+      meta[o.ticker] = { reason: o.reason, px };
+    }
+    const plan = planBuys(specs, avail);
+    const bought = plan.bought.map(b => ({
+      ticker: b.ticker, shares: b.shares, price: meta[b.ticker].px,
+      cost: b.shares * b.price + commission(b.shares, b.price), reason: meta[b.ticker].reason, rank: b.rank
+    })).sort((a, b) => _rankKey(a.rank) - _rankKey(b.rank));
+    const unbuyable = plan.unbuyable.map(u => ({ ticker: u.ticker, price: meta[u.ticker] ? meta[u.ticker].px : null }));
+    const not_bought = plan.not_bought.map(n => ({ ticker: n.ticker }));
+    return { sells: sells.map(o => o.ticker), bought, unbuyable, not_bought, unpriced, avail };
   }
 
   // ---- realized monthly pace from equity_history ----
@@ -164,13 +219,37 @@ window.PT = (function () {
     return bp ? pace(bp) : { ok: false };
   }
 
-  // ---- target state ----
+  // ---- target state (persisted in localStorage, keyed by strategy) ----
   function getTarget(strategy) {
     return targets[strategy] != null ? targets[strategy] : (TARGET_DEFAULTS[strategy] != null ? TARGET_DEFAULTS[strategy] : 1.0);
   }
-  function setTargetPct(strategy, p) { targets[strategy] = Math.max(0, p || 0); }
   function getMode(strategy) { return tmode[strategy] || "%"; }
-  function setMode(strategy, m) { tmode[strategy] = m; }
+  function loadTargets() {
+    try {
+      const raw = localStorage.getItem(TKEY);
+      if (!raw) return;
+      const o = JSON.parse(raw);
+      for (const k in o) {
+        if (o[k] && typeof o[k].pct === "number") targets[k] = o[k].pct;
+        if (o[k] && (o[k].mode === "%" || o[k].mode === "$")) tmode[k] = o[k].mode;
+      }
+    } catch (e) { /* storage disabled / corrupt -> defaults */ }
+  }
+  function saveTargets() {
+    try {
+      const o = {};
+      for (const k of new Set([...Object.keys(targets), ...Object.keys(tmode)])) o[k] = { pct: getTarget(k), mode: getMode(k) };
+      localStorage.setItem(TKEY, JSON.stringify(o));
+    } catch (e) { /* ignore */ }
+  }
+  function setTargetPct(strategy, p) { targets[strategy] = Math.max(0, p || 0); saveTargets(); }
+  function setMode(strategy, m) { tmode[strategy] = m; saveTargets(); }
+  function resetTargets() {
+    try { localStorage.removeItem(TKEY); } catch (e) { /* ignore */ }
+    targets = Object.assign({}, TARGET_DEFAULTS);
+    tmode = {};
+  }
+  loadTargets();
 
   // ---- data load ----
   async function getJSON(u) { const r = await fetch(u, { cache: "no-store" }); if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }
@@ -298,21 +377,28 @@ window.PT = (function () {
     return `<table><thead>${head}</thead><tbody>${rows}</tbody></table>`;
   }
 
-  // ---- affordability-aware pending preview ----
+  // ---- affordability-aware pending preview (BIDI: each Latin run isolated) ----
+  const _fmt = (x) => Number(x).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   function pendingHTML(p, closes) {
     const a = affordability(p, closes);
-    if (!a.sells.length && !a.buys.length) return "";
+    if (!a.sells.length && !a.bought.length && !a.unbuyable.length && !a.not_bought.length && !a.unpriced.length) return "";
     const L = [];
-    if (a.sells.length) L.push(`<div class="pend">⏳ מחר — מכירה ${a.sells.map(t => w(esc(t))).join(", ")}</div>`);
-    for (const b of a.buys) {
+    if (a.sells.length) L.push(`<div class="pend">⏳ מחר — מכירה ${w(a.sells.map(esc).join(", "))}</div>`);
+    for (const b of a.bought) {
+      // Whole qty/ticker/price/cost run wrapped in ONE isolate so RTL can't scramble it.
+      const run = w(`${b.shares} ${esc(b.ticker)} @ ~$${_fmt(b.price)} (≈$${_fmt(b.cost)})`);
       const reason = b.reason ? " — " + w(esc(b.reason)) : "";
-      if (b.price == null) {
-        L.push(`<div class="pend">⏳ מחר — קנייה ${w(esc(b.ticker))}${reason}</div>`);
-      } else if (b.affordable) {
-        L.push(`<div class="pend">⏳ מחר — קנייה ${w(b.qty)} ${w(esc(b.ticker))} @ ~${money(b.price)} (≈${money(b.cost)})${reason}</div>`);
-      } else {
-        L.push(`<div class="pend skip">⏳ ${w(esc(b.ticker))} — לא תיקנה (מחיר יחידה ${money(b.price)} &gt; הקצאה ${money(b.slice)})</div>`);
-      }
+      L.push(`<div class="pend">⏳ מחר — קנייה ${run}${reason}</div>`);
+    }
+    for (const u of a.unbuyable) {
+      L.push(`<div class="pend skip">⏳ ${w(esc(u.ticker))} — לא ניתנת לרכישה (מחיר יחידה ${money(u.price)} גבוה מהמזומן הזמין ${money(a.avail)})</div>`);
+    }
+    for (const n of a.not_bought) {
+      L.push(`<div class="pend skip">⏳ ${w(esc(n.ticker))} — לא נקנתה הפעם (הקצאה שוות-משקל קטנה מהמחיר)</div>`);
+    }
+    for (const o of a.unpriced) {
+      const reason = o.reason ? " — " + w(esc(o.reason)) : "";
+      L.push(`<div class="pend">⏳ מחר — קנייה ${w(esc(o.ticker))}${reason}</div>`);
     }
     return L.join("");
   }
@@ -391,7 +477,7 @@ window.PT = (function () {
     w, esc, pct, pctPlain, money, money0, signedMoney, numf, cls, sizeTag, sizeLabel, relTime,
     positionsOf, pendingOf, lastEq, prevEq, cumRet, dayChg, parseRank,
     cashSince, cashToday, commission, sizeWhole, affordability,
-    pace, spyPace, getTarget, setTargetPct, getMode, setMode,
+    pace, spyPace, getTarget, setTargetPct, getMode, setMode, resetTargets,
     loadAll, state, groupByStrategy, strategyOrder, renderEquityChart, tradesRowsHTML,
     cashLineHTML, holdingsHTML, pendingHTML,
     targetEditorHTML, paceTargetHTML, paceTargetInner, targetPreview,
