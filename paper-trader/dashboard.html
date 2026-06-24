@@ -50,10 +50,11 @@
   <div class="panel">
     <div id="tradesEmpty" class="empty" style="display:none">אין עסקאות עדיין</div>
     <div class="tablewrap">
-      <table id="trades"><thead><tr>
+      <table id="trades" class="trades-table"><thead><tr>
         <th>תאריך</th><th>אסטרטגיה</th><th>טיקר</th><th>פעולה</th>
         <th>כמות</th><th>מחיר</th><th>סיבה</th>
       </tr></thead><tbody></tbody></table>
+      <div id="tradesCards" class="trades-cards"></div>
     </div>
   </div>
 
@@ -121,7 +122,7 @@
       div.addEventListener("click", (e) => { if (e.target.closest(".target-edit")) return; open(); });
       div.addEventListener("keydown", (e) => { if (e.key === "Enter") open(); });
       const blocks = ["100", "10k"].map(t => g[t] ? sizeBlock(g[t], s, benchRet, closes) : "").join("");
-      div.innerHTML = `<h3>${P.w(P.esc(s))} <span class="arrow">פירוט ›</span></h3>` +
+      div.innerHTML = `<h3>${P.esc(s)} <span class="arrow">פירוט ›</span></h3>` +
         `<div class="desc">${P.DESC[s] || ""}</div>` +
         P.targetEditorHTML(s) +
         `<div class="sizes">${blocks}</div>`;
@@ -140,8 +141,10 @@
 
   function renderTrades(trades) {
     const tb = document.querySelector("#trades tbody"), empty = $("tradesEmpty");
-    const html = P.tradesRowsHTML(trades, { limit: 20 });
-    tb.innerHTML = html; empty.style.display = html ? "none" : "block";
+    const rows = P.tradesRowsHTML(trades, { limit: 20 });
+    tb.innerHTML = rows;
+    $("tradesCards").innerHTML = P.tradesCardsHTML(trades, { limit: 20 });
+    empty.style.display = rows ? "none" : "block";
   }
 
   async function load() {
@@ -165,7 +168,10 @@
       $("strip").innerHTML = `<div class="empty">אין נתונים זמינים עדיין</div>`;
       $("cards").innerHTML = ""; $("chartEmpty").style.display = "block";
       $("equityChart").style.display = "none"; $("tradesEmpty").style.display = "block";
-    } finally { if (btn) btn.disabled = false; }
+    } finally {
+      P.applyRtl(document.body);   // THE single bidi pass over everything just rendered
+      if (btn) btn.disabled = false;
+    }
   }
 
   setInterval(() => { const st = P.state(); if (st && st.last) $("ago").textContent = P.relTime(st.last); }, 30000);

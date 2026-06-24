@@ -56,19 +56,20 @@ table{ width:100%; border-collapse:collapse; margin-top:.45rem; font-size:.78rem
 th,td{ text-align:right; padding:.28rem .3rem; border-bottom:1px solid var(--line); vertical-align:top; }
 th{ color:var(--muted); font-weight:600; font-size:.72rem; }
 
-/* recent-trades: on mid widths the table may scroll WITHIN its card (never the
-   whole page); on phones each trade collapses into a compact stacked card so no
-   column is clipped and the page never scrolls sideways. */
+/* recent-trades: wide screens get the table inside a card that can scroll
+   horizontally if ever needed (never the whole PAGE); phones (<=560px) get a
+   compact stacked card per trade instead, so no column is clipped and the page
+   never scrolls sideways. */
 .tablewrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+.trades-cards{ display:none; }
+.trade{ border:1px solid var(--line); border-radius:10px; background:#10161d;
+  padding:.5rem .65rem; margin:.5rem 0; overflow-wrap:anywhere; word-break:break-word; }
+.trade .t1{ font-size:.74rem; color:var(--muted); }
+.trade .t2{ font-size:.82rem; margin-top:.18rem; line-height:1.5; }
 @media(max-width:560px){
   .tablewrap{ overflow-x:visible; }
-  #trades thead{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); border:0; }
-  #trades, #trades tbody, #trades tr, #trades td{ display:block; width:100%; }
-  #trades tr{ border:1px solid var(--line); border-radius:10px; background:#10161d; padding:.45rem .6rem; margin:.5rem 0; }
-  #trades td{ border:0; padding:.1rem 0; display:flex; align-items:baseline; justify-content:space-between; gap:.9rem;
-    overflow-wrap:anywhere; word-break:break-word; }
-  #trades td::before{ content:attr(data-label); color:var(--muted); font-size:.72rem; flex:0 0 auto; }
-  #trades td.reason{ flex-direction:column; align-items:stretch; gap:.1rem; }
+  table.trades-table{ display:none; }
+  .trades-cards{ display:block; }
 }
 .sub{ display:block; color:var(--muted); font-size:.68rem; margin-top:.05rem; }
 .badge{ font-size:.62rem; background:#3a2d10; color:var(--amber); border:1px solid #5a4516; border-radius:6px; padding:.02rem .3rem; margin-inline-start:.25rem; }
@@ -76,12 +77,13 @@ th{ color:var(--muted); font-weight:600; font-size:.72rem; }
 .pend.skip{ color:var(--amber); }
 .up{ color:var(--up); } .down{ color:var(--down); }
 .num{ font-variant-numeric:tabular-nums; }
-/* BIDI: align each text line by its own first strong character (Hebrew lines go
-   right, pure-Latin lines go left), and isolate ONLY Latin-letter runs in markup
-   (<bdi> via app.js). Numbers/signs stay bare and ride the browser's bidi. */
-.pend, .cashline, .row, .sub, .pace, .pace div, .big, .desc, .tprev,
-.foot, .empty, .stat .k, .stat .v, .stat .s, td, th,
-h1, h2.sec, .back, .card h3, .col h3, .target-edit{ unicode-bidi:plaintext; }
+/* THE RTL RULEBOOK (see RTL-RULEBOOK.md). app.js applyRtl() sets dir per element
+   (any-Hebrew -> rtl/right; pure Latin/number -> ltr/left) and isolates Latin runs
+   and signed/$ numbers in <bdi>. CSS only needs to: make <bdi> a real isolate, and
+   force code/icons to stay LTR. We do NOT use unicode-bidi:plaintext anymore. */
+bdi{ unicode-bidi:isolate; }
+pre, code{ direction:ltr; unicode-bidi:embed; text-align:left !important; }
+svg{ direction:ltr !important; }
 
 /* target tracker */
 .target-edit{ display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; margin:.2rem 0 .5rem;

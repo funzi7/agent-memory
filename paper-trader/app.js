@@ -47,19 +47,35 @@ window.PT = (function () {
   const TKEY = "pt_targets_v1";  // localStorage key (GitHub Pages -> persists)
   let STATE = { portfolios: {}, closes: {}, trades: [] };
 
-  // ---- bidi: isolate ONLY Latin-LETTER runs; numbers/signs ride natural bidi ----
-  // Containers are unicode-bidi:plaintext (align by first strong char). w() wraps
-  // ONLY whitespace tokens that contain a Latin letter in <bdi>; pure number/sign/
-  // punctuation runs stay BARE so the browser keeps them cohesive and readable.
-  // (Wrapping every number in its own isolate was what scrambled the lines.)
+  // ===================== THE RTL RULEBOOK (single implementation) =====================
+  // See paper-trader/RTL-RULEBOOK.md. Builders emit PLAIN escaped text + structural
+  // tags; applyRtl(root) is the ONE place that does bidi after each render:
+  //   1) PARAGRAPH DIRECTION — any-Hebrew → dir="rtl" (right aligned, even if the
+  //      line starts with English/number/symbol); a pure Latin/number/symbol line
+  //      → dir="ltr" (left aligned). Set explicitly per element; we do NOT rely on
+  //      unicode-bidi:plaintext.
+  //   2) ISOLATE Latin-letter runs (words/identifiers/tickers: GFS, rank, INTC, 10k,
+  //      v4, BRK.B) in <bdi> via the rulebook's NONRTL_RUN regex.
+  //   3) Numbers/times/dates/plain decimals stay BARE; a leading SIGN or a leading
+  //      CURRENCY symbol is the one spot that flips in an RTL line, so signed/$ runs
+  //      get the targeted fix: a <bdi dir="ltr"> wrapper (sign on the LEFT). Plain
+  //      unsigned percents/dates/times are left bare (the rulebook's rule 3).
+  //   4) Code/icons always LTR (CSS).
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, c =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-  // Decide letter-ness on the RAW token, then escape per token (so an escaped
-  // entity like "&gt;" — which has letters — is never mistaken for a Latin run).
-  const w = (s) => String(s == null ? "" : s).replace(/\S+/g,
-    t => /[A-Za-z]/.test(t) ? "<bdi>" + esc(t) + "</bdi>" : esc(t));
+  // Hebrew/Arabic block detector (rule 1).
+  const RTL = /[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/;
+  // Rule 2 — Latin words / identifiers / letters-glued-to-numbers (NOT pure numbers,
+  // dates, times, decimals, or signs/percent). This is the rulebook's regex verbatim.
+  const NONRTL_SRC = "[A-Za-z0-9]*[A-Za-z][A-Za-z0-9]*(?:[._\\-\\/%][A-Za-z0-9]+)*%?";
+  // Rule 3 (targeted) — a number led by a SIGN or by a CURRENCY symbol, which is the
+  // only case that lands on the wrong side inside an RTL line. Isolated LTR so the
+  // sign/$ sit on the LEFT and travel with the digits.
+  const SIGNED_SRC = "[+\\-]\\$?\\d[\\d.,]*%?|\\$\\d[\\d.,]*%?";
+  const NONRTL_RUN = () => new RegExp(NONRTL_SRC, "g");      // fresh (own lastIndex)
+  const TOKEN_RE = () => new RegExp("(" + SIGNED_SRC + ")|(" + NONRTL_SRC + ")", "g");
   const cls = (x) => (x == null || !isFinite(x)) ? "" : (x >= 0 ? "up" : "down");
-  // PLAIN numeric formatters (no wrapping — they contain no Latin letters).
+  // PLAIN numeric formatters (bidi is handled later by applyRtl).
   const money = (x) => (x == null || !isFinite(x)) ? "—"
     : "$" + Number(x).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const money0 = (x) => (x == null || !isFinite(x)) ? "—"
@@ -71,19 +87,83 @@ window.PT = (function () {
   const numf = (x) => x == null ? "—" : String(x);
   const sizeTag = (n) => n === 10000 ? "10k" : String(Math.round(n));
   const sizeLabel = (n) => "$" + (n === 10000 ? "10,000" : Math.round(n));
-  // LTR-isolate a numeric/technical value so its sign sits on the LEFT and its
-  // currency / percent / units stay in order even inside an RTL (plaintext) line.
-  // This is the single shared "signed-number" helper used everywhere a value is
-  // shown: "-0.05%" renders with the minus on the left, "+$5.00" likewise. One
-  // isolate per value (or per cohesive value+units run) — never one isolate per
-  // digit, which is what scrambled the earlier attempts.
-  const sn = (txt) => (txt == null ? "" : `<bdi dir="ltr">${esc(txt)}</bdi>`);
-  // colored numeric value: a color span whose inner value is LTR-isolated (sign
-  // on the left) so coloured deltas like "+$5.00" / "-$3.20" read correctly.
-  const col = (x, txt) => `<span class="${cls(x)}">${sn(txt)}</span>`;
+  // Builders emit plain escaped text now; w/sn are kept as escape-only shims so the
+  // many call sites stay unchanged — all bidi happens in applyRtl().
+  const w = (s) => esc(s);
+  const sn = (s) => esc(s);
+  // colored numeric value: just a color span; applyRtl isolates the value inside.
+  const col = (x, txt) => `<span class="${cls(x)}">${esc(txt)}</span>`;
   // Clear Hebrew label for the engine's cryptic "6-1" momentum tag (DISPLAY only;
   // JSON/CSV field names are never touched).
   const MOM_LABEL = "מומנטום";
+
+  // Turn one run of text into HTML, isolating Latin runs (<bdi>) and signed/$ runs
+  // (<bdi dir="ltr">), leaving plain numbers/dates/times/decimals bare.
+  function wrapRuns(text) {
+    const re = TOKEN_RE();
+    let out = "", last = 0, m;
+    while ((m = re.exec(text))) {
+      // A sign glued to a preceding letter/digit/Hebrew char is a separator, not a
+      // real sign (e.g. the "-" in a date 2026-06-23 or a Hebrew prefix like ב-22) —
+      // leave the whole thing bare.
+      if (m[1] && (m[1][0] === "+" || m[1][0] === "-") && m.index > 0 && /[\w\u0590-\u08FF]/.test(text[m.index - 1])) {
+        out += esc(text.slice(last, m.index + 1));
+        last = m.index + 1; re.lastIndex = m.index + 1; continue;
+      }
+      out += esc(text.slice(last, m.index));
+      out += m[1] ? `<bdi dir="ltr">${esc(m[1])}</bdi>` : `<bdi>${esc(m[2])}</bdi>`;
+      last = m.index + m[0].length;
+    }
+    out += esc(text.slice(last));
+    return out;
+  }
+
+  const _SKIP = { BDI: 1, CODE: 1, PRE: 1, SCRIPT: 1, STYLE: 1, TEXTAREA: 1 };
+  function _setDir(el) {
+    const n = el.nodeName;
+    if (n === "CODE" || n === "PRE") { el.setAttribute("dir", "ltr"); return; }
+    if (n === "SVG" || n === "CANVAS") return;            // leave graphics alone
+    el.setAttribute("dir", RTL.test(el.textContent || "") ? "rtl" : "ltr");
+  }
+  // THE single shared helper. Walk text nodes (skipping already-isolated / code /
+  // script subtrees), isolate runs, then set dir per element. Idempotent.
+  function applyRtl(root) {
+    if (!root || typeof document === "undefined" || !document.createTreeWalker) return;
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        for (let p = node.parentNode; p && p !== root.parentNode; p = p.parentNode)
+          if (p.nodeName && _SKIP[p.nodeName]) return NodeFilter.FILTER_REJECT;
+        return node.nodeValue && /\S/.test(node.nodeValue)
+          ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+      }
+    });
+    const targets = [];
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) targets.push(n);
+    for (const t of targets) {
+      const html = wrapRuns(t.nodeValue);
+      if (html.indexOf("<bdi") === -1) continue;          // nothing to isolate
+      const tmp = document.createElement("span");
+      tmp.innerHTML = html;
+      const frag = document.createDocumentFragment();
+      while (tmp.firstChild) frag.appendChild(tmp.firstChild);
+      if (t.parentNode) t.parentNode.replaceChild(frag, t);
+    }
+    _setDir(root);
+    const els = root.querySelectorAll ? root.querySelectorAll("*") : [];
+    for (let i = 0; i < els.length; i++) _setDir(els[i]);
+  }
+
+  // Hidden self-check of the rulebook's NONRTL_RUN against its test sentences.
+  try {
+    const get = (s) => s.match(NONRTL_RUN()) || [];
+    const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+    if (typeof console !== "undefined" && console.assert) {
+      console.assert(eq(get("ריצה ב-22:30 UTC (05:30 בבוקר)"), ["UTC"]), "RTL rulebook test 1");
+      console.assert(eq(get("המחיר 10k דולר"), ["10k"]), "RTL rulebook test 2");
+      console.assert(eq(get("הרווח +3.5% השבוע"), []), "RTL rulebook test 3");
+      console.assert(eq(get("תזכורת Covered Call - 3 טיקרים"), ["Covered", "Call"]), "RTL rulebook test 4");
+    }
+  } catch (e) { /* self-check is best-effort only */ }
 
   function relTime(iso) {
     if (!iso) return "";
@@ -337,27 +417,40 @@ window.PT = (function () {
     });
   }
 
-  // ---- trades table rows (optionally filtered to a strategy) ----
-  function tradesRowsHTML(trades, opts) {
+  // ---- trades (optionally filtered to a strategy) ----
+  function _tradeRows(trades, opts) {
     opts = opts || {};
     let rows = (trades || []).slice();
     if (opts.strategy) rows = rows.filter(t => t.strategy === opts.strategy);
-    rows = rows.slice(-(opts.limit || 20)).reverse();
+    return rows.slice(-(opts.limit || 20)).reverse();
+  }
+  // WIDE screens: a normal table (bidi applied post-render by applyRtl).
+  function tradesRowsHTML(trades, opts) {
+    opts = opts || {};
+    const rows = _tradeRows(trades, opts);
     if (!rows.length) return "";
-    // data-label on every cell drives the stacked "card per trade" layout on phones
-    // (CSS @media); numeric/technical cells are LTR-isolated so signs/$ read right.
     return rows.map(t => {
       const side = t.side === "BUY" ? "🟢 קנייה" : "🔴 מכירה";
-      const price = (t.fill_price != null && t.fill_price !== "") ? sn(money(parseFloat(t.fill_price))) : "—";
-      const strat = opts.strategy ? "" : `<td data-label="אסטרטגיה">${w(t.strategy)}</td>`;
-      return `<tr>` +
-        `<td data-label="תאריך">${sn(t.date)}</td>` + strat +
-        `<td data-label="טיקר">${w(t.ticker)}</td>` +
-        `<td data-label="פעולה">${esc(side)}</td>` +
-        `<td class="num" data-label="כמות">${sn(numf(t.shares))}</td>` +
-        `<td class="num" data-label="מחיר">${price}</td>` +
-        `<td class="muted reason" data-label="סיבה">${sn(reasonAscii(t.reason))}</td>` +
-        `</tr>`;
+      const price = (t.fill_price != null && t.fill_price !== "") ? money(parseFloat(t.fill_price)) : "—";
+      const strat = opts.strategy ? "" : `<td>${esc(t.strategy)}</td>`;
+      return `<tr><td>${esc(t.date)}</td>${strat}<td>${esc(t.ticker)}</td><td>${esc(side)}</td>` +
+        `<td class="num">${esc(numf(t.shares))}</td><td class="num">${esc(price)}</td>` +
+        `<td class="muted">${esc(reasonAscii(t.reason))}</td></tr>`;
+    }).join("");
+  }
+  // NARROW screens (phones): each trade as a compact stacked card — line 1 is
+  // date · strategy · ticker, line 2 is side · qty · price · reason. Nothing is
+  // clipped and the page never scrolls sideways. Bidi is applied by applyRtl.
+  function tradesCardsHTML(trades, opts) {
+    opts = opts || {};
+    const rows = _tradeRows(trades, opts);
+    if (!rows.length) return "";
+    return rows.map(t => {
+      const side = t.side === "BUY" ? "🟢 קנייה" : "🔴 מכירה";
+      const price = (t.fill_price != null && t.fill_price !== "") ? money(parseFloat(t.fill_price)) : "—";
+      const l1 = [t.date, opts.strategy ? null : t.strategy, t.ticker].filter(Boolean).join(" · ");
+      const l2 = [side, numf(t.shares), price, reasonAscii(t.reason)].filter(x => x != null && x !== "").join(" · ");
+      return `<div class="trade"><div class="t1">${esc(l1)}</div><div class="t2">${esc(l2)}</div></div>`;
     }).join("");
   }
 
@@ -372,8 +465,8 @@ window.PT = (function () {
     const today = cashToday(p), since = cashSince(p);
     const t = today == null ? "—" : col(today, signedMoney(today));
     const s = col(since, signedMoney(since));
-    // No Latin letters here: Hebrew labels + bare numbers + colour spans, laid out
-    // by the plaintext container. (No per-number isolates -> no scrambling.)
+    // Plain text + colour spans; applyRtl() sets the line dir=rtl and LTR-isolates
+    // the $ balance and the signed deltas so the sign sits on the left.
     return `מזומן: ${sn(money(p.cash))} (יומי ${t} · מאז התחלה ${s})`;
   }
 
@@ -519,21 +612,24 @@ window.PT = (function () {
   function updateTargetUI(strategy) {
     const pctv = getTarget(strategy);
     const prev = document.getElementById("tprev-" + strategy);
-    if (prev) prev.innerHTML = targetPreview(strategy, pctv);
+    if (prev) { prev.innerHTML = targetPreview(strategy, pctv); applyRtl(prev); }
     const g = (groupByStrategy(STATE.portfolios) || {})[strategy] || {};
     for (const tag of ["100", "10k"]) {
       const el = document.getElementById("tgt-" + strategy + "-" + tag);
-      if (el && g[tag]) el.innerHTML = paceTargetInner(g[tag], pctv);
+      if (el && g[tag]) { el.innerHTML = paceTargetInner(g[tag], pctv); applyRtl(el); }
     }
+    const btn = document.getElementById("ttog-" + strategy);
+    if (btn) applyRtl(btn);
   }
 
   return {
     FILES, ORDER, DESC, SCAN, IDLE, TARGET_DEFAULTS, FEES, REF_SIZE, DISCLAIMER,
-    w, sn, esc, pct, pctPlain, money, money0, signedMoney, numf, cls, sizeTag, sizeLabel, relTime,
+    w, sn, esc, applyRtl, wrapRuns, pct, pctPlain, money, money0, signedMoney, numf, cls, sizeTag, sizeLabel, relTime,
     positionsOf, pendingOf, lastEq, prevEq, cumRet, dayChg, parseRank,
     cashSince, cashToday, commission, sizeWhole, affordability,
     pace, spyPace, getTarget, setTargetPct, getMode, setMode, resetTargets,
-    loadAll, state, groupByStrategy, strategyOrder, activityOrder, renderEquityChart, tradesRowsHTML,
+    loadAll, state, groupByStrategy, strategyOrder, activityOrder, renderEquityChart,
+    tradesRowsHTML, tradesCardsHTML,
     cashLineHTML, holdingsHTML, pendingHTML,
     targetEditorHTML, paceTargetHTML, paceTargetInner, targetPreview,
     onTargetInput, onTargetToggle, updateTargetUI,
