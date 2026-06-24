@@ -13,6 +13,9 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+
       - name: Check opt-out
         id: optout
         run: |
@@ -21,10 +24,6 @@ jobs:
           else
             echo "skip=false" >> $GITHUB_OUTPUT
           fi
-
-      - name: Checkout this repo
-        if: steps.optout.outputs.skip == 'false'
-        uses: actions/checkout@v4
 
       - name: Clone automation-core
         if: steps.optout.outputs.skip == 'false'
