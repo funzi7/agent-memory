@@ -2,219 +2,439 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>פייפר-טריידר — לוח מחוונים</title>
-<!-- Chart.js via CDN (no build step, no backend, no localStorage). -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Paper Trading — דשבורד חי</title>
+
+<!-- PWA -->
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#0f1419">
+<meta name="color-scheme" content="dark">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Paper Trader">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<link rel="icon" type="image/svg+xml" href="./icon.svg">
+
+<!-- Chart.js via CDN (no build step, no backend, no localStorage, no frameworks). -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
-  :root { --bg:#0f1419; --card:#1b232c; --ink:#e6edf3; --muted:#9aa7b3;
-          --up:#2ecc71; --down:#e74c3c; --line:#2a3540; }
-  * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--ink);
-         font-family:system-ui,Segoe UI,Arial,sans-serif; }
-  header { display:flex; align-items:center; gap:1rem; flex-wrap:wrap;
-           padding:1rem 1.2rem; border-bottom:1px solid var(--line); }
-  h1 { font-size:1.2rem; margin:0; }
-  .muted { color:var(--muted); font-size:.85rem; }
-  button { background:#2563eb; color:#fff; border:0; border-radius:8px;
-           padding:.5rem .9rem; cursor:pointer; font-size:.9rem; }
-  main { padding:1rem 1.2rem; max-width:1100px; margin:0 auto; }
-  .cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:1rem; }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:1rem; }
-  .card h2 { font-size:1rem; margin:.1rem 0 .6rem; }
-  .row { display:flex; justify-content:space-between; gap:.5rem; font-size:.9rem; padding:.12rem 0; }
-  table { width:100%; border-collapse:collapse; margin-top:.5rem; font-size:.84rem; }
-  th,td { text-align:right; padding:.3rem .35rem; border-bottom:1px solid var(--line); }
-  th { color:var(--muted); font-weight:600; }
-  .up { color:var(--up); } .down { color:var(--down); }
-  .num { font-variant-numeric:tabular-nums; }
-  .chart-wrap { background:var(--card); border:1px solid var(--line);
-                border-radius:12px; padding:1rem; margin-top:1rem; }
-  #empty { display:none; padding:2rem; text-align:center; color:var(--muted); font-size:1.05rem; }
-  .pill { font-size:.72rem; color:var(--muted); border:1px solid var(--line);
-          border-radius:999px; padding:.05rem .5rem; }
+  :root{
+    --bg:#0f1419; --bg2:#0b0f14; --card:#1b232c; --card2:#161d25;
+    --ink:#e6edf3; --muted:#9aa7b3; --line:#2a3540;
+    --up:#2ecc71; --down:#e74c3c; --accent:#2563eb; --amber:#fbbf24;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{ background:var(--bg); color:var(--ink); -webkit-text-size-adjust:100%;
+        font-family:system-ui,-apple-system,"Segoe UI","Noto Sans Hebrew",Arial,sans-serif;
+        padding-bottom:env(safe-area-inset-bottom); }
+  header{ position:sticky; top:0; z-index:5; display:flex; align-items:center; gap:.6rem;
+          flex-wrap:wrap; padding:.8rem 1rem; background:rgba(15,20,25,.92);
+          backdrop-filter:saturate(140%) blur(8px); border-bottom:1px solid var(--line); }
+  h1{ font-size:1.05rem; margin:0; letter-spacing:.2px; }
+  .grow{ flex:1; }
+  .muted{ color:var(--muted); font-size:.82rem; }
+  button{ background:var(--accent); color:#fff; border:0; border-radius:9px;
+          padding:.5rem .9rem; cursor:pointer; font-size:.88rem; font-weight:600; }
+  button:active{ transform:translateY(1px); }
+  button:disabled{ opacity:.6; }
+  main{ padding:1rem; max-width:1160px; margin:0 auto; }
+  h2.sec{ font-size:.95rem; margin:1.4rem .2rem .6rem; color:var(--ink); }
+
+  /* summary strip */
+  .strip{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:.7rem;
+          background:linear-gradient(180deg,var(--card),var(--card2));
+          border:1px solid var(--line); border-radius:14px; padding:.9rem; }
+  .stat{ display:flex; flex-direction:column; gap:.15rem; }
+  .stat .k{ font-size:.74rem; color:var(--muted); }
+  .stat .v{ font-size:1.15rem; font-weight:700; font-variant-numeric:tabular-nums; }
+  .stat .s{ font-size:.74rem; color:var(--muted); }
+
+  /* strategy cards */
+  .cards{ display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:1rem; }
+  .card{ background:linear-gradient(180deg,var(--card),var(--card2));
+         border:1px solid var(--line); border-radius:14px; padding:.9rem 1rem; }
+  .card h3{ font-size:1rem; margin:0 0 .1rem; display:flex; align-items:center; gap:.5rem; }
+  .card .desc{ font-size:.76rem; color:var(--muted); margin-bottom:.5rem; }
+  .sizes{ display:grid; grid-template-columns:1fr 1fr; gap:.7rem; }
+  @media(max-width:430px){ .sizes{ grid-template-columns:1fr; } }
+  .size{ background:#10161d; border:1px solid var(--line); border-radius:11px; padding:.55rem .6rem; }
+  .size .tag{ font-size:.72rem; color:var(--muted); border:1px solid var(--line);
+              border-radius:999px; padding:.02rem .5rem; }
+  .size .big{ font-size:1.12rem; font-weight:700; margin:.3rem 0 .1rem; font-variant-numeric:tabular-nums; }
+  .row{ display:flex; justify-content:space-between; gap:.4rem; font-size:.8rem; padding:.1rem 0; }
+  .row .lbl{ color:var(--muted); }
+  table{ width:100%; border-collapse:collapse; margin-top:.45rem; font-size:.78rem; }
+  th,td{ text-align:right; padding:.28rem .3rem; border-bottom:1px solid var(--line); vertical-align:top; }
+  th{ color:var(--muted); font-weight:600; font-size:.72rem; }
+  .sub{ display:block; color:var(--muted); font-size:.68rem; margin-top:.05rem; }
+  .badge{ font-size:.62rem; background:#3a2d10; color:var(--amber); border:1px solid #5a4516;
+          border-radius:6px; padding:.02rem .3rem; margin-inline-start:.25rem; }
+  .pend{ margin-top:.5rem; font-size:.74rem; color:var(--muted); line-height:1.5; }
+  .up{ color:var(--up); } .down{ color:var(--down); }
+  .num{ font-variant-numeric:tabular-nums; }
+
+  .panel{ background:linear-gradient(180deg,var(--card),var(--card2));
+          border:1px solid var(--line); border-radius:14px; padding:1rem; }
+  .chart-wrap{ position:relative; height:300px; }
+  .empty{ padding:1.4rem; text-align:center; color:var(--muted); font-size:.95rem; }
+  .foot{ color:var(--muted); font-size:.74rem; margin:1.4rem .2rem 2rem; line-height:1.6; }
+  .ok{ color:var(--up); } .warn{ color:var(--amber); }
 </style>
 </head>
 <body>
 <header>
-  <h1>📊 פייפר-טריידר — לוח מחוונים</h1>
-  <span id="asof" class="muted"></span>
-  <span style="flex:1"></span>
-  <button id="refresh">רענון</button>
+  <h1>📊 Paper Trading — דשבורד חי</h1>
+  <span class="grow"></span>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;line-height:1.25">
+    <span id="asof" class="muted"></span>
+    <span id="ago" class="muted"></span>
+  </div>
+  <button id="refresh" aria-label="רענון">⟳ רענון</button>
 </header>
 
 <main>
-  <div id="empty">‏אין נתונים זמינים עדיין</div>
+  <div id="banner" class="empty panel" style="display:none"></div>
+
+  <h2 class="sec">סיכום</h2>
+  <div id="strip" class="strip"><div class="empty">אין נתונים זמינים עדיין</div></div>
+
+  <h2 class="sec">אסטרטגיות</h2>
   <div id="cards" class="cards"></div>
 
-  <div class="chart-wrap">
-    <h2 style="margin:.1rem 0 .6rem; font-size:1rem;">עקומות שווי (‏$10k‏, מנורמל ל-‏100‏)</h2>
-    <canvas id="equityChart" height="120"></canvas>
+  <h2 class="sec">עקומות שווי (‎$10k‎, מנורמל ל-‎100‎)</h2>
+  <div class="panel">
+    <div id="chartEmpty" class="empty" style="display:none">אין מספיק היסטוריה לגרף עדיין</div>
+    <div class="chart-wrap"><canvas id="equityChart"></canvas></div>
+    <div class="muted" style="margin-top:.5rem">לחיצה על שם בלגנדה מסתירה/מציגה קו.</div>
   </div>
 
-  <div class="chart-wrap">
-    <h2 style="margin:.1rem 0 .6rem; font-size:1rem;">עסקאות אחרונות</h2>
+  <h2 class="sec">עסקאות אחרונות</h2>
+  <div class="panel">
+    <div id="tradesEmpty" class="empty" style="display:none">אין עסקאות עדיין</div>
     <table id="trades"><thead><tr>
-      <th>תאריך</th><th>תיק</th><th>פעולה</th><th>טיקר</th>
+      <th>תאריך</th><th>אסטרטגיה</th><th>טיקר</th><th>פעולה</th>
       <th>כמות</th><th>מחיר</th><th>סיבה</th>
     </tr></thead><tbody></tbody></table>
   </div>
-  <p class="muted" style="margin-top:1rem">תיאור נתונים בלבד, לא המלצת מסחר. מתעדכן מ-state שמתפרסם אוטומטית.</p>
+
+  <p class="foot">
+    תיאור נתונים בלבד, לא המלצת מסחר. קריאה-בלבד מ-state שמתפרסם אוטומטית ל-‎agent-memory‎.
+    כל הנתונים הם סימולציה (‎paper trading‎) — אין כסף אמיתי.
+    <span id="swstatus"></span>
+  </p>
 </main>
 
 <script>
 "use strict";
-// The dashboard reads committed state PUBLISHED to the public agent-memory repo
-// (paper-trader itself stays private; do NOT enable Pages on it). The daily
-// workflow pushes copies here via the AGENT_MEMORY_PAT secret.
-const RAW_BASE = "https://raw.githubusercontent.com/funzi7/agent-memory/main/paper-trader";
-const LRM = "‎";
-const lrm = (s) => LRM + s + LRM;
-const pct = (x) => x == null ? lrm("—") : lrm((x >= 0 ? "+" : "") + (x * 100).toFixed(2) + "%");
-const money = (x) => x == null ? lrm("—") : lrm("$" + Number(x).toLocaleString("en-US", {minimumFractionDigits:2, maximumFractionDigits:2}));
-const cls = (x) => x == null ? "" : (x >= 0 ? "up" : "down");
+(function(){
+  // Data sits in the SAME directory as this file (Pages: same-origin), so we
+  // fetch RELATIVE paths — works on GitHub Pages, on the raw host, and locally.
+  const FILES = { state:"portfolios.json", closes:"closes.json", trades:"trades.csv" };
 
-function sizeTag(n){ return n === 10000 ? "10k" : String(Math.round(n)); }
+  // Fixed display order + short Hebrew descriptors for the 8 strategies.
+  const ORDER = ["benchmark","rsi2","trend200","rotation","momentum_scan",
+                 "leveraged_momentum","guru_track","screener_track"];
+  const DESC = {
+    benchmark:"קנה-החזק ‎SPY‎", rsi2:"‎RSI(2)‎ על ‎SPY‎",
+    trend200:"‎QQQ‎ מעל ממוצע ‎200‎", rotation:"רוטציה חודשית ‎SPY/QQQ/TLT/GLD‎",
+    momentum_scan:"מומנטום צולב נאסד״ק-‎100‎", leveraged_momentum:"מומנטום ‎ETF‎ ממונפים ‎2x/3x‎",
+    guru_track:"בחירות ידניות", screener_track:"רשימת סקרינר איכות"
+  };
+  const SCAN = { momentum_scan:true, leveraged_momentum:true };
 
-// Normalize legacy (single position/pending_order) -> positions dict.
-function positionsOf(p){
-  if (p.positions && typeof p.positions === "object") return p.positions;
-  if (p.position) return { [p.position.ticker]: p.position };
-  return {};
-}
+  // ---- bidi-safe formatting (wrap Latin/number runs in LRM) ----
+  const LRM = "‎";
+  const w = (s) => LRM + s + LRM;
+  const pct = (x, dp) => x==null || !isFinite(x) ? w("—")
+        : w((x>=0?"+":"") + (x*100).toFixed(dp==null?2:dp) + "%");
+  const money = (x) => x==null || !isFinite(x) ? w("—")
+        : w("$" + Number(x).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}));
+  const numf = (x) => x==null ? w("—") : w(String(x));
+  const cls = (x) => x==null || !isFinite(x) ? "" : (x>=0 ? "up" : "down");
+  const esc = (s) => String(s==null?"":s).replace(/[&<>"]/g, c =>
+        ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
+  const sizeTag = (n) => n===10000 ? "10k" : String(Math.round(n));
+  const sizeLabel = (n) => w("$" + (n===10000 ? "10,000" : Math.round(n)));
 
-async function fetchJSON(url){
-  const r = await fetch(url, {cache:"no-store"});
-  if (!r.ok) throw new Error("HTTP " + r.status);
-  return r.json();
-}
-async function fetchText(url){
-  const r = await fetch(url, {cache:"no-store"});
-  if (!r.ok) throw new Error("HTTP " + r.status);
-  return r.text();
-}
-
-function parseCSV(text){
-  const lines = text.trim().split(/\r?\n/);
-  if (lines.length < 2) return [];
-  const head = lines[0].split(",");
-  return lines.slice(1).map(line => {
-    // naive split is fine: reasons here contain no commas in practice
-    const cells = line.split(",");
-    const o = {}; head.forEach((h,i) => o[h] = cells[i]); return o;
-  });
-}
-
-let equityChart = null;
-
-function render(state, closes, trades){
-  document.getElementById("empty").style.display = "none";
-  document.getElementById("asof").textContent =
-    state.last_processed_date ? "נכון לתאריך " + lrm(state.last_processed_date) : "";
-
-  const ports = state.portfolios || {};
-  // benchmark cumulative return per size, for the excess-vs-benchmark line.
-  const benchRet = {};
-  for (const [pid,p] of Object.entries(ports)){
-    if (p.strategy === "benchmark"){
-      const eh = p.equity_history || [];
-      if (eh.length) benchRet[p.account_size] = eh[eh.length-1][1] / p.account_size - 1;
-    }
+  function relTime(iso){
+    if(!iso) return "";
+    const then = new Date(iso + (iso.length<=10 ? "T00:00:00Z" : "")).getTime();
+    if(isNaN(then)) return "";
+    const sec = Math.max(0,(Date.now()-then)/1000);
+    if(sec<90) return "עודכן זה עתה";
+    const m=sec/60, h=m/60, d=h/24;
+    if(m<60) return "עודכן לפני "+w(Math.round(m)+" דק׳");
+    if(h<24) return "עודכן לפני "+w(Math.round(h)+" שע׳");
+    return "עודכן לפני "+w(Math.round(d)+" ימים");
   }
 
-  const cards = document.getElementById("cards");
-  cards.innerHTML = "";
-  for (const [pid,p] of Object.entries(ports)){
-    const eh = p.equity_history || [];
-    const eq = eh.length ? eh[eh.length-1][1] : p.cash;
-    const prev = eh.length >= 2 ? eh[eh.length-2][1] : eq;
-    const cumRet = eq / p.account_size - 1;
-    const dayChg = prev ? eq / prev - 1 : 0;
-    const excess = cumRet - (benchRet[p.account_size] || 0);
+  // ---- schema normalization (new dict schema OR legacy singular) ----
+  function positionsOf(p){
+    if(p.positions && typeof p.positions==="object") return p.positions;
+    if(p.position) return { [p.position.ticker]: p.position };
+    return {};
+  }
+  function pendingOf(p){
+    if(Array.isArray(p.pending_orders)) return p.pending_orders;
+    if(p.pending_order && p.pending_order.target)
+      return [{ticker:p.pending_order.target, side:"BUY", reason:p.pending_order.reason}];
+    return [];
+  }
+  const lastEq = (p) => { const e=p.equity_history||[]; return e.length ? e[e.length-1][1] : p.cash; };
+  const prevEq = (p) => { const e=p.equity_history||[]; return e.length>=2 ? e[e.length-2][1] : lastEq(p); };
+  const cumRet = (p) => p.account_size ? lastEq(p)/p.account_size - 1 : null;
+  const dayChg = (p) => { const pv=prevEq(p); return pv ? lastEq(p)/pv - 1 : 0; };
+
+  // parse "rank 3, 6-1 +147.6%" out of a pending reason
+  function parseRank(reason){
+    const m = /rank\s+(\d+).*?(-?\d+(?:\.\d+)?)\s*%/i.exec(reason||"");
+    return m ? {rank:+m[1], mom:parseFloat(m[2])/100} : null;
+  }
+
+  let chart = null;
+  const $ = (id) => document.getElementById(id);
+
+  function render(state, closes, trades){
+    $("banner").style.display = "none";
+    const ports = state.portfolios || {};
+    closes = closes || {};
+    $("asof").textContent = state.last_processed_date ? "נכון לתאריך "+w(state.last_processed_date) : "";
+    $("ago").textContent  = relTime(state.last_processed_date);
+
+    // group by strategy -> { strategy: {100:p, 10k:p} }
+    const byStrat = {};
+    for(const p of Object.values(ports)){
+      (byStrat[p.strategy] = byStrat[p.strategy] || {})[sizeTag(p.account_size)] = p;
+    }
+    const strategies = ORDER.filter(s=>byStrat[s]).concat(
+      Object.keys(byStrat).filter(s=>!ORDER.includes(s)));
+
+    // benchmark cumulative return per size (the SPY ruler)
+    const benchRet = {};
+    for(const p of Object.values(ports))
+      if(p.strategy==="benchmark") benchRet[sizeTag(p.account_size)] = cumRet(p);
+
+    renderStrip(byStrat, benchRet);
+    renderCards(strategies, byStrat, benchRet, closes);
+    renderChart(ports);
+    renderTrades(trades);
+  }
+
+  function renderStrip(byStrat, benchRet){
+    const strip = $("strip");
+    const others = Object.keys(byStrat).filter(s=>s!=="benchmark");
+    // average $10k cumulative return across non-benchmark strategies
+    const rets = others.map(s=>byStrat[s]["10k"]).filter(Boolean).map(cumRet).filter(x=>x!=null);
+    const avg = rets.length ? rets.reduce((a,b)=>a+b,0)/rets.length : null;
+    const spy = benchRet["10k"];
+    const beating = (spy!=null) ? others.map(s=>byStrat[s]["10k"]).filter(Boolean)
+        .filter(p=>{const r=cumRet(p); return r!=null && r>spy;}).length : null;
+    // best / worst by today's change ($10k)
+    let best=null, worst=null;
+    for(const s of Object.keys(byStrat)){
+      const p=byStrat[s]["10k"]; if(!p) continue;
+      const d=dayChg(p);
+      if(best==null || d>best.d) best={s,d};
+      if(worst==null || d<worst.d) worst={s,d};
+    }
+    const card = (k,v,vc,s) =>
+      `<div class="stat"><span class="k">${k}</span>`+
+      `<span class="v ${vc||''}">${v}</span><span class="s">${s||''}</span></div>`;
+    strip.innerHTML =
+      card("‎SPY‎ (‎benchmark‎)", pct(spy), cls(spy), "תשואה מצטברת") +
+      card("ממוצע אסטרטגיות ‎$10k‎", pct(avg), cls(avg),
+           beating==null?"":w(beating+"/"+others.length)+" מנצחות את השוק") +
+      (best?card("הטובה ביותר היום", w(best.s), "", pct(best.d,2)):"") +
+      (worst?card("החלשה ביותר היום", w(worst.s), "", pct(worst.d,2)):"");
+  }
+
+  function holdingsTable(p, closes){
     const pos = positionsOf(p);
-
+    const eq = lastEq(p);
+    const scan = SCAN[p.strategy];
+    const tks = Object.keys(pos).sort();
     let rows = "";
-    for (const tk of Object.keys(pos).sort()){
+    for(const tk of tks){
       const q = pos[tk];
-      const close = closes ? closes[tk] : null;
-      const mv = close != null ? q.shares * close : null;
-      const pnl = (mv != null && q.cost_basis) ? (mv - q.cost_basis)/q.cost_basis : null;
-      const wt = (mv != null && eq) ? mv/eq : null;
-      rows += `<tr><td>${lrm(tk)}</td><td class="num">${lrm(String(q.shares))}</td>`
-            + `<td class="num">${wt==null?lrm("—"):lrm((wt*100).toFixed(1)+"%")}</td>`
-            + `<td class="num ${cls(pnl)}">${pct(pnl)}</td></tr>`;
+      const close = closes[tk];
+      const mv = (close!=null) ? q.shares*close : null;
+      const pnl = (mv!=null && q.cost_basis) ? (mv-q.cost_basis)/q.cost_basis : null;
+      const wt = (mv!=null && eq) ? mv/eq : null;
+      // optional enrichments — shown only IF present in the data
+      const rank = (q.rank!=null) ? q.rank : null;
+      const mom  = (q.momentum_6_1!=null) ? q.momentum_6_1 : (q.mom!=null ? q.mom : null);
+      const trail= (q.trail_pct!=null) ? q.trail_pct : null;
+      const partial = q.partial===true;
+      let sub = "";
+      if(scan){
+        const bits=[];
+        if(rank!=null) bits.push("דירוג "+w("#"+rank));
+        if(mom!=null)  bits.push("מומנטום "+pct(mom,1));
+        if(trail!=null && p.strategy==="leveraged_momentum") bits.push("סטופ "+w((trail*100).toFixed(0)+"%"));
+        if(bits.length) sub = `<span class="sub">${bits.join(" · ")}</span>`;
+      }
+      const badge = (scan && partial) ? `<span class="badge">חלקי</span>` : "";
+      rows += `<tr><td>${w(esc(tk))}${badge}${sub}</td>`+
+              `<td class="num">${numf(q.shares)}</td>`+
+              `<td class="num">${wt==null?w("—"):w((wt*100).toFixed(1)+"%")}</td>`+
+              `<td class="num ${cls(pnl)}">${pct(pnl)}</td></tr>`;
     }
-    if (!rows) rows = `<tr><td colspan="4" class="muted">‏אין החזקות (מזומן)</td></tr>`;
-
-    const div = document.createElement("div");
-    div.className = "card";
-    div.innerHTML = `
-      <h2>${lrm(p.strategy)} <span class="pill">${lrm("$"+sizeTag(p.account_size))}</span></h2>
-      <div class="row"><span>שווי כולל</span><span class="num">${money(eq)}</span></div>
-      <div class="row"><span>מזומן</span><span class="num">${money(p.cash)}</span></div>
-      <div class="row"><span>שינוי יומי</span><span class="num ${cls(dayChg)}">${pct(dayChg)}</span></div>
-      <div class="row"><span>תשואה מצטברת</span><span class="num ${cls(cumRet)}">${pct(cumRet)}</span></div>
-      <div class="row"><span>עודף מול benchmark</span><span class="num ${cls(excess)}">${pct(excess)}</span></div>
-      <table><thead><tr><th>טיקר</th><th>כמות</th><th>משקל</th><th>רווח/הפסד</th></tr></thead>
-        <tbody>${rows}</tbody></table>`;
-    cards.appendChild(div);
+    if(!rows) return "";
+    return `<table><thead><tr><th>טיקר</th><th>כמות</th><th>משקל</th><th>רו״ה</th></tr></thead>`+
+           `<tbody>${rows}</tbody></table>`;
   }
 
-  // Equity curves for *_10k portfolios, normalized to 100.
-  const datasets = [];
-  const palette = ["#2563eb","#2ecc71","#e67e22","#9b59b6","#e74c3c","#1abc9c","#f1c40f"];
-  let ci = 0, labels = null;
-  for (const [pid,p] of Object.entries(ports)){
-    if (!pid.endsWith("_10k")) continue;
-    const eh = p.equity_history || [];
-    if (eh.length < 2) continue;
-    if (!labels) labels = eh.map(e => e[0]);
-    const base = eh[0][1] || p.account_size;
-    const name = p.strategy === "benchmark" ? "benchmark (SPY)" : p.strategy;
-    datasets.push({ label: name, data: eh.map(e => +(e[1]/base*100).toFixed(2)),
-                    borderColor: palette[ci % palette.length], borderWidth:2,
-                    pointRadius:0, tension:.15 });
-    ci++;
+  function pendingNote(p){
+    const pend = pendingOf(p);
+    if(!pend.length) return "";
+    const parts = pend.slice(0,8).map(o=>{
+      const ico = o.side==="SELL" ? "🔴" : "🟢";
+      const rk = parseRank(o.reason);
+      const extra = rk ? " "+w("#"+rk.rank)+" "+pct(rk.mom,0) : "";
+      return ico+" "+w(esc(o.ticker))+extra;
+    });
+    return `<div class="pend">⏳ מחר: ${parts.join(" · ")}</div>`;
   }
-  if (equityChart) equityChart.destroy();
-  if (datasets.length){
-    equityChart = new Chart(document.getElementById("equityChart"), {
+
+  function sizeBlock(p, benchRet, closes){
+    if(!p) return `<div class="size muted">—</div>`;
+    const eq=lastEq(p), cr=cumRet(p), dc=dayChg(p);
+    const ex=(cr!=null && benchRet[sizeTag(p.account_size)]!=null) ? cr-benchRet[sizeTag(p.account_size)] : null;
+    const tbl = holdingsTable(p, closes);
+    const pend = pendingNote(p);
+    const body = (tbl||pend) ? (tbl+pend) : `<div class="muted" style="margin-top:.4rem">‎—‎ במזומן</div>`;
+    return `<div class="size">
+      <span class="tag">${sizeLabel(p.account_size)}</span>
+      <div class="big">${money(eq)}</div>
+      <div class="row"><span class="lbl">מזומן</span><span class="num">${money(p.cash)}</span></div>
+      <div class="row"><span class="lbl">שינוי יומי</span><span class="num ${cls(dc)}">${pct(dc)}</span></div>
+      <div class="row"><span class="lbl">תשואה מצטברת</span><span class="num ${cls(cr)}">${pct(cr)}</span></div>
+      <div class="row"><span class="lbl">עודף מול ‎SPY‎</span><span class="num ${cls(ex)}">${ex==null?w("—"):pct(ex)+" pp"}</span></div>
+      ${body}
+    </div>`;
+  }
+
+  function renderCards(strategies, byStrat, benchRet, closes){
+    const host = $("cards");
+    host.innerHTML = "";
+    for(const s of strategies){
+      const g = byStrat[s];
+      const div = document.createElement("div");
+      div.className = "card";
+      div.innerHTML =
+        `<h3>${w(esc(s))}</h3><div class="desc">${DESC[s]||""}</div>`+
+        `<div class="sizes">${sizeBlock(g["100"],benchRet,closes)}${sizeBlock(g["10k"],benchRet,closes)}</div>`;
+      host.appendChild(div);
+    }
+  }
+
+  function renderChart(ports){
+    // union of dates across $10k portfolios; normalize each to its own first value.
+    const tenk = Object.entries(ports).filter(([id])=>id.endsWith("_10k"))
+                  .map(([,p])=>p).filter(p=>(p.equity_history||[]).length>=2);
+    const cv = $("equityChart"), empty = $("chartEmpty");
+    if(chart){ chart.destroy(); chart=null; }
+    if(!tenk.length){ empty.style.display="block"; cv.style.display="none"; return; }
+    empty.style.display="none"; cv.style.display="";
+
+    const dateSet = new Set();
+    tenk.forEach(p=> (p.equity_history||[]).forEach(e=>dateSet.add(e[0])));
+    const labels = Array.from(dateSet).sort();
+    const palette = ["#60a5fa","#2ecc71","#e67e22","#9b59b6","#e74c3c","#1abc9c","#f1c40f","#f472b6"];
+    const datasets = tenk.map((p,i)=>{
+      const m = new Map((p.equity_history||[]).map(e=>[e[0],e[1]]));
+      const base = (p.equity_history||[])[0][1] || p.account_size;
+      const data = labels.map(d=> m.has(d) ? +(m.get(d)/base*100).toFixed(2) : null);
+      const name = p.strategy==="benchmark" ? "benchmark (SPY)" : p.strategy;
+      return { label:name, data, borderColor:palette[i%palette.length], backgroundColor:palette[i%palette.length],
+               borderWidth:2, pointRadius:0, tension:.15, spanGaps:true };
+    });
+    chart = new Chart(cv, {
       type:"line",
-      data:{ labels: labels, datasets },
-      options:{ responsive:true, interaction:{mode:"index",intersect:false},
-                scales:{ x:{ ticks:{ color:"#9aa7b3", maxTicksLimit:8 } },
-                         y:{ ticks:{ color:"#9aa7b3" } } },
-                plugins:{ legend:{ labels:{ color:"#e6edf3" } } } }
+      data:{ labels, datasets },
+      options:{ responsive:true, maintainAspectRatio:false,
+        interaction:{ mode:"index", intersect:false },
+        scales:{ x:{ ticks:{ color:"#9aa7b3", maxTicksLimit:8 }, grid:{ color:"#222c36" } },
+                 y:{ ticks:{ color:"#9aa7b3" }, grid:{ color:"#222c36" } } },
+        plugins:{ legend:{ position:"bottom", labels:{ color:"#e6edf3", boxWidth:12, font:{size:11} } },
+                  tooltip:{ rtl:true } } }
     });
   }
 
-  // Recent trades (last 25).
-  const tb = document.querySelector("#trades tbody");
-  tb.innerHTML = "";
-  (trades || []).slice(-25).reverse().forEach(t => {
-    const side = t.side === "BUY" ? "🟢 קנייה" : "🔴 מכירה";
-    tb.innerHTML += `<tr><td>${lrm(t.date||"")}</td><td>${lrm(t.portfolio_id||"")}</td>`
-      + `<td>${side}</td><td>${lrm(t.ticker||"")}</td>`
-      + `<td class="num">${lrm(t.shares||"")}</td><td class="num">${money(t.fill_price)}</td>`
-      + `<td class="muted">${lrm(t.reason||"")}</td></tr>`;
-  });
-}
-
-async function load(){
-  try {
-    const state = await fetchJSON(RAW_BASE + "/portfolios.json");
-    let closes = null, trades = [];
-    try { closes = await fetchJSON(RAW_BASE + "/closes.json"); } catch (e) { /* optional */ }
-    try { trades = parseCSV(await fetchText(RAW_BASE + "/trades.csv")); } catch (e) { /* optional */ }
-    render(state, closes, trades);
-  } catch (e) {
-    document.getElementById("cards").innerHTML = "";
-    document.getElementById("empty").style.display = "block";
+  function parseCSV(text){
+    const lines = (text||"").trim().split(/\r?\n/);
+    if(lines.length<2) return [];
+    const head = lines[0].split(",");
+    return lines.slice(1).map(line=>{
+      const cells = line.split(","); const o={};
+      head.forEach((h,i)=>o[h.trim()]=cells[i]); return o;
+    });
   }
-}
 
-document.getElementById("refresh").addEventListener("click", load);
-load();
+  function renderTrades(trades){
+    const tb = document.querySelector("#trades tbody");
+    const empty = $("tradesEmpty");
+    tb.innerHTML = "";
+    if(!trades || !trades.length){ empty.style.display="block"; return; }
+    empty.style.display="none";
+    trades.slice(-20).reverse().forEach(t=>{
+      const side = t.side==="BUY" ? "🟢 קנייה" : "🔴 מכירה";
+      const price = (t.fill_price!=null && t.fill_price!=="") ? money(parseFloat(t.fill_price)) : w("—");
+      tb.innerHTML += `<tr><td>${w(esc(t.date))}</td><td>${w(esc(t.strategy))}</td>`+
+        `<td>${w(esc(t.ticker))}</td><td>${side}</td>`+
+        `<td class="num">${w(esc(t.shares))}</td><td class="num">${price}</td>`+
+        `<td class="muted">${w(esc(t.reason))}</td></tr>`;
+    });
+  }
+
+  async function getJSON(u){ const r=await fetch(u,{cache:"no-store"}); if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); }
+  async function getText(u){ const r=await fetch(u,{cache:"no-store"}); if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); }
+
+  async function load(){
+    const btn = $("refresh");
+    if(btn){ btn.disabled=true; }
+    try{
+      const state = await getJSON(FILES.state);     // required
+      let closes=null, trades=[];
+      try{ closes = await getJSON(FILES.closes); }catch(e){ /* optional */ }
+      try{ trades = parseCSV(await getText(FILES.trades)); }catch(e){ /* optional */ }
+      render(state, closes, trades);
+    }catch(e){
+      // hard failure on the required file -> per-section graceful empties + banner
+      $("banner").style.display="block";
+      $("banner").textContent = "אין נתונים זמינים עדיין — ייטען אוטומטית לאחר ריצת המערכת הבאה.";
+      $("strip").innerHTML = `<div class="empty">אין נתונים זמינים עדיין</div>`;
+      $("cards").innerHTML = "";
+      $("chartEmpty").style.display="block"; $("equityChart").style.display="none";
+      $("tradesEmpty").style.display="block";
+    }finally{
+      if(btn){ btn.disabled=false; }
+    }
+  }
+
+  // keep the "עודכן לפני" label fresh without refetching
+  let lastState=null;
+  const _render=render; render=function(s,c,t){ lastState=s; return _render(s,c,t); };
+  setInterval(()=>{ if(lastState) $("ago").textContent = relTime(lastState.last_processed_date); }, 30000);
+
+  $("refresh").addEventListener("click", load);
+  load();
+
+  // ---- PWA service worker (best-effort; page works without it) ----
+  if("serviceWorker" in navigator){
+    window.addEventListener("load", ()=>{
+      navigator.serviceWorker.register("./sw.js")
+        .then(()=>{ const s=$("swstatus"); if(s) s.innerHTML=' · <span class="ok">מותקן כאפליקציה ✓</span>'; })
+        .catch(()=>{ const s=$("swstatus"); if(s) s.innerHTML=' · <span class="warn">ללא מצב לא-מקוון</span>'; });
+    });
+  }
+
+  // expose pure helpers for headless verification (no effect in the browser)
+  if(typeof window!=="undefined") window.__PT__ = { render:(s,c,t)=>_render(s,c,t), parseCSV, parseRank, cumRet, dayChg };
+})();
 </script>
 </body>
 </html>
