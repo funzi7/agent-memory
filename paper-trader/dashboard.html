@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>פייפר-טריידר — לוח מחוונים</title>
+<!-- Chart.js via CDN (no build step, no backend, no localStorage). -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root { --bg:#0f1419; --card:#1b232c; --ink:#e6edf3; --muted:#9aa7b3;
+          --up:#2ecc71; --down:#e74c3c; --line:#2a3540; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+         font-family:system-ui,Segoe UI,Arial,sans-serif; }
+  header { display:flex; align-items:center; gap:1rem; flex-wrap:wrap;
+           padding:1rem 1.2rem; border-bottom:1px solid var(--line); }
+  h1 { font-size:1.2rem; margin:0; }
+  .muted { color:var(--muted); font-size:.85rem; }
+  button { background:#2563eb; color:#fff; border:0; border-radius:8px;
+           padding:.5rem .9rem; cursor:pointer; font-size:.9rem; }
+  main { padding:1rem 1.2rem; max-width:1100px; margin:0 auto; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:1rem; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:1rem; }
+  .card h2 { font-size:1rem; margin:.1rem 0 .6rem; }
+  .row { display:flex; justify-content:space-between; gap:.5rem; font-size:.9rem; padding:.12rem 0; }
+  table { width:100%; border-collapse:collapse; margin-top:.5rem; font-size:.84rem; }
+  th,td { text-align:right; padding:.3rem .35rem; border-bottom:1px solid var(--line); }
+  th { color:var(--muted); font-weight:600; }
+  .up { color:var(--up); } .down { color:var(--down); }
+  .num { font-variant-numeric:tabular-nums; }
+  .chart-wrap { background:var(--card); border:1px solid var(--line);
+                border-radius:12px; padding:1rem; margin-top:1rem; }
+  #empty { display:none; padding:2rem; text-align:center; color:var(--muted); font-size:1.05rem; }
+  .pill { font-size:.72rem; color:var(--muted); border:1px solid var(--line);
+          border-radius:999px; padding:.05rem .5rem; }
+</style>
+</head>
+<body>
+<header>
+  <h1>📊 פייפר-טריידר — לוח מחוונים</h1>
+  <span id="asof" class="muted"></span>
+  <span style="flex:1"></span>
+  <button id="refresh">רענון</button>
+</header>
+
+<main>
+  <div id="empty">‏אין נתונים זמינים עדיין</div>
+  <div id="cards" class="cards"></div>
+
+  <div class="chart-wrap">
+    <h2 style="margin:.1rem 0 .6rem; font-size:1rem;">עקומות שווי (‏$10k‏, מנורמל ל-‏100‏)</h2>
+    <canvas id="equityChart" height="120"></canvas>
+  </div>
+
+  <div class="chart-wrap">
+    <h2 style="margin:.1rem 0 .6rem; font-size:1rem;">עסקאות אחרונות</h2>
+    <table id="trades"><thead><tr>
+      <th>תאריך</th><th>תיק</th><th>פעולה</th><th>טיקר</th>
+      <th>כמות</th><th>מחיר</th><th>סיבה</th>
+    </tr></thead><tbody></tbody></table>
+  </div>
+  <p class="muted" style="margin-top:1rem">תיאור נתונים בלבד, לא המלצת מסחר. מתעדכן מ-state שמתפרסם אוטומטית.</p>
+</main>
+
+<script>
+"use strict";
+// The dashboard reads committed state PUBLISHED to the public agent-memory repo
+// (paper-trader itself stays private; do NOT enable Pages on it). The daily
+// workflow pushes copies here via the AGENT_MEMORY_PAT secret.
+const RAW_BASE = "https://raw.githubusercontent.com/funzi7/agent-memory/main/paper-trader";
+const LRM = "‎";
+const lrm = (s) => LRM + s + LRM;
+const pct = (x) => x == null ? lrm("—") : lrm((x >= 0 ? "+" : "") + (x * 100).toFixed(2) + "%");
+const money = (x) => x == null ? lrm("—") : lrm("$" + Number(x).toLocaleString("en-US", {minimumFractionDigits:2, maximumFractionDigits:2}));
+const cls = (x) => x == null ? "" : (x >= 0 ? "up" : "down");
+
+function sizeTag(n){ return n === 10000 ? "10k" : String(Math.round(n)); }
+
+// Normalize legacy (single position/pending_order) -> positions dict.
+function positionsOf(p){
+  if (p.positions && typeof p.positions === "object") return p.positions;
+  if (p.position) return { [p.position.ticker]: p.position };
+  return {};
+}
+
+async function fetchJSON(url){
+  const r = await fetch(url, {cache:"no-store"});
+  if (!r.ok) throw new Error("HTTP " + r.status);
+  return r.json();
+}
+async function fetchText(url){
+  const r = await fetch(url, {cache:"no-store"});
+  if (!r.ok) throw new Error("HTTP " + r.status);
+  return r.text();
+}
+
+function parseCSV(text){
+  const lines = text.trim().split(/\r?\n/);
+  if (lines.length < 2) return [];
+  const head = lines[0].split(",");
+  return lines.slice(1).map(line => {
+    // naive split is fine: reasons here contain no commas in practice
+    const cells = line.split(",");
+    const o = {}; head.forEach((h,i) => o[h] = cells[i]); return o;
+  });
+}
+
+let equityChart = null;
+
+function render(state, closes, trades){
+  document.getElementById("empty").style.display = "none";
+  document.getElementById("asof").textContent =
+    state.last_processed_date ? "נכון לתאריך " + lrm(state.last_processed_date) : "";
+
+  const ports = state.portfolios || {};
+  // benchmark cumulative return per size, for the excess-vs-benchmark line.
+  const benchRet = {};
+  for (const [pid,p] of Object.entries(ports)){
+    if (p.strategy === "benchmark"){
+      const eh = p.equity_history || [];
+      if (eh.length) benchRet[p.account_size] = eh[eh.length-1][1] / p.account_size - 1;
+    }
+  }
+
+  const cards = document.getElementById("cards");
+  cards.innerHTML = "";
+  for (const [pid,p] of Object.entries(ports)){
+    const eh = p.equity_history || [];
+    const eq = eh.length ? eh[eh.length-1][1] : p.cash;
+    const prev = eh.length >= 2 ? eh[eh.length-2][1] : eq;
+    const cumRet = eq / p.account_size - 1;
+    const dayChg = prev ? eq / prev - 1 : 0;
+    const excess = cumRet - (benchRet[p.account_size] || 0);
+    const pos = positionsOf(p);
+
+    let rows = "";
+    for (const tk of Object.keys(pos).sort()){
+      const q = pos[tk];
+      const close = closes ? closes[tk] : null;
+      const mv = close != null ? q.shares * close : null;
+      const pnl = (mv != null && q.cost_basis) ? (mv - q.cost_basis)/q.cost_basis : null;
+      const wt = (mv != null && eq) ? mv/eq : null;
+      rows += `<tr><td>${lrm(tk)}</td><td class="num">${lrm(String(q.shares))}</td>`
+            + `<td class="num">${wt==null?lrm("—"):lrm((wt*100).toFixed(1)+"%")}</td>`
+            + `<td class="num ${cls(pnl)}">${pct(pnl)}</td></tr>`;
+    }
+    if (!rows) rows = `<tr><td colspan="4" class="muted">‏אין החזקות (מזומן)</td></tr>`;
+
+    const div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = `
+      <h2>${lrm(p.strategy)} <span class="pill">${lrm("$"+sizeTag(p.account_size))}</span></h2>
+      <div class="row"><span>שווי כולל</span><span class="num">${money(eq)}</span></div>
+      <div class="row"><span>מזומן</span><span class="num">${money(p.cash)}</span></div>
+      <div class="row"><span>שינוי יומי</span><span class="num ${cls(dayChg)}">${pct(dayChg)}</span></div>
+      <div class="row"><span>תשואה מצטברת</span><span class="num ${cls(cumRet)}">${pct(cumRet)}</span></div>
+      <div class="row"><span>עודף מול benchmark</span><span class="num ${cls(excess)}">${pct(excess)}</span></div>
+      <table><thead><tr><th>טיקר</th><th>כמות</th><th>משקל</th><th>רווח/הפסד</th></tr></thead>
+        <tbody>${rows}</tbody></table>`;
+    cards.appendChild(div);
+  }
+
+  // Equity curves for *_10k portfolios, normalized to 100.
+  const datasets = [];
+  const palette = ["#2563eb","#2ecc71","#e67e22","#9b59b6","#e74c3c","#1abc9c","#f1c40f"];
+  let ci = 0, labels = null;
+  for (const [pid,p] of Object.entries(ports)){
+    if (!pid.endsWith("_10k")) continue;
+    const eh = p.equity_history || [];
+    if (eh.length < 2) continue;
+    if (!labels) labels = eh.map(e => e[0]);
+    const base = eh[0][1] || p.account_size;
+    const name = p.strategy === "benchmark" ? "benchmark (SPY)" : p.strategy;
+    datasets.push({ label: name, data: eh.map(e => +(e[1]/base*100).toFixed(2)),
+                    borderColor: palette[ci % palette.length], borderWidth:2,
+                    pointRadius:0, tension:.15 });
+    ci++;
+  }
+  if (equityChart) equityChart.destroy();
+  if (datasets.length){
+    equityChart = new Chart(document.getElementById("equityChart"), {
+      type:"line",
+      data:{ labels: labels, datasets },
+      options:{ responsive:true, interaction:{mode:"index",intersect:false},
+                scales:{ x:{ ticks:{ color:"#9aa7b3", maxTicksLimit:8 } },
+                         y:{ ticks:{ color:"#9aa7b3" } } },
+                plugins:{ legend:{ labels:{ color:"#e6edf3" } } } }
+    });
+  }
+
+  // Recent trades (last 25).
+  const tb = document.querySelector("#trades tbody");
+  tb.innerHTML = "";
+  (trades || []).slice(-25).reverse().forEach(t => {
+    const side = t.side === "BUY" ? "🟢 קנייה" : "🔴 מכירה";
+    tb.innerHTML += `<tr><td>${lrm(t.date||"")}</td><td>${lrm(t.portfolio_id||"")}</td>`
+      + `<td>${side}</td><td>${lrm(t.ticker||"")}</td>`
+      + `<td class="num">${lrm(t.shares||"")}</td><td class="num">${money(t.fill_price)}</td>`
+      + `<td class="muted">${lrm(t.reason||"")}</td></tr>`;
+  });
+}
+
+async function load(){
+  try {
+    const state = await fetchJSON(RAW_BASE + "/portfolios.json");
+    let closes = null, trades = [];
+    try { closes = await fetchJSON(RAW_BASE + "/closes.json"); } catch (e) { /* optional */ }
+    try { trades = parseCSV(await fetchText(RAW_BASE + "/trades.csv")); } catch (e) { /* optional */ }
+    render(state, closes, trades);
+  } catch (e) {
+    document.getElementById("cards").innerHTML = "";
+    document.getElementById("empty").style.display = "block";
+  }
+}
+
+document.getElementById("refresh").addEventListener("click", load);
+load();
+</script>
+</body>
+</html>
