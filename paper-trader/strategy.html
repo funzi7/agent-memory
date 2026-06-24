@@ -28,7 +28,7 @@
 </header>
 
 <main>
-  <a class="back" href="./dashboard.html">‹ חזרה לדשבורד</a>
+  <a class="back" id="backlink" href="./dashboard.html">‹ חזרה לדשבורד</a>
   <div id="banner" class="empty panel" style="display:none">אין נתונים זמינים עדיין</div>
 
   <div id="head"></div>
@@ -62,7 +62,15 @@
 (function () {
   const P = window.PT, $ = (id) => document.getElementById(id);
   let chart = null;
+  if ("scrollRestoration" in history) history.scrollRestoration = "auto";
   $("disclaimer").textContent = P.DISCLAIMER;
+
+  // "חזרה" goes back through real history so the dashboard restores its scroll
+  // position (FIX 1); falls back to a normal link when opened directly.
+  const back = $("backlink");
+  if (back) back.addEventListener("click", (e) => {
+    if (history.length > 1) { e.preventDefault(); history.back(); }
+  });
   const params = new URLSearchParams(location.search);
   const strategy = params.get("id") || "";
 
@@ -77,7 +85,7 @@
       <div class="big" style="font-size:1.2rem;font-weight:700">${P.sn(P.money(eq))}</div>
       <div class="cashline">${P.cashLineHTML(pf)}</div>
       <div class="row"><span class="lbl">תשואה מצטברת</span><span class="num ${P.cls(cr)}">${P.sn(P.pct(cr))}</span></div>
-      <div class="row"><span class="lbl">עודף מול ${P.w("SPY")}</span><span class="num ${P.cls(ex)}">${P.sn(ex == null ? "—" : (ex >= 0 ? "+" : "") + (ex * 100).toFixed(2) + "% pp")}</span></div>
+      <div class="row"><span class="lbl">עודף מול ${P.w("SPY")}</span><span class="num ${P.cls(ex)}">${P.sn(ex == null ? "—" : (ex >= 0 ? "+" : "") + (ex * 100).toFixed(2) + "% נק׳")}</span></div>
       <div style="margin-top:.5rem;font-size:.8rem;color:var(--muted)">החזקות</div>
       ${hold}
       ${pend ? `<div style="margin-top:.5rem;font-size:.8rem;color:var(--muted)">פקודות מחר</div>${pend}` : ""}
@@ -113,7 +121,7 @@
         return;
       }
       $("banner").style.display = "none";
-      $("head").innerHTML = `<div class="desc muted" style="margin:.2rem 0 .4rem">${P.DESC[strategy] || ""}</div>`;
+      $("head").innerHTML = `<div class="desc muted" style="margin:.2rem 0 .4rem">${P.DESC[strategy] || ""}</div>` + P.strategyNote(strategy);
       $("targetbox").innerHTML = `<div class="card">${P.targetEditorHTML(strategy)}<div class="muted" style="font-size:.74rem">היעד משותף לשני הגדלים; הערך הדולרי שונה לכל גודל חשבון.</div></div>`;
       const benchRet = {};
       for (const p of Object.values(st.portfolios)) if (p.strategy === "benchmark") benchRet[P.sizeTag(p.account_size)] = P.cumRet(p);

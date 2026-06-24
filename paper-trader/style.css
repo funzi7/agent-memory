@@ -73,6 +73,11 @@ th{ color:var(--muted); font-weight:600; font-size:.72rem; }
 }
 .sub{ display:block; color:var(--muted); font-size:.68rem; margin-top:.05rem; }
 .badge{ font-size:.62rem; background:#3a2d10; color:var(--amber); border:1px solid #5a4516; border-radius:6px; padding:.02rem .3rem; margin-inline-start:.25rem; }
+/* screener quality track badges: A = profitable (green), B = growing-but-loss (amber) */
+.badge.track-A{ background:#10301f; color:var(--up); border-color:#1c5; }
+.badge.track-B{ background:#3a2d10; color:var(--amber); border-color:#5a4516; }
+/* per-strategy explanation line (e.g. screener track A/B legend) */
+.note{ font-size:.72rem; color:var(--muted); line-height:1.5; margin:.1rem 0 .5rem; }
 .pend{ margin-top:.35rem; font-size:.74rem; color:var(--muted); line-height:1.5; }
 .pend.skip{ color:var(--amber); }
 .up{ color:var(--up); } .down{ color:var(--down); }

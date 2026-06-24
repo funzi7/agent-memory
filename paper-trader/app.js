@@ -20,6 +20,11 @@ window.PT = (function () {
   };
   const SCAN = { momentum_scan: true, leveraged_momentum: true };
 
+  // Extra per-strategy explanation shown under the description (both pages).
+  const DESC_NOTE = {
+    screener_track: "מסלול A = חברה רווחית שעברה את כל השערים · מסלול B = חברה צומחת אך עדיין מפסידה (עברה רף מקל יותר)."
+  };
+
   // Why an all-cash strategy is idle (mirrors the report's footer reasons).
   const IDLE = {
     benchmark: "קנייה והחזקה — ממתין למילוי הראשון",
@@ -96,6 +101,11 @@ window.PT = (function () {
   // Clear Hebrew label for the engine's cryptic "6-1" momentum tag (DISPLAY only;
   // JSON/CSV field names are never touched).
   const MOM_LABEL = "מומנטום";
+  // Screener quality-track badge: "מסלול A" / "מסלול B" (rendered only when the
+  // data carries a track; applyRtl isolates the Latin letter).
+  const trackBadge = (tr) => ` <span class="badge track-${esc(tr)}">${esc("מסלול " + tr)}</span>`;
+  // Small explanatory note line for a strategy (e.g. screener track A/B legend).
+  const strategyNote = (strategy) => DESC_NOTE[strategy] ? `<div class="note">${esc(DESC_NOTE[strategy])}</div>` : "";
 
   // Turn one run of text into HTML, isolating Latin runs (<bdi>) and signed/$ runs
   // (<bdi dir="ltr">), leaving plain numbers/dates/times/decimals bare.
@@ -197,6 +207,25 @@ window.PT = (function () {
     const m = /rank\s+(\d+).*?(-?\d+(?:\.\d+)?)\s*%/i.exec(reason || "");
     return m ? { rank: +m[1], mom: parseFloat(m[2]) / 100 } : null;
   }
+  // Numeric ordering rank from a pending reason — handles momentum "rank N" and
+  // the screener's "shortlist #N" (used to order ticker lists #1 first).
+  function orderRank(reason) {
+    const m = /(?:rank\s+|shortlist\s*#?\s*|#)(\d+)/i.exec(reason || "");
+    return m ? +m[1] : null;
+  }
+  // Screener quality track (A = profitable / B = loss-making but growing). Read
+  // from a structured field if present, else parsed from a reason string. Returns
+  // "A" | "B" | null — so the dashboard shows a badge only when the data has it.
+  function parseTrack(s) {
+    const m = /(?:track|מסלול)\s*([AB])/i.exec(s || "");
+    return m ? m[1].toUpperCase() : null;
+  }
+  function trackOf(obj) {
+    if (!obj) return null;
+    if (obj.track === "A" || obj.track === "B") return obj.track;
+    if (typeof obj.track === "string") { const t = parseTrack(obj.track); if (t) return t; }
+    return parseTrack(obj.reason);
+  }
 
   // ---- cash movement (use JSON fields if present, else derive client-side) ----
   function cashSince(p) {
@@ -243,7 +272,7 @@ window.PT = (function () {
     const out = { bought: [], unbuyable: [], not_bought: [] };
     if (cash <= 0 || !specs.length) { out.not_bought = specs.map(s => ({ ticker: s.ticker, rank: s.rank })); return out; }
     const eligible = specs.filter(s => s.price <= cash + 1e-9);
-    out.unbuyable = specs.filter(s => s.price > cash + 1e-9).map(s => ({ ticker: s.ticker, price: s.price }));
+    out.unbuyable = specs.filter(s => s.price > cash + 1e-9).map(s => ({ ticker: s.ticker, price: s.price, rank: s.rank }));
     if (!eligible.length) return out;
     const sum = (pl) => Object.values(pl).reduce((a, b) => a + b, 0);
     const equalWeight = (names) => { const slc = cash / names.length; const pl = {}; names.forEach(s => pl[s.ticker] = sizeWhole(slc, s.price)); return pl; };
@@ -278,17 +307,20 @@ window.PT = (function () {
     const specs = [], unpriced = [], meta = {};
     for (const o of buys) {
       const px = closes[o.ticker];
-      if (px == null) { unpriced.push({ ticker: o.ticker, reason: o.reason }); continue; }
-      specs.push({ ticker: o.ticker, price: px * (1 + FEES.slip), rank: parseRank(o.reason) });
+      const rank = orderRank(o.reason);
+      if (px == null) { unpriced.push({ ticker: o.ticker, reason: o.reason, rank }); continue; }
+      specs.push({ ticker: o.ticker, price: px * (1 + FEES.slip), rank });
       meta[o.ticker] = { reason: o.reason, px };
     }
     const plan = planBuys(specs, avail);
+    const byRank = (a, b) => _rankKey(a.rank) - _rankKey(b.rank);
     const bought = plan.bought.map(b => ({
       ticker: b.ticker, shares: b.shares, price: meta[b.ticker].px,
       cost: b.shares * b.price + commission(b.shares, b.price), reason: meta[b.ticker].reason, rank: b.rank
-    })).sort((a, b) => _rankKey(a.rank) - _rankKey(b.rank));
-    const unbuyable = plan.unbuyable.map(u => ({ ticker: u.ticker, price: meta[u.ticker] ? meta[u.ticker].px : null }));
-    const not_bought = plan.not_bought.map(n => ({ ticker: n.ticker }));
+    })).sort(byRank);
+    const unbuyable = plan.unbuyable.map(u => ({ ticker: u.ticker, price: meta[u.ticker] ? meta[u.ticker].px : null, rank: u.rank })).sort(byRank);
+    const not_bought = plan.not_bought.map(n => ({ ticker: n.ticker, rank: n.rank })).sort(byRank);
+    unpriced.sort(byRank);
     return { sells: sells.map(o => o.ticker), bought, unbuyable, not_bought, unpriced, avail };
   }
 
@@ -474,7 +506,9 @@ window.PT = (function () {
   function holdingsHTML(p, closes, opts) {
     opts = opts || {};
     const pos = positionsOf(p), eq = lastEq(p), scan = SCAN[p.strategy];
-    const tks = Object.keys(pos).sort();
+    // Order by the strategy's rank when positions carry one (momentum's rank, or a
+    // screener shortlist rank), else alphabetically. Keeps #1 at the top.
+    const tks = Object.keys(pos).sort((a, b) => (_rankKey(pos[a].rank) - _rankKey(pos[b].rank)) || a.localeCompare(b));
     if (!tks.length) return "";
     const head = opts.detailed
       ? "<tr><th>טיקר</th><th>כמות</th><th>מחיר ממוצע</th><th>שווי</th><th>משקל</th><th>רו״ה</th></tr>"
@@ -498,16 +532,19 @@ window.PT = (function () {
         // within it. Replaces the cryptic "6-1" with a clear Hebrew label.
         if (bits.length) sub = `<span class="sub">${sn(bits.join(" · "))}</span>`;
       }
+      // Screener quality track badge (A/B) — shown only when the data carries it.
+      let badge = "";
+      if (p.strategy === "screener_track") { const tr = trackOf(q); if (tr) badge = trackBadge(tr); }
       const wtTxt = wt == null ? "—" : (wt * 100).toFixed(1) + "%";
       const cellsCommon = `<td class="num">${sn(numf(q.shares))}</td>`;
       if (opts.detailed) {
-        rows += `<tr><td>${w(tk)}${sub}</td>${cellsCommon}` +
+        rows += `<tr><td>${w(tk)}${badge}${sub}</td>${cellsCommon}` +
           `<td class="num">${sn(money(q.avg_price))}</td>` +
           `<td class="num">${mv == null ? "—" : sn(money(mv))}</td>` +
           `<td class="num">${sn(wtTxt)}</td>` +
           `<td class="num ${cls(pnl)}">${sn(pct(pnl))}</td></tr>`;
       } else {
-        rows += `<tr><td>${w(tk)}${sub}</td>${cellsCommon}` +
+        rows += `<tr><td>${w(tk)}${badge}${sub}</td>${cellsCommon}` +
           `<td class="num">${sn(wtTxt)}</td>` +
           `<td class="num ${cls(pnl)}">${sn(pct(pnl))}</td></tr>`;
       }
@@ -522,30 +559,38 @@ window.PT = (function () {
   const relabelMom = (s) => String(s == null ? "" : s)
     .replace(/6-1\s*\(short\)/gi, MOM_LABEL + " (חלקי)")
     .replace(/6-1/g, MOM_LABEL);
-  // commas -> middle dots so a comma never sits between Hebrew and a Latin run.
-  const reasonAscii = (r) => relabelMom(String(r || "").replace(/\s*,\s*/g, " · "));
+  // commas -> middle dots, "6-1" -> מומנטום, and the screener's English "shortlist
+  // #N" -> Hebrew "דירוג סקרינר #N" (display only; underlying CSV/JSON untouched).
+  const reasonAscii = (r) => relabelMom(String(r || "").replace(/\s*,\s*/g, " · "))
+    .replace(/screener\s+shortlist\s*#?\s*/i, "דירוג סקרינר #")
+    .replace(/shortlist\s*#?\s*/i, "דירוג #");
   function pendingHTML(p, closes) {
     const a = affordability(p, closes);
     if (!a.sells.length && !a.bought.length && !a.unbuyable.length && !a.not_bought.length && !a.unpriced.length) return "";
+    // Quality-track suffix per ticker (only when the data carries A/B).
+    const trk = {};
+    for (const o of pendingOf(p)) { const tr = trackOf(o); if (tr) trk[o.ticker] = tr; }
+    const tb = (tk) => trk[tk] ? " · מסלול " + trk[tk] : "";
     const L = [];
-    // Each line = an RTL Hebrew label + ONE LTR isolate holding the technical tail
-    // (tickers, prices, rank, מומנטום, signed %). The isolate keeps every sign on
-    // the left and the tail in reading order; the Hebrew label stays right-aligned.
+    // Each line = an RTL Hebrew label + a plain technical tail; applyRtl() isolates
+    // tickers/rank (<bdi>) and signed/$ runs (LTR), keeping signs on the left.
     if (a.sells.length) L.push(`<div class="pend">⏳ מכירה: ${sn(a.sells.join(" · "))}</div>`);
     for (const b of a.bought) {
       let tail = `${b.shares} ${b.ticker} @ ~$${_fmt(b.price)} (≈$${_fmt(b.cost)})`;
       if (b.reason) tail += " · " + reasonAscii(b.reason);
+      tail += tb(b.ticker);
       L.push(`<div class="pend">⏳ קנייה: ${sn(tail)}</div>`);
     }
     for (const u of a.unbuyable) {
-      L.push(`<div class="pend skip">⏳ לא ניתנת לרכישה: ${sn(`${u.ticker} — unit $${_fmt(u.price)} > cash $${_fmt(a.avail)}`)}</div>`);
+      L.push(`<div class="pend skip">⏳ לא ניתנת לרכישה: ${sn(`${u.ticker} — יחידה $${_fmt(u.price)} > מזומן $${_fmt(a.avail)}` + tb(u.ticker))}</div>`);
     }
     for (const n of a.not_bought) {
-      L.push(`<div class="pend skip">⏳ לא נקנתה הפעם (הקצאה שוות-משקל קטנה מהמחיר): ${sn(n.ticker)}</div>`);
+      L.push(`<div class="pend skip">⏳ לא נקנתה הפעם (הקצאה שוות-משקל קטנה מהמחיר): ${sn(n.ticker + tb(n.ticker))}</div>`);
     }
     for (const o of a.unpriced) {
       let tail = o.ticker;
       if (o.reason) tail += " · " + reasonAscii(o.reason);
+      tail += tb(o.ticker);
       L.push(`<div class="pend">⏳ קנייה: ${sn(tail)}</div>`);
     }
     return L.join("");
@@ -554,13 +599,13 @@ window.PT = (function () {
   // ---- DUAL %/$ target tracker ----
   function targetPreview(strategy, pctv) {
     if (getMode(strategy) === "%")
-      return sn(`≈ $${_fmt(pctv / 100 * 100)}/mo on $100 · $${_fmt(pctv / 100 * 10000)}/mo on $10k`);
-    return sn(`= ${(pctv).toFixed(2)}%/mo · input on $10k`);
+      return sn(`≈ $${_fmt(pctv / 100 * 100)} לחודש על $100 · $${_fmt(pctv / 100 * 10000)} לחודש על $10k`);
+    return sn(`= ${(pctv).toFixed(2)}% לחודש · הקלט על $10k`);
   }
   function targetEditorHTML(strategy) {
     const pctv = getTarget(strategy), mode = getMode(strategy);
     const val = mode === "%" ? round1(pctv) : Math.round(pctv / 100 * REF_SIZE);
-    const btn = (mode === "%" ? "%/חודש" : "$/חודש (על $10k)") + " ⇄";
+    const btn = (mode === "%" ? "% לחודש" : "$ לחודש (על $10k)") + " ⇄";
     return `<div class="target-edit">` +
       `<span class="lbl">🎯 יעד חודשי:</span>` +
       `<input id="tin-${strategy}" class="tinput" type="number" step="0.1" min="0" value="${val}" ` +
@@ -572,8 +617,8 @@ window.PT = (function () {
     const size = pf.account_size, tFrac = pctv / 100, tDollarM = tFrac * size;
     const pc = pace(pf), sp = spyPace(sizeTag(size));
     const lines = [];
-    // Hebrew label + values; w() isolates letter words (mo/SPY/target/over), numbers bare.
-    lines.push(`<div>יעד: ${sn(`${(tFrac * 100).toFixed(1)}%/mo ≈ $${_fmt(tDollarM)}/mo`)}</div>`);
+    // Natural Hebrew labels; applyRtl isolates SPY/numbers and keeps signs left.
+    lines.push(`<div>יעד: ${sn(`${(tFrac * 100).toFixed(1)}% לחודש ≈ $${_fmt(tDollarM)} לחודש`)}</div>`);
     if (!pc.ok) {
       lines.push(`<div class="muted">בפועל: ${pc.tooShort ? "טרם ניתן לחשב קצב (היסטוריה קצרה)" : "אין נתונים"}</div>`);
       if (pc.tooShort) lines.push(`<div>מאז התחלה: ${col(pc.gain, signedMoney(pc.gain))}</div>`);
@@ -583,11 +628,11 @@ window.PT = (function () {
     let badge = "";
     if (ratio != null) badge = ratio >= 1.1 ? `<span class="bd up">🚀 מקדים</span>`
       : ratio >= 0.9 ? `<span class="bd ok">✅ בקצב</span>` : `<span class="bd down">⚠️ מאחור</span>`;
-    const spTxt = sp.ok ? sn(` · SPY ${pctPlain(sp.paceM)}/mo`) : "";
+    const spTxt = sp.ok ? sn(` · SPY ${pctPlain(sp.paceM)} לחודש`) : "";
     const cumTarget = size * (Math.pow(1 + tFrac, pc.months) - 1);
-    lines.push(`<div>בפועל: ${col(pc.paceM, `${pct(pc.paceM, 1)}/mo ≈ $${_fmt(pc.paceDollar)}/mo`)}${spTxt}</div>`);
+    lines.push(`<div>בפועל: ${col(pc.paceM, `${pct(pc.paceM, 1)} לחודש ≈ $${_fmt(pc.paceDollar)} לחודש`)}${spTxt}</div>`);
     lines.push(`<div>השגת היעד: ${sn(ratio == null ? "—" : (ratio * 100).toFixed(0) + "%")} ${badge}</div>`);
-    lines.push(`<div class="muted">מאז התחלה: ${col(pc.gain, signedMoney(pc.gain))} ${sn(`· target ≈ $${_fmt(cumTarget)} over ${pc.months.toFixed(1)}mo`)}</div>`);
+    lines.push(`<div class="muted">מאז התחלה: ${col(pc.gain, signedMoney(pc.gain))} ${sn(`· יעד ≈ $${_fmt(cumTarget)} לאורך ${pc.months.toFixed(1)} חודשים`)}</div>`);
     return lines.join("");
   }
   function paceTargetHTML(pf, strategy) {
@@ -606,7 +651,7 @@ window.PT = (function () {
     const inp = document.getElementById("tin-" + strategy);
     if (inp) inp.value = mode === "%" ? round1(pctv) : Math.round(pctv / 100 * REF_SIZE);
     const btn = document.getElementById("ttog-" + strategy);
-    if (btn) btn.textContent = (mode === "%" ? "%/חודש" : "$/חודש (על $10k)") + " ⇄";
+    if (btn) btn.textContent = (mode === "%" ? "% לחודש" : "$ לחודש (על $10k)") + " ⇄";
     updateTargetUI(strategy);
   }
   function updateTargetUI(strategy) {
@@ -623,8 +668,9 @@ window.PT = (function () {
   }
 
   return {
-    FILES, ORDER, DESC, SCAN, IDLE, TARGET_DEFAULTS, FEES, REF_SIZE, DISCLAIMER,
+    FILES, ORDER, DESC, DESC_NOTE, SCAN, IDLE, TARGET_DEFAULTS, FEES, REF_SIZE, DISCLAIMER,
     w, sn, esc, applyRtl, wrapRuns, pct, pctPlain, money, money0, signedMoney, numf, cls, sizeTag, sizeLabel, relTime,
+    strategyNote, trackOf, orderRank,
     positionsOf, pendingOf, lastEq, prevEq, cumRet, dayChg, parseRank,
     cashSince, cashToday, commission, sizeWhole, affordability,
     pace, spyPace, getTarget, setTargetPct, getMode, setMode, resetTargets,

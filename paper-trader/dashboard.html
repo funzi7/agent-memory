@@ -72,7 +72,20 @@
 (function () {
   const P = window.PT, $ = (id) => document.getElementById(id);
   let chart = null;
+  // Let the browser restore scroll on back/forward; we also restore manually
+  // below in case the page is rebuilt rather than served from the BF-cache.
+  if ("scrollRestoration" in history) history.scrollRestoration = "auto";
   $("disclaimer").textContent = P.DISCLAIMER;
+
+  // After a back/forward navigation, jump back to where the user was (FIX 1).
+  function restoreScroll() {
+    try {
+      const nav = (performance.getEntriesByType && performance.getEntriesByType("navigation")[0]) || {};
+      if (nav.type !== "back_forward") return;
+      const y = sessionStorage.getItem("dash_scroll");
+      if (y != null) window.scrollTo(0, parseInt(y, 10) || 0);
+    } catch (e) { /* ignore */ }
+  }
 
   function summaryStrip(by) {
     const strip = $("strip");
@@ -104,7 +117,7 @@
       <div class="big">${P.sn(P.money(eq))}</div>
       <div class="cashline">${P.cashLineHTML(pf)}</div>
       <div class="row"><span class="lbl">תשואה מצטברת</span><span class="num ${P.cls(cr)}">${P.sn(P.pct(cr))}</span></div>
-      <div class="row"><span class="lbl">עודף מול ${P.w("SPY")}</span><span class="num ${P.cls(ex)}">${P.sn(ex == null ? "—" : (ex >= 0 ? "+" : "") + (ex * 100).toFixed(2) + "% pp")}</span></div>
+      <div class="row"><span class="lbl">עודף מול ${P.w("SPY")}</span><span class="num ${P.cls(ex)}">${P.sn(ex == null ? "—" : (ex >= 0 ? "+" : "") + (ex * 100).toFixed(2) + "% נק׳")}</span></div>
       ${body}
       ${P.paceTargetHTML(pf, strategy)}
     </div>`;
@@ -118,12 +131,13 @@
       div.className = "card link";
       div.tabIndex = 0;
       div.setAttribute("role", "link");
-      const open = () => { location.href = "./strategy.html?id=" + encodeURIComponent(s); };
+      // Save scroll position before leaving so "חזרה" lands back here (FIX 1).
+      const open = () => { try { sessionStorage.setItem("dash_scroll", String(window.scrollY)); } catch (e) {} location.href = "./strategy.html?id=" + encodeURIComponent(s); };
       div.addEventListener("click", (e) => { if (e.target.closest(".target-edit")) return; open(); });
       div.addEventListener("keydown", (e) => { if (e.key === "Enter") open(); });
       const blocks = ["100", "10k"].map(t => g[t] ? sizeBlock(g[t], s, benchRet, closes) : "").join("");
       div.innerHTML = `<h3>${P.esc(s)} <span class="arrow">פירוט ›</span></h3>` +
-        `<div class="desc">${P.DESC[s] || ""}</div>` +
+        `<div class="desc">${P.DESC[s] || ""}</div>` + P.strategyNote(s) +
         P.targetEditorHTML(s) +
         `<div class="sizes">${blocks}</div>`;
       host.appendChild(div);
@@ -170,6 +184,7 @@
       $("equityChart").style.display = "none"; $("tradesEmpty").style.display = "block";
     } finally {
       P.applyRtl(document.body);   // THE single bidi pass over everything just rendered
+      restoreScroll();             // land back at the prior position on "חזרה" (FIX 1)
       if (btn) btn.disabled = false;
     }
   }
