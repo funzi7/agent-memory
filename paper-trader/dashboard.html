@@ -101,7 +101,7 @@
       <div class="big">${P.money(eq)}</div>
       <div class="cashline">${P.cashLineHTML(pf)}</div>
       <div class="row"><span class="lbl">תשואה מצטברת</span><span class="num ${P.cls(cr)}">${P.pct(cr)}</span></div>
-      <div class="row"><span class="lbl">עודף מול ‎SPY‎</span><span class="num ${P.cls(ex)}">${ex == null ? P.w("—") : P.pct(ex) + " pp"}</span></div>
+      <div class="row"><span class="lbl">עודף מול ‎SPY‎</span><span class="num ltr ${P.cls(ex)}">${ex == null ? "—" : (ex >= 0 ? "+" : "") + (ex * 100).toFixed(2) + "% pp"}</span></div>
       ${body}
       ${P.paceTargetHTML(pf, strategy)}
     </div>`;
@@ -150,7 +150,7 @@
       $("asof").textContent = st.last ? "נכון לתאריך " + P.w(st.last) : "";
       $("ago").textContent = P.relTime(st.last);
       const by = P.groupByStrategy(st.portfolios);
-      const strategies = P.strategyOrder(by);
+      const strategies = P.activityOrder(by);
       const benchRet = {};
       for (const p of Object.values(st.portfolios)) if (p.strategy === "benchmark") benchRet[P.sizeTag(p.account_size)] = P.cumRet(p);
       summaryStrip(by);
