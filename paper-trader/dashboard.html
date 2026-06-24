@@ -49,10 +49,12 @@
   <h2 class="sec">עסקאות אחרונות</h2>
   <div class="panel">
     <div id="tradesEmpty" class="empty" style="display:none">אין עסקאות עדיין</div>
-    <table id="trades"><thead><tr>
-      <th>תאריך</th><th>אסטרטגיה</th><th>טיקר</th><th>פעולה</th>
-      <th>כמות</th><th>מחיר</th><th>סיבה</th>
-    </tr></thead><tbody></tbody></table>
+    <div class="tablewrap">
+      <table id="trades"><thead><tr>
+        <th>תאריך</th><th>אסטרטגיה</th><th>טיקר</th><th>פעולה</th>
+        <th>כמות</th><th>מחיר</th><th>סיבה</th>
+      </tr></thead><tbody></tbody></table>
+    </div>
   </div>
 
   <div class="disclaimer" id="disclaimer"></div>
@@ -84,10 +86,10 @@
       if (best == null || d > best.d) best = { s, d }; if (worst == null || d < worst.d) worst = { s, d }; }
     const card = (k, v, vc, s) => `<div class="stat"><span class="k">${k}</span><span class="v ${vc || ''}">${v}</span><span class="s">${s || ''}</span></div>`;
     strip.innerHTML =
-      card("‎SPY‎ (‎benchmark‎)", P.pct(bench), P.cls(bench), "תשואה מצטברת") +
-      card("ממוצע אסטרטגיות ‎$10k‎", P.pct(avg), P.cls(avg), beating == null ? "" : P.w(beating + "/" + others.length) + " מנצחות את השוק") +
-      (best ? card("הטובה ביותר היום", P.w(best.s), "", P.pct(best.d, 2)) : "") +
-      (worst ? card("החלשה ביותר היום", P.w(worst.s), "", P.pct(worst.d, 2)) : "");
+      card("‎SPY‎ (‎benchmark‎)", P.sn(P.pct(bench)), P.cls(bench), "תשואה מצטברת") +
+      card("ממוצע אסטרטגיות ‎$10k‎", P.sn(P.pct(avg)), P.cls(avg), beating == null ? "" : P.sn(beating + "/" + others.length) + " מנצחות את השוק") +
+      (best ? card("הטובה ביותר היום", P.w(best.s), "", P.sn(P.pct(best.d, 2))) : "") +
+      (worst ? card("החלשה ביותר היום", P.w(worst.s), "", P.sn(P.pct(worst.d, 2))) : "");
   }
 
   function sizeBlock(pf, strategy, benchRet, closes) {
@@ -98,10 +100,10 @@
     const body = (hold || pend) ? (hold + pend) : `<div class="muted" style="margin-top:.35rem">‎—‎ במזומן</div>`;
     return `<div class="size">
       <span class="tag">${P.sizeLabel(pf.account_size)}</span>
-      <div class="big">${P.money(eq)}</div>
+      <div class="big">${P.sn(P.money(eq))}</div>
       <div class="cashline">${P.cashLineHTML(pf)}</div>
-      <div class="row"><span class="lbl">תשואה מצטברת</span><span class="num ${P.cls(cr)}">${P.pct(cr)}</span></div>
-      <div class="row"><span class="lbl">עודף מול ${P.w("SPY")}</span><span class="num ${P.cls(ex)}">${ex == null ? "—" : P.w((ex >= 0 ? "+" : "") + (ex * 100).toFixed(2) + "% pp")}</span></div>
+      <div class="row"><span class="lbl">תשואה מצטברת</span><span class="num ${P.cls(cr)}">${P.sn(P.pct(cr))}</span></div>
+      <div class="row"><span class="lbl">עודף מול ${P.w("SPY")}</span><span class="num ${P.cls(ex)}">${P.sn(ex == null ? "—" : (ex >= 0 ? "+" : "") + (ex * 100).toFixed(2) + "% pp")}</span></div>
       ${body}
       ${P.paceTargetHTML(pf, strategy)}
     </div>`;

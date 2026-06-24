@@ -44,9 +44,11 @@
   <h2 class="sec">עסקאות אחרונות באסטרטגיה</h2>
   <div class="panel">
     <div id="tradesEmpty" class="empty" style="display:none">אין עסקאות עדיין</div>
-    <table id="trades"><thead><tr>
-      <th>תאריך</th><th>טיקר</th><th>פעולה</th><th>כמות</th><th>מחיר</th><th>סיבה</th>
-    </tr></thead><tbody></tbody></table>
+    <div class="tablewrap">
+      <table id="trades"><thead><tr>
+        <th>תאריך</th><th>טיקר</th><th>פעולה</th><th>כמות</th><th>מחיר</th><th>סיבה</th>
+      </tr></thead><tbody></tbody></table>
+    </div>
   </div>
 
   <div class="disclaimer" id="disclaimer"></div>
@@ -71,10 +73,10 @@
     const pend = P.pendingHTML(pf, closes);
     return `<div class="col card">
       <h3>${P.sizeLabel(pf.account_size)}</h3>
-      <div class="big" style="font-size:1.2rem;font-weight:700">${P.money(eq)}</div>
+      <div class="big" style="font-size:1.2rem;font-weight:700">${P.sn(P.money(eq))}</div>
       <div class="cashline">${P.cashLineHTML(pf)}</div>
-      <div class="row"><span class="lbl">תשואה מצטברת</span><span class="num ${P.cls(cr)}">${P.pct(cr)}</span></div>
-      <div class="row"><span class="lbl">עודף מול ${P.w("SPY")}</span><span class="num ${P.cls(ex)}">${ex == null ? "—" : P.w((ex >= 0 ? "+" : "") + (ex * 100).toFixed(2) + "% pp")}</span></div>
+      <div class="row"><span class="lbl">תשואה מצטברת</span><span class="num ${P.cls(cr)}">${P.sn(P.pct(cr))}</span></div>
+      <div class="row"><span class="lbl">עודף מול ${P.w("SPY")}</span><span class="num ${P.cls(ex)}">${P.sn(ex == null ? "—" : (ex >= 0 ? "+" : "") + (ex * 100).toFixed(2) + "% pp")}</span></div>
       <div style="margin-top:.5rem;font-size:.8rem;color:var(--muted)">החזקות</div>
       ${hold}
       ${pend ? `<div style="margin-top:.5rem;font-size:.8rem;color:var(--muted)">פקודות מחר</div>${pend}` : ""}

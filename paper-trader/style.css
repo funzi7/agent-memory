@@ -55,6 +55,21 @@ h2.sec{ font-size:.95rem; margin:1.4rem .2rem .6rem; }
 table{ width:100%; border-collapse:collapse; margin-top:.45rem; font-size:.78rem; }
 th,td{ text-align:right; padding:.28rem .3rem; border-bottom:1px solid var(--line); vertical-align:top; }
 th{ color:var(--muted); font-weight:600; font-size:.72rem; }
+
+/* recent-trades: on mid widths the table may scroll WITHIN its card (never the
+   whole page); on phones each trade collapses into a compact stacked card so no
+   column is clipped and the page never scrolls sideways. */
+.tablewrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+@media(max-width:560px){
+  .tablewrap{ overflow-x:visible; }
+  #trades thead{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); border:0; }
+  #trades, #trades tbody, #trades tr, #trades td{ display:block; width:100%; }
+  #trades tr{ border:1px solid var(--line); border-radius:10px; background:#10161d; padding:.45rem .6rem; margin:.5rem 0; }
+  #trades td{ border:0; padding:.1rem 0; display:flex; align-items:baseline; justify-content:space-between; gap:.9rem;
+    overflow-wrap:anywhere; word-break:break-word; }
+  #trades td::before{ content:attr(data-label); color:var(--muted); font-size:.72rem; flex:0 0 auto; }
+  #trades td.reason{ flex-direction:column; align-items:stretch; gap:.1rem; }
+}
 .sub{ display:block; color:var(--muted); font-size:.68rem; margin-top:.05rem; }
 .badge{ font-size:.62rem; background:#3a2d10; color:var(--amber); border:1px solid #5a4516; border-radius:6px; padding:.02rem .3rem; margin-inline-start:.25rem; }
 .pend{ margin-top:.35rem; font-size:.74rem; color:var(--muted); line-height:1.5; }

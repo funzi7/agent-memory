@@ -71,9 +71,19 @@ window.PT = (function () {
   const numf = (x) => x == null ? "—" : String(x);
   const sizeTag = (n) => n === 10000 ? "10k" : String(Math.round(n));
   const sizeLabel = (n) => "$" + (n === 10000 ? "10,000" : Math.round(n));
-  // colored numeric value: a color span whose inner text is letter-run wrapped
-  // (the number itself has no letters, so it stays bare and rides natural bidi).
-  const col = (x, txt) => `<span class="${cls(x)}">${w(txt)}</span>`;
+  // LTR-isolate a numeric/technical value so its sign sits on the LEFT and its
+  // currency / percent / units stay in order even inside an RTL (plaintext) line.
+  // This is the single shared "signed-number" helper used everywhere a value is
+  // shown: "-0.05%" renders with the minus on the left, "+$5.00" likewise. One
+  // isolate per value (or per cohesive value+units run) — never one isolate per
+  // digit, which is what scrambled the earlier attempts.
+  const sn = (txt) => (txt == null ? "" : `<bdi dir="ltr">${esc(txt)}</bdi>`);
+  // colored numeric value: a color span whose inner value is LTR-isolated (sign
+  // on the left) so coloured deltas like "+$5.00" / "-$3.20" read correctly.
+  const col = (x, txt) => `<span class="${cls(x)}">${sn(txt)}</span>`;
+  // Clear Hebrew label for the engine's cryptic "6-1" momentum tag (DISPLAY only;
+  // JSON/CSV field names are never touched).
+  const MOM_LABEL = "מומנטום";
 
   function relTime(iso) {
     if (!iso) return "";
@@ -334,12 +344,20 @@ window.PT = (function () {
     if (opts.strategy) rows = rows.filter(t => t.strategy === opts.strategy);
     rows = rows.slice(-(opts.limit || 20)).reverse();
     if (!rows.length) return "";
+    // data-label on every cell drives the stacked "card per trade" layout on phones
+    // (CSS @media); numeric/technical cells are LTR-isolated so signs/$ read right.
     return rows.map(t => {
       const side = t.side === "BUY" ? "🟢 קנייה" : "🔴 מכירה";
-      const price = (t.fill_price != null && t.fill_price !== "") ? money(parseFloat(t.fill_price)) : "—";
-      const strat = opts.strategy ? "" : `<td>${w(t.strategy)}</td>`;
-      return `<tr><td>${w(t.date)}</td>${strat}<td>${w(t.ticker)}</td><td>${side}</td>` +
-        `<td class="num">${w(t.shares)}</td><td class="num">${price}</td><td class="muted">${w(t.reason)}</td></tr>`;
+      const price = (t.fill_price != null && t.fill_price !== "") ? sn(money(parseFloat(t.fill_price))) : "—";
+      const strat = opts.strategy ? "" : `<td data-label="אסטרטגיה">${w(t.strategy)}</td>`;
+      return `<tr>` +
+        `<td data-label="תאריך">${sn(t.date)}</td>` + strat +
+        `<td data-label="טיקר">${w(t.ticker)}</td>` +
+        `<td data-label="פעולה">${esc(side)}</td>` +
+        `<td class="num" data-label="כמות">${sn(numf(t.shares))}</td>` +
+        `<td class="num" data-label="מחיר">${price}</td>` +
+        `<td class="muted reason" data-label="סיבה">${sn(reasonAscii(t.reason))}</td>` +
+        `</tr>`;
     }).join("");
   }
 
@@ -356,7 +374,7 @@ window.PT = (function () {
     const s = col(since, signedMoney(since));
     // No Latin letters here: Hebrew labels + bare numbers + colour spans, laid out
     // by the plaintext container. (No per-number isolates -> no scrambling.)
-    return `מזומן: ${money(p.cash)} (יומי ${t} · מאז התחלה ${s})`;
+    return `מזומן: ${sn(money(p.cash))} (יומי ${t} · מאז התחלה ${s})`;
   }
 
   // ---- holdings table ----
@@ -379,24 +397,26 @@ window.PT = (function () {
         const bits = [];
         if (q.rank != null) bits.push("rank " + q.rank);
         const m = q.momentum_6_1 != null ? q.momentum_6_1 : (q.mom != null ? q.mom : null);
-        if (m != null) bits.push((q.partial ? "6-1(short) " : "6-1 ") + pct(m, 1));
+        if (m != null) bits.push(MOM_LABEL + " " + pct(m, 1));
         if (q.trail_pct != null && p.strategy === "leveraged_momentum") bits.push("trail " + (q.trail_pct * 100).toFixed(0) + "%");
         if (q.partial) bits.push("partial");
-        // letter words (rank/trail/partial/short) get <bdi>; numbers stay bare.
-        if (bits.length) sub = `<span class="sub">${w(bits.join(" · "))}</span>`;
+        // The whole annotation is ONE LTR isolate: signs sit on the left, units
+        // stay ordered, and the Hebrew label (מומנטום) still reads right-to-left
+        // within it. Replaces the cryptic "6-1" with a clear Hebrew label.
+        if (bits.length) sub = `<span class="sub">${sn(bits.join(" · "))}</span>`;
       }
       const wtTxt = wt == null ? "—" : (wt * 100).toFixed(1) + "%";
-      const cellsCommon = `<td class="num">${numf(q.shares)}</td>`;
+      const cellsCommon = `<td class="num">${sn(numf(q.shares))}</td>`;
       if (opts.detailed) {
         rows += `<tr><td>${w(tk)}${sub}</td>${cellsCommon}` +
-          `<td class="num">${money(q.avg_price)}</td>` +
-          `<td class="num">${mv == null ? "—" : money(mv)}</td>` +
-          `<td class="num">${wtTxt}</td>` +
-          `<td class="num ${cls(pnl)}">${pct(pnl)}</td></tr>`;
+          `<td class="num">${sn(money(q.avg_price))}</td>` +
+          `<td class="num">${mv == null ? "—" : sn(money(mv))}</td>` +
+          `<td class="num">${sn(wtTxt)}</td>` +
+          `<td class="num ${cls(pnl)}">${sn(pct(pnl))}</td></tr>`;
       } else {
         rows += `<tr><td>${w(tk)}${sub}</td>${cellsCommon}` +
-          `<td class="num">${wtTxt}</td>` +
-          `<td class="num ${cls(pnl)}">${pct(pnl)}</td></tr>`;
+          `<td class="num">${sn(wtTxt)}</td>` +
+          `<td class="num ${cls(pnl)}">${sn(pct(pnl))}</td></tr>`;
       }
     }
     return `<table><thead>${head}</thead><tbody>${rows}</tbody></table>`;
@@ -404,31 +424,36 @@ window.PT = (function () {
 
   // ---- affordability-aware pending preview (BIDI: each Latin run isolated) ----
   const _fmt = (x) => Number(x).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  // Replace the engine's "6-1" / "6-1(short)" momentum tag with a clear Hebrew
+  // label for DISPLAY only (the underlying reason string in the CSV is untouched).
+  const relabelMom = (s) => String(s == null ? "" : s)
+    .replace(/6-1\s*\(short\)/gi, MOM_LABEL + " (חלקי)")
+    .replace(/6-1/g, MOM_LABEL);
   // commas -> middle dots so a comma never sits between Hebrew and a Latin run.
-  const reasonAscii = (r) => String(r || "").replace(/\s*,\s*/g, " · ");
+  const reasonAscii = (r) => relabelMom(String(r || "").replace(/\s*,\s*/g, " · "));
   function pendingHTML(p, closes) {
     const a = affordability(p, closes);
     if (!a.sells.length && !a.bought.length && !a.unbuyable.length && !a.not_bought.length && !a.unpriced.length) return "";
     const L = [];
-    // Each line is built as ONE plain string, then w() isolates only its Latin-letter
-    // tokens (tickers, rank/unit/cash) and leaves numbers/signs bare for the plaintext
-    // container to lay out left-to-right after the Hebrew label.
-    if (a.sells.length) L.push(`<div class="pend">${w("⏳ מכירה: " + a.sells.join(" · "))}</div>`);
+    // Each line = an RTL Hebrew label + ONE LTR isolate holding the technical tail
+    // (tickers, prices, rank, מומנטום, signed %). The isolate keeps every sign on
+    // the left and the tail in reading order; the Hebrew label stays right-aligned.
+    if (a.sells.length) L.push(`<div class="pend">⏳ מכירה: ${sn(a.sells.join(" · "))}</div>`);
     for (const b of a.bought) {
-      let line = `⏳ קנייה: ${b.shares} ${b.ticker} @ ~$${_fmt(b.price)} (≈$${_fmt(b.cost)})`;
-      if (b.reason) line += " · " + reasonAscii(b.reason);
-      L.push(`<div class="pend">${w(line)}</div>`);
+      let tail = `${b.shares} ${b.ticker} @ ~$${_fmt(b.price)} (≈$${_fmt(b.cost)})`;
+      if (b.reason) tail += " · " + reasonAscii(b.reason);
+      L.push(`<div class="pend">⏳ קנייה: ${sn(tail)}</div>`);
     }
     for (const u of a.unbuyable) {
-      L.push(`<div class="pend skip">${w(`⏳ לא ניתנת לרכישה: ${u.ticker} — unit $${_fmt(u.price)} > cash $${_fmt(a.avail)}`)}</div>`);
+      L.push(`<div class="pend skip">⏳ לא ניתנת לרכישה: ${sn(`${u.ticker} — unit $${_fmt(u.price)} > cash $${_fmt(a.avail)}`)}</div>`);
     }
     for (const n of a.not_bought) {
-      L.push(`<div class="pend skip">${w(`⏳ לא נקנתה הפעם (הקצאה שוות-משקל קטנה מהמחיר): ${n.ticker}`)}</div>`);
+      L.push(`<div class="pend skip">⏳ לא נקנתה הפעם (הקצאה שוות-משקל קטנה מהמחיר): ${sn(n.ticker)}</div>`);
     }
     for (const o of a.unpriced) {
-      let line = `⏳ קנייה: ${o.ticker}`;
-      if (o.reason) line += " · " + reasonAscii(o.reason);
-      L.push(`<div class="pend">${w(line)}</div>`);
+      let tail = o.ticker;
+      if (o.reason) tail += " · " + reasonAscii(o.reason);
+      L.push(`<div class="pend">⏳ קנייה: ${sn(tail)}</div>`);
     }
     return L.join("");
   }
@@ -436,8 +461,8 @@ window.PT = (function () {
   // ---- DUAL %/$ target tracker ----
   function targetPreview(strategy, pctv) {
     if (getMode(strategy) === "%")
-      return w(`≈ $${_fmt(pctv / 100 * 100)}/mo on $100 · $${_fmt(pctv / 100 * 10000)}/mo on $10k`);
-    return w(`= ${(pctv).toFixed(2)}%/mo · input on $10k`);
+      return sn(`≈ $${_fmt(pctv / 100 * 100)}/mo on $100 · $${_fmt(pctv / 100 * 10000)}/mo on $10k`);
+    return sn(`= ${(pctv).toFixed(2)}%/mo · input on $10k`);
   }
   function targetEditorHTML(strategy) {
     const pctv = getTarget(strategy), mode = getMode(strategy);
@@ -455,7 +480,7 @@ window.PT = (function () {
     const pc = pace(pf), sp = spyPace(sizeTag(size));
     const lines = [];
     // Hebrew label + values; w() isolates letter words (mo/SPY/target/over), numbers bare.
-    lines.push(`<div>יעד: ${w(`${(tFrac * 100).toFixed(1)}%/mo ≈ $${_fmt(tDollarM)}/mo`)}</div>`);
+    lines.push(`<div>יעד: ${sn(`${(tFrac * 100).toFixed(1)}%/mo ≈ $${_fmt(tDollarM)}/mo`)}</div>`);
     if (!pc.ok) {
       lines.push(`<div class="muted">בפועל: ${pc.tooShort ? "טרם ניתן לחשב קצב (היסטוריה קצרה)" : "אין נתונים"}</div>`);
       if (pc.tooShort) lines.push(`<div>מאז התחלה: ${col(pc.gain, signedMoney(pc.gain))}</div>`);
@@ -465,11 +490,11 @@ window.PT = (function () {
     let badge = "";
     if (ratio != null) badge = ratio >= 1.1 ? `<span class="bd up">🚀 מקדים</span>`
       : ratio >= 0.9 ? `<span class="bd ok">✅ בקצב</span>` : `<span class="bd down">⚠️ מאחור</span>`;
-    const spTxt = sp.ok ? w(` · SPY ${pctPlain(sp.paceM)}/mo`) : "";
+    const spTxt = sp.ok ? sn(` · SPY ${pctPlain(sp.paceM)}/mo`) : "";
     const cumTarget = size * (Math.pow(1 + tFrac, pc.months) - 1);
     lines.push(`<div>בפועל: ${col(pc.paceM, `${pct(pc.paceM, 1)}/mo ≈ $${_fmt(pc.paceDollar)}/mo`)}${spTxt}</div>`);
-    lines.push(`<div>השגת היעד: ${ratio == null ? "—" : (ratio * 100).toFixed(0) + "%"} ${badge}</div>`);
-    lines.push(`<div class="muted">מאז התחלה: ${col(pc.gain, signedMoney(pc.gain))} ${w(`· target ≈ $${_fmt(cumTarget)} over ${pc.months.toFixed(1)}mo`)}</div>`);
+    lines.push(`<div>השגת היעד: ${sn(ratio == null ? "—" : (ratio * 100).toFixed(0) + "%")} ${badge}</div>`);
+    lines.push(`<div class="muted">מאז התחלה: ${col(pc.gain, signedMoney(pc.gain))} ${sn(`· target ≈ $${_fmt(cumTarget)} over ${pc.months.toFixed(1)}mo`)}</div>`);
     return lines.join("");
   }
   function paceTargetHTML(pf, strategy) {
@@ -504,7 +529,7 @@ window.PT = (function () {
 
   return {
     FILES, ORDER, DESC, SCAN, IDLE, TARGET_DEFAULTS, FEES, REF_SIZE, DISCLAIMER,
-    w, esc, pct, pctPlain, money, money0, signedMoney, numf, cls, sizeTag, sizeLabel, relTime,
+    w, sn, esc, pct, pctPlain, money, money0, signedMoney, numf, cls, sizeTag, sizeLabel, relTime,
     positionsOf, pendingOf, lastEq, prevEq, cumRet, dayChg, parseRank,
     cashSince, cashToday, commission, sizeWhole, affordability,
     pace, spyPace, getTarget, setTargetPct, getMode, setMode, resetTargets,
