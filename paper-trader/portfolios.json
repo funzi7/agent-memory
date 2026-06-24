@@ -1,0 +1,583 @@
+{
+  "last_processed_date": "2026-06-23",
+  "portfolios": {
+    "benchmark_100": {
+      "portfolio_id": "benchmark_100",
+      "strategy": "benchmark",
+      "account_size": 100.0,
+      "cash": 100.0,
+      "positions": {},
+      "pending_orders": [
+        {
+          "ticker": "SPYM",
+          "side": "BUY",
+          "reason": "buy & hold init",
+          "orig": "SPY"
+        }
+      ],
+      "equity_history": [
+        [
+          "2026-06-09",
+          100.0
+        ],
+        [
+          "2026-06-23",
+          100.0
+        ]
+      ],
+      "stats": {
+        "n_trades": 0,
+        "n_wins": 0,
+        "gross_profit": 0.0,
+        "gross_loss": 0.0
+      },
+      "fees_paid_total": 0.0
+    },
+    "benchmark_10k": {
+      "portfolio_id": "benchmark_10k",
+      "strategy": "benchmark",
+      "account_size": 10000.0,
+      "cash": 454.700266754151,
+      "positions": {
+        "SPY": {
+          "ticker": "SPY",
+          "shares": 13.0,
+          "avg_price": 734.176902557373,
+          "entry_date": "2026-06-23",
+          "bars_held": 1,
+          "cost_basis": 9545.299733245849,
+          "high_water": 734.176902557373
+        }
+      },
+      "pending_orders": [],
+      "equity_history": [
+        [
+          "2026-06-09",
+          10000.0
+        ],
+        [
+          "2026-06-23",
+          9991.24048892212
+        ]
+      ],
+      "stats": {
+        "n_trades": 0,
+        "n_wins": 0,
+        "gross_profit": 0.0,
+        "gross_loss": 0.0
+      },
+      "fees_paid_total": 1.0
+    },
+    "rsi2_100": {
+      "portfolio_id": "rsi2_100",
+      "strategy": "rsi2",
+      "account_size": 100.0,
+      "cash": 100.0,
+      "positions": {},
+      "pending_orders": [],
+      "equity_history": [
+        [
+          "2026-06-09",
+          100.0
+        ],
+        [
+          "2026-06-23",
+          100.0
+        ]
+      ],
+      "stats": {
+        "n_trades": 0,
+        "n_wins": 0,
+        "gross_profit": 0.0,
+        "gross_loss": 0.0
+      },
+      "fees_paid_total": 0.0
+    },
+    "rsi2_10k": {
+      "portfolio_id": "rsi2_10k",
+      "strategy": "rsi2",
+      "account_size": 10000.0,
+      "cash": 10000.0,
+      "positions": {},
+      "pending_orders": [],
+      "equity_history": [
+        [
+          "2026-06-09",
+          10000.0
+        ],
+        [
+          "2026-06-23",
+          10000.0
+        ]
+      ],
+      "stats": {
+        "n_trades": 0,
+        "n_wins": 0,
+        "gross_profit": 0.0,
+        "gross_loss": 0.0
+      },
+      "fees_paid_total": 0.0
+    },
+    "trend200_100": {
+      "portfolio_id": "trend200_100",
+      "strategy": "trend200",
+      "account_size": 100.0,
+      "cash": 100.0,
+      "positions": {},
+      "pending_orders": [
+        {
+          "ticker": "QQQM",
+          "side": "BUY",
+          "reason": "close>200SMA (713.65>628.63)",
+          "orig": "QQQ"
+        }
+      ],
+      "equity_history": [
+        [
+          "2026-06-09",
+          100.0
+        ],
+        [
+          "2026-06-23",
+          100.0
+        ]
+      ],
+      "stats": {
+        "n_trades": 0,
+        "n_wins": 0,
+        "gross_profit": 0.0,
+        "gross_loss": 0.0
+      },
+      "fees_paid_total": 0.0
+    },
+    "trend200_10k": {
+      "portfolio_id": "trend200_10k",
+      "strategy": "trend200",
+      "account_size": 10000.0,
+      "cash": 689.727817016601,
+      "positions": {
+        "QQQ": {
+          "ticker": "QQQ",
+          "shares": 13.0,
+          "avg_price": 716.0978602294922,
+          "entry_date": "2026-06-23",
+          "bars_held": 1,
+          "cost_basis": 9310.272182983399,
+          "high_water": 716.0978602294922
+        }
+      },
+      "pending_orders": [],
+      "equity_history": [
+        [
+          "2026-06-09",
+          10000.0
+        ],
+        [
+          "2026-06-23",
+          9967.178134399413
+        ]
+      ],
+      "stats": {
+        "n_trades": 0,
+        "n_wins": 0,
+        "gross_profit": 0.0,
+        "gross_loss": 0.0
+      },
+      "fees_paid_total": 1.0
+    },
+    "rotation_100": {
+      "portfolio_id": "rotation_100",
+      "strategy": "rotation",
+      "account_size": 100.0,
+      "cash": 100.0,
+      "positions": {},
+      "pending_orders": [],
+      "equity_history": [
+        [
+          "2026-06-09",
+          100.0
+        ],
+        [
+          "2026-06-23",
+          100.0
+        ]
+      ],
+      "stats": {
+        "n_trades": 0,
+        "n_wins": 0,
+        "gross_profit": 0.0,
+        "gross_loss": 0.0
+      },
+      "fees_paid_total": 0.0
+    },
+    "rotation_10k": {
+      "portfolio_id": "rotation_10k",
+      "strategy": "rotation",
+      "account_size": 10000.0,
+      "cash": 10000.0,
+      "positions": {},
+      "pending_orders": [],
+      "equity_history": [
+        [
+          "2026-06-09",
+          10000.0
+        ],
+        [
+          "2026-06-23",
+          10000.0
+        ]
+      ],
+      "stats": {
+        "n_trades": 0,
+        "n_wins": 0,
+        "gross_profit": 0.0,
+        "gross_loss": 0.0
+      },
+      "fees_paid_total": 0.0
+    },
+    "momentum_scan_100": {
+      "portfolio_id": "momentum_scan_100",
+      "strategy": "momentum_scan",
+      "account_size": 100.0,
+      "cash": 100.0,
+      "positions": {},
+      "pending_orders": [
+        {
+          "ticker": "GFS",
+          "side": "BUY",
+          "reason": "rank 3, 6-1 +147.6%"
+        },
+        {
+          "ticker": "INTC",
+          "side": "BUY",
+          "reason": "rank 1, 6-1 +245.2%"
+        },
+        {
+          "ticker": "MRVL",
+          "side": "BUY",
+          "reason": "rank 4, 6-1 +142.7%"
+        },
+        {
+          "ticker": "MU",
+          "side": "BUY",
+          "reason": "rank 2, 6-1 +233.8%"
+        },
+        {
+          "ticker": "ON",
+          "side": "BUY",
+          "reason": "rank 5, 6-1 +140.6%"
+        }
+      ],
+      "equity_history": [
+        [
+          "2026-06-23",
+          100.0
+        ]
+      ],
+      "stats": {
+        "n_trades": 0,
+        "n_wins": 0,
+        "gross_profit": 0.0,
+        "gross_loss": 0.0
+      },
+      "fees_paid_total": 0.0
+    },
+    "momentum_scan_10k": {
+      "portfolio_id": "momentum_scan_10k",
+      "strategy": "momentum_scan",
+      "account_size": 10000.0,
+      "cash": 10000.0,
+      "positions": {},
+      "pending_orders": [
+        {
+          "ticker": "GFS",
+          "side": "BUY",
+          "reason": "rank 3, 6-1 +147.6%"
+        },
+        {
+          "ticker": "INTC",
+          "side": "BUY",
+          "reason": "rank 1, 6-1 +245.2%"
+        },
+        {
+          "ticker": "MRVL",
+          "side": "BUY",
+          "reason": "rank 4, 6-1 +142.7%"
+        },
+        {
+          "ticker": "MU",
+          "side": "BUY",
+          "reason": "rank 2, 6-1 +233.8%"
+        },
+        {
+          "ticker": "ON",
+          "side": "BUY",
+          "reason": "rank 5, 6-1 +140.6%"
+        }
+      ],
+      "equity_history": [
+        [
+          "2026-06-23",
+          10000.0
+        ]
+      ],
+      "stats": {
+        "n_trades": 0,
+        "n_wins": 0,
+        "gross_profit": 0.0,
+        "gross_loss": 0.0
+      },
+      "fees_paid_total": 0.0
+    },
+    "leveraged_momentum_100": {
+      "portfolio_id": "leveraged_momentum_100",
+      "strategy": "leveraged_momentum",
+      "account_size": 100.0,
+      "cash": 100.0,
+      "positions": {},
+      "pending_orders": [
+        {
+          "ticker": "AMDL",
+          "side": "BUY",
+          "reason": "rank 3, 6-1 +187.4%"
+        },
+        {
+          "ticker": "KORU",
+          "side": "BUY",
+          "reason": "rank 1, 6-1 +473.8%"
+        },
+        {
+          "ticker": "SOXL",
+          "side": "BUY",
+          "reason": "rank 2, 6-1 +419.3%"
+        },
+        {
+          "ticker": "TECL",
+          "side": "BUY",
+          "reason": "rank 5, 6-1 +84.7%"
+        },
+        {
+          "ticker": "USD",
+          "side": "BUY",
+          "reason": "rank 4, 6-1 +94.3%"
+        }
+      ],
+      "equity_history": [
+        [
+          "2026-06-23",
+          100.0
+        ]
+      ],
+      "stats": {
+        "n_trades": 0,
+        "n_wins": 0,
+        "gross_profit": 0.0,
+        "gross_loss": 0.0
+      },
+      "fees_paid_total": 0.0
+    },
+    "leveraged_momentum_10k": {
+      "portfolio_id": "leveraged_momentum_10k",
+      "strategy": "leveraged_momentum",
+      "account_size": 10000.0,
+      "cash": 10000.0,
+      "positions": {},
+      "pending_orders": [
+        {
+          "ticker": "AMDL",
+          "side": "BUY",
+          "reason": "rank 3, 6-1 +187.4%"
+        },
+        {
+          "ticker": "KORU",
+          "side": "BUY",
+          "reason": "rank 1, 6-1 +473.8%"
+        },
+        {
+          "ticker": "SOXL",
+          "side": "BUY",
+          "reason": "rank 2, 6-1 +419.3%"
+        },
+        {
+          "ticker": "TECL",
+          "side": "BUY",
+          "reason": "rank 5, 6-1 +84.7%"
+        },
+        {
+          "ticker": "USD",
+          "side": "BUY",
+          "reason": "rank 4, 6-1 +94.3%"
+        }
+      ],
+      "equity_history": [
+        [
+          "2026-06-23",
+          10000.0
+        ]
+      ],
+      "stats": {
+        "n_trades": 0,
+        "n_wins": 0,
+        "gross_profit": 0.0,
+        "gross_loss": 0.0
+      },
+      "fees_paid_total": 0.0
+    },
+    "guru_track_100": {
+      "portfolio_id": "guru_track_100",
+      "strategy": "guru_track",
+      "account_size": 100.0,
+      "cash": 100.0,
+      "positions": {},
+      "pending_orders": [],
+      "equity_history": [
+        [
+          "2026-06-23",
+          100.0
+        ]
+      ],
+      "stats": {
+        "n_trades": 0,
+        "n_wins": 0,
+        "gross_profit": 0.0,
+        "gross_loss": 0.0
+      },
+      "fees_paid_total": 0.0
+    },
+    "guru_track_10k": {
+      "portfolio_id": "guru_track_10k",
+      "strategy": "guru_track",
+      "account_size": 10000.0,
+      "cash": 10000.0,
+      "positions": {},
+      "pending_orders": [],
+      "equity_history": [
+        [
+          "2026-06-23",
+          10000.0
+        ]
+      ],
+      "stats": {
+        "n_trades": 0,
+        "n_wins": 0,
+        "gross_profit": 0.0,
+        "gross_loss": 0.0
+      },
+      "fees_paid_total": 0.0
+    },
+    "screener_track_100": {
+      "portfolio_id": "screener_track_100",
+      "strategy": "screener_track",
+      "account_size": 100.0,
+      "cash": 100.0,
+      "positions": {},
+      "pending_orders": [
+        {
+          "ticker": "ADBE",
+          "side": "BUY",
+          "reason": "screener shortlist #5"
+        },
+        {
+          "ticker": "CELH",
+          "side": "BUY",
+          "reason": "screener shortlist #2"
+        },
+        {
+          "ticker": "FSLR",
+          "side": "BUY",
+          "reason": "screener shortlist #4"
+        },
+        {
+          "ticker": "NVDA",
+          "side": "BUY",
+          "reason": "screener shortlist #1"
+        },
+        {
+          "ticker": "PODD",
+          "side": "BUY",
+          "reason": "screener shortlist #6"
+        },
+        {
+          "ticker": "RBLX",
+          "side": "BUY",
+          "reason": "screener shortlist #7"
+        },
+        {
+          "ticker": "TSM",
+          "side": "BUY",
+          "reason": "screener shortlist #3"
+        }
+      ],
+      "equity_history": [
+        [
+          "2026-06-23",
+          100.0
+        ]
+      ],
+      "stats": {
+        "n_trades": 0,
+        "n_wins": 0,
+        "gross_profit": 0.0,
+        "gross_loss": 0.0
+      },
+      "fees_paid_total": 0.0
+    },
+    "screener_track_10k": {
+      "portfolio_id": "screener_track_10k",
+      "strategy": "screener_track",
+      "account_size": 10000.0,
+      "cash": 10000.0,
+      "positions": {},
+      "pending_orders": [
+        {
+          "ticker": "ADBE",
+          "side": "BUY",
+          "reason": "screener shortlist #5"
+        },
+        {
+          "ticker": "CELH",
+          "side": "BUY",
+          "reason": "screener shortlist #2"
+        },
+        {
+          "ticker": "FSLR",
+          "side": "BUY",
+          "reason": "screener shortlist #4"
+        },
+        {
+          "ticker": "NVDA",
+          "side": "BUY",
+          "reason": "screener shortlist #1"
+        },
+        {
+          "ticker": "PODD",
+          "side": "BUY",
+          "reason": "screener shortlist #6"
+        },
+        {
+          "ticker": "RBLX",
+          "side": "BUY",
+          "reason": "screener shortlist #7"
+        },
+        {
+          "ticker": "TSM",
+          "side": "BUY",
+          "reason": "screener shortlist #3"
+        }
+      ],
+      "equity_history": [
+        [
+          "2026-06-23",
+          10000.0
+        ]
+      ],
+      "stats": {
+        "n_trades": 0,
+        "n_wins": 0,
+        "gross_profit": 0.0,
+        "gross_loss": 0.0
+      },
+      "fees_paid_total": 0.0
+    }
+  }
+}
