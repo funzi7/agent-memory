@@ -23,3 +23,9 @@ date,portfolio_id,strategy,ticker,side,shares,fill_price,commission,cash_after,e
 2026-06-24,screener_track_10k,screener_track,PODD,BUY,9.0,144.9024,1.0,3265.38,10042.09,screener shortlist #6
 2026-06-24,screener_track_10k,screener_track,RBLX,BUY,30.0,47.0235,1.0,1853.68,10068.59,screener shortlist #7
 2026-06-24,screener_track_10k,screener_track,TSM,BUY,3.0,434.192,1.0,550.1,10087.5,screener shortlist #3
+2026-06-25,swing_100,swing,SWK,BUY,1.0,89.985,0.8999,9.12,101.43,"פריצה #4 +3.4% מעל הרף, RSI 67"
+2026-06-25,swing_10k,swing,BKNG,BUY,11.0,181.1505,1.0,8006.34,9953.89,"פריצה #5 +3.1% מעל הרף, RSI 65"
+2026-06-25,swing_10k,swing,DHI,BUY,11.0,168.2641,1.0,6154.44,9938.44,"פריצה #3 +5.5% מעל הרף, RSI 69"
+2026-06-25,swing_10k,swing,EXPE,BUY,7.0,260.3801,1.0,4330.78,9871.43,"פריצה #1 +7.0% מעל הרף, RSI 70"
+2026-06-25,swing_10k,swing,MHK,BUY,16.0,120.3501,1.0,2404.18,9880.83,"פריצה #2 +6.0% מעל הרף, RSI 65"
+2026-06-25,swing_10k,swing,SWK,BUY,22.0,89.985,1.0,423.51,9930.98,"פריצה #4 +3.4% מעל הרף, RSI 67"
