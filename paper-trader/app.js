@@ -634,8 +634,43 @@ window.PT = (function () {
       String(r == null ? "" : r).replace(/["'׳״]/g, "").replace(/\s*,\s*/g, " · "))
     .replace(/screener\s+shortlist\s*#?\s*/i, "דירוג סקרינר #")
     .replace(/\bshortlist\s*#?\s*/i, "דירוג #")
-    .replace(/\brank\s+(\d+)/gi, "דירוג $1");
+    .replace(/\brank\s+(\d+)/gi, "דירוג $1")
+    // swing "פריצה #N" — the N is shown separately as דירוג N, so drop it here.
+    .replace(/(פריצה)\s*#\d+/g, "$1");
+
+  // Swing pending orders self-describe (structured rank / price / qty), so render
+  // them straight from those fields — ordered by RANK (1 first), each showing its
+  // price, and split into real buys (qty>0) vs unaffordable (qty=0) — instead of
+  // re-deriving affordability from closes.json (which may not price the S&P names).
+  function pendingStructuredHTML(p) {
+    const pend = (pendingOf(p) || []).slice();
+    if (!pend.length) return "";
+    const rk = (o) => (typeof o.rank === "number" ? o.rank : Infinity);
+    const sells = pend.filter(o => o.side === "SELL");
+    const buys = pend.filter(o => o.side === "BUY")
+      .sort((a, b) => (rk(a) - rk(b)) || String(a.ticker).localeCompare(b.ticker));
+    const L = [];
+    if (sells.length) L.push(`<div class="pend">⏳ מכירה: ${sn(sells.map(o => o.ticker).join(" · "))}</div>`);
+    for (const o of buys) {
+      const px = (typeof o.price === "number") ? `$${_fmt(o.price)}` : "—";
+      const rankTxt = (typeof o.rank === "number") ? ` · דירוג ${o.rank}` : "";
+      const reasonTxt = o.reason ? " · " + reasonAscii(o.reason) : "";
+      if (o.qty && o.qty > 0) {
+        // real planned buy (next-open): qty units @ estimated price.
+        L.push(`<div class="pend">⏳ קנייה: ${sn(`${o.qty} יח׳ ${o.ticker} @ ${px}${rankTxt}${reasonTxt}`)}</div>`);
+      } else {
+        // unaffordable at the account size — show the price, amber/hourglass.
+        L.push(`<div class="pend skip">⏳ לא ניתנת לרכישה: ${sn(`${o.ticker} — יחידה ${px}${rankTxt}${reasonTxt}`)}</div>`);
+      }
+    }
+    return L.join("");
+  }
+
   function pendingHTML(p, closes) {
+    // Swing carries structured rank/price/qty on each order → render from those
+    // (rank-ordered, priced, qty>0 buy vs qty=0 unaffordable). Other strategies
+    // keep the closes-based affordability preview below.
+    if (p && p.strategy === "swing") return pendingStructuredHTML(p);
     const a = affordability(p, closes);
     if (!a.sells.length && !a.bought.length && !a.unbuyable.length && !a.not_bought.length && !a.unpriced.length) return "";
     // Quality-track suffix per ticker (only when the data carries A/B).
