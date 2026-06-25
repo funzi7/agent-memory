@@ -21,7 +21,7 @@ button:active{ transform:translateY(1px); }
 button:disabled{ opacity:.6; }
 button.ghost{ background:transparent; color:var(--muted); border:1px solid var(--line); font-weight:500; }
 button.ghost:hover{ color:var(--ink); border-color:#3a6fd0; }
-main{ padding:1rem; max-width:1160px; margin:0 auto; }
+main{ padding:1rem; max-width:1600px; margin:0 auto; }
 h2.sec{ font-size:.95rem; margin:1.4rem .2rem .6rem; }
 .back{ display:inline-block; margin:.2rem 0 .4rem; font-size:.9rem; }
 
@@ -50,8 +50,13 @@ h2.sec{ font-size:.95rem; margin:1.4rem .2rem .6rem; }
    behind a neighbour. PURE GRID ONLY — no CSS multi-column (column-count/columns),
    no JS masonry, no float, no absolute positioning (those are the classic causes
    of "a card hidden behind another"). The per-card resets below defensively clear
-   any inherited float/absolute/fixed-height/negative-margin. */
-.cards{ display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr));
+   any inherited float/absolute/fixed-height/negative-margin.
+   WIDTH: a generous 560px minimum so cards are wide and content reads on real
+   lines (no word-by-word wrapping). With the 1600px container that yields ~2 wide
+   columns on desktop (≥1920px), 2 on ~1440px, and the min(100%,…) guard collapses
+   to ONE full-width column on phones so it never overflows. */
+.cards{ display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%, 560px),1fr));
   gap:20px; align-items:start; }
 .card{ background:linear-gradient(180deg,var(--card),var(--card2));
   border:1px solid var(--line); border-radius:14px; padding:.9rem 1rem;
@@ -64,11 +69,13 @@ h2.sec{ font-size:.95rem; margin:1.4rem .2rem .6rem; }
 .card h3{ font-size:1rem; margin:0 0 .1rem; display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }
 .card h3 .arrow{ color:var(--muted); font-size:.85rem; }
 .card .desc{ font-size:.76rem; color:var(--muted); margin-bottom:.5rem; overflow-wrap:anywhere; }
-/* the two account-size columns inside a card; min-width:0 lets them shrink so a
-   wide holdings row wraps instead of forcing the card past its cell. */
-.sizes{ display:grid; grid-template-columns:1fr 1fr; gap:.7rem; }
+/* the two account-size sub-cards ($100 / $10k) inside a card. auto-fit with a
+   comfortable 240px min keeps them side by side and WIDE inside the wide outer
+   card, and collapses them to one full-width column only when the card itself is
+   narrow (phones / a single full-width card) — matching the outer card's roomy
+   feel, never thin strips. */
+.sizes{ display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:.7rem; }
 .sizes > *{ min-width:0; }
-@media(max-width:470px){ .sizes{ grid-template-columns:1fr; } }
 .size{ background:#10161d; border:1px solid var(--line); border-radius:11px; padding:.55rem .65rem; min-width:0; overflow-wrap:anywhere; }
 .size .tag{ font-size:.72rem; color:var(--muted); border:1px solid var(--line); border-radius:999px; padding:.02rem .5rem; }
 .size .big{ font-size:1.12rem; font-weight:700; margin:.3rem 0 .1rem; font-variant-numeric:tabular-nums; }
@@ -76,12 +83,15 @@ h2.sec{ font-size:.95rem; margin:1.4rem .2rem .6rem; }
 .row .lbl{ color:var(--muted); }
 .cashline{ font-size:.78rem; padding:.1rem 0; overflow-wrap:anywhere; }
 table{ width:100%; max-width:100%; border-collapse:collapse; margin-top:.45rem; font-size:.78rem; }
-th,td{ text-align:right; padding:.28rem .3rem; border-bottom:1px solid var(--line); vertical-align:top; overflow-wrap:anywhere; word-break:break-word; }
+th,td{ text-align:right; padding:.28rem .3rem; border-bottom:1px solid var(--line); vertical-align:top; overflow-wrap:anywhere; }
 th{ color:var(--muted); font-weight:600; font-size:.72rem; }
-/* holdings tables live INSIDE a card cell: fixed layout + wrapping cells keep a
-   wide row within the card so it never widens the cell or the grid. (The wider
-   recent-trades table stays auto and scrolls inside its own .tablewrap.) */
-.size table{ table-layout:fixed; }
+/* Holdings tables size to content (auto layout): the ticker/sub column gets the
+   room it needs in the now-wider sub-card, so the holding line (טיקר · דירוג ·
+   כניסה · נוכחי · רו״ה) reads naturally instead of one token per line. Numeric
+   columns stay tight; long $ tokens wrap only as a last resort (overflow-wrap).
+   The wider recent-trades table is separate and scrolls inside its own
+   .tablewrap. */
+.size table{ table-layout:auto; }
 
 /* recent-trades: wide screens get the table inside a card that can scroll
    horizontally if ever needed (never the whole PAGE); phones (<=560px) get a
