@@ -45,9 +45,14 @@ h2.sec{ font-size:.95rem; margin:1.4rem .2rem .6rem; }
 .actions{ display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; }
 .actions button{ padding:.34rem .62rem; font-size:.8rem; }
 
-/* cards */
-.cards{ display:grid; grid-template-columns:repeat(auto-fill,minmax(360px,1fr)); gap:1rem; }
-.card{ background:linear-gradient(180deg,var(--card),var(--card2));
+/* cards — robust responsive grid: each card owns its own cell, so VARIABLE card
+   heights can never make them overlap at any width. auto-fill packs as many
+   320px+ columns as fit (multi-column desktop, 1 column on phones); align-items:
+   start lets each card size to its own content (no row-stretch / no masonry that
+   could bleed). min-width:0 stops a wide inner table from forcing overflow. */
+.cards{ display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+  gap:16px; align-items:start; }
+.card{ background:linear-gradient(180deg,var(--card),var(--card2)); min-width:0;
   border:1px solid var(--line); border-radius:14px; padding:.9rem 1rem; }
 .card.link{ cursor:pointer; transition:border-color .15s, transform .05s; }
 .card.link:hover{ border-color:#3a6fd0; }

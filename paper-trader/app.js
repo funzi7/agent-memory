@@ -10,19 +10,26 @@ window.PT = (function () {
   // Data sits next to this file (Pages same-origin); fetch RELATIVE paths.
   const FILES = { state: "portfolios.json", closes: "closes.json", trades: "trades.csv" };
 
+  // CANONICAL ordering PREFERENCE only — never a filter. The dashboard renders
+  // whatever strategies exist in portfolios.json (see activityOrder/strategyOrder,
+  // which append any strategy not listed here), so a NEW strategy appears with
+  // zero changes. swing is listed for a stable fallback slot; it still shows even
+  // if this list were never touched.
   const ORDER = ["benchmark", "rsi2", "trend200", "rotation", "momentum_scan",
-                 "leveraged_momentum", "guru_track", "screener_track"];
+                 "leveraged_momentum", "swing", "guru_track", "screener_track"];
   const DESC = {
     benchmark: "קנה-החזק ‎SPY‎", rsi2: "‎RSI(2)‎ על ‎SPY‎",
     trend200: "‎QQQ‎ מעל ממוצע ‎200‎", rotation: "רוטציה חודשית ‎SPY/QQQ/TLT/GLD‎",
     momentum_scan: "מומנטום צולב נאסד״ק-‎100‎", leveraged_momentum: "מומנטום ‎ETF‎ ממונפים ‎2x/3x‎",
+    swing: "פריצת סווינג רב-איתותית על ‎S&P 500‎",
     guru_track: "בחירות ידניות", screener_track: "רשימת סקרינר איכות"
   };
   const SCAN = { momentum_scan: true, leveraged_momentum: true };
 
   // Extra per-strategy explanation shown under the description (both pages).
   const DESC_NOTE = {
-    screener_track: "מסלול A = חברה רווחית שעברה את כל השערים · מסלול B = חברה צומחת אך עדיין מפסידה (עברה רף מקל יותר)."
+    screener_track: "מסלול A = חברה רווחית שעברה את כל השערים · מסלול B = חברה צומחת אך עדיין מפסידה (עברה רף מקל יותר).",
+    swing: "כניסה: פריצה מעל שיא התקופה · מעל ממוצע המגמה · אישור נפח · ו-‎RSI‎ לא קיצוני. יציאה: סטופ הפסד / לקיחת רווח / שבירת ממוצע קצר / סטופ-זמן. הדירוג לפי עוצמת הפריצה."
   };
 
   // Why an all-cash strategy is idle (mirrors the report's footer reasons).
@@ -33,6 +40,7 @@ window.PT = (function () {
     rotation: "פועל רק בתחילת חודש",
     momentum_scan: "ממתין לסריקה החודשית / מצב שוק",
     leveraged_momentum: "ממתין לסריקה החודשית / מצב שוק",
+    swing: "ממתין לפריצה מאומתת (מגמה + נפח + ‎RSI‎)",
     guru_track: "אין בחירות ב-‎picks.yaml‎",
     screener_track: "טרם התקבלה רשימה מהסקרינר"
   };
@@ -40,7 +48,7 @@ window.PT = (function () {
   // DEFAULT monthly % targets per strategy (editable; in-memory only).
   const TARGET_DEFAULTS = {
     benchmark: 0.8, rsi2: 1.0, trend200: 1.0, rotation: 1.0,
-    momentum_scan: 1.5, leveraged_momentum: 2.5, screener_track: 1.2, guru_track: 1.0
+    momentum_scan: 1.5, leveraged_momentum: 2.5, swing: 1.5, screener_track: 1.2, guru_track: 1.0
   };
   // IBKR-Pro fee model + slippage (matches papertrader/portfolio.py + engine).
   const FEES = { per_share: 0.005, min: 1.0, max_pct: 0.01, slip: 0.0005 };
