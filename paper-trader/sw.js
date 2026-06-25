@@ -11,7 +11,7 @@
  */
 "use strict";
 
-const VERSION = "pt-dash-v8";
+const VERSION = "pt-dash-v9";
 const SHELL_CACHE = VERSION + "-shell";
 const DATA_CACHE = VERSION + "-data";
 

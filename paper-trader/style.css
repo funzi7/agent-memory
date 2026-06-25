@@ -26,13 +26,24 @@ h2.sec{ font-size:.95rem; margin:1.4rem .2rem .6rem; }
 .back{ display:inline-block; margin:.2rem 0 .4rem; font-size:.9rem; }
 
 /* summary strip */
-.strip{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:.7rem;
+.strip{ display:grid; grid-template-columns:repeat(auto-fit,minmax(165px,1fr)); gap:.7rem;
   background:linear-gradient(180deg,var(--card),var(--card2));
   border:1px solid var(--line); border-radius:14px; padding:.9rem; }
-.stat{ display:flex; flex-direction:column; gap:.15rem; }
+/* min-width:0 lets each cell shrink so a long value can't overflow into (and
+   overlap) the neighbour; values wrap inside their own cell instead. */
+.stat{ display:flex; flex-direction:column; gap:.15rem; min-width:0; }
 .stat .k{ font-size:.74rem; color:var(--muted); }
-.stat .v{ font-size:1.15rem; font-weight:700; font-variant-numeric:tabular-nums; }
+.stat .v{ font-size:1.15rem; font-weight:700; font-variant-numeric:tabular-nums;
+  overflow-wrap:anywhere; }
+/* strategy NAMES (best/worst today) are long identifiers — smaller and wrapping
+   onto their own line(s) so "leveraged_momentum" never collides with its label. */
+.stat .v.name{ font-size:.9rem; font-weight:600; line-height:1.2;
+  word-break:break-word; font-variant-numeric:normal; }
 .stat .s{ font-size:.74rem; color:var(--muted); }
+
+/* header action buttons: רענון + ↺ אפס יעדים sit together on ONE compact row */
+.actions{ display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; }
+.actions button{ padding:.34rem .62rem; font-size:.8rem; }
 
 /* cards */
 .cards{ display:grid; grid-template-columns:repeat(auto-fill,minmax(360px,1fr)); gap:1rem; }

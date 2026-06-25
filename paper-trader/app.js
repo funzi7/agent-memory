@@ -213,6 +213,20 @@ window.PT = (function () {
     const m = /(?:rank\s+|shortlist\s*#?\s*|#)(\d+)/i.exec(reason || "");
     return m ? +m[1] : null;
   }
+  // Each holding's own rank — positions don't carry it, so derive from the latest
+  // BUY trade reason for (strategy, ticker): "rank N" (momentum) / "shortlist #N"
+  // (screener). null when the strategy has no ranking (benchmark/rsi2/…).
+  function holdingRank(strategy, ticker) {
+    const trades = STATE.trades || [];
+    for (let i = trades.length - 1; i >= 0; i--) {
+      const t = trades[i];
+      if (t && t.strategy === strategy && t.ticker === ticker && t.side === "BUY") {
+        const r = orderRank(t.reason);
+        if (r != null) return r;
+      }
+    }
+    return null;
+  }
   // Screener quality track (A = profitable / B = loss-making but growing). Read
   // from a structured field if present, else parsed from a reason string. Returns
   // "A" | "B" | null — so the dashboard shows a badge only when the data has it.
@@ -381,10 +395,28 @@ window.PT = (function () {
   async function getJSON(u) { const r = await fetch(u, { cache: "no-store" }); if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }
   async function getText(u) { const r = await fetch(u, { cache: "no-store" }); if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); }
   function parseCSV(text) {
-    const lines = (text || "").trim().split(/\r?\n/);
-    if (lines.length < 2) return [];
-    const head = lines[0].split(",");
-    return lines.slice(1).map(line => { const c = line.split(","); const o = {}; head.forEach((h, i) => o[h.trim()] = c[i]); return o; });
+    // RFC-4180-ish: fields may be quoted and contain commas / "" escapes (the
+    // engine quotes any reason with a comma, e.g. "rank 3, 6-1 +147.6%"). A naive
+    // comma split leaked a stray quote into the reason — parse quotes properly.
+    text = String(text == null ? "" : text).replace(/\r\n?/g, "\n");
+    const rows = [];
+    let row = [], field = "", inQ = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (inQ) {
+        if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else inQ = false; }
+        else field += c;
+      } else if (c === '"') { inQ = true; }
+      else if (c === ",") { row.push(field); field = ""; }
+      else if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; }
+      else field += c;
+    }
+    if (field.length || row.length) { row.push(field); rows.push(row); }
+    if (rows.length < 2) return [];
+    const head = rows[0].map(h => h.trim());
+    return rows.slice(1)
+      .filter(r => r.length > 1 || (r[0] != null && r[0] !== ""))
+      .map(r => { const o = {}; head.forEach((h, i) => o[h] = r[i]); return o; });
   }
   async function loadAll() {
     const state = await getJSON(FILES.state);   // required
@@ -511,7 +543,7 @@ window.PT = (function () {
     const tks = Object.keys(pos).sort((a, b) => (_rankKey(pos[a].rank) - _rankKey(pos[b].rank)) || a.localeCompare(b));
     if (!tks.length) return "";
     const head = opts.detailed
-      ? "<tr><th>טיקר</th><th>כמות</th><th>מחיר ממוצע</th><th>שווי</th><th>משקל</th><th>רו״ה</th></tr>"
+      ? "<tr><th>טיקר</th><th>כמות</th><th>שווי</th><th>משקל</th><th>רו״ה</th></tr>"
       : "<tr><th>טיקר</th><th>כמות</th><th>משקל</th><th>רו״ה</th></tr>";
     let rows = "";
     for (const tk of tks) {
@@ -519,19 +551,21 @@ window.PT = (function () {
       const mv = close != null ? q.shares * close : null;
       const pnl = (mv != null && q.cost_basis) ? (mv - q.cost_basis) / q.cost_basis : null;
       const wt = (mv != null && eq) ? mv / eq : null;
-      let sub = "";
+      // Per-holding sub-line: its OWN rank (FIX 5) + entry & current price (FIX 4),
+      // then the scan-only momentum annotations. One plain run; applyRtl isolates
+      // the tickers/$ and keeps the Hebrew labels (דירוג/כניסה/נוכחי) right-to-left.
+      const bits = [];
+      const rk = (q.rank != null) ? q.rank : holdingRank(p.strategy, tk);
+      if (rk != null) bits.push("דירוג " + rk);
+      bits.push("כניסה " + money(q.avg_price));
+      bits.push("נוכחי " + (close != null ? money(close) : "—"));
       if (scan) {
-        const bits = [];
-        if (q.rank != null) bits.push("rank " + q.rank);
         const m = q.momentum_6_1 != null ? q.momentum_6_1 : (q.mom != null ? q.mom : null);
         if (m != null) bits.push(MOM_LABEL + " " + pct(m, 1));
-        if (q.trail_pct != null && p.strategy === "leveraged_momentum") bits.push("trail " + (q.trail_pct * 100).toFixed(0) + "%");
-        if (q.partial) bits.push("partial");
-        // The whole annotation is ONE LTR isolate: signs sit on the left, units
-        // stay ordered, and the Hebrew label (מומנטום) still reads right-to-left
-        // within it. Replaces the cryptic "6-1" with a clear Hebrew label.
-        if (bits.length) sub = `<span class="sub">${sn(bits.join(" · "))}</span>`;
+        if (q.trail_pct != null && p.strategy === "leveraged_momentum") bits.push("סטופ " + (q.trail_pct * 100).toFixed(0) + "%");
+        if (q.partial) bits.push("חלקי");
       }
+      const sub = `<span class="sub">${sn(bits.join(" · "))}</span>`;
       // Screener quality track badge (A/B) — shown only when the data carries it.
       let badge = "";
       if (p.strategy === "screener_track") { const tr = trackOf(q); if (tr) badge = trackBadge(tr); }
@@ -539,7 +573,6 @@ window.PT = (function () {
       const cellsCommon = `<td class="num">${sn(numf(q.shares))}</td>`;
       if (opts.detailed) {
         rows += `<tr><td>${w(tk)}${badge}${sub}</td>${cellsCommon}` +
-          `<td class="num">${sn(money(q.avg_price))}</td>` +
           `<td class="num">${mv == null ? "—" : sn(money(mv))}</td>` +
           `<td class="num">${sn(wtTxt)}</td>` +
           `<td class="num ${cls(pnl)}">${sn(pct(pnl))}</td></tr>`;
@@ -559,11 +592,14 @@ window.PT = (function () {
   const relabelMom = (s) => String(s == null ? "" : s)
     .replace(/6-1\s*\(short\)/gi, MOM_LABEL + " (חלקי)")
     .replace(/6-1/g, MOM_LABEL);
-  // commas -> middle dots, "6-1" -> מומנטום, and the screener's English "shortlist
-  // #N" -> Hebrew "דירוג סקרינר #N" (display only; underlying CSV/JSON untouched).
-  const reasonAscii = (r) => relabelMom(String(r || "").replace(/\s*,\s*/g, " · "))
+  // commas -> middle dots, "6-1" -> מומנטום, "rank N"/"shortlist #N" -> Hebrew
+  // "דירוג N", and strip any stray quote chars ("/'/gershayim that could leak in
+  // from a CSV reason). Display only; underlying CSV/JSON is untouched.
+  const reasonAscii = (r) => relabelMom(
+      String(r == null ? "" : r).replace(/["'׳״]/g, "").replace(/\s*,\s*/g, " · "))
     .replace(/screener\s+shortlist\s*#?\s*/i, "דירוג סקרינר #")
-    .replace(/shortlist\s*#?\s*/i, "דירוג #");
+    .replace(/\bshortlist\s*#?\s*/i, "דירוג #")
+    .replace(/\brank\s+(\d+)/gi, "דירוג $1");
   function pendingHTML(p, closes) {
     const a = affordability(p, closes);
     if (!a.sells.length && !a.bought.length && !a.unbuyable.length && !a.not_bought.length && !a.unpriced.length) return "";
