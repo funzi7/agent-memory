@@ -905,9 +905,45 @@
       "account_size": 100.0,
       "cash": 100.0,
       "positions": {},
-      "pending_orders": [],
-      "equity_history": [],
-      "cash_history": [],
+      "pending_orders": [
+        {
+          "ticker": "BKNG",
+          "side": "BUY",
+          "reason": "פריצה #5 +3.1% מעל הרף, RSI 65"
+        },
+        {
+          "ticker": "DHI",
+          "side": "BUY",
+          "reason": "פריצה #3 +5.5% מעל הרף, RSI 69"
+        },
+        {
+          "ticker": "EXPE",
+          "side": "BUY",
+          "reason": "פריצה #1 +7.0% מעל הרף, RSI 70"
+        },
+        {
+          "ticker": "MHK",
+          "side": "BUY",
+          "reason": "פריצה #2 +6.0% מעל הרף, RSI 65"
+        },
+        {
+          "ticker": "SWK",
+          "side": "BUY",
+          "reason": "פריצה #4 +3.4% מעל הרף, RSI 67"
+        }
+      ],
+      "equity_history": [
+        [
+          "2026-06-24",
+          100.0
+        ]
+      ],
+      "cash_history": [
+        [
+          "2026-06-24",
+          100.0
+        ]
+      ],
       "stats": {
         "n_trades": 0,
         "n_wins": 0,
@@ -924,9 +960,45 @@
       "account_size": 10000.0,
       "cash": 10000.0,
       "positions": {},
-      "pending_orders": [],
-      "equity_history": [],
-      "cash_history": [],
+      "pending_orders": [
+        {
+          "ticker": "BKNG",
+          "side": "BUY",
+          "reason": "פריצה #5 +3.1% מעל הרף, RSI 65"
+        },
+        {
+          "ticker": "DHI",
+          "side": "BUY",
+          "reason": "פריצה #3 +5.5% מעל הרף, RSI 69"
+        },
+        {
+          "ticker": "EXPE",
+          "side": "BUY",
+          "reason": "פריצה #1 +7.0% מעל הרף, RSI 70"
+        },
+        {
+          "ticker": "MHK",
+          "side": "BUY",
+          "reason": "פריצה #2 +6.0% מעל הרף, RSI 65"
+        },
+        {
+          "ticker": "SWK",
+          "side": "BUY",
+          "reason": "פריצה #4 +3.4% מעל הרף, RSI 67"
+        }
+      ],
+      "equity_history": [
+        [
+          "2026-06-24",
+          10000.0
+        ]
+      ],
+      "cash_history": [
+        [
+          "2026-06-24",
+          10000.0
+        ]
+      ],
       "stats": {
         "n_trades": 0,
         "n_wins": 0,
