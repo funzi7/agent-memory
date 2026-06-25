@@ -84,7 +84,12 @@ window.PT = (function () {
   // Rule 3 (targeted) — a number led by a SIGN or by a CURRENCY symbol, which is the
   // only case that lands on the wrong side inside an RTL line. Isolated LTR so the
   // sign/$ sit on the LEFT and travel with the digits.
-  const SIGNED_SRC = "[+\\-]\\$?\\d[\\d.,]*%?|\\$\\d[\\d.,]*%?";
+  // The FIRST alternative keeps a currency amount with a trailing letter-suffix
+  // ("$10k", "$10K", "$100k", "$1.5k") together as ONE LTR run — otherwise "$10"
+  // matches and the trailing "k" splits into its own isolate and floats to the LEFT
+  // of the number in an RTL line ("k$10"). It must precede the plain "$<digits>"
+  // alternatives so the suffix is captured, not dropped.
+  const SIGNED_SRC = "\\$\\d[\\d.,]*[A-Za-z][A-Za-z0-9]*%?|[+\\-]\\$?\\d[\\d.,]*%?|\\$\\d[\\d.,]*%?";
   const NONRTL_RUN = () => new RegExp(NONRTL_SRC, "g");      // fresh (own lastIndex)
   const TOKEN_RE = () => new RegExp("(" + SIGNED_SRC + ")|(" + NONRTL_SRC + ")", "g");
   const cls = (x) => (x == null || !isFinite(x)) ? "" : (x >= 0 ? "up" : "down");
