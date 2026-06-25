@@ -100,12 +100,15 @@
     let best = null, worst = null;
     for (const s of Object.keys(by)) { const p = by[s]["10k"]; if (!p) continue; const d = P.dayChg(p);
       if (best == null || d > best.d) best = { s, d }; if (worst == null || d < worst.d) worst = { s, d }; }
-    const card = (k, v, vc, s) => `<div class="stat"><span class="k">${k}</span><span class="v ${vc || ''}">${v}</span><span class="s">${s || ''}</span></div>`;
+    // title = full strategy name (tooltip) so an ellipsized long name stays readable.
+    const card = (k, v, vc, s, title) => `<div class="stat"><span class="k">${k}</span>` +
+      `<span class="v ${vc || ''}"${title ? ` title="${title}"` : ''}>${v}</span>` +
+      `<span class="s">${s || ''}</span></div>`;
     strip.innerHTML =
       card("‎SPY‎ (‎benchmark‎)", P.sn(P.pct(bench)), P.cls(bench), "תשואה מצטברת") +
       card("ממוצע אסטרטגיות ‎$10k‎", P.sn(P.pct(avg)), P.cls(avg), beating == null ? "" : P.sn(beating + "/" + others.length) + " מנצחות את השוק") +
-      (best ? card("הטובה ביותר היום", P.w(best.s), "name", P.sn(P.pct(best.d, 2))) : "") +
-      (worst ? card("החלשה ביותר היום", P.w(worst.s), "name", P.sn(P.pct(worst.d, 2))) : "");
+      (best ? card("הטובה ביותר היום", P.w(best.s), "name", P.sn(P.pct(best.d, 2)), P.esc(best.s)) : "") +
+      (worst ? card("החלשה ביותר היום", P.w(worst.s), "name", P.sn(P.pct(worst.d, 2)), P.esc(worst.s)) : "");
   }
 
   function sizeBlock(pf, strategy, benchRet, closes) {
