@@ -190,7 +190,22 @@ window.PT = (function () {
 
   function relTime(iso) {
     if (!iso) return "";
-    const then = new Date(iso + (iso.length <= 10 ? "T00:00:00Z" : "")).getTime();
+    // A date-only value is a processed trading DAY (e.g. "2026-06-24"). Report the
+    // CALENDAR-day difference to today, so 2026-06-24 on 2026-06-25 reads as ONE
+    // day ("אתמול"), not two. (The old code measured hours from midnight-UTC, which
+    // for an ~1.8-day gap rounded UP to "2 ימים" — an off-by-one / TZ artifact.)
+    const dm = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+    if (dm) {
+      const d0 = new Date(+dm[1], +dm[2] - 1, +dm[3]);   // local midnight of that date
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const days = Math.round((today - d0) / 86400000);
+      if (days <= 0) return "עודכן היום";
+      if (days === 1) return "עודכן אתמול";
+      return "עודכן לפני " + w(days + " ימים");
+    }
+    // Full timestamp -> elapsed-time wording.
+    const then = new Date(iso).getTime();
     if (isNaN(then)) return "";
     const sec = Math.max(0, (Date.now() - then) / 1000);
     if (sec < 90) return "עודכן זה עתה";
@@ -539,8 +554,15 @@ window.PT = (function () {
 
   // ---- cash line ----
   function cashLineHTML(p) {
-    const today = cashToday(p), since = cashSince(p);
-    const t = today == null ? "—" : col(today, signedMoney(today));
+    // BUG FIX: the daily / since-inception deltas are the TOTAL-EQUITY change
+    // (cash + market value of positions) vs the prior day / initial capital — NOT
+    // the cash movement. Money that left the cash balance to BUY shares is invested,
+    // not lost, so a fully-invested portfolio (little cash, lots of positions) must
+    // never read as a near-total loss. "מזומן" stays the real cash BALANCE.
+    const eqNow = lastEq(p);
+    const today = eqNow - prevEq(p);
+    const since = eqNow - (p.account_size || 0);
+    const t = col(today, signedMoney(today));
     const s = col(since, signedMoney(since));
     // Plain text + colour spans; applyRtl() sets the line dir=rtl and LTR-isolates
     // the $ balance and the signed deltas so the sign sits on the left.
