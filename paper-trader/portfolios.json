@@ -909,27 +909,42 @@
         {
           "ticker": "BKNG",
           "side": "BUY",
-          "reason": "פריצה #5 +3.1% מעל הרף, RSI 65"
+          "reason": "פריצה #5 +3.1% מעל הרף, RSI 65",
+          "rank": 5,
+          "price": 181.25,
+          "qty": 0
         },
         {
           "ticker": "DHI",
           "side": "BUY",
-          "reason": "פריצה #3 +5.5% מעל הרף, RSI 69"
+          "reason": "פריצה #3 +5.5% מעל הרף, RSI 69",
+          "rank": 3,
+          "price": 166.51,
+          "qty": 0
         },
         {
           "ticker": "EXPE",
           "side": "BUY",
-          "reason": "פריצה #1 +7.0% מעל הרף, RSI 70"
+          "reason": "פריצה #1 +7.0% מעל הרף, RSI 70",
+          "rank": 1,
+          "price": 262.15,
+          "qty": 0
         },
         {
           "ticker": "MHK",
           "side": "BUY",
-          "reason": "פריצה #2 +6.0% מעל הרף, RSI 65"
+          "reason": "פריצה #2 +6.0% מעל הרף, RSI 65",
+          "rank": 2,
+          "price": 119.09,
+          "qty": 0
         },
         {
           "ticker": "SWK",
           "side": "BUY",
-          "reason": "פריצה #4 +3.4% מעל הרף, RSI 67"
+          "reason": "פריצה #4 +3.4% מעל הרף, RSI 67",
+          "rank": 4,
+          "price": 89.66,
+          "qty": 1
         }
       ],
       "equity_history": [
@@ -964,27 +979,42 @@
         {
           "ticker": "BKNG",
           "side": "BUY",
-          "reason": "פריצה #5 +3.1% מעל הרף, RSI 65"
+          "reason": "פריצה #5 +3.1% מעל הרף, RSI 65",
+          "rank": 5,
+          "price": 181.25,
+          "qty": 11
         },
         {
           "ticker": "DHI",
           "side": "BUY",
-          "reason": "פריצה #3 +5.5% מעל הרף, RSI 69"
+          "reason": "פריצה #3 +5.5% מעל הרף, RSI 69",
+          "rank": 3,
+          "price": 166.51,
+          "qty": 11
         },
         {
           "ticker": "EXPE",
           "side": "BUY",
-          "reason": "פריצה #1 +7.0% מעל הרף, RSI 70"
+          "reason": "פריצה #1 +7.0% מעל הרף, RSI 70",
+          "rank": 1,
+          "price": 262.15,
+          "qty": 7
         },
         {
           "ticker": "MHK",
           "side": "BUY",
-          "reason": "פריצה #2 +6.0% מעל הרף, RSI 65"
+          "reason": "פריצה #2 +6.0% מעל הרף, RSI 65",
+          "rank": 2,
+          "price": 119.09,
+          "qty": 16
         },
         {
           "ticker": "SWK",
           "side": "BUY",
-          "reason": "פריצה #4 +3.4% מעל הרף, RSI 67"
+          "reason": "פריצה #4 +3.4% מעל הרף, RSI 67",
+          "rank": 4,
+          "price": 89.66,
+          "qty": 22
         }
       ],
       "equity_history": [
