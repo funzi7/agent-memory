@@ -898,6 +898,44 @@
       "fees_paid_total": 7.0,
       "cash_change_today": -9449.9,
       "cash_change_since_inception": -9449.9
+    },
+    "swing_100": {
+      "portfolio_id": "swing_100",
+      "strategy": "swing",
+      "account_size": 100.0,
+      "cash": 100.0,
+      "positions": {},
+      "pending_orders": [],
+      "equity_history": [],
+      "cash_history": [],
+      "stats": {
+        "n_trades": 0,
+        "n_wins": 0,
+        "gross_profit": 0.0,
+        "gross_loss": 0.0
+      },
+      "fees_paid_total": 0.0,
+      "cash_change_today": 0.0,
+      "cash_change_since_inception": 0.0
+    },
+    "swing_10k": {
+      "portfolio_id": "swing_10k",
+      "strategy": "swing",
+      "account_size": 10000.0,
+      "cash": 10000.0,
+      "positions": {},
+      "pending_orders": [],
+      "equity_history": [],
+      "cash_history": [],
+      "stats": {
+        "n_trades": 0,
+        "n_wins": 0,
+        "gross_profit": 0.0,
+        "gross_loss": 0.0
+      },
+      "fees_paid_total": 0.0,
+      "cash_change_today": 0.0,
+      "cash_change_since_inception": 0.0
     }
   }
 }
