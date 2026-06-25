@@ -45,32 +45,43 @@ h2.sec{ font-size:.95rem; margin:1.4rem .2rem .6rem; }
 .actions{ display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; }
 .actions button{ padding:.34rem .62rem; font-size:.8rem; }
 
-/* cards — robust responsive grid: each card owns its own cell, so VARIABLE card
-   heights can never make them overlap at any width. auto-fill packs as many
-   320px+ columns as fit (multi-column desktop, 1 column on phones); align-items:
-   start lets each card size to its own content (no row-stretch / no masonry that
-   could bleed). min-width:0 stops a wide inner table from forcing overflow. */
-.cards{ display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
-  gap:16px; align-items:start; }
-.card{ background:linear-gradient(180deg,var(--card),var(--card2)); min-width:0;
-  border:1px solid var(--line); border-radius:14px; padding:.9rem 1rem; }
+/* cards — robust responsive grid. Each card owns its own grid CELL, so a
+   data-heavy card just makes its column TALLER; it can never slide under or
+   behind a neighbour. PURE GRID ONLY — no CSS multi-column (column-count/columns),
+   no JS masonry, no float, no absolute positioning (those are the classic causes
+   of "a card hidden behind another"). The per-card resets below defensively clear
+   any inherited float/absolute/fixed-height/negative-margin. */
+.cards{ display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr));
+  gap:20px; align-items:start; }
+.card{ background:linear-gradient(180deg,var(--card),var(--card2));
+  border:1px solid var(--line); border-radius:14px; padding:.9rem 1rem;
+  /* the cell sizes via the grid; the card fills it and grows with its content */
+  min-width:0; width:auto; height:auto; position:static; float:none; margin:0;
+  overflow-wrap:anywhere; }
 .card.link{ cursor:pointer; transition:border-color .15s, transform .05s; }
 .card.link:hover{ border-color:#3a6fd0; }
 .card.link:active{ transform:translateY(1px); }
 .card h3{ font-size:1rem; margin:0 0 .1rem; display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }
 .card h3 .arrow{ color:var(--muted); font-size:.85rem; }
-.card .desc{ font-size:.76rem; color:var(--muted); margin-bottom:.5rem; }
+.card .desc{ font-size:.76rem; color:var(--muted); margin-bottom:.5rem; overflow-wrap:anywhere; }
+/* the two account-size columns inside a card; min-width:0 lets them shrink so a
+   wide holdings row wraps instead of forcing the card past its cell. */
 .sizes{ display:grid; grid-template-columns:1fr 1fr; gap:.7rem; }
+.sizes > *{ min-width:0; }
 @media(max-width:470px){ .sizes{ grid-template-columns:1fr; } }
-.size{ background:#10161d; border:1px solid var(--line); border-radius:11px; padding:.55rem .65rem; }
+.size{ background:#10161d; border:1px solid var(--line); border-radius:11px; padding:.55rem .65rem; min-width:0; overflow-wrap:anywhere; }
 .size .tag{ font-size:.72rem; color:var(--muted); border:1px solid var(--line); border-radius:999px; padding:.02rem .5rem; }
 .size .big{ font-size:1.12rem; font-weight:700; margin:.3rem 0 .1rem; font-variant-numeric:tabular-nums; }
 .row{ display:flex; justify-content:space-between; gap:.4rem; font-size:.8rem; padding:.1rem 0; }
 .row .lbl{ color:var(--muted); }
-.cashline{ font-size:.78rem; padding:.1rem 0; }
-table{ width:100%; border-collapse:collapse; margin-top:.45rem; font-size:.78rem; }
-th,td{ text-align:right; padding:.28rem .3rem; border-bottom:1px solid var(--line); vertical-align:top; }
+.cashline{ font-size:.78rem; padding:.1rem 0; overflow-wrap:anywhere; }
+table{ width:100%; max-width:100%; border-collapse:collapse; margin-top:.45rem; font-size:.78rem; }
+th,td{ text-align:right; padding:.28rem .3rem; border-bottom:1px solid var(--line); vertical-align:top; overflow-wrap:anywhere; word-break:break-word; }
 th{ color:var(--muted); font-weight:600; font-size:.72rem; }
+/* holdings tables live INSIDE a card cell: fixed layout + wrapping cells keep a
+   wide row within the card so it never widens the cell or the grid. (The wider
+   recent-trades table stays auto and scrolls inside its own .tablewrap.) */
+.size table{ table-layout:fixed; }
 
 /* recent-trades: wide screens get the table inside a card that can scroll
    horizontally if ever needed (never the whole PAGE); phones (<=560px) get a
