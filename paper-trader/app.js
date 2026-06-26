@@ -737,7 +737,15 @@ window.PT = (function () {
     const spTxt = sp.ok ? sn(` · SPY ${pctPlain(sp.paceM)} לחודש`) : "";
     const cumTarget = size * (Math.pow(1 + tFrac, pc.months) - 1);
     lines.push(`<div>בפועל: ${col(pc.paceM, `${pct(pc.paceM, 1)} לחודש ≈ $${_fmt(pc.paceDollar)} לחודש`)}${spTxt}</div>`);
-    lines.push(`<div>השגת היעד: ${sn(ratio == null ? "—" : (ratio * 100).toFixed(0) + "%")} ${badge}</div>`);
+    // PACE vs the user-set monthly target — NOT a return. Reworded from the old
+    // "השגת היעד: 224%" (mistaken for a +224% gain): use the MULTIPLE form (×2.2
+    // מהיעד) once you're past ~150% of pace, and "N% מהיעד" below that. The real
+    // return lives in the separate "תשואה מצטברת" row, so the two can't be confused.
+    let achTxt;
+    if (ratio == null) achTxt = "—";
+    else if (ratio >= 1.5) achTxt = "×" + ratio.toFixed(1) + " מהיעד";   // e.g. ×2.2 מהיעד
+    else achTxt = (ratio * 100).toFixed(0) + "% מהיעד";                  // e.g. 80% מהיעד
+    lines.push(`<div>קצב מול יעד: ${sn(achTxt)} ${badge}</div>`);
     lines.push(`<div class="muted">מאז התחלה: ${col(pc.gain, signedMoney(pc.gain))} ${sn(`· יעד ≈ $${_fmt(cumTarget)} לאורך ${pc.months.toFixed(1)} חודשים`)}</div>`);
     return lines.join("");
   }
