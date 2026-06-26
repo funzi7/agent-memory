@@ -590,6 +590,13 @@ window.PT = (function () {
       // then the scan-only momentum annotations. One plain run; applyRtl isolates
       // the tickers/$ and keeps the Hebrew labels (דירוג/כניסה/נוכחי) right-to-left.
       const bits = [];
+      if (p.strategy === "combined") {
+        // Derived blend: show which strategies contributed this (deduped) ticker.
+        // Strategy names are Latin identifiers → applyRtl isolates each run.
+        const src = Array.isArray(q.sources) ? q.sources : [];
+        if (src.length > 1) bits.push(`מוחזק ע״י ${src.length} אסטרטגיות (${src.join(" · ")})`);
+        else if (src.length === 1) bits.push(`מ-${src[0]}`);
+      } else {
       const rk = (q.rank != null) ? q.rank : holdingRank(p.strategy, tk);
       if (rk != null) bits.push("דירוג " + rk);
       bits.push("כניסה " + money(q.avg_price));
@@ -599,6 +606,7 @@ window.PT = (function () {
         if (m != null) bits.push(MOM_LABEL + " " + pct(m, 1));
         if (q.trail_pct != null && p.strategy === "leveraged_momentum") bits.push("סטופ " + (q.trail_pct * 100).toFixed(0) + "%");
         if (q.partial) bits.push("חלקי");
+      }
       }
       const sub = `<span class="sub">${sn(bits.join(" · "))}</span>`;
       // Screener quality track badge (A/B) — shown only when the data carries it.
@@ -638,6 +646,29 @@ window.PT = (function () {
     // swing "פריצה #N" — the N is shown separately as דירוג N, so drop it here.
     .replace(/(פריצה)\s*#\d+/g, "$1");
 
+  // A PARTIAL profit-taking sell (scale-out): {side:"SELL", qty, partial:true,
+  // reason:"מימוש חלקי …"}. Render it distinctly (♻️ green) with the qty so it's
+  // clear only PART of the position is sold — never a plain "מכירה". The reason
+  // already begins "מימוש חלקי", so strip that prefix to avoid a double label.
+  function partialSellRow(o) {
+    const head = (o.qty != null) ? `מכירת ${o.qty} יח׳ ${o.ticker}` : `מכירת ${o.ticker}`;
+    const r = o.reason ? reasonAscii(o.reason).replace(/^מימוש חלקי\s*/, "") : "";
+    return `<div class="pend partial">♻️ מימוש חלקי: ${sn(head + (r ? " · " + r : ""))}</div>`;
+  }
+  // Render pending SELL orders: each partial sell on its own ♻️ row (qty+reason),
+  // the remaining FULL sells collapsed into one "⏳ מכירה: T1 · T2" line. Shared by
+  // the swing path and the affordability path so partials look the same everywhere.
+  function sellLinesHTML(sellOrders, tb) {
+    tb = tb || (() => "");
+    const L = [], fulls = [];
+    for (const o of (sellOrders || [])) {
+      if (o.partial) L.push(partialSellRow(o));
+      else fulls.push(o.ticker + tb(o.ticker));
+    }
+    if (fulls.length) L.push(`<div class="pend">⏳ מכירה: ${sn(fulls.join(" · "))}</div>`);
+    return L;
+  }
+
   // Swing pending orders self-describe (structured rank / price / qty), so render
   // them straight from those fields — ordered by RANK (1 first), each showing its
   // price, and split into real buys (qty>0) vs unaffordable (qty=0) — instead of
@@ -649,8 +680,7 @@ window.PT = (function () {
     const sells = pend.filter(o => o.side === "SELL");
     const buys = pend.filter(o => o.side === "BUY")
       .sort((a, b) => (rk(a) - rk(b)) || String(a.ticker).localeCompare(b.ticker));
-    const L = [];
-    if (sells.length) L.push(`<div class="pend">⏳ מכירה: ${sn(sells.map(o => o.ticker).join(" · "))}</div>`);
+    const L = sellLinesHTML(sells);
     for (const o of buys) {
       const px = (typeof o.price === "number") ? `$${_fmt(o.price)}` : "—";
       const rankTxt = (typeof o.rank === "number") ? ` · דירוג ${o.rank}` : "";
@@ -680,7 +710,10 @@ window.PT = (function () {
     const L = [];
     // Each line = an RTL Hebrew label + a plain technical tail; applyRtl() isolates
     // tickers/rank (<bdi>) and signed/$ runs (LTR), keeping signs on the left.
-    if (a.sells.length) L.push(`<div class="pend">⏳ מכירה: ${sn(a.sells.join(" · "))}</div>`);
+    // Sells from the RAW orders (so partial:true / qty / reason survive — affordability
+    // only keeps tickers). Partial profit-takes get their own ♻️ row.
+    const sellOrders = pendingOf(p).filter(o => o.side === "SELL");
+    for (const line of sellLinesHTML(sellOrders, tb)) L.push(line);
     for (const b of a.bought) {
       let tail = `${b.shares} ${b.ticker} @ ~$${_fmt(b.price)} (≈$${_fmt(b.cost)})`;
       if (b.reason) tail += " · " + reasonAscii(b.reason);

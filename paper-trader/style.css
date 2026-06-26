@@ -117,6 +117,8 @@ th{ color:var(--muted); font-weight:600; font-size:.72rem; }
 .note{ font-size:.72rem; color:var(--muted); line-height:1.5; margin:.1rem 0 .5rem; }
 .pend{ margin-top:.35rem; font-size:.74rem; color:var(--muted); line-height:1.5; }
 .pend.skip{ color:var(--amber); }
+/* partial profit-take (scale-out) sell — distinct from a full sell (green) */
+.pend.partial{ color:var(--up); }
 .up{ color:var(--up); } .down{ color:var(--down); }
 .num{ font-variant-numeric:tabular-nums; }
 /* THE RTL RULEBOOK (see RTL-RULEBOOK.md). app.js applyRtl() sets dir per element
