@@ -5,33 +5,42 @@ twitterapi.io + the Anthropic/OpenAI APIs are firewalled here, so real reads run
 in GitHub Actions)._
 
 ## What this change did
-Fixed the twitter_track **classifier HTTP 400**. The reader now works (the
-`TWITTERAPI_API_KEY not set` error is gone); the next failure was at classification —
-`[twitter] twitter classify failed — api 400`, a bare status with no detail. This
-swaps **only the API request mechanics** (model id / request shape / headers / error
-logging) and adds a GPT fallback; the strict BUY/SELL/NONE classification logic,
-dedupe, and portfolio actions are unchanged. Rides on the same branch/PR as the
-twitterapi.io reader swap + the secret-wiring fix. Scoped to `funzi7/paper-trader`
-only (this cc-latest is the explicit handoff). No dashboard/data change.
+Fixed the twitter_track **classifier HTTP 400** — and, importantly, **reapplied it on
+a branch that actually reaches `main`.** The reader works (the `TWITTERAPI_API_KEY not
+set` error is gone); the next failure was `[twitter] twitter classify failed — api
+400`, a bare status with no detail. This swaps **only the API request mechanics**
+(model id / request shape / headers / error logging) and adds a GPT fallback; the
+strict BUY/SELL/NONE logic, dedupe, and portfolio actions are unchanged. Scoped to
+`funzi7/paper-trader` only.
 
-PR: https://github.com/funzi7/paper-trader/pull/14 (branch
-`claude/screener-paper-trader-bridge-jm1s4d`)
+**NEW PR: https://github.com/funzi7/paper-trader/pull/15**
+(branch `fix/twitter-classify-400-body`, diffed against current `origin/main`).
+
+## Git-hygiene root cause (why the earlier fix vanished)
+PR #14 (`claude/screener-paper-trader-bridge-jm1s4d`) merged ONLY its first commit
+(the twitterapi.io reader). Later commits — the classifier fix and the secret wiring —
+were pushed to that SAME branch *after* the PR had merged/closed, so they never
+reached `main`. **Rule now in CONTEXT.md §13:** once a PR is merged/closed its branch
+is dead; always `git fetch origin && git checkout origin/main && git checkout -b
+<fresh>` and open a NEW PR. (Verified on main before redoing: `classify_post` was still
+the old `return _none(f"api {resp.status_code}")`; the daily.yml keys *did* land
+separately, so no workflow change was needed here.)
 
 ## Surfacing the real cause (so we fix it, not guess)
 On any non-2xx the classifier now logs the **FULL provider error body, key-scrubbed**,
 into the run note — e.g. `anthropic api 400: {"error":{"type":"invalid_request_error",
-"message":"…"}} | openai api 400: {…}`. The next CI run will print the precise reason
+"message":"…"}} | openai api 400: {…}`. The next CI run prints the precise reason
 (stale model id / missing `max_tokens` / bad message shape / quota) instead of `api
 400`.
 
 ## Hardened request, per the current Anthropic Messages API spec
-Pure, unit-testable request **builders** (`build_anthropic_request` /
-`build_openai_request`) so the shape is verified offline against the docs:
-- **Anthropic (Claude, primary):** `POST /v1/messages`; REQUIRED `max_tokens` > 0 (a
-  missing/0 value is a classic 400); a **valid current model**
-  (`strategies.twitter_track.model`, default `claude-haiku-4-5-20251001`); the
-  instruction in the top-level **`system`** param (a `system` ROLE inside `messages`
-  can 400); headers `x-api-key`, `anthropic-version: 2023-06-01`, `content-type`.
+Pure, unit-testable **builders** (`build_anthropic_request` / `build_openai_request`),
+verified offline:
+- **Anthropic (Claude, primary):** `POST /v1/messages`; REQUIRED `max_tokens` > 0; a
+  **valid current model** (`strategies.twitter_track.model`, default
+  `claude-haiku-4-5-20251001`); instruction in the top-level **`system`** param (a
+  `system` ROLE inside `messages` can 400); headers `x-api-key`,
+  `anthropic-version: 2023-06-01`, `content-type`.
 - **OpenAI (GPT, fallback)** when Claude is unavailable/errors: `POST
   /v1/chat/completions`, `Authorization: Bearer <OPENAI_API_KEY>`, model
   `openai_model` (default `gpt-4o-mini`), system+user messages.
@@ -39,28 +48,25 @@ Pure, unit-testable request **builders** (`build_anthropic_request` /
 ## Non-destructive on failure (unchanged guarantee, re-verified)
 A classify failure returns a NONE carrying a `note` (the scrubbed body), so
 `run_cycle` does **not** advance the dedupe cursor — the post is retried next run and
-twitter_track is left unchanged. A genuine NONE classification has no note and is
-ignored. Classification path (Claude→GPT) and BUY=equal-weight / SELL=full-exit /
-NONE=ignore are identical.
+twitter_track is left unchanged. A genuine NONE has no note and is ignored.
 
 ## Verification (offline)
-- New `test_twitter_classifier`: request-builder shape (valid model, `max_tokens`>0,
-  `anthropic-version`+`x-api-key` headers, `system` param, user message; OpenAI
-  chat/completions + Bearer); claude-200 used (no fallback); claude-400 → GPT fallback
-  parses; both-400 → NONE with both bodies logged and keys scrubbed; genuine NONE has
-  no note; and a mocked 400 in `run_cycle` leaves the cursor before the post (retried).
+- New `test_twitter_classifier`: builder shape; claude-200 used (no fallback);
+  claude-400 → GPT fallback parses; both-400 → NONE with both bodies logged + keys
+  scrubbed; genuine NONE has no note; a mocked 400 in `run_cycle` leaves the cursor
+  before the post (retried).
 - `tests/selftest.py` **529 → 538 green**; `python main.py --dry-run --synthetic`
-  unchanged; no secrets printed. `config.yaml` adds `openai_model`; `daily.yml`
-  comment corrected (OPENAI_API_KEY is now actively consumed, not forward-compat).
-  `handoffs/CONTEXT.md` §5j + SECRETS updated in the same commit.
+  unchanged; no secrets printed. Diff is exactly 4 files vs `origin/main`
+  (`config.yaml` +`openai_model`, `papertrader/twitter.py`, `tests/selftest.py`,
+  `handoffs/CONTEXT.md` §5j + SECRETS + the new git-hygiene rule).
 
 ### Dashboard note (agent-memory side — nothing to change)
 Classifier-only fix; no agent-memory dashboard edit. Once a daily run classifies a
 real explicit trade, twitter_track populates like any strategy.
 
 ## Rules honored
-Scoped to `funzi7/paper-trader` only. Fixed the real 400 surface (model id / request
-shape / required headers / error-body logging) per the current API spec; kept
-classification logic + non-destructive retry intact; all three secrets
-(`TWITTERAPI_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`) scrubbed from every
-logged URL/body/error. Verified offline (selftest green; the live call runs in CI).
+ONLY `funzi7/paper-trader`. Branched fresh off `origin/main` and opened a NEW PR
+(#15) — did not touch the dead closed-PR branch. Fixed the real 400 surface (model id /
+request shape / required headers / error-body logging); kept classification logic +
+non-destructive retry intact; all three secrets scrubbed from every logged
+URL/body/error. Verified offline (selftest green; the live call runs in CI).
