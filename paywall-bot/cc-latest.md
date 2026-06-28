@@ -1,90 +1,61 @@
-# paywall-bot — foreign-script + Cocoon-label leak FIXES (2026-06-28)
+# paywall-bot — foreign-script + Cocoon-label fixes landed via PR #42 (2026-06-28)
 
-Branch `claude/article-inline-images` (PR #32). Implements the four fixes from
-the investigation @ agent-memory `a85290a`.
+The four foreign-script / Cocoon-label leak fixes now live on a fresh branch
+with an open PR to `main`, because the original PR #32 merged before the fix
+commit could be added to it.
 
-## New code SHA
-**`fcace5b`** (paywall-bot, branch `claude/article-inline-images`) — built on
-`2553d58`. Only four files changed: `core/article_parser.py`, `core/main.py`,
-`core/tg_bot.py`, `tests/test_message_format.py`.
+## Where it lives now
+- **PR #42** — `fix: route flash + channel through cleaner, add Thai, fix Cocoon label zero-width`
+  https://github.com/funzi7/paywall-bot/pull/42
+- **Branch:** `claude/foreign-script-cocoon-fixes`
+- **Branch head SHA:** `2a294ed` (`2a294ed57d2d92cd6dabbffc83bd54fea35da791`)
+- **Base:** `main` (cherry-pick base `f0d133e`, latest main at branch-creation time)
+- Status: OPEN, awaiting Codex review + CI; NOT merged (owner merges).
 
-## FIX 1 — flash route now cleans title + description (core/main.py `_post_flash`)
-Flash items (`/news-flashes/` + desc<200) bypass the fetch chain / `_finalize`,
-so raw RSS title+description shipped uncleaned. Now:
-```python
-title_clean = article_parser._global_clean_title(item.title or "")
-if not title_clean.strip():
-    title_clean = "מבזק"                      # placeholder so the link still posts
-body_clean = article_parser._global_clean_paragraph(item.description or "")
-...
-if body_clean:  # cleaned + 600-char truncate, full 🔸/body/🔗 layout
-else:           # foreign-dominant/empty body -> 🔸 title + 🔗 link ONLY
-```
+## Why a new PR
+PR #32 (`claude/article-inline-images`) was merged to main at 2026-06-28 05:37
+(merge commit `6c0432a`, head `2553d58`) just before fix commit `fcace5b` was
+pushed to that branch. A closed PR runs no `pull_request` CI and `ci.yml`'s
+`push` trigger is main-only, so `fcace5b` could not be CI-gated or merged from
+the old branch. Resolution: branched off latest `origin/main`, cherry-picked
+`fcace5b`, opened PR #42.
 
-## FIX 2 — drop foreign-dominant lines in the channel (core/tg_bot.py `_publish_clean_message`)
-Was: `if cleaned is None: out_lines.append(line)` (kept raw foreign line).
-Now: a non-blank line that cleans to `None` (foreign-dominant) is **dropped**
-(mirrors the Telegraph page's `if c` comprehensions); blank/whitespace-only
-lines are still preserved as structural spacing (checked before the cleaner).
-```python
-if not line.strip():
-    out_lines.append(line); continue   # structural blank kept
-cleaned = _global_clean_paragraph(line)
-if cleaned is None:
-    continue                            # foreign-dominant junk -> DROP
-out_lines.append(cleaned)
-```
+## Conflict status
+**Clean cherry-pick — no conflicts.** `fcace5b`'s parent `2553d58` is already in
+main via the #32 merge, so the diff applied directly (git auto-merged
+`core/article_parser.py`; both the inline-image feature already on main AND all
+four fixes are present). New commit on the branch: `2a294ed`.
 
-## FIX 3 — Thai added to char-strip ranges (core/article_parser.py `_GLOBAL_FOREIGN_RANGES`)
-`(0x0E00, 0x0E7F)  # Thai` added. It was only in `FOREIGN_SCRIPT_RANGES` (ratio
-detector); now Thai is char-stripped from mixed Hebrew lines like CJK/Cyrillic.
+## The four fixes (unchanged from fcace5b)
+1. **Flash route** (`core/main.py` `_post_flash`): clean `item.title` via
+   `_global_clean_title` (empty → `מבזק` placeholder) and `item.description`
+   via `_global_clean_paragraph`; foreign-dominant/empty body → title + 🔗 link
+   only (never raw body); keep 🔸/🔗 + 600-char truncate on cleaned body.
+2. **Channel** (`core/tg_bot.py` `_publish_clean_message`): a non-blank line that
+   cleans to None (foreign-dominant) is DROPPED (mirrors Telegraph page);
+   blank/whitespace-only separator lines kept verbatim.
+3. **Thai** (`core/article_parser.py` `_GLOBAL_FOREIGN_RANGES`): added
+   `(0x0E00, 0x0E7F)` so Thai is char-stripped from mixed lines.
+4. **Cocoon label** (`core/article_parser.py`): `_CAPTION_SEP` widens the
+   inter-word separator in `_COCOON_CAPTION_RE` + `_COCOON_CAPTION_INLINE_RE` to
+   accept Cf zero-width/bidi marks (U+200B/C/D/2060/FEFF/200E/200F) so the
+   Hebrew caption replacement fires; plus zero-width output hygiene
+   (`_ZERO_WIDTH_STRIP`, excludes LRM/RLM) at the end of both clean functions.
 
-## FIX 4 — Cocoon label tolerates zero-width/bidi separators (core/article_parser.py)
-`\s` does not match the Cf zero-width/bidi marks TheMarker's RTL markup inserts
-between "Cocoon"/"AI"/"Summary", so the English label survived. New shared class:
-```python
-_CAPTION_SEP = r"[\s​‌‍⁠﻿‎‏]+"
-_COCOON_CAPTION_RE        = ^\s*cocoon + _CAPTION_SEP + ai + _CAPTION_SEP + summary
-_COCOON_CAPTION_INLINE_RE = (?:\*{1,2}|_)*cocoon + _CAPTION_SEP + ai + _CAPTION_SEP + summary(?:\s*(?:\*{1,2}|_))*
-```
-So the Hebrew caption (`GLOBAL_COCOON_CAPTION_HE = "🤖 סיכום AI של TheMarker"`)
-fires regardless of separator. The marks are NOT pre-stripped before the match
-(that would fuse the words and break `+`). Separately, as output hygiene, the
-end of both `_global_clean_paragraph` and `_global_clean_title` strip the
-invisible zero-width chars via:
-```python
-_ZERO_WIDTH_STRIP = {0x200B:None,0x200C:None,0x200D:None,0x2060:None,0xFEFF:None}
-text = text.translate(_ZERO_WIDTH_STRIP)
-```
-U+200E/U+200F (LRM/RLM) are deliberately NOT stripped globally (direction marks)
-— they're handled only by the widened match.
+## Changed files (diff vs main) — only these four
+- core/article_parser.py  (+30/-~)
+- core/main.py            (+37/-~)
+- core/tg_bot.py          (+17/-~)
+- tests/test_message_format.py (+188)
+Total: 4 files, 254 insertions, 18 deletions.
 
-## Glued-CJK case (verification)
-`已经是זו וולוו…` (CJK fused to a Hebrew letter, no space, Hebrew-dominant) →
-char-strip removes the CJK and the line is KEPT (not nulled). This already held
-via `_finalize` cleaning `cocoon_paragraphs`; test K1K1K is a regression guard
-(passes before and after) — the old screenshots predate cocoon cleaning.
-
-## Tests — 7 added, full suite 141/141 green
-`python3 -m tests.test_message_format` → All tests passed (was 134/134).
-- E1E1E flash foreign desc → title+link only; Hebrew desc cleaned+included
-- F1F1F flash all-foreign title → Hebrew placeholder, link still posts
-- G1G1G channel: whole-CJK & whole-Russian DROPPED, Hebrew+CJK kept (CJK stripped), blanks preserved
-- H1H1H Thai stripped from mixed line
-- I1I1I caption replaced for ZWSP/LRM/RLM/word-joiner + plain + md-wrapped (paragraph AND title)
-- J1J1J zero-width chars (U+200B/C/D/2060/FEFF) stripped from final output
-- K1K1K CJK glued to Hebrew letter stripped, line kept
-6 of 7 fail-before/pass-after; K1K1K passes both (regression guard). No existing
-assertion weakened (the prior `_publish_clean_message` test E2E lines all clean
-to non-None, so the drop change doesn't affect them).
-
-## Verify outputs (local)
-- caption all shapes → `🤖 סיכום AI של TheMarker`
-- Thai: `מדד תל אביב สวัสดี ירד…` → Thai removed, Hebrew kept
-- channel: whole-CJK/whole-Russian dropped, Hebrew+CJK line kept w/ CJK stripped
-- zero-width hygiene: no U+200B/C/D/2060/FEFF in output
-- flash all-foreign title → `מבזק` placeholder + link
+## Tests
+`python3 -m tests.test_message_format` → **All tests passed, 141/141** (was
+134 on main pre-fix; +7 new: E1E1E/F1F1F flash, G1G1G channel-drop, H1H1H Thai,
+I1I1I caption zero-width/bidi, J1J1J zero-width hygiene, K1K1K CJK-glued guard).
+6 fail-before/pass-after; K1K1K passes both. No assertion weakened.
 
 ## CI
-`test-message-format` (`.github/workflows/ci.yml`) is the gate; green on the
-prior commit and re-running for `fcace5b` after push.
+PR #42 triggered `test-message-format` (the merge gate) — in_progress at report
+time; result will show on the PR. (`check-codex-status` also running — codex
+gate, separate from the test CI.)
