@@ -1,44 +1,57 @@
-diagnostic: #33 watchdog dispatch — skip vs 403 (READ-ONLY)
+# automation-core — latest Claude Code status
 
-## A — did the watchdog try to dispatch and fail, or skip #33?
-```
-> Method note: the `gh` CLI is not available here; `gh run view <id> --log` was
-> reproduced via the GitHub REST job-logs endpoint (get_job_logs, full content),
-> then grep -iE 'PR #33|failed to dispatch|fired Codex|escalat|needs-owner|403|404|422|HttpError|not accessible|Resource not'.
-> The decisive runtime lines (timestamped) for each run are below. (The log also
-> echoes the workflow's `script:` source, whose text literally contains
-> needs-owner / escalate / "fired Codex" / "failed to dispatch" / 403,404,422 —
-> those are source lines, not execution output, and are omitted here.)
+## Loop-hardening: five fixes (automation-core main `0af9ee8`)
 
-run 28271438616 (job 83769455754, "watch"):
-2026-06-26T23:42:53.6032862Z   retry-exempt-status-codes: 400,401,403,404,422
-2026-06-26T23:42:54.3829756Z ##[warning]PR #33: failed to dispatch codex-backup-fix.yml (ignored): Resource not accessible by personal access token
+All five landed in ONE commit to `main` (`0af9ee8`), with handoffs/CONTEXT/LOOP_STATE in the same commit.
 
-run 28280196819 (job 83794281393, "watch"):
-2026-06-27T05:42:05.5168713Z   retry-exempt-status-codes: 400,401,403,404,422
-2026-06-27T05:42:06.4012744Z ##[warning]PR #33: failed to dispatch codex-backup-fix.yml (ignored): Resource not accessible by personal access token
+1. **claude.yml — `automerge` scope (Codex P1).** Removed the two branches that
+   labelled an existing PR reached via an `@claude` mention. Now ONLY a PR Claude
+   CREATES to close a `claude-fix` Issue (open PR matching `Fixes #<issueNum>`)
+   gets `automerge` — no more auto-merging any PR that merely mentions Claude.
+2. **claude.yml — wake on the FIRST ci-doctor Issue (Codex P1).** Added `opened`
+   to `on.issues.types` and a job `if:` clause firing on
+   `issues.opened && contains(join(github.event.issue.labels.*.name, ','), 'claude-fix')`.
+   ci-doctor creates the Issue already carrying `claude-fix` (fires `opened`, not
+   `labeled`), which the old trigger missed.
+3. **ci-doctor.yml — ignore loop infra (Codex P2).** Added `Codex Backup Fix` and
+   `Claude Fallback Watchdog` to `IGNORE_WORKFLOWS` so their failures aren't filed
+   as product CI breakage.
+4. **claude-fallback-watchdog.yml — loud, retryable dispatch failure.** Confirmed
+   root cause of the #33 stall: `createWorkflowDispatch` 403 swallowed by
+   `core.warning`. Now the catch emits `core.error` (annotation) + a counts-only
+   Telegram alert (fail-soft if Telegram unset) + a deduped
+   `agent=watchdog state=dispatch_failed` marker with NO `attempt=` field — so no
+   attempt is burned, no `needs-owner`, and it auto-retries each tick until fixed.
+   The "already fired" guard was tightened to `agent=codex && (requested||pushed)`
+   so the failure marker can't block the retry.
+5. **codex-auto-fix.yml (bridge) — never auto-@claude-fix the sync PR.** The check
+   step sets `should_trigger=false` (no marker, no `@claude fix`) when the head ref
+   is `chore/sync-automation-core` or the title starts with
+   `chore(automation): sync from automation-core`. Sync-PR findings belong UPSTREAM;
+   auto-patching the downstream copy diverges it and trips the breaker → needs-owner
+   (what hit #38). Codex still reviews; only the auto-trigger is suppressed.
 
-DECISIVE: the watchdog matched PR #33 and TRIED to dispatch codex-backup-fix.yml;
-the dispatch FAILED with 403 "Resource not accessible by personal access token"
-(AUTOMATION_PAT lacks the Actions: write / workflow-dispatch scope). It did NOT
-skip #33 — the dispatch is blocked by token permissions, so the backup never ran.
-```
+## Outstanding manual action (blocker)
 
-## B — ai-loop marker in the REVIEW-COMMENT channel (and its head=)
-```
-> REST equivalent of `gh api .../pulls/33/comments` (review-comment channel).
-2026-06-26T15:15:09Z  ::  <!-- ai-loop:v1 root_pr=33 head=58a5c348003bcdde2ecc765df13af12a3659f5e2 attempt=1 agent=claude state=requested -->
+**Grant `AUTOMATION_PAT` the fine-grained `Actions: write` scope.** Without it,
+`createWorkflowDispatch` (watchdog → backup) and minutes-guard enable/disable all
+fail with **403 "Resource not accessible by personal access token"**. The repo's
+Workflow-permissions setting governs only the GITHUB_TOKEN — it does NOT grant the
+PAT this scope. This is a manual PAT-settings change to confirm. Once granted, the
+watchdog's next tick dispatches the backup on #33 (no attempt was burned).
 
-(Exactly one ai-loop marker in the review-comment channel: agent=claude,
-state=requested, head=58a5c348003bcdde2ecc765df13af12a3659f5e2. NO agent=codex
-marker exists — consistent with the dispatch never succeeding.)
-```
+## Next steps
 
-## C — #33 current head SHA
-```
-58a5c348003bcdde2ecc765df13af12a3659f5e2
+- Close **#38** (the sync PR that tripped the 3-round breaker — its findings belong
+  upstream; auto-trigger on sync PRs is now suppressed).
+- Run a **fresh sync to downstream repos** so they pick up these workflow fixes.
+- Add **idempotency to paywall-bot's Quality Monitor** (it opens a self-PR per run;
+  dedupe so report PRs don't pile up).
 
-(Current #33 head == the marker's head= value above, so the watchdog's
-head-match check passes and it proceeds to the dispatch — confirming this is a
-dispatch-permission failure, not a head-moved skip.)
-```
+## Validation
+
+- actionlint clean on BOTH copies of all 4 edited workflows.
+- `node --check` on all 6 touched github-script blocks.
+- `workflows/` ↔ `.github/workflows/` byte-identical: claude `2697748`,
+  ci-doctor `a9c3338`, watchdog `c5131d3`, codex-auto-fix `340ef57`.
+- legacy-label grep = 0; owner-name standalone grep = 0.
