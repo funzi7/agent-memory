@@ -29,3 +29,4 @@ date,portfolio_id,strategy,ticker,side,shares,fill_price,commission,cash_after,e
 2026-06-25,swing_10k,swing,EXPE,BUY,7.0,260.3801,1.0,4330.78,9871.43,"פריצה #1 +7.0% מעל הרף, RSI 70"
 2026-06-25,swing_10k,swing,MHK,BUY,16.0,120.3501,1.0,2404.18,9880.83,"פריצה #2 +6.0% מעל הרף, RSI 65"
 2026-06-25,swing_10k,swing,SWK,BUY,22.0,89.985,1.0,423.51,9930.98,"פריצה #4 +3.4% מעל הרף, RSI 67"
+2026-06-29,momentum_scan_10k,momentum_scan,ON,SELL,17.0,90.1499,1.0,2562.48,9490.81,סטופ נגרר — ירידה של 23.7% מהשיא
