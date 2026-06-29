@@ -72,3 +72,13 @@ Per-month stock-sale realized P&L is surfaced in **four** places, all reading th
 - **Device tests** are written in **English** with the Hebrew on-screen area names quoted, and are listed only **AFTER a summary is brought** (appended to `pending-tests.md`).
 - **Claude Code prompts** are **plain text in a code block** — never artifacts.
 - **Delete & sync** must use `deleteImportedNonDraftPositions()` (never `deleteAllPositions()`); never wipe the stock snapshot on resync (manual/enriched data must survive).
+
+### 2026-06-29 — Covered Put implementation (OPT 8d8907b)
+ARCHITECTURE of the feature:
+- Domain: `CoveredPutCalculator` (domain/calculator) is pure BigDecimal, no Android deps, fully JVM-unit-tested. It owns ALL covered-put math (coverage, statics, open P/L, assignment, expiration, BTC, coverage recheck, forward-split). The entity reuses existing fields: sharesHeld = linked short shares (positive), stockPurchasePrice = short entry, new contract_multiplier column = shares/contract.
+- Persistence: Room bumped 30->31 (MIGRATION_30_31 adds contract_multiplier default 100; migrationToLatest retargeted to 31; registered in AppModule). Backward compatible.
+- Engine integration: ProfitCalculator gives COVERED_PUT its own ASSIGNED path (realize option premium, not CSP $0 fold) and a capitalAtRisk branch. CC/CSP/short assignment untouched — proven by ProfitCalculatorCoveredPutTest regressions.
+- UI: AddPositionScreen exposes "Covered Put" in the picker, shows short-stock fields + a coverage warning, auto-detects the short from the snapshot. CoveredPutDetailScreen (dashboard) renders status/coverage/economics/open-PL/assignment-simulation/unlimited-upside warning; reached via Screen.CoveredPutDetail from PositionDetailScreen's "פתח תצוגת פוט מכוסה" banner.
+- Tests: app/src/test (new source set; junit added; testOptions.unitTests.isReturnDefaultValues=true for android.util.Log). 23 tests, all green.
+
+UNRESOLVED / follow-ups: see roadmap 2026-06-29 (custom multiplier input, partial-assignment entity split + dialog, IBKR auto-classification, dedicated reporting grouping). Money rounds to cents HALF_UP; per-share prices keep full precision (4dp) — do not cent-round effectiveCoverPrice/upsideBreakEven.

@@ -526,3 +526,20 @@ User-reported TODO (to scope later):
  - Expiry banner undercounts: shows only 1 expiring position when 4 are actually expiring — fix the banner's count/source.
  - Risk-assessment + intel sanity bug: a put with current price ~25 and strike 24 (only ~$1 OTM) shows StrategicRiskAnalyzer 'סטרייק רחוק...' and intel 'התנאים תומכים בהמשך החזקה...'; after setting IV=122% the risk turns yellow 'איזון פרמיה/סיכון...' but intel stays green 'תומכים בהחזקה'. A ~$1 gap with 122% IV reading as 'strike far'/'supports holding' is illogical — audit the StrategicRiskAnalyzer distance/IV math and the intel recommendation logic.
  - Alerts not firing: no unusual-movement alerts during pre-market despite several tickers moving sharply — investigate the alert trigger/scheduling.
+
+### 2026-06-29 Covered Put — completed + follow-ups
+COMPLETED (commit 8d8907b):
+- COVERED_PUT first-class strategy: enum, BigDecimal CoveredPutCalculator, Room v31 (contract_multiplier), ProfitCalculator integration, CoveredPutDetailScreen + nav, 23 JVM tests.
+REMAINING Covered Put improvements (not done this round):
+- Persist a custom contract multiplier from the creation UI (currently entity default 100; calculator/detail are multiplier-aware, but AddPosition has no multiplier input field yet).
+- Real partial-assignment PERSISTENCE: split the position entity (assigned slice -> closed/ASSIGNED with N contracts, remainder stays OPEN) in a repository method + an assignment dialog. Calculator math is done & tested; the entity split/UX is not wired.
+- IBKR import mapping: auto-classify short-stock + short-put on the same underlying as COVERED_PUT.
+- Reporting/dashboard: a dedicated COVERED_PUT grouping/section (currently flows through generic SELL-option totals).
+- ProfitCalculator still uses a hard-coded x100 for COVERED_PUT (multiplier-aware figures live only in CoveredPutCalculator/the detail screen) — fine for standard contracts; revisit for adjusted contracts.
+
+### 2026-06-29 Deferred items logged for handoff (NOT part of the Covered Put task)
+- Feed number bidi REGRESSION: REMOVE isolateLtrRuns from event.title/description in DashboardScreen.kt; instead force textDirection=TextDirection.Rtl on both Texts (isolateLtrRuns double-isolates strings the importer already wraps with ⁨ -> regression).
+- Social: shrink the text block above the posts (exact element pending an owner screenshot).
+- Social thumbnail: before treating "no image" as a bug, confirm imageUrl is present via Logcat tag SOCIAL_FEED ("X posts, Y with images").
+- StockRealized drill-down: route per-sale rows to the correct POSITION screen (target pending owner choice), NOT TickerDetail; make BACK restore the screen via rememberSaveable for expandedTicker + scroll position.
+- Deploy note (not code): app "downgrades" on reboot due to Android Studio Apply Changes / streamed install not persisting — fix is a full APK install (assembleDebug + adb install -r). The GO BootReceiver does not address this.
