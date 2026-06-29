@@ -1,31 +1,39 @@
 # automation-core — latest Claude Code status
 
-## Fix #10 — claude.yml swaps the triggering comment's 👀 → 👎 on a failed fix
+## Fix #11 — Codex Gate now shows WHY it's red (check-codex-status carries output)
 
-**automation-core main commit:** `bb15a60`
+**automation-core main commit:** `9baa072`
 
-When `claude.yml`'s autonomous fixer RAN but did not succeed, the triggering
-comment kept the 👀 (eyes = "in progress") reaction the action adds — so a failed
-run looked like it was still checking. Fix #10 adds a fail-soft github-script step
-after the `claude` step that swaps that reaction to 👎.
+`check-codex-status` was the JOB's own status check (the job was literally named
+`check-codex-status`), so its red/green carried EMPTY `output.title`/`summary` — a
+blocked gate showed a blank red square with no reason.
 
-- **Gate:** `if: always() && steps.keycheck.outputs.has_key == 'true' &&
-  steps.claude.outcome != 'success'` (the `has_key` guard keeps a fail-soft
-  no-`ANTHROPIC_API_KEY` skip — which isn't a failure — from being 👎'd).
-- Reads `context.payload.comment.id` (present for `issue_comment` AND
-  `pull_request_review_comment`; absent on `issues.opened/labeled` → no-op).
-- Picks the issue-comment vs PR-review-comment reaction endpoint by
-  `context.eventName` (list/delete/create differ).
-- Deletes the bot's existing `eyes` reaction (matched via `users.getAuthenticated`,
-  falling back to any `eyes` if that lookup fails), then adds `-1` (👎).
-- Uses the same `AUTOMATION_PAT || github.token` the action used to add the 👀.
-- Whole step wrapped in try/catch — a reaction error NEVER fails the job; no extra
-  comment is posted (the reaction swap is the only signal).
+**Fix (output text only — verdict LOGIC unchanged):**
+- Renamed the job to **`codex-gate`** and now publish `check-codex-status` as an
+  EXPLICIT check-run via octokit `checks.create`/`checks.update` on the PR head
+  (find-and-update → exactly one per head, no job-status duplicate). The check
+  NAME stays exactly `check-codex-status`, so merge-bot's `checks.listForRef`
+  still finds it. Added `checks: write` to permissions.
+- Per state (each summary includes the 7-char head SHA):
+  - 🟡 **"Waiting for Codex review"** — PENDING: Codex hasn't reviewed the head
+    yet; includes the rerun attempt N/MAX and the `codex-p1-acknowledged` override
+    hint. (conclusion `failure`)
+  - 🔴 **"Active Codex P1/P2"** — BLOCKED: an unresolved P1/P2 on the head is
+    blocking; names last-active / last-fix dates; clears on a fix Summary or a new
+    head. (conclusion `failure`)
+  - 🟢 **"Reviewed — clear"** — GREEN: Codex reviewed the head with no active
+    P1/P2 (also used for the override label and stale-only P1/P2). (conclusion
+    `success`)
+- Publishing is wrapped in try/catch and **fail-soft**: a cosmetic output error is
+  logged and ignored — the job's own `setFailed`/conclusion still reflects the
+  real verdict, so a publish failure can never flip the gate green or crash it.
+- Did NOT touch the freshness rule, P1/P2 detection, head-targeted self-rerun, or
+  MAX_ATTEMPTS.
 
-**Validation:** actionlint clean on both copies; node --check on the new
-github-script block; `workflows/` ↔ `.github/workflows/` byte-identical (blob
-`ed6dc67`).
+**Validation:** actionlint clean on both copies; node --check on all 3
+github-script blocks; job rename + single check-codex-status producer confirmed;
+`workflows/` ↔ `.github/workflows/` byte-identical (blob `00564f4`).
 
-**Propagation:** rides the **daily sync** to the downstream repos. With fix #8
-(watchdog escalates on timeout when the backup is disabled) and fix #10, a failed
-or timed-out fix now reads clearly (👎 + `needs-owner`) instead of a stale 👀.
+**Propagation:** rides the **daily sync** to the downstream repos. A red gate now
+states the reason inline, and find-and-update keeps one `check-codex-status` per
+head (also trimming the stale-red duplication).
