@@ -1,48 +1,65 @@
-# paywall-bot — inline-image body-root scoping fix (PR #47, 2026-06-29)
+# paywall-bot — video DOM capture (CI diagnostic, 2026-06-29)
 
-Status: **PR #47** OPEN → main, branch `claude/image-body-scope`, head **`35b1c92`**.
-Not merged (owner merges after CI green + Codex). Fixes ONLY `_extract_inline_images`.
+READ-ONLY capture in GitHub Actions (agent egress blocks article hosts). One-shot workflow
+added to main (`c114fda`), dispatched via push-triggered temp branch `diag/run-video`, then
+REMOVED from main (`5cdcaa9`) and the temp branch deleted. Feed scanned:
+`https://www.themarker.com/cmlink/1.144` (100 entries, first 20 fetched via direct).
 
-## The fix
-`_extract_inline_images` (`core/article_parser.py` ~:1880) no longer re-selects the broad
-`("article", ".article-body", "main")` set (which on TheMarker's React DOM swept the whole
-page: `<main class="article-page">` + every related/teaser card as its own hashed-class
-`<article>` + `no-print`). It now roots the walk at the **stable body subtree**:
-```python
-body_root = soup.select_one("section.article-body-wrapper")
-if body_root is not None:
-    containers = [body_root]
-else:
-    containers = [all .article-body elements]      # multi-container bodies still concatenate
-    if not containers:
-        containers = legacy ("article",".article-body","main")  # last resort
+## How often recent articles contain "video"
+**20 / 20** scanned articles flagged HAS_VIDEO=YES — but every hit was a `<video>` TAG, and
+**0 / 20 had any iframe player** (no YouTube / Vimeo / Twitter / jwplayer / brightcove /
+dailymotion / kaltura embed in the whole sample). The ubiquity is because TheMarker renders
+decorative **GIF-as-video** elements (and rail-card teasers) as `<video>`, not because real
+embedded players are common. Genuine third-party video embeds were absent in this sample.
+
+## Sample video DOM (first hit: markets/2026-05-28/…0000019e-6ee7-…)
+(A) container outerHTML — it is a GIF-as-video, NOT a player:
+```html
+<video aria-label="פאלון גונג" autoplay
+  class="… x1gq9eym no-print"
+  data-src="https://gif.haarets.co.il/bs/0000019e-fea1-…/nati-falon-dapa-promotion.gif?&width=576&height=335&format=mp4&cmsprod"
+  data-testid="gif-as-video" height="606" loop muted playsinline
+  poster="https://gif.haarets.co.il/bs/0000019e-fea1-…?…&frame=1&cmsprod"
+  title="צילום: עיצוב: אורן אימגור" width="1042"></video>
 ```
-- Keys on the **stable** class `article-body-wrapper` (then `.article-body`), NOT the unstable
-  hashed `x…` classes. Drops every nested-`<article>` teaser and the `<main>`-level rails.
-- `.article-body` fallback keeps ALL matching containers so a body split across sibling
-  `.article-body` elements still works (rails are `<article>`/`<main>`, never `.article-body`).
-- Added **`no-print`** to `NOISE_STRUCTURAL_ANCESTOR_CLASS_TOKENS` (`core/article_parser.py:69`)
-  as a defense-in-depth backstop for the legacy fallback path (rail cards carry `no-print`).
-- Unchanged: per-image filters (url blocklist, dim<`_INLINE_IMAGE_MIN_DIM`, src==hero,
-  dup-src, `_INLINE_IMAGE_MAX_COUNT=5`), `_select_best_image_src`, `_extract_paragraphs`.
+- (B) iframe src / `<video><source>` / embed id: **NONE** (empty) — no `<source>`, no
+  `data-video-id`; the media URL lives in `data-src` = `gif.haarets.co.il/…/*.gif?…format=mp4&cmsprod`.
+- (C) ancestor chain: `… > main.article-page > div > section…xybk0e9 > section…x1mjqqkp > article.x…`.
+  `article-body-wrapper present: True` but **video INSIDE body wrapper: False** — the gif-video
+  sits in a teaser/rail `<article>` card (same hashed-class React rail structure as the images),
+  NOT inside `section.article-body-wrapper`. It also carries `no-print`.
+- (D) nearby caption/credit text: none in the container; the credit is in the tag's own
+  `title="צילום: עיצוב: אורן אימגור"` attribute (an attribute, not body text).
 
-One-line effect: freeing the cap-5 from rail teasers **surfaces the real lede figure** again
-(pre-fix the first 5 of 23 imgs were rail teasers that filled the cap and were published as
-body photos while the genuine lede photo was dropped).
+## Stray video credit from the CURRENT parser
+Ran `parse_html` → `_build_nodes` on the sample: paragraphs=1, inline_images=5, author=None,
+and **NO STRAY** "וידאו על ידי" / "וידאו" / "עריכה" / iframe / youtube / vimeo text in the
+emitted nodes. So there is **no video-credit text leak today** — the gif-video `title`
+credit ("צילום: …") does NOT reach the body text. (This run was on current main, pre-#47, so
+the inline_images=5 are rail teasers — the separate image bug PR #47 fixes; unrelated to video.)
 
-## Tests (tests/test_message_format.py) — fail-before/pass-after
-- **O1O1O** body-root scope drops the 5 React rail cards; body figure == hero → inline list
-  empty, zero rail srcs leak.
-- **P1P1P** non-hero second body figure under the wrapper IS kept; no rail src kept.
-- **Q1Q1Q** legacy fallback (no wrapper / no `.article-body`): `no-print` token excludes rails.
-Full suite **148/148** green (prior multi-`.article-body` test C1C1C still passes).
+## RECOMMENDATION for the video fix
+- The dominant TheMarker "video" is a **GIF-as-video** (`data-testid="gif-as-video"`, autoplay/
+  loop/muted, `gif.haarets.co.il/…format=mp4`), usually in a rail card outside the body wrapper
+  and marked `no-print`. There were **no Telegraph-embeddable iframe players** (YouTube/Vimeo/
+  Twitter) in the sample.
+- **Body-root scoping (PR #47) already neutralizes the common case:** since image/figure
+  extraction now roots at `section.article-body-wrapper` and these gif-videos sit OUTSIDE it
+  (rail cards, `no-print`), they are not surfaced. Keep relying on that scope.
+- For any `<video>`/gif-as-video that IS inside the body wrapper: **DROP the player** — Telegraph
+  cannot reliably embed a raw `<video>`/gif-mp4 as a player node, and these are decorative. Do
+  NOT emit the `data-src` gif/mp4, and do NOT surface the `<video title="צילום: …">` credit or
+  any adjacent "וידאו: / וידאו על ידי / עריכה" figcaption (clean/drop it via the existing
+  paragraph cleaner if a future path ever exposes it).
+- **IF** a genuine Telegraph-embeddable provider appears (iframe whose src is youtube/youtu.be/
+  player.vimeo/twitter): emit a Telegraph `iframe` node with the provider URL (`/embed/<id>`),
+  positioned at its body anchor — but treat this as the rare path, gated on the player domain
+  allowlist; everything else (gif-as-video, unknown players) → drop + clean credit.
+- No `<video>`-credit leak exists today, so the credit-cleaning is defense-in-depth, not an
+  active bug to chase.
 
 ## Current main state
 Wave-1 merged (#42 → `3f284d1`); short-flash `06558d4` + numeric-drop `0334040`; byline+drop-cap
-#44 merged; Codex byline-narrow `72952f2`; diag workflow added/removed (`07c6427`→`c2ed0cb`).
-This image-scoping fix is PR #47 (`35b1c92`), awaiting merge.
-
-## Still pending
-**Video handling** is not addressed — needs a CI DOM capture of a video-containing TheMarker
-article (embedded player / `<video>` / iframe) before deciding how to surface or skip it.
-The image-rail capture URL used was the Rafael/Romania SPYDER article (no inline video).
+#44 merged; Codex byline-narrow `72952f2`; image-rail diag added/removed (`07c6427`→`c2ed0cb`);
+**PR #47 (inline-image body-root scope, `35b1c92`) is OPEN/pending merge**; video diag added/
+removed (`c114fda`→`5cdcaa9`). No video code written yet (diagnosis only).
