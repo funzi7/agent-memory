@@ -1,119 +1,75 @@
-diagnostic: codex-gate always-red + over-running on #51/#49 (READ-ONLY)
+# paywall-bot — Telegraph formatting map (READ-ONLY code dump, 2026-06-29)
 
-> gh unavailable; captured via GitHub REST (pulls/check-runs/reviews/actions). Verbatim.
-> NB: by capture time BOTH PRs are already MERGED — #51 merged 2026-06-29T11:45:56Z,
-> #49 merged 2026-06-29T11:44:23Z. The "always-red" is the fail-closed gate flicker
-> on early runs before Codex reviewed the head; the LATEST check-codex-status on each
-> went green, which is why they merged.
+Input for Wave-2 formatting fixes (bold+underline subheads, external source link,
+right-align-when-starts-English, media credits). Local code read at main `132b117`.
+No code changed.
 
-## PR #51 — head c8c1a521a3b55de97bbe584418817bc16bccaf95 (chore/sync-automation-core, MERGED)
+## 1. SUBHEADINGS — currently DROPPED
+`core/article_parser.py:_extract_paragraphs` (2062-2114) walks **only `c.find_all("p")`**
+within containers `("article",".article-body","main")`. So body `<h3>/<h4>` (and any
+`<strong>`-only "subhead" paragraph that isn't a `<p>`) are **never captured** — silently
+dropped. Each kept `<p>` becomes a flat `{"tag":"p","children":[text]}` node.
+- `<h1>` → page TITLE only: `_extract_title` (1413-1423; `og:title` → `h1.article-header__title`
+  → `h1`). Becomes the Telegraph `title` field, NOT a content node.
+- `<h2>` → SUBTITLE: `_extract_subtitle` (1426-1455; `meta[description]` → `h2.article-header__sub-title`
+  → first `<article> h2`). Rendered as ONE `blockquote` node.
+- `<h3>/<h4>` / strong-only subheads: **no extraction path at all.** No heading node tag is
+  emitted anywhere. (For Wave-2 bold+underline subheads, they must first be captured — currently
+  there is nothing to format.)
 
-### A. Codex Gate (`check-codex-status`) check-runs on this head — count, conclusions, SUMMARY
-```
-count(check-codex-status)=3
-success :: (output.title="") :: (output.summary="")   started 2026-06-29T11:41:38Z  [LATEST]
-failure :: (output.title="") :: (output.summary="")   started 2026-06-29T11:39:55Z
-failure :: (output.title="") :: (output.summary="")   started 2026-06-29T11:38:14Z
-(also on head: test-message-format = success)
-```
-The Codex Gate's custom check sets **NO output text** — output.title/summary are
-empty strings on the failing runs (confirmed via the single-check-run endpoint for
-id 84042860506). So the "red" carries no message; it is purely the fail-closed
-state. The LATEST run is success → the PR was mergeable and merged.
+## 2. TELEGRAPH ASSEMBLY + RTL
+`core/telegraph_pub.py:_build_nodes` (95-176) — ORDERED node list:
+1. hero `figure > img` (if `hero_image_url`)
+2. subtitle `blockquote` (if `subtitle`)
+3. Cocoon block (if `cocoon_paragraphs`): `p > strong`=`COCOON_CAPTION_HE` then each `p > em`
+4. byline `p > strong` = `"מאת: {author}"` (if `author`)
+5. inline images anchored at index 0 (figure[+figcaption])
+6. body paragraphs: each `{"tag":"p","children":[p]}`, followed by its anchored inline-image figures
+7. `hr`
+8. footer `p` = `"מקור: "` + `{"tag":"a","attrs":{"href":original_url},"children":["TheMarker"]}`
 
-### B. Did Codex (chatgpt-codex-connector) REVIEW this head? (last 3 reviews)
-```
-(none — Codex posted ZERO reviews on PR #51)
-```
-Codex never reviewed the sync PR. The gate still went green on its latest run
-(via the wait-for-first-review escape / a non-review signal), and #51 was merged.
+`publish_article` (179-277) re-cleans title/subtitle/author/paragraphs/cocoon/captions via the
+global cleaner, clamps title to 256, then `_post("createPage", {access_token,title,author_name,
+author_url,content=json.dumps(nodes),return_content:false})`.
 
-## PR #49 — head 2ed796e9becbd7c387939e8f1ccec7b5af11ccd4 (claude/quality-rolling-issue, MERGED)
+(b) **SOURCE URL in scope: YES** — `original_url` is a `_build_nodes` param and is ALREADY used
+in the footer `a` node ("מקור: TheMarker"). An additional/external source-link node is trivial to
+append (everything needed is already present at assembly time).
 
-### A. Codex Gate (`check-codex-status`) check-runs on this head — count, conclusions, SUMMARY
-```
-count(check-codex-status)=6  (across the head's check-suites)
-success :: (output.title="") :: (output.summary="")   started 2026-06-29T11:45:59Z  [latest tier]
-success :: (output.title="") :: (output.summary="")   started 2026-06-29T11:45:55Z
-success :: (output.title="") :: (output.summary="")   started 2026-06-29T11:45:55Z
-success :: (output.title="") :: (output.summary="")   started 2026-06-29T11:45:43Z
-success :: (output.title="") :: (output.summary="")   started 2026-06-29T11:45:43Z
-failure :: (output.title="") :: (output.summary="")   started 2026-06-29T11:44:17Z  (earlier, stale)
-(plus an earlier head's failure 11:42:36 + test-message-format successes; claude job = failure)
-```
-Same as #51: empty output.title/summary (confirmed via id 84043638647). Latest
-runs are success → merged.
+(c) **RTL / direction mechanism: NONE.** No `dir=`, no `direction`, no RLM/RLE/PDF bidi marks
+injected, no leading direction char, no wrapper node, no `align`. Grep confirms: the only bidi
+references in the codebase are in `core/article_parser.py` — `_CAPTION_SEP` (810) and
+`_ZERO_WIDTH_STRIP` (~816) — and those only MATCH the Cocoon caption / STRIP zero-widths; they do
+NOT set page direction (LRM/RLM U+200E/U+200F are deliberately preserved in text, never used to
+align). Direction relies **entirely on Telegraph's default + the Hebrew characters themselves**
+(browser bidi auto-renders Hebrew RTL). Consequence: a paragraph that STARTS with English/Latin
+renders LTR-aligned — there is no current right-align mechanism (this is the Wave-2 gap).
 
-### B. Did Codex REVIEW this head? (last 3 reviews, codex actor)
-```
-COMMENTED commit=e62a3f548f60ae21b77f2ded040d7eb3acca2857 at=2026-06-29T08:27:15Z
-COMMENTED commit=540d29a173b7d872694819f0bfdde44bbd795b91 at=2026-06-29T11:30:51Z
-COMMENTED commit=2ed796e9becbd7c387939e8f1ccec7b5af11ccd4 at=2026-06-29T11:45:36Z
-```
-Codex DID review #49 — including the final head `2ed796e9be` at 11:45:36 (a
-"💡 Codex Review" with no P1/P2 → clean), so the gate went green and the PR merged.
-(Codex review is still working here — OpenAI quota lapse hit codex-ACTION/backup,
-not Codex review on these PRs.)
+## 3. FIGCAPTION / MEDIA CREDIT
+- Inline-image figcaption: `_extract_inline_images` (2024-2030): `el.find("figcaption")` →
+  `_clean(fc.get_text(" "))`, fallback to img `alt` then `title`; cleaned via
+  `_global_clean_paragraph` → stored as `InlineImage.caption`. Rendered by
+  `_inline_image_figure_node` (telegraph_pub.py:84-92) as `{"tag":"figcaption","children":[caption]}`
+  inside the `figure`.
+- Standalone photo-credit `<p>`: `NOISE_PHOTO_CREDIT_RE = re.compile(r"^צילום\s*:")`
+  (article_parser.py:101); dropped by `_is_noise_text` (1351-1359) ONLY when the paragraph STARTS
+  with "צילום:" AND is short (`< NOISE_PHOTO_CREDIT_MAX_LEN`). Inline "(צילום: …)" inside a longer
+  paragraph is preserved.
+- **"וידאו:" / "עריכה:" have NO dedicated handling** — they are not in the credit-drop rule; a
+  standalone "וידאו:"/"עריכה:" line is only dropped if it trips another noise rule, else kept.
+- `<video>` credit lives in the tag's `title="צילום: …"` attribute and is NOT extracted (video tags
+  aren't processed; only `<img>` alt/title). So no video-credit text leaks today.
 
-## C. codex-gate run volume (over-running?)
+## 4. Telegraph node tags CURRENTLY emitted (telegraph_pub.py)
+`figure, img, blockquote, p, strong, em, a, hr, figcaption`.
+- In use for emphasis: **`strong`** (caption/byline), **`em`** (cocoon). Links: **`a`**.
+- NOT yet used (available in Telegraph IV): **`h3`, `h4`, `u` (underline)**, `b`, `i`, `aside`,
+  `iframe`, `ul/ol/li`, `s`. → Wave-2 bold+underline subheads can use `strong`+`u` (or `h3`/`h4`);
+  underline `u` is currently unused and available.
 
-```
-codex-gate.yml total_count (all-time) = 275
-recent window returned = 30 runs
-by (event, conclusion):
-  pull_request           : failure x4
-  pull_request_review    : success x8
-  pull_request_review_comment : success x8
-  workflow_dispatch      : success x4, failure x5
-  issue_comment          : success x1
-```
-Newest 30 (createdAt event conclusion):
-```
-2026-06-29T11:45:53Z workflow_dispatch success
-2026-06-29T11:45:52Z pull_request_review_comment success
-2026-06-29T11:45:52Z pull_request_review success
-2026-06-29T11:45:41Z pull_request_review_comment success
-2026-06-29T11:45:40Z pull_request_review success
-2026-06-29T11:44:12Z workflow_dispatch failure
-2026-06-29T11:42:33Z pull_request failure
-2026-06-29T11:42:07Z pull_request_review_comment success
-2026-06-29T11:42:07Z pull_request_review success
-2026-06-29T11:41:32Z workflow_dispatch success
-2026-06-29T11:40:19Z pull_request_review_comment success
-2026-06-29T11:40:18Z pull_request_review success
-2026-06-29T11:39:50Z workflow_dispatch failure
-2026-06-29T11:38:09Z pull_request failure
-2026-06-29T11:31:57Z workflow_dispatch success
-2026-06-29T11:31:04Z pull_request_review_comment success
-2026-06-29T11:31:04Z pull_request_review success
-2026-06-29T11:30:55Z pull_request_review_comment success
-2026-06-29T11:30:55Z pull_request_review success
-2026-06-29T11:30:16Z workflow_dispatch failure
-2026-06-29T11:28:36Z workflow_dispatch failure
-2026-06-29T11:26:55Z pull_request failure
-2026-06-29T09:09:28Z issue_comment success
-2026-06-29T08:27:29Z pull_request_review_comment success
-2026-06-29T08:27:29Z pull_request_review success
-2026-06-29T08:27:23Z workflow_dispatch success
-2026-06-29T08:27:19Z pull_request_review_comment success
-2026-06-29T08:27:19Z pull_request_review success
-2026-06-29T08:25:43Z workflow_dispatch failure
-2026-06-29T08:24:03Z pull_request failure
-```
-
-### Read
-- **Always-red illusion:** every `pull_request` (push) run and the FIRST
-  `workflow_dispatch` self-rerun conclude **failure** (fail-closed: Codex hasn't
-  reviewed the new head yet). Once Codex reviews, the `pull_request_review` /
-  `pull_request_review_comment` runs + a later self-rerun conclude **success**.
-  The PR shows red until the latest run flips green — exactly the stale-early-red
-  pattern (the merge-bot latest-per-name dedupe already accounts for it; the PR
-  badge itself still flickers).
-- **Over-running:** 275 total codex-gate runs. Each push fires a `pull_request`
-  run AND the gate's head-targeted `workflow_dispatch` self-rerun, and every Codex
-  review fires BOTH `pull_request_review` and `pull_request_review_comment` runs —
-  so a single review wave spawns ~4 gate runs. The self-rerun loop multiplies this
-  further. Net: many runs per PR head; consider deduping/again-capping the
-  self-rerun and/or collapsing the review/review_comment double-trigger.
-- Codex REVIEW is healthy on #49 (reviewed every head incl. the final one);
-  #51 (sync PR) was merged without a Codex review.
+## Main state
+Wave-1 merged (#42 → `3f284d1`); short-flash `06558d4`, numeric-drop `0334040`; byline+drop-cap
+#44 merged; Codex byline-narrow `72952f2`. **PR #47 (inline-image body-root scope, `35b1c92`)
+PENDING merge.** Video = **no-op**: handled by #47's body-root scope (gif-as-video sit in rail
+cards outside `section.article-body-wrapper`); no Telegraph-embeddable players in the sampled
+articles, so no video node work needed now. Image-rail + video diag workflows added/removed.
