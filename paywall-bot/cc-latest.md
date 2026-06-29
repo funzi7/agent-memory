@@ -1,75 +1,53 @@
-# paywall-bot — Telegraph formatting map (READ-ONLY code dump, 2026-06-29)
+# paywall-bot — in-body subhead DOM capture (CI diagnostic, 2026-06-29)
 
-Input for Wave-2 formatting fixes (bold+underline subheads, external source link,
-right-align-when-starts-English, media credits). Local code read at main `132b117`.
-No code changed.
+READ-ONLY capture in GitHub Actions (agent egress blocks article hosts). One-shot workflow
+added to main (`37e6e09`), run via push-trigger temp branch `diag/run-subheads`, then REMOVED
+from main (`b7183a6`) and the temp branch deleted. Feed scanned:
+`https://www.themarker.com/cmlink/1.144` (100 entries, first 25 fetched).
 
-## 1. SUBHEADINGS — currently DROPPED
-`core/article_parser.py:_extract_paragraphs` (2062-2114) walks **only `c.find_all("p")`**
-within containers `("article",".article-body","main")`. So body `<h3>/<h4>` (and any
-`<strong>`-only "subhead" paragraph that isn't a `<p>`) are **never captured** — silently
-dropped. Each kept `<p>` becomes a flat `{"tag":"p","children":[text]}` node.
-- `<h1>` → page TITLE only: `_extract_title` (1413-1423; `og:title` → `h1.article-header__title`
-  → `h1`). Becomes the Telegraph `title` field, NOT a content node.
-- `<h2>` → SUBTITLE: `_extract_subtitle` (1426-1455; `meta[description]` → `h2.article-header__sub-title`
-  → first `<article> h2`). Rendered as ONE `blockquote` node.
-- `<h3>/<h4>` / strong-only subheads: **no extraction path at all.** No heading node tag is
-  emitted anywhere. (For Wave-2 bold+underline subheads, they must first be captured — currently
-  there is nothing to format.)
+## SUBHEAD FINDING — TheMarker articles have NO genuine in-body section subheads
+Scanned 25 articles for `<h2>/<h3>/<h4>` and strong-only `<p>/<div>` INSIDE
+`section.article-body-wrapper`. Result: **only 3/25** had ANY candidate, and **every candidate
+is a false positive**, not an editorial subhead:
+- The only `<h3>` found is `text='כתבות קשורות'` ("Related articles") whose chain is
+  `section.article-body-wrapper.xjp7ctv > aside.…[object.Object].no-print > h3.…` — i.e. a
+  **related-articles RAIL `<aside>` nested inside the body wrapper, marked `no-print`**. It is a
+  rail heading, not content.
+- The only `strong-only:p` found is `'אלון דורי, מנכ"ל חברת ניהול התיקים וקרנות הגידור ב-IBI…'` —
+  an **author-bio / byline blurb** (trailing strong-wrapped credit), not a section subhead.
+- Interleaving of the sample hit: `p, p, p, h3:'כתבות קשורות', p, p, p, p, p, p, p, p,
+  strong-only:p:'אלון דורי…'` — the h3 is a mid-body related-rail aside; the strong-only is the
+  end-of-article author bio.
 
-## 2. TELEGRAPH ASSEMBLY + RTL
-`core/telegraph_pub.py:_build_nodes` (95-176) — ORDERED node list:
-1. hero `figure > img` (if `hero_image_url`)
-2. subtitle `blockquote` (if `subtitle`)
-3. Cocoon block (if `cocoon_paragraphs`): `p > strong`=`COCOON_CAPTION_HE` then each `p > em`
-4. byline `p > strong` = `"מאת: {author}"` (if `author`)
-5. inline images anchored at index 0 (figure[+figcaption])
-6. body paragraphs: each `{"tag":"p","children":[p]}`, followed by its anchored inline-image figures
-7. `hr`
-8. footer `p` = `"מקור: "` + `{"tag":"a","attrs":{"href":original_url},"children":["TheMarker"]}`
+**VERDICT:** in this 25-article sample TheMarker bodies are flat `<p>` lists with **0 genuine
+editorial `<h3>/<h4>` subheads**. The element it *nominally* uses for the rail heading is `h3`,
+but that h3 is the "כתבות קשורות" related-articles `aside.no-print` (a rail), and the strong-only
+paragraph is an author bio.
 
-`publish_article` (179-277) re-cleans title/subtitle/author/paragraphs/cocoon/captions via the
-global cleaner, clamps title to 256, then `_post("createPage", {access_token,title,author_name,
-author_url,content=json.dumps(nodes),return_content:false})`.
+### Implication for the bold+underline subhead fix
+There is essentially **nothing to capture** on current TheMarker content — a subhead feature
+would be a near-no-op. If implemented defensively it MUST:
+- EXCLUDE `<aside>` / `no-print` containers (the "כתבות קשורות" h3 is a rail, NOT a subhead —
+  do not bold/underline it; ideally drop it);
+- NOT treat a trailing strong-only author-bio `<p>` as a subhead.
+Recommendation: deprioritize the subhead-format fix (no real input); if built, gate strictly on
+genuine `<h3>/<h4>` that are direct body children outside any `aside`/`no-print`, which the
+sample shows essentially never occur.
 
-(b) **SOURCE URL in scope: YES** — `original_url` is a `_build_nodes` param and is ALREADY used
-in the footer `a` node ("מקור: TheMarker"). An additional/external source-link node is trivial to
-append (everything needed is already present at assembly time).
-
-(c) **RTL / direction mechanism: NONE.** No `dir=`, no `direction`, no RLM/RLE/PDF bidi marks
-injected, no leading direction char, no wrapper node, no `align`. Grep confirms: the only bidi
-references in the codebase are in `core/article_parser.py` — `_CAPTION_SEP` (810) and
-`_ZERO_WIDTH_STRIP` (~816) — and those only MATCH the Cocoon caption / STRIP zero-widths; they do
-NOT set page direction (LRM/RLM U+200E/U+200F are deliberately preserved in text, never used to
-align). Direction relies **entirely on Telegraph's default + the Hebrew characters themselves**
-(browser bidi auto-renders Hebrew RTL). Consequence: a paragraph that STARTS with English/Latin
-renders LTR-aligned — there is no current right-align mechanism (this is the Wave-2 gap).
-
-## 3. FIGCAPTION / MEDIA CREDIT
-- Inline-image figcaption: `_extract_inline_images` (2024-2030): `el.find("figcaption")` →
-  `_clean(fc.get_text(" "))`, fallback to img `alt` then `title`; cleaned via
-  `_global_clean_paragraph` → stored as `InlineImage.caption`. Rendered by
-  `_inline_image_figure_node` (telegraph_pub.py:84-92) as `{"tag":"figcaption","children":[caption]}`
-  inside the `figure`.
-- Standalone photo-credit `<p>`: `NOISE_PHOTO_CREDIT_RE = re.compile(r"^צילום\s*:")`
-  (article_parser.py:101); dropped by `_is_noise_text` (1351-1359) ONLY when the paragraph STARTS
-  with "צילום:" AND is short (`< NOISE_PHOTO_CREDIT_MAX_LEN`). Inline "(צילום: …)" inside a longer
-  paragraph is preserved.
-- **"וידאו:" / "עריכה:" have NO dedicated handling** — they are not in the credit-drop rule; a
-  standalone "וידאו:"/"עריכה:" line is only dropped if it trips another noise rule, else kept.
-- `<video>` credit lives in the tag's `title="צילום: …"` attribute and is NOT extracted (video tags
-  aren't processed; only `<img>` alt/title). So no video-credit text leaks today.
-
-## 4. Telegraph node tags CURRENTLY emitted (telegraph_pub.py)
-`figure, img, blockquote, p, strong, em, a, hr, figcaption`.
-- In use for emphasis: **`strong`** (caption/byline), **`em`** (cocoon). Links: **`a`**.
-- NOT yet used (available in Telegraph IV): **`h3`, `h4`, `u` (underline)**, `b`, `i`, `aside`,
-  `iframe`, `ul/ol/li`, `s`. → Wave-2 bold+underline subheads can use `strong`+`u` (or `h3`/`h4`);
-  underline `u` is currently unused and available.
+## Other Wave-2 facts (from the formatting map, restated)
+- **Source link already exists**: `_build_nodes` footer emits `p` = "מקור: " +
+  `a[href=original_url]` → "TheMarker" (telegraph_pub.py ~166-175). `original_url` is in scope at
+  assembly; an external source-link node is already present (add/relabel is trivial).
+- **RTL has NO mechanism**: no `dir`/RLM/RLE/align/wrapper anywhere; direction relies on
+  Telegraph default + Hebrew chars. A paragraph that STARTS with English/Latin renders **LTR**
+  (the right-align-when-starts-English gap).
+- **Media credits**: only standalone start-anchored short "צילום:" `<p>` is dropped
+  (`NOISE_PHOTO_CREDIT_RE`). **"וידאו:" and "עריכה:" have NO drop rule** — they'd survive unless
+  they trip another noise filter. Inline-image figcaption → `figcaption` node.
+- Node tags emitted: figure/img/blockquote/p/strong/em/a/hr/figcaption. `u` (underline), `h3`,
+  `h4` available but unused.
 
 ## Main state
-Wave-1 merged (#42 → `3f284d1`); short-flash `06558d4`, numeric-drop `0334040`; byline+drop-cap
-#44 merged; Codex byline-narrow `72952f2`. **PR #47 (inline-image body-root scope, `35b1c92`)
-PENDING merge.** Video = **no-op**: handled by #47's body-root scope (gif-as-video sit in rail
-cards outside `section.article-body-wrapper`); no Telegraph-embeddable players in the sampled
-articles, so no video node work needed now. Image-rail + video diag workflows added/removed.
+Wave-1 merged (#42 → `3f284d1`); byline+drop-cap #44 merged; **#47 (inline-image body-root scope)
++ Codex `9174afe` MERGED**; video = no-op (handled by #47; no embeddable players in sample). Only
+**PR #35 (old capture diag) still open**. Image-rail/video/subhead diag workflows added+removed.
