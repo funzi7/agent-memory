@@ -1,118 +1,72 @@
-# paywall-bot — Wave-2 diagnostic: byline, drop-cap, broken images (2026-06-29)
+# paywall-bot — Wave-2 byline + drop-cap fixes (PR #44, 2026-06-29)
 
-READ-ONLY diagnostic on branch `claude/foreign-script-cocoon-fixes`. No paywall-bot
-code changed. Wave-1 fixes (flash/channel/Thai/Cocoon zero-width) live in **PR #42,
-commit `fcace5b`**; prior summary at SHA **`8af2faf`**.
+Status: **PR #44** OPEN → main, branch `claude/byline-dropcap-fixes`, head **`f0db3a2`**.
+Not merged (owner merges after CI green + Codex). Scoped to byline + drop-cap only.
+Wave-1 (flash/channel/Thai/Cocoon zero-width) is **MERGED TO MAIN** (PR #42, merge
+commit `3f284d1`); the Codex short-flash follow-up is commit `06558d4` (on main as
+`08bc6fc fix: preserve short cleaned flash descriptions`). Diagnostic input: `5baad8a`.
 
-## Environment constraint (affects PART B)
-The egress network policy **denies all article-source hosts** — themarker.com,
-news.google.com, telegra.ph, one3ft, r.jina.ai, img.haarets.co.il all return
-`403 connect_rejected` via the agent proxy (allowlist is package registries +
-anthropic only). So the live feed could NOT be fetched, the 5 recent items / 3
-target articles could NOT be parsed live, and the requested HTTP HEAD content-type
-checks on קניון images could NOT run. Evidence below is (a) the EXACT current code,
-(b) REAL cached parser output from `state/themarker.json` → `quality_issues`, and
-(c) deterministic runs of the REAL parser functions on reconstructed DOM.
+## (a) The two fixes — helper/function names + file:line
 
----
+### FIX 1 — byline `_clean_author` (core/article_parser.py)
+- New **`_clean_author(raw)`** (~`core/article_parser.py:1527`). Called from
+  **`_extract_author`** (~:1592, both `<meta author>` and `.author|.byline` paths)
+  AND from **`_finalize`** (~:2924, `if parsed.author: parsed.author = _clean_author(...)`;
+  no-op for jina/smry which set author=None).
+- Logic: (1) cut from first `@`; (2) strip trailing `Follow`/`·`/`•`/dash + ws;
+  (3) strip zero-width (`_ZERO_WIDTH_STRIP`) + `_clean` collapse; (4) on `" - "/" – "/" — "`
+  split keep FIRST Hebrew part (drops English half); (5) if Hebrew remains drop standalone
+  pure-Latin tokens, keep Hebrew + numeric; if NO Hebrew keep Latin as-is; (6) collapse
+  exact `"X X"` duplicate. `_global_clean_paragraph` brand allowlist unchanged.
+- Renders via telegraph_pub `_build_nodes` `מאת: {author}` (unchanged).
 
-## (a) THREE CODE AREAS (current state, exact)
+### FIX 2 — drop-cap `_rejoin_leading_dropcap` (core/article_parser.py)
+- New **`_rejoin_leading_dropcap(text)`** + `_DROPCAP_LEADING_RE = re.compile(r"^([א-ת])\s+(?=[א-ת])")`
+  (~:1986). Applied to **`paragraphs[0]` only** at the end of **`_extract_paragraphs`**
+  (~:2056, right after `_word_overlap_dedup`). Digit lookahead keeps `"ב 2026 …"`.
+- No walker edit: `_extract_inline_images(soup, url, paragraphs, hero)` receives the SAME
+  rejoined `paragraphs` list as `kept_paragraph_texts`, and `_fingerprint` strips whitespace,
+  so anchors already agree.
 
-### 1. BYLINE / CREDITS
-- `core/article_parser.py:1510` **`_extract_author(soup)`**:
-  ```python
-  def _extract_author(soup):
-      t = _meta(soup, "author")          # <meta name="author">
-      if t: return t
-      el = soup.find(class_=re.compile(r"author|byline", re.I))
-      if el and el.get_text(strip=True):
-          return _clean(el.get_text())   # _clean only collapses whitespace
-      return None
-  ```
-- `core/article_parser.py:368` **`_clean`** — only `.replace` zero-width + `re.sub(r"\s+"," ")`. No dedup, no English/handle strip.
-- `core/article_parser.py:_finalize` — cleans title/subtitle/paragraphs/cocoon_paragraphs **but NOT `author`**.
-- `core/telegraph_pub.py:223` — `author = _global_clean_paragraph(author)` (only cleaner applied to author).
-- `core/telegraph_pub.py:128-131` — renders `{"tag":"strong","children":[f"מאת: {author}"]}`.
-- `_extract_author` is wired only on the `parse_html` path (`article_parser.py:2094`); jina/smry set `author=None`.
+## (b) Tests added (tests/test_message_format.py) — all fail-before/pass-after
+- **L1L1L** `_clean_author` matrix: `MK Shelly Tal Meron - שלי טל מירון@Shellytalmeron·Follow`→`שלי טל מירון`;
+  `Benjamin Netanyahu - בנימין נתניהו`→`בנימין נתניהו`; `ערוץ כנסת 99@KnessetT·Follow`→`ערוץ כנסת 99`;
+  `Coralogix@Coralogix·Follow`→`Coralogix`; `ישראלי News@Israeli1News·Follow`→`ישראלי`.
+- **M1M1M** end-to-end: `_extract_author` (meta) + `_build_nodes` byline node = `מאת: שלי טל מירון`.
+- **N1N1N** drop-cap: first para `ר פאל …`→`רפאל …`; negatives: non-first `ר משהו` unchanged, `ב 2026` unchanged.
+- Full suite **145/145** green (was 142).
 
-### 2. FIRST PARAGRAPH / DROP-CAP
-- `core/article_parser.py:1914` **`_extract_paragraphs`** — body assembly. Line **1941**:
-  ```python
-  text = _clean(p.get_text(" "))     # <-- join separator " " between child nodes
-  ```
-  A drop-cap `<p><span>ר</span>פאל…</p>` → `get_text(" ")` → `"ר פאל…"`. `_clean` only
-  collapses whitespace; it does not rejoin. The orphan-prefix rejoin
-  (`_GLOBAL_ORPHAN_PREFIX_RE`, prefix letters `הובכלמש` only) does NOT cover `ר`, so the
-  split survives. The inline-image walker repeats the same join at `article_parser.py:1848`.
-  No drop-cap / first-letter handling exists anywhere.
+## (c) READ-ONLY ADDENDUM — input for the NEXT (image-scoping) step
 
-### 3. INLINE IMAGES (PR #32 feature)
-- `core/article_parser.py:1741` **`_extract_inline_images(soup, base_url, kept_paragraph_texts, hero)`** — walks `<p>/<figure>/<img>`.
-- `:1699` **`_select_best_image_src`** — priority data-src → data-original → data-lazy-src → largest data-srcset → largest srcset → src (`:1659 _srcset_largest`).
-- `:1575` **`_is_inline_image_url_blocked`** — data: URI + whole-path-component blocklist (`_INLINE_IMAGE_BLOCK_TOKENS`, `:1566`).
-- `:1610` **`_inline_image_dim_too_small`** — declared width/height < `_INLINE_IMAGE_MIN_DIM=100`.
-- `:1628` **`_resolve_image_url`** — relative→absolute, `//`→https.
-- Per-image filters: blocklist, declared-dim, `src==hero`, dup-src, cap `_INLINE_IMAGE_MAX_COUNT=5`.
-- Attach: `core/telegraph_pub.py:_build_nodes` (`:132-165`) + `_inline_image_figure_node` (`:84`).
-- **There is NO content-type / HTTP / format validation.** Only the URL string and the
-  declared width/height attributes are inspected. No HEAD, no GET, no extension allowlist.
+**1. Body-root selection in `_extract_paragraphs`** (~core/article_parser.py:2009):
+```python
+containers = []
+for sel in ("article", ".article-body", "main"):
+    for el in soup.select(sel):
+        if el not in containers:
+            containers.append(el)
+```
 
----
+**2. `_extract_inline_images` call site & first param** (~:2185):
+```python
+inline_images = _extract_inline_images(soup, url, paragraphs, hero)
+```
+The first arg is the **WHOLE document `soup`**, NOT the body-root container(s) from
+`_extract_paragraphs`. Inside `_extract_inline_images` (~:1878) it INDEPENDENTLY re-selects
+containers with the SAME selectors `("article", ".article-body", "main")`. So image
+extraction is scoped to article/.article-body/main, but derived separately from the whole
+soup (not reusing `_extract_paragraphs`' container objects or its paragraph-level filtering).
 
-## (b) REAL parser output (cache + real-function runs)
-
-### Byline — REAL cached output (`state/themarker.json` quality_issues, `low_hebrew_dominance`):
-- issue0 `מאת: MK Shelly Tal Meron - שלי טל מירון@Shellytalmeron·Follow` — `/news/themedia/2026-06-01/…0000019e-8493…`
-- issue2 `מאת: ערוץ כנסת 99@KnessetT·Follow`
-- issue3 `מאת: ישראלי News@Israeli1News·Follow`
-- issue6 `מאת: Coralogix@Coralogix·Follow`
-- issue9 `מאת: nimrodhalpern@nimrodhalpern·Follow`
-Real-function run: `_extract_author` on `<meta name=author content="MK Shelly Tal Meron - שלי טל מירון">`
-→ `'MK Shelly Tal Meron - שלי טל מירון'`; `_global_clean_paragraph(...)` → unchanged →
-byline renders `מאת: MK Shelly Tal Meron - שלי טל מירון`.
-
-### First paragraph / drop-cap — real `_extract_paragraphs` run:
-Input `<p><span class="dropcap">ר</span>פאל הציגה את מערכת ספיידר…</p>` →
-`paragraphs[0]` = `'ר פאל הציגה את מערכת ספיידר בתערוכה והודיעה על עסקה עם רומני…'`
-(lone `ר` + space confirmed).
-
-### Images — real `_extract_inline_images` run (5 imgs):
-- `…/golden-mall-photo.jpg` (800×500) → **KEPT** (anchor 1, cap "קניון הזהב")
-- lazy `data:` + `data-src=…/lazy/real-tower.jpg` (700×400) → **KEPT** (real URL picked)
-- `…/icons/share.png` → **DROPPED** url-blocklist (dir segment `icons`)
-- `…/tiny.jpg` (60×40) → **DROPPED** declared dim <100px
-- `srcset …/img.aspx?id=123&w=1920 1920w,…640w` → **KEPT** (largest `1920w` picked)
-HEAD on `img.haarets.co.il/…golden-mall-photo.jpg` → **BLOCKED** by egress policy (could not verify content-type).
-
-### Target articles availability in cache:
-- Rafael/Romania SPYDER → **not in cache** (0 hits any field).
-- Netanyahu/Albania op-ed → **not in cache** (`אלבני`/`albania` = 0; `נתניהו` hits are other articles).
-- מגדל/מליסרון/קניון הזהב → only a **normalized fingerprint** present
-  (`"סניפיםשלנו…בקניון"…הראלוויזלקבוצתפוקס…`; separate מגדל-ירושלים fp); `מליסרון`=0; no URL, no HTML.
-
----
-
-## (c) CONFIRMED ROOT CAUSES
-
-1. **Byline English-name leak + Hebrew duplicate** — `_extract_author` returns the raw
-   `<meta author>` / `.author|.byline` element text (which on tweet-embed articles is
-   `"<English Name> - <Hebrew Name>@handle·Follow"`). `_clean` does not dedup, strip the
-   `@handle·Follow` suffix, or drop the English half; `_finalize` never cleans `author`;
-   `_global_clean_paragraph` keeps standalone Latin (brand allowlist) and does not dedup —
-   so English name + Hebrew duplicate (+ handle) all render in `מאת:`.
-
-2. **First-letter drop-cap split "ר פאל"** — `_extract_paragraphs` (`:1941`) and the image
-   walker (`:1848`) join child nodes with `get_text(" ")`. A drop-cap first letter in its own
-   `<span>` becomes `ר` + space + rest. `_clean` only collapses whitespace; the orphan-prefix
-   rejoin covers only `הובכלמש`, not `ר` (or other non-prefix letters), so the split ships.
-
-3. **Broken inline images (קניון הזהב)** — the image filter does URL-string + declared-dimension
-   checks ONLY; **no content-type/HTTP validation**. URLs that 404, require auth, or are
-   query-style endpoints (`img.aspx?…`) pass the parser and are forwarded to Telegraph
-   createPage, which fetches them server-side and breaks/omits the ones it can't render.
-   (The actual content-type confirmation needs the HEAD checks, which the egress policy blocked
-   in this environment.)
-
-Fix targets for Wave-2: dedup+strip-handle+drop-foreign in byline; rejoin lone leading Hebrew
-letter (drop-cap) in `_extract_paragraphs`; add image URL/extension or HEAD content-type validation
-before embedding.
+**3. Container selectors EXCLUDED from image extraction:** there is **NO container-selector
+exclusion** (no sidebar/related/recommended/most-read container is removed at selection time).
+Exclusion is per-image via ancestor-CLASS matching only:
+- `_ancestor_has_noise_class` → `NOISE_ANCESTOR_CLASSES = ("ai-summary","cocoon","summary-block","ai-generated")`
+- `_ancestor_has_structural_noise_class` → `NOISE_STRUCTURAL_ANCESTOR_CLASS_TOKENS = (ad, ads, advert,
+  advertisement, sponsored, sponsor, promo, promoted, related, recommended, recommendation, read-more,
+  more-articles, most-read, popular, teaser, newsletter, subscribe, subscription, taboola, outbrain,
+  comments, comment)`
+Note: there is **no literal `sidebar` / `trending` / `zen` token** — a teaser/related image inside a
+widget whose class doesn't contain one of the listed substrings is NOT excluded. That class-token
+list (substring match on ancestor `class`) is the only structural guard; the image step does not
+scope to the paragraph body root nor to a single article container. This is the gap for the
+image-scoping fix to address (prefer scoping to the article body root and/or widening exclusions).
