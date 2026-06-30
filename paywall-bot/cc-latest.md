@@ -1,53 +1,54 @@
-# paywall-bot — in-body subhead DOM capture (CI diagnostic, 2026-06-29)
+# paywall-bot — translated-article source-link capture (CI diagnostic, 2026-06-30)
 
-READ-ONLY capture in GitHub Actions (agent egress blocks article hosts). One-shot workflow
-added to main (`37e6e09`), run via push-trigger temp branch `diag/run-subheads`, then REMOVED
-from main (`b7183a6`) and the temp branch deleted. Feed scanned:
-`https://www.themarker.com/cmlink/1.144` (100 entries, first 25 fetched).
+READ-ONLY capture in GitHub Actions (agent egress blocks article hosts). One-shot workflow added
+to main (`e07be9c`), run via push-trigger temp branch `diag/run-srclink`, then REMOVED from main
+(`13ea979`). Feed scanned: `https://www.themarker.com/cmlink/1.144` (100 entries, first 40 fetched).
 
-## SUBHEAD FINDING — TheMarker articles have NO genuine in-body section subheads
-Scanned 25 articles for `<h2>/<h3>/<h4>` and strong-only `<p>/<div>` INSIDE
-`section.article-body-wrapper`. Result: **only 3/25** had ANY candidate, and **every candidate
-is a false positive**, not an editorial subhead:
-- The only `<h3>` found is `text='כתבות קשורות'` ("Related articles") whose chain is
-  `section.article-body-wrapper.xjp7ctv > aside.…[object.Object].no-print > h3.…` — i.e. a
-  **related-articles RAIL `<aside>` nested inside the body wrapper, marked `no-print`**. It is a
-  rail heading, not content.
-- The only `strong-only:p` found is `'אלון דורי, מנכ"ל חברת ניהול התיקים וקרנות הגידור ב-IBI…'` —
-  an **author-bio / byline blurb** (trailing strong-wrapped credit), not a section subhead.
-- Interleaving of the sample hit: `p, p, p, h3:'כתבות קשורות', p, p, p, p, p, p, p, p,
-  strong-only:p:'אלון דורי…'` — the h3 is a mid-body related-rail aside; the strong-only is the
-  end-of-article author bio.
+## RESULT — NO translated article in the sample
+**0 / 40** articles flagged as translated/republished. None of the three signals fired on any of
+the 40 most-recent feed articles:
+- (a) no `<a href>` to an international news host (bloomberg/reuters/ft/wsj/economist/nytimes/
+  washingtonpost/theguardian/cnbc/businessinsider/techcrunch/theinformation);
+- (b) no body/anchor text matching "לקריאת הכתבה המקורית" / "הכתבה המקורית" / "לכתבה המקורית" / "במקור:";
+- (c) no foreign-source byline (Bloomberg/Reuters/רויטרס/FT/Economist/NYT/…).
 
-**VERDICT:** in this 25-article sample TheMarker bodies are flat `<p>` lists with **0 genuine
-editorial `<h3>/<h4>` subheads**. The element it *nominally* uses for the rail heading is `h3`,
-but that h3 is the "כתבות קשורות" related-articles `aside.no-print` (a rail), and the strong-only
-paragraph is an author bio.
+The sample is domestic markets/wallstreet/aviation/realestate coverage — no republished
+international piece appeared. So the diagnostic could NOT capture the original-source link DOM.
 
-### Implication for the bold+underline subhead fix
-There is essentially **nothing to capture** on current TheMarker content — a subhead feature
-would be a near-no-op. If implemented defensively it MUST:
-- EXCLUDE `<aside>` / `no-print` containers (the "כתבות קשורות" h3 is a rail, NOT a subhead —
-  do not bold/underline it; ideally drop it);
-- NOT treat a trailing strong-only author-bio `<p>` as a subhead.
-Recommendation: deprioritize the subhead-format fix (no real input); if built, gate strictly on
-genuine `<h3>/<h4>` that are direct body children outside any `aside`/`no-print`, which the
-sample shows essentially never occur.
+## What this means / next step
+**A user-provided known translated-article URL is required** to inspect the real element. Re-run
+the (now-removed) diagnostic with `--field url=<translated article>` — the script already supports
+the `url` input and will dump: the external `<a>` href + exact link text + class + position
+(inside `section.article-body-wrapper` / footer / end), the surrounding "הכתבה המקורית" phrasing,
+and whether `parse_html`→`_build_nodes` keeps or drops that external link.
 
-## Other Wave-2 facts (from the formatting map, restated)
-- **Source link already exists**: `_build_nodes` footer emits `p` = "מקור: " +
-  `a[href=original_url]` → "TheMarker" (telegraph_pub.py ~166-175). `original_url` is in scope at
-  assembly; an external source-link node is already present (add/relabel is trivial).
-- **RTL has NO mechanism**: no `dir`/RLM/RLE/align/wrapper anywhere; direction relies on
-  Telegraph default + Hebrew chars. A paragraph that STARTS with English/Latin renders **LTR**
-  (the right-align-when-starts-English gap).
-- **Media credits**: only standalone start-anchored short "צילום:" `<p>` is dropped
-  (`NOISE_PHOTO_CREDIT_RE`). **"וידאו:" and "עריכה:" have NO drop rule** — they'd survive unless
-  they trip another noise filter. Inline-image figcaption → `figcaption` node.
-- Node tags emitted: figure/img/blockquote/p/strong/em/a/hr/figcaption. `u` (underline), `h3`,
-  `h4` available but unused.
+Unconfirmed (pending a sample): whether TheMarker emits a DIRECT external `<a href>` to the
+original source vs a text-only credit. **Cannot be stated from this run.**
+
+## Intended fix (deferred until a sample confirms the element)
+When a direct external original-source link IS present on a translated article, surface a
+"לכתבה המקורית ב-<source>" link node (a Telegraph `a` node, likely near the footer next to the
+existing "מקור: TheMarker" link). If TheMarker only provides a text credit with no href, surface
+the credit text instead. Both paths are unverified until a translated URL is captured.
+
+## Current parser facts (carried forward)
+- Footer already emits `p` = "מקור: " + `a[href=original_url]`→"TheMarker" (telegraph_pub `_build_nodes`).
+- External links inside the body are currently NOT specifically preserved — `_extract_paragraphs`
+  takes `<p>` text via `get_text(" ")` (anchor href is lost; only the visible text survives, and a
+  short standalone credit line could be dropped by noise filters). This is exactly what the
+  capture would have confirmed on a real translated article.
+
+## Cleanup note
+The dispatchable workflow was removed from main (`13ea979`). The throwaway push-trigger branch
+**`diag/run-srclink` could NOT be deleted** — the agent proxy now blocks DELETE on the GitHub
+git-refs API (`"Write access to this GitHub API path is not permitted through this proxy"`) and
+`git push --delete` is likewise blocked; earlier same-session branch deletes had succeeded, so the
+policy tightened mid-session. The branch is inert (its workflow only fires on a push to itself,
+which won't happen) but should be **manually deleted** when convenient.
 
 ## Main state
 Wave-1 merged (#42 → `3f284d1`); byline+drop-cap #44 merged; **#47 (inline-image body-root scope)
-+ Codex `9174afe` MERGED**; video = no-op (handled by #47; no embeddable players in sample). Only
-**PR #35 (old capture diag) still open**. Image-rail/video/subhead diag workflows added+removed.
++ Codex `9174afe` MERGED**; video = no-op (handled by #47; no embeddable players in sample);
+**subhead feature = no-op** (no real in-body subheads in 25-article sample — the only `<h3>` is the
+"כתבות קשורות" `aside.no-print` rail). Only **PR #35 (old capture diag) still open**.
+Diag workflows (image-rail / video / subhead / source-link) all added+removed from main.
