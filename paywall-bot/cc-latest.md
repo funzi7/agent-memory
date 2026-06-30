@@ -1,139 +1,56 @@
-# paywall-bot — FULL-BODY diagnosis (broken images / NYT source link / Chinese Cocoon), 2026-06-30
+# paywall-bot — srcset + source-link fixes (PR #54, 2026-06-30)
 
-Run via the bot's **REAL paywall bypass** (`_fetch_one3ft` → `parse_html` → `_finalize` →
-`telegraph_pub._build_nodes`), NOT a direct `requests.get` teaser. All 4 articles fetched
-full premium bodies (one3ft status=200, html_len ≈ 800–870 KB, `paywalled=False`).
-CI: branch `diag/run-fullbody`, run **28430802579** (success). Diagnosis only — no fix pushed,
-nothing posted to the channel.
+Status: **PR #54** OPEN → main, branch `claude/srcset-and-source-link`. Not merged (owner merges
+after CI + Codex). Two confirmed fixes from the full-body diagnosis (prev memory `45cdeb0`).
+Suite `python3 -m tests.test_message_format` green.
 
-**This supersedes the earlier "#47 resolved broken images" claim** — that was based on
-direct-fetch teasers which contain NO precrop'd inline images. The bug below is live in the
-full body the bot actually publishes.
+## FIX A — broken inline images: srcset comma-split (precrop)
+`core/article_parser.py` `_srcset_largest` (~line 1734) split `srcset` on a **bare comma**.
+Haaretz/TheMarker image URLs embed commas in the query (`...?precrop=1633,1921,x400,y0&...`),
+so one entry shattered; a fragment `y0&width=1500&cmsprod 1500w` won and `_resolve_image_url`
+made it a broken relative URL `https://www.themarker.com/.../.premium/y0&width=1500&...` →
+**HTTP 400** → broken square. No-precrop URLs (no commas) parsed fine → 200 (why it was missed).
+- **Fix:** tokenize on **whitespace**, not commas. URLs never contain whitespace; descriptor is
+  whitespace-separated. Token matching `^[\d.]+[wx],?$` = descriptor for the preceding URL
+  token; else a URL; strip trailing entry-separator comma; `precrop` commas stay in the URL.
+  Full query preserved. Density `2x` + descriptor-less srcsets still handled.
 
----
+## FIX B — in-body external source link flattened (NYT "לכתבה של")
+Direct `<a href="nytimes.com">לכתבה של ניו יורק טיימס</a>` inside `section.article-body-wrapper`
+was flattened by paragraph extraction (`get_text`) → phrase survived as text, href dropped.
+- **New** `core/article_parser.py` `_extract_source_link(soup, base_url)` — first in-body
+  `<a href>` whose visible text contains a phrase in `_SOURCE_LINK_PHRASES`
+  (`לכתבה של`/`לכתבה המקורית`/`הכתבה המקורית`/`לקריאת הכתבה`/`במקור`) **and** whose host is
+  external (NOT in `_DOMESTIC_SOURCE_HOSTS` = themarker.com/haaretz.co.il/haaretz.com/t.me).
+  Matched on **phrase + external host**, never the obfuscated CSS classes. Returns
+  `{"href","label"}`; label from `_SOURCE_LABEL_BY_HOST` (nytimes→ניו יורק טיימס, bloomberg→בלומברג,
+  reuters→רויטרס, ft→פייננשל טיימס, wsj→וול סטריט ג'ורנל, economist→אקונומיסט) else anchor text.
+- **`ParsedArticle.source_link: dict|None`** (new field, ~line 366); set in `parse_html` (~2336).
+- **`core/main.py`** two `publish_article` call sites (~409, ~557) pass `source_link=parsed.source_link`.
+- **`core/telegraph_pub.py`** `publish_article` (~209) re-cleans the **label** via
+  `_global_clean_paragraph` (href untouched; empty label → drop); `_build_nodes` (~105) emits a
+  real `{"tag":"a","attrs":{"href":…}}` node `"כתבה מקורית: <label>"` next to the footer.
+  Domestic-phrase links ignored; no link → no-op.
 
-## A. BROKEN INLINE IMAGES — ROOT CAUSE FOUND (srcset comma-split)
-
-The chosen inline-image `src` for every article with a **`precrop`** image came out as a
-mangled relative fragment that 400s, e.g.:
-
-    CHOSEN inline src = 'https://www.themarker.com/news/security/2026-06-29/ty-article/.premium/y0&width=1500&height=1765&cmsprod'
-    GET -> status=400 ct='text/html'
-
-The real `<img>` in `section.article-body-wrapper` is fine:
-
-    src    = https://img.haarets.co.il/bs/<id>/.../597493.jpg?precrop=1633,1921,x400,y0&width=420&height=494&cmsprod
-    srcset = same URL @ 420w,600w,768w,900w,1180w,1500w
-
-**Mechanism** — `_srcset_largest()` (`core/article_parser.py:1734`, called by
-`_select_best_image_src` at line 1804) splits the srcset on a bare comma:
-
-    for chunk in srcset_val.split(","):   # line 1749
-
-But Haaretz/TheMarker image URLs embed commas in the query: `precrop=1633,1921,x400,y0`.
-The naive split shatters one entry into garbage chunks:
-
-    'https://img.haarets.co.il/bs/X/597493.jpg?precrop=1633'
-    '1921'
-    'x400'
-    'y0&width=1500&height=1765&cmsprod 1500w'   <-- parsed as URL='y0&width=1500&...' desc='1500w'
-
-The widest-`w` chunk `y0&width=1500&height=1765&cmsprod` wins, then `_resolve_image_url`
-resolves that relative string against the article URL →
-`https://www.themarker.com/.../.premium/y0&width=1500&...` → **400**.
-
-**Perfectly consistent across the run:**
-- precrop in URL  → comma-split → broken fragment → **400** (i_idf, ii_base44 f8dd, highlight
-  f977 img#1, iv_openai).
-- NO precrop (URL is `...840230-2.jpg?&width=420&...`, no commas) → srcset parses fine →
-  valid `img.haarets.co.il` src → **200** (premium fa50 both imgs; f977 imgs #2/#3).
-
-Heroes are unaffected (resolved by a different path) — every hero GET = 200 image/jpeg.
-
-**Fix (targeted, in `_srcset_largest`):** stop splitting on bare `,`. The descriptor is
-whitespace-separated from the URL and URLs never contain whitespace, so tokenize on
-whitespace instead: walk `srcset_val.split()`, treat a token matching `^[\d.]+[wx],?$` as the
-descriptor for the preceding URL token (strip a trailing comma), everything else is a URL
-(strip trailing comma). Equivalent: split entries on `,\s+` (entry-separator commas are always
-followed by whitespace; the `precrop` commas are not). Add a regression case with a
-`precrop=W,H,xX,yY` srcset asserting the chosen URL stays on `img.haarets.co.il` and keeps the
-full query.
-
----
-
-## B. NYT SOURCE LINK — REPRODUCED & CONFIRMED FLATTENED
-
-Article iv `wallstreet/2026-06-26/.premium/0000019f-029d` ("בעקבות נפילת ספייס אקס: OpenAI…"):
-
-    INTL <a href>: 1 ; phrase-<a>: 1
-    href='https://www.nytimes.com/2026/06/25/technology/openai-ipo-artificial-intelligence.html'
-    text='לכתבה של ניו יורק טיימס'  in_body=True
-    intl host preserved in emitted nodes: FALSE
-
-- It is a **direct `<a href>` to nytimes.com** (NOT a TheMarker redirect) sitting inside
-  `section.article-body-wrapper` (`in_body=True`), anchor classes obfuscated
-  (`x1bvjpef x41m6fz …`).
-- Position: end of body — `"…מגיעים מהמגזר העסקי. לכתבה של ניו יורק טיימס כתבות מומלצות…"`
-  (immediately before the "כתבות מומלצות" recommended-articles block).
-- **`_build_nodes` flattens it**: `intl host preserved = False`. The paragraph extractor
-  pulls text via `get_text`, so the phrase "לכתבה של ניו יורק טיימס" survives as plain text in
-  a `p` node but the `nytimes.com` href is dropped. Only the footer `<a>` (= `original_url`)
-  survives.
-
-**Fix:** capture the in-body source anchor before paragraph flattening. Precise selector:
-an `<a href>` inside `section.article-body-wrapper` whose visible text matches one of the
-source phrases (`"לכתבה של"`, `"לכתבה המקורית"`, `"הכתבה המקורית"`, `"לקריאת הכתבה"`, `"במקור"`)
-**and** whose host is external (not themarker.com / haaretz.co.il). Emit it as a real
-`{"tag":"a","attrs":{"href":…}}` node (e.g. an extra footer line "כתבה מקורית: NYT", or preserve
-the anchor inline within its paragraph). Do NOT rely on the obfuscated CSS classes — match on
-phrase + external host.
-
----
-
-## C. CHINESE COCOON — NOT REPRODUCED in the candidates tried
-
-Both Wall-Street candidates pulled full bodies with **zero** CJK:
-
-    [iii_wallst] wallstreet/2026-06-29/…/0000019f-1195  TITLE='עליות בבורסות אירופה; הנפט יורד ב-1%'
-       elements with >=3 CJK chars: 0 ; _extract_cocoon_paragraphs -> 0 ; CJK survived: none
-    [iii_wallst] markets/2026-06-26/…/0000019f-02c7      TITLE='הבורסה בת"א נעלה את שבוע המסחר…'
-       elements with >=3 CJK chars: 0 ; _extract_cocoon_paragraphs -> 0 ; CJK survived: none
-
-Neither title matches the reported article ("וול סטריט ננעלה בעליות … נאסד""ק"). **I did not hit
-the right article** — the Chinese Cocoon remains UNREPRODUCED. Next attempt must resolve the
-exact source URL by its title from the feed/state/posted-GUIDs (the precise "וול סטריט ננעלה
-בעליות" item), then re-run this same harness. The CJK trace block in `diag-fullbody.yml`
-(elements with ≥3 CJK chars → class chain → `NOISE_ANCESTOR_CLASSES` membership →
-`_foreign_script_ratio`/`_is_noise_text`/`_global_clean_paragraph` → survival bucket) is ready
-and will pinpoint which filter it bypasses once the right URL is used.
-
----
-
-## Per-article summary (full body, post-`_finalize`)
-| key | title (short) | paras | inline | hero | inline GETs |
-|---|---|---|---|---|---|
-| i_idf | צה"ל רוכש מאות מכ"מים | 5 | 1 | 200 | 1×**400** (precrop) |
-| ii_base44 f8dd | מרב בהט / אסף רפפורט | 6 | 1 | 200 | 1×**400** (precrop) |
-| ii_base44 f903 | סמוטריץ' מענקי גישור | 13 | 0 | 200 | — |
-| ii_base44 f977 (.highlight) | השקעות סקויה | 14 | 3 | 200 | 1×**400** (precrop) + 2×200 |
-| ii_base44 fa50 | רכש נתח מספייס־אקס | 26 | 2 | 200 | 2×200 (no precrop) |
-| iii_wallst 1195 | עליות בבורסות אירופה | 10 | 0 | 200 | — (no CJK) |
-| iii_wallst 02c7 | הבורסה בת"א נעלה | 6 | 0 | 200 | — (no CJK) |
-| iv_openai 029d | OpenAI דוחה הנפקה | 10 | 1 | 200 | 1×**400** (precrop) + NYT link |
-
----
+## Tests (tests/test_message_format.py)
+- **T1T1T** `test_t1t1t_srcset_precrop_commas_not_split` — precrop srcset → chosen src is the
+  full 1500w `img.haarets.co.il` URL with `precrop=…` intact, host preserved, not a fragment;
+  + `_select_best_image_src`/`_resolve_image_url` end-to-end stays on CDN; + descriptor-less/2x.
+- **U1U1U** `test_u1u1u_in_body_external_source_link_emitted_as_anchor` — NYT `<a>` →
+  `parsed.source_link` host nytimes.com + label "ניו יורק טיימס", `_build_nodes` emits the
+  nytimes `<a>`; domestic themarker link with same phrase → `source_link is None`, no ext anchor.
 
 ## Main / repo state
-- Main is **clean** of any diag workflow. `diag-fullbody.yml` never landed on `origin/main`
-  (integration token can't `workflow_dispatch`; the main push was non-fast-forward). The
-  diagnostic ran via a **push-trigger temp branch** instead — nothing to remove from main.
-- **PR #53** (Join CTA → author_url = source URL) OPEN, branch `claude/join-author-url`,
-  head `ac6f57e`. Awaiting CI + owner merge.
+- **PR #53** (Join CTA → author_url = source URL) **MERGED** to main (`bca520b`). Telegraph
+  byline no longer a t.me "Join" CTA.
+- **PR #54** (this) OPEN, branch `claude/srcset-and-source-link`. Awaiting CI + merge.
 - **PR #35** (old capture diag) still OPEN.
-- Telethon throwaway page `telegra.ph/VIDEO-EMBED-TEST-06-30` still around (video-node eyeball).
-- Two fixes now fully evidenced and ready to implement (separate small PRs):
-  1. `_srcset_largest` comma-split → broken inline images (Section A).
-  2. in-body external source `<a href>` flattened by `_build_nodes` → NYT link lost (Section B).
+- **Chinese Cocoon**: still UNREPRODUCED — both Wall-St candidates pulled full bodies with 0
+  CJK and neither title matched "וול סטריט ננעלה בעליות … נאסד\"ק". Next: resolve the exact
+  source URL by title from feed/state/posted-GUIDs, re-run the `diag-fullbody.yml` CJK trace.
+- **Video**: confirmed plays gif-style (Telegraph accepted video nodes;
+  telegra.ph/VIDEO-EMBED-TEST-06-30).
+- Heroes unaffected by FIX A (different resolve path) — all hero GETs 200 image/jpeg.
 - **Temp branches pending MANUAL deletion** (proxy blocks git-refs DELETE → push hangs up):
   `diag/run-fullbody`, `diag/run-srclink`, `diag/run-brokenimg`, `diag/run-consolidated`
-  (also stale: `diag/telethon-vs-posted-guids`).
+  (also stale: `diag/telethon-vs-posted-guids`). Main carries no diag workflow.
