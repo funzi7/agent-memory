@@ -1,54 +1,85 @@
-# paywall-bot — translated-article source-link capture (CI diagnostic, 2026-06-30)
+# paywall-bot — Join / Cocoon / Tags / broken-image diagnostic (2026-06-30)
 
-READ-ONLY capture in GitHub Actions (agent egress blocks article hosts). One-shot workflow added
-to main (`e07be9c`), run via push-trigger temp branch `diag/run-srclink`, then REMOVED from main
-(`13ea979`). Feed scanned: `https://www.themarker.com/cmlink/1.144` (100 entries, first 40 fetched).
+PART 1 = local code read (main `13ea979`/`53c3f8f`). PART 2 = CI capture (workflow added to
+main, run via push branch `diag/run-brokenimg`, removed from main `53c3f8f`). Read-only.
 
-## RESULT — NO translated article in the sample
-**0 / 40** articles flagged as translated/republished. None of the three signals fired on any of
-the 40 most-recent feed articles:
-- (a) no `<a href>` to an international news host (bloomberg/reuters/ft/wsj/economist/nytimes/
-  washingtonpost/theguardian/cnbc/businessinsider/techcrunch/theinformation);
-- (b) no body/anchor text matching "לקריאת הכתבה המקורית" / "הכתבה המקורית" / "לכתבה המקורית" / "במקור:";
-- (c) no foreign-source byline (Bloomberg/Reuters/רויטרס/FT/Economist/NYT/…).
+## (1) JOIN button — root cause = AUTHOR_URL is the channel, hardcoded
+`core/telegraph_pub.py:16-17`:
+```python
+AUTHOR_NAME = "TheMarker"
+AUTHOR_URL  = "https://t.me/demarkerpremium"
+```
+Passed to `createPage` (`telegraph_pub.py:268-269`) as `author_name`/`author_url`. Telegraph
+renders the page author byline as a link to `author_url` → the Instant-View "JOIN"/author link
+points at the **Telegram channel `t.me/demarkerpremium`**, hardcoded. There is no per-post or
+config-driven value; whatever the Join issue is (wrong/!desired target, or it should be a
+`t.me/...` join/`+invite` link), the single source of truth is this constant. **Fix:** set
+`AUTHOR_URL` to the intended Join/channel link (or make it site-config driven).
 
-The sample is domestic markets/wallstreet/aviation/realestate coverage — no republished
-international piece appeared. So the diagnostic could NOT capture the original-source link DOM.
+## (2) COCOON — TWO foreign filters; a fully-Chinese Cocoon should NOT survive
+- Extraction `_extract_cocoon_paragraphs` (`article_parser.py:1463`) collects `<p>/<li>` under
+  containers whose class matches `NOISE_ANCESTOR_CLASSES = ("ai-summary","cocoon","summary-block",
+  "ai-generated")`, with a LIGHT filter: `_is_noise_text` + length + caption-only drop.
+- `_is_noise_text` ends with `if _foreign_script_ratio(text) > FOREIGN_SCRIPT_THRESHOLD (0.30): return True`
+  — `_foreign_script_ratio` counts CJK/Thai/Arabic; a fully-Chinese paragraph ≈1.0 → dropped at extraction.
+- `_finalize` then runs `_global_clean_paragraph` on every cocoon paragraph (char-strips CJK +
+  drops if had_foreign and <15 Hebrew letters). Second net.
+- Label is hardcoded Hebrew `COCOON_CAPTION_HE = "🤖 סיכום AI של TheMarker"` (telegraph_pub.py:81),
+  emitted by `_build_nodes` as a `p>strong` ONLY when `cocoon_paragraphs` is non-empty. The source's
+  English "Cocoon AI Summary" text is replaced inline / dropped if caption-only.
+- **CI confirm:** on both Wall-St articles tested, **NO Cocoon block** existed under those classes
+  (`cocoon_paragraphs=0`). So a surviving-Chinese-Cocoon could NOT be reproduced in this sample.
+  Likely the user's Chinese-Cocoon either predates the Wave-1 foreign-script fixes, or sits in a
+  container whose class is NOT in `NOISE_ANCESTOR_CLASSES` (so it's treated as body, not cocoon).
+  **A specific article URL where the Chinese Cocoon appeared is needed to pin the exact path.**
+  A MIXED Hebrew+Chinese block would partially survive (Chinese char-stripped, Hebrew kept).
 
-## What this means / next step
-**A user-provided known translated-article URL is required** to inspect the real element. Re-run
-the (now-removed) diagnostic with `--field url=<translated article>` — the script already supports
-the `url` input and will dump: the external `<a>` href + exact link text + class + position
-(inside `section.article-body-wrapper` / footer / end), the surrounding "הכתבה המקורית" phrasing,
-and whether `parse_html`→`_build_nodes` keeps or drops that external link.
+## (3) TAGS — `sites/themarker/tags.py:build_tags(url, title)`
+- Slot 1 = section tag by URL-path prefix (`SECTION_TAGS`: /wallstreet/→וולסטריט, /markets/→שווקים,
+  /realestate/→נדלן, /news/aviation/→תעופה, …); no match → `DEFAULT_SECTION_TAG = None`.
+- Slots 2-4 = keyword tags by case-insensitive **substring match on the TITLE** (`KEYWORD_TAGS`:
+  נתניהו, טראמפ, איראן, בנק ישראל, אינפלציה, ריבית, מס/מסים, בורסה/מניות, אבטלה, מלחמה/צה"ל,
+  AI/בינה מלאכותית). Deduped, "themarker" filtered, capped `MAX_TAGS = 4`.
+- Inputs are ONLY URL path + title — no body text, no category metadata, no keyword from content.
 
-Unconfirmed (pending a sample): whether TheMarker emits a DIRECT external `<a href>` to the
-original source vs a text-only credit. **Cannot be stated from this run.**
+## (4) BROKEN INLINE IMAGES — RESOLVED by #47; hero loads fine
+CI ran the existing parser on 6 cache-derived URLs (the cmlink feed is stale and lacks the named
+articles; identity confirmed from fetched og:title):
+| cand | title | inline_images | hero GET |
+|---|---|---|---|
+| cand0 | "ב–21 מיליון שקל: צה\"ל רוכש מאות מכ\"מים לגילוי רחפנים" (מאגוס/IDF radar) | **0** | 200 image/jpeg 47.9KB |
+| cand1 | "...הקטארים... רפאל" (security) | 0 | 200 image/jpeg 94KB |
+| cand2 | "האוצר... תקציב הביטחון..." | 0 | 200 image/jpeg 141KB |
+| cand3 | "אחרי וויקס: אלמנטור מפטרת 100 עובדים" (technation) | 0 | 200 image/jpeg 119KB |
+| cand4 | "תחזית לנפילה של 70%..." (wallstreet) | 0 | 200 image/jpeg 51KB |
+| cand5 | "עליות בבורסות אירופה; הנפט יורד ב-1%" (wallstreet-live, 30¶) | 0 | 200 image/jpeg 96KB |
 
-## Intended fix (deferred until a sample confirms the element)
-When a direct external original-source link IS present on a translated article, surface a
-"לכתבה המקורית ב-<source>" link node (a Telegraph `a` node, likely near the footer next to the
-existing "מקור: TheMarker" link). If TheMarker only provides a text credit with no href, surface
-the credit text instead. Both paths are unverified until a translated URL is captured.
+**Root cause / state:** after PR #47 (inline-image walk scoped to `section.article-body-wrapper`),
+`_extract_inline_images` returns **0 images** for all of these — the genuine body figure equals the
+hero (deduped) or there is none in the body wrapper. The HERO (`img.haarets.co.il/bs/<this-article-id>/…`)
+loads cleanly (200, `image/jpeg`, no Referer needed → NOT referer-gated). The historical "broken
+square" inline images were the React **rail/teaser thumbnails** (themarker responsive thumbs
+`/ty-article/yNNN&width=568…` + wrong-article-id haaretz CDN) that #47 now excludes. So on
+current `main` these articles emit no broken inline images. Could NOT capture a surviving broken
+CHOSEN inline src because none survives post-#47 in this sample.
+**What the fix should do:** nothing further for these — #47 already removed the broken teasers and
+the hero is fine. If a genuine in-body figure ever needs surfacing, it lives under
+`section.article-body-wrapper` and loads from `img.haarets.co.il/bs/<id>/…` (200, image/jpeg). If a
+future broken case appears, capture that specific URL (chosen-src GET status/ct) — the lazy/srcset
+selection (`_select_best_image_src`) and the per-image filters are unchanged and were not the
+failure here.
 
-## Current parser facts (carried forward)
-- Footer already emits `p` = "מקור: " + `a[href=original_url]`→"TheMarker" (telegraph_pub `_build_nodes`).
-- External links inside the body are currently NOT specifically preserved — `_extract_paragraphs`
-  takes `<p>` text via `get_text(" ")` (anchor href is lost; only the visible text survives, and a
-  short standalone credit line could be dropped by noise filters). This is exactly what the
-  capture would have confirmed on a real translated article.
-
-## Cleanup note
-The dispatchable workflow was removed from main (`13ea979`). The throwaway push-trigger branch
-**`diag/run-srclink` could NOT be deleted** — the agent proxy now blocks DELETE on the GitHub
-git-refs API (`"Write access to this GitHub API path is not permitted through this proxy"`) and
-`git push --delete` is likewise blocked; earlier same-session branch deletes had succeeded, so the
-policy tightened mid-session. The branch is inert (its workflow only fires on a push to itself,
-which won't happen) but should be **manually deleted** when convenient.
+## Fix summary (for the four issues)
+1. **Join:** point `AUTHOR_URL` at the desired channel/join link (or make it config-driven).
+2. **Cocoon:** code already double-filters foreign-dominant; need the offending URL to confirm
+   whether the Chinese block bypasses via a non-`NOISE_ANCESTOR_CLASSES` container — likely a
+   classifier-coverage gap, not a missing filter.
+3. **Tags:** title+URL only; to improve coverage add keywords/section prefixes (no structural bug).
+4. **Broken images:** resolved by #47; hero loads; no action needed unless a new sample reproduces.
 
 ## Main state
-Wave-1 merged (#42 → `3f284d1`); byline+drop-cap #44 merged; **#47 (inline-image body-root scope)
-+ Codex `9174afe` MERGED**; video = no-op (handled by #47; no embeddable players in sample);
-**subhead feature = no-op** (no real in-body subheads in 25-article sample — the only `<h3>` is the
-"כתבות קשורות" `aside.no-print` rail). Only **PR #35 (old capture diag) still open**.
-Diag workflows (image-rail / video / subhead / source-link) all added+removed from main.
+Wave-1 merged (#42 → `3f284d1`); byline+drop-cap #44 merged; **#47 + Codex `9174afe` MERGED**;
+source-link fix BLOCKED pending a user-provided translated URL (0/40 in sample); subhead = no-op;
+video = no-op. Open: **PR #35** (old capture diag). Temp branches pending MANUAL deletion (proxy
+now blocks git-refs DELETE → HTTP 403): **`diag/run-srclink`**, **`diag/run-brokenimg`**. All diag
+workflows removed from main.
