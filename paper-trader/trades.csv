@@ -30,3 +30,8 @@ date,portfolio_id,strategy,ticker,side,shares,fill_price,commission,cash_after,e
 2026-06-25,swing_10k,swing,MHK,BUY,16.0,120.3501,1.0,2404.18,9880.83,"פריצה #2 +6.0% מעל הרף, RSI 65"
 2026-06-25,swing_10k,swing,SWK,BUY,22.0,89.985,1.0,423.51,9930.98,"פריצה #4 +3.4% מעל הרף, RSI 67"
 2026-06-29,momentum_scan_10k,momentum_scan,ON,SELL,17.0,90.1499,1.0,2562.48,9490.81,סטופ נגרר — ירידה של 23.7% מהשיא
+2026-06-30,momentum_scan_10k,momentum_scan,ON,BUY,28.0,88.8144,1.0,74.68,9951.2,"מילוי אמצע-חודש — דירוג #3, מומנטום 6-1 +161.2%"
+2026-06-30,screener_track_10k,screener_track,RBLX,SELL,15.0,54.4927,1.0,1366.49,10464.72,"מימוש חלקי +16% — נמכרה מחצית, סטופ הועלה לכניסה"
+2026-06-30,twitter_track_100,twitter_track,ARDX,BUY,9.0,5.1926,0.4673,52.8,98.7,קנייה לפי @theaiportfolios
+2026-06-30,twitter_track_10k,twitter_track,ARDX,BUY,961.0,5.1926,4.805,5005.11,9906.21,קנייה לפי @theaiportfolios
+2026-06-30,twitter_track_10k,twitter_track,NOW,BUY,51.0,97.3587,1.0,38.82,10003.2,קנייה לפי @theaiportfolios
