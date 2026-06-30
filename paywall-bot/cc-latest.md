@@ -1,85 +1,86 @@
-# paywall-bot — Join / Cocoon / Tags / broken-image diagnostic (2026-06-30)
+# paywall-bot — consolidated diagnostic: Join / Cocoon / Tags / images / source-link / video (2026-06-30)
 
-PART 1 = local code read (main `13ea979`/`53c3f8f`). PART 2 = CI capture (workflow added to
-main, run via push branch `diag/run-brokenimg`, removed from main `53c3f8f`). Read-only.
+PART 1 local (main `5d9f741`). PART 2/3 = CI capture (workflow added to main, run via push
+branch `diag/run-consolidated`, removed `5d9f741`). Read-only; no bot logic changed.
 
-## (1) JOIN button — root cause = AUTHOR_URL is the channel, hardcoded
-`core/telegraph_pub.py:16-17`:
-```python
-AUTHOR_NAME = "TheMarker"
-AUTHOR_URL  = "https://t.me/demarkerpremium"
-```
-Passed to `createPage` (`telegraph_pub.py:268-269`) as `author_name`/`author_url`. Telegraph
-renders the page author byline as a link to `author_url` → the Instant-View "JOIN"/author link
-points at the **Telegram channel `t.me/demarkerpremium`**, hardcoded. There is no per-post or
-config-driven value; whatever the Join issue is (wrong/!desired target, or it should be a
-`t.me/...` join/`+invite` link), the single source of truth is this constant. **Fix:** set
+## (1) JOIN — root cause = AUTHOR_URL hardcoded to the channel
+`core/telegraph_pub.py:16-17`: `AUTHOR_NAME="TheMarker"`, **`AUTHOR_URL="https://t.me/demarkerpremium"`**
+→ passed to `createPage` (`:268-269`). Telegraph renders the page author/JOIN link as `author_url`
+→ it points at the Telegram channel, hardcoded (no per-post / config source). **Fix:** set
 `AUTHOR_URL` to the intended Join/channel link (or make it site-config driven).
 
-## (2) COCOON — TWO foreign filters; a fully-Chinese Cocoon should NOT survive
-- Extraction `_extract_cocoon_paragraphs` (`article_parser.py:1463`) collects `<p>/<li>` under
-  containers whose class matches `NOISE_ANCESTOR_CLASSES = ("ai-summary","cocoon","summary-block",
-  "ai-generated")`, with a LIGHT filter: `_is_noise_text` + length + caption-only drop.
-- `_is_noise_text` ends with `if _foreign_script_ratio(text) > FOREIGN_SCRIPT_THRESHOLD (0.30): return True`
-  — `_foreign_script_ratio` counts CJK/Thai/Arabic; a fully-Chinese paragraph ≈1.0 → dropped at extraction.
-- `_finalize` then runs `_global_clean_paragraph` on every cocoon paragraph (char-strips CJK +
-  drops if had_foreign and <15 Hebrew letters). Second net.
-- Label is hardcoded Hebrew `COCOON_CAPTION_HE = "🤖 סיכום AI של TheMarker"` (telegraph_pub.py:81),
-  emitted by `_build_nodes` as a `p>strong` ONLY when `cocoon_paragraphs` is non-empty. The source's
-  English "Cocoon AI Summary" text is replaced inline / dropped if caption-only.
-- **CI confirm:** on both Wall-St articles tested, **NO Cocoon block** existed under those classes
-  (`cocoon_paragraphs=0`). So a surviving-Chinese-Cocoon could NOT be reproduced in this sample.
-  Likely the user's Chinese-Cocoon either predates the Wave-1 foreign-script fixes, or sits in a
-  container whose class is NOT in `NOISE_ANCESTOR_CLASSES` (so it's treated as body, not cocoon).
-  **A specific article URL where the Chinese Cocoon appeared is needed to pin the exact path.**
-  A MIXED Hebrew+Chinese block would partially survive (Chinese char-stripped, Hebrew kept).
+## (2) COCOON — two foreign filters; label hardcoded Hebrew
+- `_extract_cocoon_paragraphs` (`article_parser.py:1463`) collects `<p>/<li>` under containers whose
+  class matches `NOISE_ANCESTOR_CLASSES=("ai-summary","cocoon","summary-block","ai-generated")`; light
+  filter `_is_noise_text` (ends `_foreign_script_ratio(text) > 0.30 → drop`, counts CJK/Thai/Arabic) +
+  length + caption-only drop.
+- `_finalize` then runs `_global_clean_paragraph` per cocoon paragraph (char-strips CJK, drops if
+  had_foreign & <15 Hebrew). So a **fully-Chinese Cocoon should NOT survive** (dropped twice).
+- Label = hardcoded `COCOON_CAPTION_HE="🤖 סיכום AI של TheMarker"` (`telegraph_pub.py:81`), emitted by
+  `_build_nodes` only when `cocoon_paragraphs` non-empty; source English "Cocoon AI Summary" is
+  replaced inline / dropped if caption-only.
+- **CI: could NOT reproduce a Chinese Cocoon.** All sampled `.premium` articles fetch as the
+  PAYWALLED teaser (paragraphs=1, cocoon=0) on direct fetch — the Cocoon block lives in the full body
+  behind the paywall. Need full-body HTML (the bot's real one3ft/telegram chain) to confirm.
 
 ## (3) TAGS — `sites/themarker/tags.py:build_tags(url, title)`
-- Slot 1 = section tag by URL-path prefix (`SECTION_TAGS`: /wallstreet/→וולסטריט, /markets/→שווקים,
-  /realestate/→נדלן, /news/aviation/→תעופה, …); no match → `DEFAULT_SECTION_TAG = None`.
-- Slots 2-4 = keyword tags by case-insensitive **substring match on the TITLE** (`KEYWORD_TAGS`:
-  נתניהו, טראמפ, איראן, בנק ישראל, אינפלציה, ריבית, מס/מסים, בורסה/מניות, אבטלה, מלחמה/צה"ל,
-  AI/בינה מלאכותית). Deduped, "themarker" filtered, capped `MAX_TAGS = 4`.
-- Inputs are ONLY URL path + title — no body text, no category metadata, no keyword from content.
+Slot 1 = section tag by URL-path prefix (`SECTION_TAGS`); slots 2-4 = keyword tags by case-insensitive
+**substring match on the TITLE** (`KEYWORD_TAGS`: נתניהו/טראמפ/איראן/בנק ישראל/אינפלציה/ריבית/מסים/
+בורסה/אבטלה/מלחמה/AI…). Deduped, "themarker" filtered, cap `MAX_TAGS=4`. Inputs = URL + title only.
 
-## (4) BROKEN INLINE IMAGES — RESOLVED by #47; hero loads fine
-CI ran the existing parser on 6 cache-derived URLs (the cmlink feed is stale and lacks the named
-articles; identity confirmed from fetched og:title):
-| cand | title | inline_images | hero GET |
-|---|---|---|---|
-| cand0 | "ב–21 מיליון שקל: צה\"ל רוכש מאות מכ\"מים לגילוי רחפנים" (מאגוס/IDF radar) | **0** | 200 image/jpeg 47.9KB |
-| cand1 | "...הקטארים... רפאל" (security) | 0 | 200 image/jpeg 94KB |
-| cand2 | "האוצר... תקציב הביטחון..." | 0 | 200 image/jpeg 141KB |
-| cand3 | "אחרי וויקס: אלמנטור מפטרת 100 עובדים" (technation) | 0 | 200 image/jpeg 119KB |
-| cand4 | "תחזית לנפילה של 70%..." (wallstreet) | 0 | 200 image/jpeg 51KB |
-| cand5 | "עליות בבורסות אירופה; הנפט יורד ב-1%" (wallstreet-live, 30¶) | 0 | 200 image/jpeg 96KB |
+## (4) BROKEN INLINE IMAGES — NOT reproducible on current main; every image loads
+CI ran the parser + an HTTP GET (browser UA) on every chosen src and hero. Across 10 articles:
+- **Every HERO → 200 `image/jpeg`** (33-150KB). Not referer-gated.
+- The one article with inline images — markets-live "וול סטריט ברצף הירידות…" (`…ed8a`) — had
+  **inline_images=3, ALL GET 200 `image/jpeg`** (118-150KB). Its raw `<img>` carried a normal
+  `srcset` (`img.haarets.co.il/bs/<id>/…459503683.jpg?&width=420…1500w`); `_select_best_image_src`
+  picked a working `img.haarets.co.il` URL → 200 image/jpeg 73KB. **No broken/placeholder/gated src.**
+- All `.premium` articles → `inline_images=0`, `raw <img> in body-wrapper: 0` (paywall teaser body).
+**Root cause / state:** post-#47 (body-root scope) there are NO broken inline images on these
+articles — chosen srcs and heroes all load. The historical "broken squares" were the React
+rail/teaser thumbnails #47 now excludes. No lazy-placeholder / thumbnail / gating failure remains in
+the sample. **Fix:** none needed for these; if a new broken case appears, capture that exact URL.
 
-**Root cause / state:** after PR #47 (inline-image walk scoped to `section.article-body-wrapper`),
-`_extract_inline_images` returns **0 images** for all of these — the genuine body figure equals the
-hero (deduped) or there is none in the body wrapper. The HERO (`img.haarets.co.il/bs/<this-article-id>/…`)
-loads cleanly (200, `image/jpeg`, no Referer needed → NOT referer-gated). The historical "broken
-square" inline images were the React **rail/teaser thumbnails** (themarker responsive thumbs
-`/ty-article/yNNN&width=568…` + wrong-article-id haaretz CDN) that #47 now excludes. So on
-current `main` these articles emit no broken inline images. Could NOT capture a surviving broken
-CHOSEN inline src because none survives post-#47 in this sample.
-**What the fix should do:** nothing further for these — #47 already removed the broken teasers and
-the hero is fine. If a genuine in-body figure ever needs surfacing, it lives under
-`section.article-body-wrapper` and loads from `img.haarets.co.il/bs/<id>/…` (200, image/jpeg). If a
-future broken case appears, capture that specific URL (chosen-src GET status/ct) — the lazy/srcset
-selection (`_select_best_image_src`) and the per-image filters are unchanged and were not the
-failure here.
+## (5) SOURCE LINK (OpenAI/NYT) — INCONCLUSIVE via direct fetch; href-flattening is a code fact
+- OpenAI article CONFIRMED: `wallstreet/2026-06-26/.premium/0000019f-029d` →
+  TITLE "בעקבות נפילת ספייס אקס: OpenAI מתכוונת לדחות את ההנפקה שלה ל-2027".
+- On direct fetch it is the PAYWALLED teaser (paragraphs=1): **NO international `<a href>` and NO
+  "לכתבה של"/"הכתבה המקורית"/"לקריאת הכתבה" phrase** appeared, and `intl host preserved in emitted
+  nodes = False`. The "read original / לכתבה של ניו יורק טיימס" reference (if present) lives in the
+  FULL body behind the paywall, which direct fetch doesn't return. **So whether it is a direct
+  `<a href>` vs text-only could NOT be captured** — need the full body via the bot's fetch chain.
+- **Code fact (confirmable now):** even if it IS a body `<a href>`, the parser DROPS the href.
+  `_extract_paragraphs` builds each paragraph with `_clean(p.get_text(" "))` (anchor href discarded,
+  only visible text kept), and `_build_nodes` emits body paragraphs as `{"tag":"p","children":[<str>]}`
+  — a plain string, no `<a>` child. The ONLY `<a>` node emitted is the footer "מקור: TheMarker"
+  (`original_url`). So any in-body external source link is flattened to text and its href is lost.
+  **Fix:** detect an in-body original-source `<a href>` (intl host / "לכתבה של …" pattern) BEFORE
+  get_text flattens it, and emit it as a Telegraph `a` node (e.g. a "לכתבה המקורית ב-<source>" link
+  near the footer). Confirm the exact element on a full-body fetch first.
 
-## Fix summary (for the four issues)
-1. **Join:** point `AUTHOR_URL` at the desired channel/join link (or make it config-driven).
-2. **Cocoon:** code already double-filters foreign-dominant; need the offending URL to confirm
-   whether the Chinese block bypasses via a non-`NOISE_ANCESTOR_CLASSES` container — likely a
-   classifier-coverage gap, not a missing filter.
-3. **Tags:** title+URL only; to improve coverage add keywords/section prefixes (no structural bug).
-4. **Broken images:** resolved by #47; hero loads; no action needed unless a new sample reproduces.
+## (6) VIDEO-EMBED-TEST — Telegraph ACCEPTED video nodes
+gif-as-video mp4 used: `https://gif.haarets.co.il/bs/0000019e-fea1-…/nati-falon-dapa-promotion.gif?&width=576&height=335&format=mp4&cmsprod`.
+`createPage` returned **ok=True → https://telegra.ph/VIDEO-EMBED-TEST-06-30** (page has a control
+img + `{"tag":"video","attrs":{"src":mp4}}` + a `video[controls]` + a `video>source` variant).
+Telegraph's API did NOT reject the `video` nodes. **Eyeball that URL** to confirm whether Telegraph
+actually PLAYS an EXTERNAL mp4 (historically Telegraph IV only auto-plays media it has ingested via
+upload; external src may render as a non-playing box). Worth pursuing ONLY if the eyeball shows it
+plays; otherwise the gif-as-video stays dropped (already handled by #47 body-root scope — these sit
+outside `section.article-body-wrapper`).
+
+## Fix summary
+1. Join: point `AUTHOR_URL` at the intended link.
+2. Cocoon: filters already present; get the offending full-body URL to confirm whether a Chinese
+   block bypasses via a non-`NOISE_ANCESTOR_CLASSES` container.
+3. Tags: title+URL only (no bug; extend keyword/section coverage if desired).
+4. Broken images: resolved by #47; no action.
+5. Source link: add in-body original-source `<a href>` capture → Telegraph `a` node (parser
+   currently flattens it via get_text); needs a full-body capture to lock the selector.
+6. Video: decide after eyeballing telegra.ph/VIDEO-EMBED-TEST-06-30.
 
 ## Main state
-Wave-1 merged (#42 → `3f284d1`); byline+drop-cap #44 merged; **#47 + Codex `9174afe` MERGED**;
-source-link fix BLOCKED pending a user-provided translated URL (0/40 in sample); subhead = no-op;
-video = no-op. Open: **PR #35** (old capture diag). Temp branches pending MANUAL deletion (proxy
-now blocks git-refs DELETE → HTTP 403): **`diag/run-srclink`**, **`diag/run-brokenimg`**. All diag
-workflows removed from main.
+Wave-1 #42→`3f284d1`; byline+drop-cap #44; **#47 + Codex `9174afe` MERGED**; subhead/video = no-op.
+Open: **PR #35**. Temp branches pending MANUAL deletion (proxy blocks git-refs DELETE → 403):
+**`diag/run-srclink`**, **`diag/run-brokenimg`**, **`diag/run-consolidated`**. All diag workflows
+removed from main. Throwaway page **telegra.ph/VIDEO-EMBED-TEST-06-30** can be deleted by anyone with
+the token (not linked from the channel).
