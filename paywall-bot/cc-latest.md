@@ -1,45 +1,73 @@
-# paywall-bot — subtitle foreign-ratio guard (PR #55, 2026-06-30)
+verify: #55 + #56 merged into main; gate/bridge/claude fixes present on main (READ-ONLY)
 
-Status: **PR #55** OPEN → main, branch `claude/subtitle-foreign-guard`, head **`936fbc98`**,
-URL https://github.com/funzi7/paywall-bot/pull/55 (verified via API: state=open, merged=false,
-2 files / +72, CI pending). Not merged (owner merges after CI + Codex). Closes the Chinese-Cocoon
-diagnosis (`95b449b`).
+> gh/curl-on-raw unavailable for a private repo; captured via GitHub REST (pulls / contents@main / commits / actions). Verbatim.
 
-## Fix — drop foreign-dominant subtitle candidates
-A fully-Chinese block reached the page as the **subtitle blockquote**. The two foreign filters
-(`_is_noise_text` foreign-ratio + `_global_clean_paragraph` char-strip/Hebrew-floor) cover
-body/cocoon/title/captions, but **`_extract_subtitle`** (`core/article_parser.py:1426`) applied
-ONLY `_is_subscriber_prompt` — no foreign-dominance check (deliberate: PR #17's ≥30-Hebrew-letter
-floor wrongly dropped short subtitles). So the subtitle was the one render path skipping the
-foreign filter, relying solely on `_global_clean_paragraph` in `_finalize`.
-- **`core/article_parser.py` `_extract_subtitle` (~line 1449-1456)**: before returning a candidate,
-  `if _foreign_script_ratio(raw) > FOREIGN_SCRIPT_THRESHOLD: continue` — same guard `_is_noise_text`
-  uses, applied to the RAW candidate (pre-clean). `_is_subscriber_prompt` kept. RATIO check (not a
-  min-Hebrew-letter count) → no PR #17 short-subtitle regression (short Hebrew subtitle ratio 0.0
-  passes; only foreign-DOMINANT candidates dropped).
+## 1. #55 + #56 merge state
+```
+#55 state=closed merged=true merged_at=2026-06-30T10:00:50Z base=main :: Drop foreign-script-dominant subtitle candidates (Chinese-subtitle guard)
+#56 state=closed merged=true merged_at=2026-06-30T10:04:43Z base=main :: chore(automation): sync from automation-core
+```
 
-## Test (tests/test_message_format.py)
-- **V1V1V** `test_v1v1v_subtitle_foreign_dominant_dropped`: POSITIVE — CJK-dominant
-  `meta[description]` and `h2.article-header__sub-title` → `_extract_subtitle` returns None →
-  `_build_nodes` emits no `blockquote`. NEGATIVE — short Hebrew subtitle (`תקציר שווי שוק BST
-  DriveNets`, ratio 0.0) still returned + rendered as a blockquote. Full suite green. Only
-  `core/article_parser.py` + `tests/test_message_format.py` changed.
+## 2. are both merge commits on main's first-parent history?
+```
+git log main (newest first) contains:
+  4a1e01b  Merge pull request #56 from funzi7/chore/sync-automation-core   <- main HEAD
+  9ab8ec9  Merge pull request #55 from funzi7/claude/subtitle-foreign-guard
+#56 merge 4a1e01b -> on main: YES (it IS main HEAD)
+#55 merge 9ab8ec9 -> on main: YES (reachable on main, 1 commit behind HEAD)
+(both merged=true, base=main → on main)
+```
 
-## Note on reproducibility
-The exact "וול סטריט ננעלה בעליות" Chinese-Cocoon snapshot remains **unrecoverable** (transient
-live-blog state, rotated; one3ft/wayback no longer serve it — see `95b449b`). This fix is the
-evidence-based hardening of the one structural gap (subtitle path); it is not a confirmed live
-repro. Cocoon/body/title/caption were already covered. If Chinese recurs, capture the live
-snapshot AT POST TIME (the live blog won't hold it).
+## 3. gate+bridge+claude fixes actually on main (read .github/workflows @ main = sha 4a1e01b)
+--- codex-gate.yml (job name / check producer / MAX_ATTEMPTS / concurrency / output) ---
+```
+concurrency:
+  group: codex-gate-pr-${{ github.event.pull_request.number || github.event.inputs.pr_number || github.event.issue.number || github.run_id }}
+  cancel-in-progress: true
+  checks: write
+jobs:
+  codex-gate:                      <- job KEY is `codex-gate` (not check-codex-status)
+    name: check-codex-status       <- job DISPLAY name = check-codex-status
+            const MAX_ATTEMPTS = 3;
+            async function publishGateCheck(headSha, conclusion, title, summary) {
+              const mine = existing.find((c) => c.name === 'check-codex-status');
+              await github.rest.checks.update({ ...body, check_run_id: mine.id });
+              await github.rest.checks.create({ ...body, name: 'check-codex-status', head_sha: headSha });
+            output.title states: '🟢 Reviewed — clear' / '🔴 Active Codex P1/P2' / '🟡 Waiting for Codex review'
+```
+--- codex-auto-fix.yml (does the @claude fix body inline findings?) ---
+```
+          FINDINGS_DIGEST: ${{ steps.check_review.outputs.findings_digest }}
+            const digest = (process.env.FINDINGS_DIGEST || "").trim();
+            core.setOutput("findings_digest", digest);
+            core.setOutput("finding_count", String(digestBullets.length || findingN));
+            ... so the findings are inlined below — apply a fix for each:\n\n---\n${digest}\n---
+            for (const c of reviewComments) { if (...isP12(c.body) && onHeadDate(c.created_at)) ... `- \`${loc}\` — ...` }
+```
+--- claude.yml (max-turns on main) ---
+```
+          claude_args: |
+            --max-turns 50
+            --allowedTools "Read,Glob,Grep,Edit,Write,MultiEdit,Bash(git:*),Bash(python:*),...,Bash(gh pr:*),Bash(gh issue:*),Bash(actionlint)"
+```
 
-## Main / repo state
-- **PR #53** (Join CTA) **MERGED** (`bca520b`).
-- **PR #54** (srcset precrop + in-body source link) — **REAL, OPEN, NOT phantom** (verified via
-  API: head `claude/srcset-and-source-link` @ `2ea3f375`, base main). Awaiting CI + merge.
-- **PR #55** (this subtitle guard) OPEN, awaiting CI + merge.
-- **PR #52** (automation-core sync) and **PR #35** (old capture diag) still OPEN.
-- Main carries no diag workflow. Video confirmed plays gif-style
-  (telegra.ph/VIDEO-EMBED-TEST-06-30). Bold-stocks: queued (not started).
-- **Temp branches pending MANUAL deletion** (proxy blocks git-refs DELETE → push hangs up):
-  `diag/run-cocoon`, `diag/run-fullbody`, `diag/run-srclink`, `diag/run-brokenimg`,
-  `diag/run-consolidated` (also stale: `diag/telethon-vs-posted-guids`).
+## 4. CI on the LATEST main commit
+```
+main head = 4a1e01b96f0a7e81db82b200a2104783a0151170
+CI (ci.yml) run on 4a1e01b: 2026-06-30T10:04:46Z push completed/success
+(prior main heads 9ab8ec9 / 527d41b / b0774a5 also push completed/success)
+```
+
+## 5. any OPEN PRs left + needs-owner anywhere?
+```
+open PRs: (none — 0 open)
+open issues labeled needs-owner: (none — 0)
+```
+
+## VERDICT
+- (a) both #55 + #56 merged onto main: **YES** (both merged=true, base=main; merge commits 9ab8ec9 and 4a1e01b are on main's first-parent history; 4a1e01b is main HEAD).
+- (b) codex-gate.yml on main has job != check-codex-status + explicit check + MAX_ATTEMPTS=3 + concurrency: **YES** — job KEY = `codex-gate`; explicit `check-codex-status` published via `checks.create`/`checks.update` (publishGateCheck, head-pinned, with 🟢/🔴/🟡 output.title); `MAX_ATTEMPTS = 3`; top-level `concurrency` (codex-gate-pr-…, cancel-in-progress:true) all present. **NOTE/CAVEAT:** the job also carries `name: check-codex-status`, so the JOB-STATUS check-run is ALSO named `check-codex-status` alongside the explicit one — i.e. two same-named check-runs on the head (the duplicate fix #11's rename aimed to avoid). merge-bot's latest-per-name dedupe still copes, but this is worth an upstream follow-up.
+- (c) codex-auto-fix.yml on main inlines findings: **YES** — `FINDINGS_DIGEST` env + `findings_digest` output + the "…inlined below — apply a fix for each: --- <digest> ---" body, built from `reviewComments`/`reviews` (Codex + P1/P2 + onHead) are all present.
+- (d) claude.yml max-turns on main = **50** (broad allowedTools present).
+- (e) latest main CI conclusion = **success** (4a1e01b → CI push completed/success).
+- (f) leftover open PRs = **none** (0 open PRs; 0 needs-owner issues). The loop is fully drained.
