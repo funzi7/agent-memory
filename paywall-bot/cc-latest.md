@@ -1,56 +1,68 @@
-# paywall-bot — srcset + source-link fixes (PR #54, 2026-06-30)
+# paywall-bot — Chinese-Cocoon diagnosis (2026-06-30)
 
-Status: **PR #54** OPEN → main, branch `claude/srcset-and-source-link`. Not merged (owner merges
-after CI + Codex). Two confirmed fixes from the full-body diagnosis (prev memory `45cdeb0`).
-Suite `python3 -m tests.test_message_format` green.
+READ-ONLY full-body diagnostic via the REAL bypass (`_fetch_one3ft` → `parse_html` → `_finalize`
+→ `_build_nodes`), CI branch `diag/run-cocoon`, runs **28432283948** + **28432670525** (both
+success). Goal: reproduce the Chinese Cocoon on "וול סטריט ננעלה בעליות: נאסד\"ק זינק ביותר מ-2%,
+ספייס אקס ביותר מ-7%". Posted nothing.
 
-## FIX A — broken inline images: srcset comma-split (precrop)
-`core/article_parser.py` `_srcset_largest` (~line 1734) split `srcset` on a **bare comma**.
-Haaretz/TheMarker image URLs embed commas in the query (`...?precrop=1633,1921,x400,y0&...`),
-so one entry shattered; a fragment `y0&width=1500&cmsprod 1500w` won and `_resolve_image_url`
-made it a broken relative URL `https://www.themarker.com/.../.premium/y0&width=1500&...` →
-**HTTP 400** → broken square. No-precrop URLs (no commas) parsed fine → 200 (why it was missed).
-- **Fix:** tokenize on **whitespace**, not commas. URLs never contain whitespace; descriptor is
-  whitespace-separated. Token matching `^[\d.]+[wx],?$` = descriptor for the preceding URL
-  token; else a URL; strip trailing entry-separator comma; `precrop` commas stay in the URL.
-  Full query preserved. Density `2x` + descriptor-less srcsets still handled.
+## Resolved article + why it's UNRECOVERABLE
+- The headline is the **Wall-Street live-blog** `wallstreet/2026-06-29/ty-article-live/0000019f-1195`
+  (the last/only Wall-St item in posted_guids; state snapshot last_run 08:24:49, no 06-30 posts).
+  "ננעלה בעליות" = the US-close snapshot the bot posted ~06-30 morning.
+- **Live-blog content rotates in place.** Fetching `1195` now (warm one3ft, 200, 846 KB) yields
+  og:title **"עליות בבורסות אירופה; הנפט יורד ב-1%"** — the morning-of-30 Europe snapshot, NOT the
+  close. Wayback has no snapshot (404). The exact "ננעלה" snapshot + its Cocoon is gone.
+- First run hit one3ft **503 (cold-start**, identical 258535-byte error page) on the first ~9
+  URLs; the prior 45cdeb0 conclusion came from those misses. Re-ran with a one3ft warm-up +
+  per-URL retries: **all 11 candidates fetched full bodies (200)**. Result across every candidate
+  (live blogs `1195`/`11cd`, all `.highlight`/`.premium` 06-29, both 06-30 markets):
+  **0 matches for "ננעלה בעליות", `html_has_CJK=False` everywhere, `cocoon=0` everywhere.**
+  (`11cd` now → "טאואר ונובה נפלו ב-6%…", the rotated TASE close.) The snapshot cannot be
+  re-fetched from any live URL.
 
-## FIX B — in-body external source link flattened (NYT "לכתבה של")
-Direct `<a href="nytimes.com">לכתבה של ניו יורק טיימס</a>` inside `section.article-body-wrapper`
-was flattened by paragraph extraction (`get_text`) → phrase survived as text, href dropped.
-- **New** `core/article_parser.py` `_extract_source_link(soup, base_url)` — first in-body
-  `<a href>` whose visible text contains a phrase in `_SOURCE_LINK_PHRASES`
-  (`לכתבה של`/`לכתבה המקורית`/`הכתבה המקורית`/`לקריאת הכתבה`/`במקור`) **and** whose host is
-  external (NOT in `_DOMESTIC_SOURCE_HOSTS` = themarker.com/haaretz.co.il/haaretz.com/t.me).
-  Matched on **phrase + external host**, never the obfuscated CSS classes. Returns
-  `{"href","label"}`; label from `_SOURCE_LABEL_BY_HOST` (nytimes→ניו יורק טיימס, bloomberg→בלומברג,
-  reuters→רויטרס, ft→פייננשל טיימס, wsj→וול סטריט ג'ורנל, economist→אקונומיסט) else anchor text.
-- **`ParsedArticle.source_link: dict|None`** (new field, ~line 366); set in `parse_html` (~2336).
-- **`core/main.py`** two `publish_article` call sites (~409, ~557) pass `source_link=parsed.source_link`.
-- **`core/telegraph_pub.py`** `publish_article` (~209) re-cleans the **label** via
-  `_global_clean_paragraph` (href untouched; empty label → drop); `_build_nodes` (~105) emits a
-  real `{"tag":"a","attrs":{"href":…}}` node `"כתבה מקורית: <label>"` next to the footer.
-  Domestic-phrase links ignored; no link → no-op.
+## Mechanism — which path lets a Chinese block through (from code + empirical filter tests)
+Two foreign filters exist; I verified each on current main (`python3` locally):
+1. **`_is_noise_text`** (article_parser.py:1363) → `_foreign_script_ratio(text) > 0.30` (CJK range
+   0x4E00–0x9FFF etc.) → drops the paragraph. Applied in BOTH body extraction and
+   `_extract_cocoon_paragraphs` (line 1498).
+2. **`_global_clean_paragraph`** (article_parser.py:1033) → char-level foreign strip (line 1153
+   `_global_strip_foreign_chars`) + drop-to-None when empty (1180) or `had_foreign` and Hebrew
+   letters < floor (1182). Applied to **title/subtitle/paragraphs/cocoon_paragraphs/captions** in
+   `_finalize` (3007-3038) AND again at the publish boundary in `telegraph_pub.publish_article`.
 
-## Tests (tests/test_message_format.py)
-- **T1T1T** `test_t1t1t_srcset_precrop_commas_not_split` — precrop srcset → chosen src is the
-  full 1500w `img.haarets.co.il` URL with `precrop=…` intact, host preserved, not a fragment;
-  + `_select_best_image_src`/`_resolve_image_url` end-to-end stays on CDN; + descriptor-less/2x.
-- **U1U1U** `test_u1u1u_in_body_external_source_link_emitted_as_anchor` — NYT `<a>` →
-  `parsed.source_link` host nytimes.com + label "ניו יורק טיימס", `_build_nodes` emits the
-  nytimes `<a>`; domestic themarker link with same phrase → `source_link is None`, no ext anchor.
+Empirical (verified): pure-CJK → `_is_noise_text=True`, `_global_clean_paragraph→None`; mixed
+He+CJK (ratio 0.341) → `_is_noise_text=True`, clean strips the CJK leaving only Hebrew. So **every
+CLEANED render field strips CJK** — a fully-Chinese block cannot reach the page through body,
+cocoon, title, or caption on current main.
+
+**The one structural gap = `_extract_subtitle`** (article_parser.py:1426): it applies ONLY
+`_is_subscriber_prompt` — NOT `_is_noise_text` and no foreign-dominance check (deliberately, per
+its docstring: PR #17's ≥30-Hebrew floor wrongly dropped short legit subtitles). It relies SOLELY
+on `_global_clean_paragraph` in `_finalize` to scrub the subtitle blockquote. That single
+dependency is the most plausible original bypass: a foreign-dominant subtitle survives extraction,
+and only the char-strip + Hebrew-floor stands between it and the rendered `blockquote`. (The
+cocoon path is already double-covered: `_is_noise_text` drops fully-foreign; `_global_clean_paragraph`
+strips mixed.)
+
+## Exact fix (recommended)
+- **Harden `_extract_subtitle`**: before returning a candidate, drop it when
+  `_foreign_script_ratio(raw) > FOREIGN_SCRIPT_THRESHOLD` (mirror the cocoon/body `_is_noise_text`
+  guard). Cheap, no Hebrew-floor regression (it's a ratio, not a min-Hebrew count), and closes the
+  only render path that skips the foreign-dominance filter. Add a test: a CJK-dominant
+  meta[description]/h2 → `_extract_subtitle` returns None → no blockquote node emitted.
+- Defensive nicety: assert in a test that `_build_nodes` is never called with un-`_finalize`d
+  fields (the subtitle/cocoon must always pass `_global_clean_paragraph`).
+- **Cannot confirm the live repro** — the snapshot rotated and one3ft/wayback no longer serve it.
+  If it recurs, capture the offending telegra.ph page or the live snapshot AT POST TIME (the live
+  blog won't hold it). The `diag-cocoon.yml` CJK trace (class chain → NOISE_ANCESTOR_CLASSES →
+  `_foreign_script_ratio` → `_is_noise_text` → `_global_clean_paragraph` → bucket → emitted node)
+  is ready to pinpoint the surviving filter the moment a CJK-bearing body is in hand.
 
 ## Main / repo state
-- **PR #53** (Join CTA → author_url = source URL) **MERGED** to main (`bca520b`). Telegraph
-  byline no longer a t.me "Join" CTA.
-- **PR #54** (this) OPEN, branch `claude/srcset-and-source-link`. Awaiting CI + merge.
-- **PR #35** (old capture diag) still OPEN.
-- **Chinese Cocoon**: still UNREPRODUCED — both Wall-St candidates pulled full bodies with 0
-  CJK and neither title matched "וול סטריט ננעלה בעליות … נאסד\"ק". Next: resolve the exact
-  source URL by title from feed/state/posted-GUIDs, re-run the `diag-fullbody.yml` CJK trace.
-- **Video**: confirmed plays gif-style (Telegraph accepted video nodes;
-  telegra.ph/VIDEO-EMBED-TEST-06-30).
-- Heroes unaffected by FIX A (different resolve path) — all hero GETs 200 image/jpeg.
+- **PR #53** (Join CTA) MERGED (`bca520b`). **PR #54** (srcset precrop + in-body source link) OPEN,
+  branch `claude/srcset-and-source-link`. **PR #35** (old capture diag) OPEN.
+- Main carries **no diag workflow** (diag-cocoon.yml lived only on the temp branch; never on main).
+- Video: confirmed plays gif-style (telegra.ph/VIDEO-EMBED-TEST-06-30).
 - **Temp branches pending MANUAL deletion** (proxy blocks git-refs DELETE → push hangs up):
-  `diag/run-fullbody`, `diag/run-srclink`, `diag/run-brokenimg`, `diag/run-consolidated`
-  (also stale: `diag/telethon-vs-posted-guids`). Main carries no diag workflow.
+  `diag/run-cocoon`, `diag/run-fullbody`, `diag/run-srclink`, `diag/run-brokenimg`,
+  `diag/run-consolidated` (also stale: `diag/telethon-vs-posted-guids`).
