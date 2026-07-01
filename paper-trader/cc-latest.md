@@ -5,63 +5,69 @@ synthetic dry-run; finance/X/LLM hosts are firewalled here, so live reads run on
 GitHub Actions)._
 
 ## What this change did
-Two dashboard-data fixes, scoped to `funzi7/paper-trader`, on a fresh branch off
-`origin/main`.
+Five fixes to published `portfolios.json` / report, scoped to `funzi7/paper-trader`, on
+a fresh branch off `origin/main`.
 
-**NEW PR: https://github.com/funzi7/paper-trader/pull/16**
-(branch `fix/screener-rank-track-and-pace`, diffed against current `origin/main` — 7
-files).
+**NEW PR: https://github.com/funzi7/paper-trader/pull/17**
+(branch `fix/combined-fractional-twitter-reset-realized`, diffed against current
+`origin/main` — 7 files).
 
-## FIX 1 — screener_track positions/pending now carry `rank` + A/B `track`
-The screener computes a shortlist rank + an A/B track, but paper-trader wasn't carrying
-them into the screener_track holdings, so `portfolios.json` positions had only
-ticker/shares/avg_price/… — the dashboard couldn't sort by rank or show the A/B badge.
-- `Position` gains optional `rank`/`track` (default `None`), **dropped from `to_dict()`
-  when `None`** so every non-screener position stays byte-identical; `from_dict` keeps
-  them on reload.
-- `screener_track.parse_shortlist` reads BOTH shapes the screener may publish: a plain
-  ticker list (rank = list order, track `None`) and a list of `{ticker, rank, track}`
-  dicts. `ScreenerTrack.meta()` → `{ticker: {rank, track}}`.
-- `apply_meta(portfolios, strat)` (called each run in `main.py` after `run_day`) stamps
-  rank+track onto every screener_track **position AND pending order**. A held name
-  dropped from the shortlist **keeps its last-known** rank/track; a missing shortlist is
-  a safe no-op. Other strategies untouched.
+## BUG 1 — `combined_*` holds WHOLE shares only (was fractional)
+`combined_100/_10k` held fractional shares (e.g. AMDL 0.086922, ARDX 0.91186).
+`build_combined` now FLOORS each ticker's $ contribution to whole units at the mark; a
+name whose whole-share price exceeds its (~1/9) slice is DROPPED and its dollars fall to
+combined cash. Verified on real state: `combined_10k` → `{AMDL: 2, ARDX: 96, BKNG: 1,
+CELH: 4, …}` (all integers); `combined_100` (~$11/strategy slice) holds nothing → all
+cash. No fractional positions anywhere.
 
-### Dashboard note (agent-memory side)
-`portfolios.json` for `screener_track_100/_10k` positions (and screener pending) now
-include `rank` (int) and, when published, `track` ("A"/"B"). The dashboard can read
-those to sort by rank and render an A/B badge. Backward-compatible: the keys are simply
-absent for names without shortlist metadata.
+## BUG 2 — twitter_track (+ guru_track) rebalance as NET per-ticker deltas
+Root cause: the "equal-weight reset on add" sold EVERY holding and rebought the whole
+list, so a name in both got a SELL **and** a BUY (collision), plus churn. New
+`engine._reset_delta_orders`: each target name is sized to its 1/N slice of current
+equity and the difference vs held shares becomes ONE order — BUY the shortfall, trim
+(partial SELL) the excess, or hold; a dropped name is fully sold. **Guarantees: no
+ticker gets both a BUY and a SELL, and a SELL is only ever emitted for a HELD name.**
+The engine now honors explicit `qty` on BUY (delta, MERGED onto the held lot via a
+weighted-avg `_record_buy`) and SELL (trim, no scale-out breakeven-stop side effect).
 
-## FIX 2 — honest monthly-$ pace (no partial-day × ~30 blowup)
-The "$X לחודש" figure annualized a <1-day return — a $415 since-inception gain showed as
-"$8,576.70 לחודש" (≈ $415 × 21). paper-trader now emits honest pace fields into
-`portfolios.json` for all 22 portfolios (`report.compute_pace` / `attach_pace`):
-- `monthly_pace` is computed from the **actual elapsed trading days** —
-  `total_gain / len(equity_history) × 21` — never a single day × 30.
-- Below `report.pace_min_days` (**default 7**) it does NOT extrapolate: `monthly_pace =
-  null`, `monthly_pace_status = "too_short"`, plus the reusable note
-  `טרם ניתן לחשב קצב (היסטוריה קצרה)`. Also emits `pace_days`.
+## FEATURE 3 — `realized_pnl` per portfolio, distinct from VALUE
+`Portfolio.realized_pnl()` = `gross_profit − gross_loss` (booked at each sell, net of
+commissions) is now in every `to_dict()` (and each `combined_*`, = 0). This is the REAL
+locked-in cash from sells — separate from the mark-to-market VALUE (cash + open market
+value) that fluctuates daily.
 
 ### Dashboard note (agent-memory side)
-The dashboard should read `monthly_pace` / `monthly_pace_status` / `monthly_pace_note`
-from `portfolios.json` and show the note (or hide the pace) when status is `too_short`,
-instead of computing its own extrapolated pace. The honest number is now the published
-one.
+Read **`realized_pnl`** from `portfolios.json` and show it as the real, booked P&L kept
+DISTINCT from the theoretical mark-to-market equity/return. **Do NOT label the
+mark-to-market as "בפועל"** — that word is now reserved (in the Telegram report and in
+intent) for realized money only. Suggested labels: value/return = "שווי נוכחי (מחושב)"
+/ "תשואה נוכחית (מחושבת)"; realized = "מומש בפועל".
+
+## FEATURE 4 — honest wording in the Telegram report
+Per-account line: value/return now read "שווי נוכחי (מחושב)" / "תשואה נוכחית (מחושבת)"
+(theoretical), never "בפועל"; a separate "מומש בפועל ±$R" line shows realized cash.
+
+## FEATURE 5 — distinct partial-sell icon (Telegram)
+Full exit → 🔴 מכירה; a partial sell (scale-out OR a rebalance trim — `Fill.partial`) →
+🟠 מכירה חלקית, so a scale-out is never read as a full exit.
+
+## NOT changed (per request)
+`momentum_scan` `refill_on_exit` — a name that exited on a stop re-entering the same
+month — is INTENDED and left as-is (a future "cooldown after stop-out" is a separate
+possible feature).
 
 ## Verification (offline)
-- `pip install -r requirements.txt` OK; `tests/selftest.py` **539 → 554 green**
-  (`test_screener_rank_track`: rank/track on positions+pending, off-shortlist keeps
-  last-known, non-screener byte-identical, `from_dict` round-trip, missing-shortlist
-  no-op; `test_monthly_pace`: too-short flag vs honest elapsed-days compute,
-  `attach_pace`).
-- `python main.py --dry-run --synthetic` OK; no secrets printed. Diff = 7 files vs
-  `origin/main` (`config.yaml` +`pace_min_days`, `main.py`, `papertrader/portfolio.py`,
-  `papertrader/report.py`, `papertrader/strategies/screener_track.py`,
-  `tests/selftest.py`, `handoffs/CONTEXT.md`).
+- `pip install -r requirements.txt` OK; `tests/selftest.py` **557 → 565 green**
+  (`test_combined` whole-share invariant; `test_guru_track` + new
+  `test_rebalance_realized_partial` for net-delta no-collision / no-unheld-sell /
+  equal-weight / full-exit, `realized_pnl` distinct in `to_dict`, partial-sell 🟠 icon).
+- `python main.py --dry-run --synthetic` OK; verified on real state; no secrets printed.
+  Regression/publish tests stay green (`Fill.partial` excluded from `trades.csv`;
+  `realized_pnl` ignored by `from_dict`). Diff = 7 files vs `origin/main`.
 
 ## Rules honored
-ONLY `funzi7/paper-trader`. Branched fresh off `origin/main`, opened a NEW PR (#16) — no
-push to any closed-PR branch. Carried rank+track into screener_track state without
-touching other strategies (byte-identical); suppressed the extrapolated pace on short
-history and computed from real elapsed days otherwise. No secrets printed.
+ONLY `funzi7/paper-trader`. Branched fresh off `origin/main`, opened a NEW PR (#17) — no
+push to any closed-PR branch. combined whole-share only; twitter/guru rebalance has no
+self-collision and no unheld sells; realized_pnl kept separate from mark-to-market;
+"בפועל" reworded; distinct partial-sell icon; momentum_scan refill untouched. No secrets
+printed.
