@@ -1038,3 +1038,7 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 
 ### 2026-06-29 Covered Put — first-class strategy
 - OPT: 8d8907b — feat: first-class Covered Put (short stock + short put). New StrategyType.COVERED_PUT; CoveredPutCalculator (BigDecimal: premium/effective-cover/upside-breakeven/maxProfit/open-PL/full+partial assignment netting against the short/OTM-expire/buy-to-close/coverage-recheck/25:1 split). Room v30->v31 adds contract_multiplier (MIGRATION_30_31). ProfitCalculator: COVERED_PUT assignment realizes option premium (not CSP $0 fold). CoveredPutDetailScreen + Screen.CoveredPutDetail nav. 23 JVM tests green (MULL fixture to the cent: 6488.56).
+
+### 2026-07-01 GP1 — dashboard banner-dismiss regression
+- OPT: df93e43
+- `refreshActiveAlert()` now compares `getLastAlertCache()` against `getDismissedAlertSig()` BEFORE the JSONArray parse/repopulate; when the worker cache is unchanged since dismissal it clears `_activeAlerts` and returns, so a dismissed banner no longer reappears on every dashboard entry / app resume (GN1 regression). A genuinely new alert changes the signature so new content still shows. `dismissAlert()` / `filterStaleExpiryAlerts` / worker / AlertsScreen untouched. Build `:app:compileDebugKotlin` SUCCESSFUL, `grep "^e: "` empty. No realizedPnL/DB change.
