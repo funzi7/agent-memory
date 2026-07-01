@@ -35,3 +35,9 @@ date,portfolio_id,strategy,ticker,side,shares,fill_price,commission,cash_after,e
 2026-06-30,twitter_track_100,twitter_track,ARDX,BUY,9.0,5.1926,0.4673,52.8,98.7,קנייה לפי @theaiportfolios
 2026-06-30,twitter_track_10k,twitter_track,ARDX,BUY,961.0,5.1926,4.805,5005.11,9906.21,קנייה לפי @theaiportfolios
 2026-06-30,twitter_track_10k,twitter_track,NOW,BUY,51.0,97.3587,1.0,38.82,10003.2,קנייה לפי @theaiportfolios
+2026-07-01,leveraged_momentum_10k,leveraged_momentum,AMDL,SELL,14.0,76.047,1.0,1856.16,9681.69,"מימוש חלקי +23% — נמכרה מחצית, סטופ הועלה לכניסה"
+2026-07-01,twitter_track_100,twitter_track,ARDX,SELL,3.0,5.1174,0.1535,68.0,98.96,קנייה לפי @theaiportfolios
+2026-07-01,twitter_track_100,twitter_track,PGY,BUY,1.0,18.3292,0.1833,49.49,99.22,קנייה לפי @theaiportfolios
+2026-07-01,twitter_track_10k,twitter_track,ARDX,SELL,308.0,5.1174,1.54,1613.45,10378.73,קנייה לפי @theaiportfolios
+2026-07-01,twitter_track_10k,twitter_track,NOW,SELL,18.0,103.5482,1.0,3476.32,10337.2,קנייה לפי @theaiportfolios
+2026-07-01,twitter_track_10k,twitter_track,PGY,BUY,182.0,18.3292,1.0,139.41,10416.43,קנייה לפי @theaiportfolios
