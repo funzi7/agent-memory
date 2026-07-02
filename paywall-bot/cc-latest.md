@@ -1,73 +1,78 @@
-verify: #55 + #56 merged into main; gate/bridge/claude fixes present on main (READ-ONLY)
+# paywall-bot — READ-ONLY audit of last 20 POSTED articles (2026-07-02)
 
-> gh/curl-on-raw unavailable for a private repo; captured via GitHub REST (pulls / contents@main / commits / actions). Verbatim.
+Ran the bot's REAL chain (`_fetch_one3ft` → `parse_html` → `_finalize` → `_build_nodes`),
+UNMODIFIED, on the 20 most-recent `posted_guids`, in CI (branch `diag/run-audit20`, run
+28576143282, success). Posted nothing; changed no bot behavior. **The diag workflow + its temp
+branch SELF-DELETED from within CI** (`gh api --method DELETE …/git/refs/heads/diag/run-audit20`
+→ "temp branch deleted"); nothing throwaway remains on main or as a leftover branch. All 20
+fetched full bodies (one3ft 200, 800KB–1.1MB after a cold-start warm-up).
 
-## 1. #55 + #56 merge state
-```
-#55 state=closed merged=true merged_at=2026-06-30T10:00:50Z base=main :: Drop foreign-script-dominant subtitle candidates (Chinese-subtitle guard)
-#56 state=closed merged=true merged_at=2026-06-30T10:04:43Z base=main :: chore(automation): sync from automation-core
-```
+## HEADLINE RESULT — all four reported issues are NON-REPRODUCING on current main (0/20 each)
+| check | count | notes |
+|---|---|---|
+| Talkbacks in parsed body | **0/20** | talkback regex matched 0 parsed paragraphs; **0 talkback DOM containers** found in ANY fetched HTML (comment/talkback/responses/ugc classes) |
+| Partial / truncated body | **0/20** | `paras_parsed ≈ body-wrapper <p>` for every article (±1); no article has raw ≥2× parsed; max node JSON = 27,385 B (art.4), all well under Telegraph's 64KB |
+| Residual foreign chars | **0/20** | zero foreign-script chars in any final field (title/subtitle/cocoon/paras/captions); `hits by script: {}` |
+| English "Cocoon AI Summary" label | **0/20** | no label survived; **cocoon=0 for all 20** (no Cocoon block present in any fetched body) |
 
-## 2. are both merge commits on main's first-parent history?
-```
-git log main (newest first) contains:
-  4a1e01b  Merge pull request #56 from funzi7/chore/sync-automation-core   <- main HEAD
-  9ab8ec9  Merge pull request #55 from funzi7/claude/subtitle-foreign-guard
-#56 merge 4a1e01b -> on main: YES (it IS main HEAD)
-#55 merge 9ab8ec9 -> on main: YES (reachable on main, 1 commit behind HEAD)
-(both merged=true, base=main → on main)
-```
+The four bugs the task described (talkbacks, 200K truncation, `شيقل` Arabic opening, English
+Cocoon label) were from **earlier posts made by an older deployed version**. On current main —
+after #53/#54/#55 (+#56 automation sync) merged — none reproduce across the last 20 posts.
 
-## 3. gate+bridge+claude fixes actually on main (read .github/workflows @ main = sha 4a1e01b)
---- codex-gate.yml (job name / check producer / MAX_ATTEMPTS / concurrency / output) ---
-```
-concurrency:
-  group: codex-gate-pr-${{ github.event.pull_request.number || github.event.inputs.pr_number || github.event.issue.number || github.run_id }}
-  cancel-in-progress: true
-  checks: write
-jobs:
-  codex-gate:                      <- job KEY is `codex-gate` (not check-codex-status)
-    name: check-codex-status       <- job DISPLAY name = check-codex-status
-            const MAX_ATTEMPTS = 3;
-            async function publishGateCheck(headSha, conclusion, title, summary) {
-              const mine = existing.find((c) => c.name === 'check-codex-status');
-              await github.rest.checks.update({ ...body, check_run_id: mine.id });
-              await github.rest.checks.create({ ...body, name: 'check-codex-status', head_sha: headSha });
-            output.title states: '🟢 Reviewed — clear' / '🔴 Active Codex P1/P2' / '🟡 Waiting for Codex review'
-```
---- codex-auto-fix.yml (does the @claude fix body inline findings?) ---
-```
-          FINDINGS_DIGEST: ${{ steps.check_review.outputs.findings_digest }}
-            const digest = (process.env.FINDINGS_DIGEST || "").trim();
-            core.setOutput("findings_digest", digest);
-            core.setOutput("finding_count", String(digestBullets.length || findingN));
-            ... so the findings are inlined below — apply a fix for each:\n\n---\n${digest}\n---
-            for (const c of reviewComments) { if (...isP12(c.body) && onHeadDate(c.created_at)) ... `- \`${loc}\` — ...` }
-```
---- claude.yml (max-turns on main) ---
-```
-          claude_args: |
-            --max-turns 50
-            --allowedTools "Read,Glob,Grep,Edit,Write,MultiEdit,Bash(git:*),Bash(python:*),...,Bash(gh pr:*),Bash(gh issue:*),Bash(actionlint)"
-```
+## A. Talkbacks — do NOT leak, and are not even in the fetched DOM
+- `_extract_paragraphs` (core/article_parser.py:2170) walks the BROAD containers
+  `("article", ".article-body", "main")` — NOT scoped to `section.article-body-wrapper`. So a
+  server-rendered comments block inside `<article>`/`<main>` *could* leak if the noise-class
+  filters missed it.
+- BUT: in all 20 fetched bodies, **no talkback/comments container exists in the HTML at all**
+  (TheMarker loads comments via JS/XHR, absent from the one3ft static render). `all_container<p>`
+  is only ~3 more than `body-wrapper<p>` (nav/teaser `<p>`), and those extras are already dropped
+  (parsed count tracks the body-wrapper count, not the broad count). No descending-number+time
+  talkback signature appeared in any parsed list.
+- **Fix / hardening (latent, not currently firing):** scope `_extract_paragraphs`' root to
+  `section.article-body-wrapper` (mirror the inline-image scoping from #47), falling back to
+  `.article-body`/`article` only when the wrapper is absent. Closes the theoretical leak if
+  comments ever render server-side. Not urgent — no current leak.
 
-## 4. CI on the LATEST main commit
-```
-main head = 4a1e01b96f0a7e81db82b200a2104783a0151170
-CI (ci.yml) run on 4a1e01b: 2026-06-30T10:04:46Z push completed/success
-(prior main heads 9ab8ec9 / 527d41b / b0774a5 also push completed/success)
-```
+## B. Truncation — none; 200K article is COMPLETE
+- No article is partial. **200K target = `[10] markets/2026-07-01/.premium/…1d65`
+  ("עד 200 אלף שקל לאדם: המהפכה שמציע משרד האוצר…"): html_len=861,468 (full page), paras_parsed=16
+  == body-wrapper `<p>`=16 (complete parse), node_json_bytes=12,639 (well under 64KB).**
+  **Verdict: the earlier published truncation was NOT from a partial fetch, NOT from parsing, and
+  NOT from 64KB handling — current code parses and renders it in full.** (`_fetch_generic` reads
+  `r.text` with no size cap; the only 64KB boundary is Telegraph's `content` field, and the
+  largest of the 20 was 27KB.) The old truncation was an artifact of the previous deployment.
 
-## 5. any OPEN PRs left + needs-owner anywhere?
-```
-open PRs: (none — 0 open)
-open issues labeled needs-owner: (none — 0)
-```
+## C. Foreign residue — none; no ranges missing
+- Zero foreign-script chars survived in any final cleaned field across all 20. The `شيقل` Arabic
+  run did NOT reproduce.
+- `_GLOBAL_FOREIGN_RANGES` (as printed) already covers every relevant script — Arabic
+  `0x0600-06FF` (+Supplement/Ext-A/PF-A/PF-B), Cyrillic `0x0400-04FF` (+supplements), CJK
+  `0x3400-9FFF` (+compat), Hiragana/Katakana, Hangul, Thai `0x0E00-0E7F`. **No missing ranges** for
+  any script that appeared (none appeared). `_global_clean_paragraph` strips these char-level in
+  BOTH `_finalize` and the publish boundary; a fully-foreign field → dropped to None, a mixed
+  field → foreign chars stripped. The `شيقל` case is covered both by the Arabic range (char strip)
+  and by the context-aware Arabic→Hebrew visual map for mixed tokens.
 
-## VERDICT
-- (a) both #55 + #56 merged onto main: **YES** (both merged=true, base=main; merge commits 9ab8ec9 and 4a1e01b are on main's first-parent history; 4a1e01b is main HEAD).
-- (b) codex-gate.yml on main has job != check-codex-status + explicit check + MAX_ATTEMPTS=3 + concurrency: **YES** — job KEY = `codex-gate`; explicit `check-codex-status` published via `checks.create`/`checks.update` (publishGateCheck, head-pinned, with 🟢/🔴/🟡 output.title); `MAX_ATTEMPTS = 3`; top-level `concurrency` (codex-gate-pr-…, cancel-in-progress:true) all present. **NOTE/CAVEAT:** the job also carries `name: check-codex-status`, so the JOB-STATUS check-run is ALSO named `check-codex-status` alongside the explicit one — i.e. two same-named check-runs on the head (the duplicate fix #11's rename aimed to avoid). merge-bot's latest-per-name dedupe still copes, but this is worth an upstream follow-up.
-- (c) codex-auto-fix.yml on main inlines findings: **YES** — `FINDINGS_DIGEST` env + `findings_digest` output + the "…inlined below — apply a fix for each: --- <digest> ---" body, built from `reviewComments`/`reviews` (Codex + P1/P2 + onHead) are all present.
-- (d) claude.yml max-turns on main = **50** (broad allowedTools present).
-- (e) latest main CI conclusion = **success** (4a1e01b → CI push completed/success).
-- (f) leftover open PRs = **none** (0 open PRs; 0 needs-owner issues). The loop is fully drained.
+## D. Cocoon label — not present, not surviving
+- No article carried a Cocoon block (`cocoon=0` ×20), so the English label had nothing to survive
+  through. The label-strip is `_COCOON_CAPTION_RE`/`_COCOON_CAPTION_INLINE_RE` with `_CAPTION_SEP`
+  (matches ASCII ws + zero-width/bidi marks `​-‍⁠﻿‎‏`) and runs
+  inside `_global_clean_paragraph` — i.e. on the Telegraph-page render path (title/subtitle/
+  paragraphs/cocoon/captions via `_finalize` + `publish_article`), not just the channel message.
+  No evasion pattern observed in this sample.
+
+## Fix summary
+- Talkbacks: **latent-only** → optionally scope `_extract_paragraphs` to
+  `section.article-body-wrapper` (defense-in-depth). No current leak.
+- Truncation / 200K / foreign residue / Cocoon label: **already resolved on current main** — no
+  code change indicated; the reported defects were from an older deployment and do not reproduce.
+
+## Main / repo state
+- **#53, #54, #55, #56 all MERGED** to main (per parallel-session verify: #55 subtitle guard
+  merged 2026-06-30T10:00:50Z; #56 automation sync merged 10:04:43Z; latest main CI success).
+  Images working (heroes + inline all 200 image/jpeg; srcset precrop fix live). **0 open PRs.**
+- markets-emphasis / bold-stocks PR: none open (not found among open PRs).
+- Diag hygiene: `diag/run-audit20` self-deleted. Pre-existing leftover branches from EARLIER tasks
+  still pending manual deletion (local proxy blocks git-refs DELETE): `diag/run-brokenimg`,
+  `diag/run-srclink`, `diag/telethon-vs-posted-guids`.
