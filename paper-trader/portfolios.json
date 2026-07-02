@@ -1706,11 +1706,35 @@
       },
       "pending_orders": [
         {
+          "ticker": "APD",
+          "side": "BUY",
+          "reason": "פריצה #1 +5.2% מעל הרף, RSI 68",
+          "rank": 1,
+          "price": 306.4,
+          "qty": 0
+        },
+        {
+          "ticker": "ERIE",
+          "side": "BUY",
+          "reason": "פריצה #2 +4.0% מעל הרף, RSI 68",
+          "rank": 2,
+          "price": 249.27,
+          "qty": 0
+        },
+        {
           "ticker": "GIS",
           "side": "BUY",
-          "reason": "פריצה #1 +3.8% מעל הרף, RSI 68",
-          "rank": 1,
+          "reason": "פריצה #3 +3.8% מעל הרף, RSI 68",
+          "rank": 3,
           "price": 37.77,
+          "qty": 0
+        },
+        {
+          "ticker": "SPGI",
+          "side": "BUY",
+          "reason": "פריצה #4 +1.2% מעל הרף, RSI 61",
+          "rank": 4,
+          "price": 414.97,
           "qty": 0
         }
       ],
@@ -1845,12 +1869,12 @@
           "reason": "המהלך נגמר — מתחת לממוצע 10"
         },
         {
-          "ticker": "GIS",
+          "ticker": "APD",
           "side": "BUY",
-          "reason": "פריצה #1 +3.8% מעל הרף, RSI 68",
+          "reason": "פריצה #1 +5.2% מעל הרף, RSI 68",
           "rank": 1,
-          "price": 37.77,
-          "qty": 56
+          "price": 306.4,
+          "qty": 7
         }
       ],
       "equity_history": [
@@ -2183,7 +2207,7 @@
       "monthly_pace": null,
       "monthly_pace_status": "too_short",
       "monthly_pace_note": "טרם ניתן לחשב קצב (היסטוריה קצרה)",
-      "pace_days": 4
+      "pace_days": 1
     },
     "combined_10k": {
       "portfolio_id": "combined_10k",
@@ -2467,7 +2491,7 @@
       "monthly_pace": null,
       "monthly_pace_status": "too_short",
       "monthly_pace_note": "טרם ניתן לחשב קצב (היסטוריה קצרה)",
-      "pace_days": 4
+      "pace_days": 1
     }
   }
 }
