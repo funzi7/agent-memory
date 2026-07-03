@@ -1,31 +1,45 @@
 # automation-core — latest Claude Code status
 
-## fix #16 — claude.yml: opt-in SDK transcript to enumerate fixer permission denials
+## fix #17 — gate never dies mid-verdict; merge-bot ignores cancelled checks + reads on GITHUB_TOKEN
 
-**main commit `becba8b`** (direct to main, one commit, author funzi7). `workflows/claude.yml` ↔
-`.github/workflows/claude.yml` byte-identical (blob `df61a3a`); actionlint clean on both.
+**main commit `a03a807`** (direct to main, ONE commit, author funzi7). Two live failures from today,
+three parts. Both changed workflows byte-identical across `workflows/` ↔ `.github/workflows/`
+(codex-gate `140e929`, merge-bot `f08ea09`); actionlint clean on all four copies; `node --check` OK
+on merge-bot's github-script body.
 
-**What & why.** Added one line to the `anthropics/claude-code-action@v1` `with:` block:
-```yaml
-show_full_output: ${{ vars.CLAUDE_SHOW_FULL_OUTPUT == 'true' }}
-```
-The action hides the SDK transcript by default ("full output hidden for security" —
-`show_full_output` defaults false). So when a fixer run dies `error_max_turns`, the log shows
-`permission_denials_count` but NOT which tools were denied — `--allowedTools` can't be tuned on
-facts. Incident that motivated it: **paywall-bot PR #58**, fixer `error_max_turns` (51 turns,
-**$2.21**, **permission_denials_count: 21**), denied tool names unrecoverable.
+### INCIDENT 1 — a green PR stranded by a self-cancelled gate run
+A codex-gate run read Codex's 👍, CREATED the green `codex-gate-verdict` tile, then got CANCELLED
+mid-run by the workflow's own `cancel-in-progress` BEFORE the job concluded — leaving the
+authoritative `check-codex-status` job check `cancelled` on the head. merge-bot treats cancelled as
+failed → the PR stranded until a manual re-run.
+- **Part A — `codex-gate.yml`:** `cancel-in-progress: true → false` (group key UNCHANGED). In-progress
+  runs now always run to completion; GitHub still collapses the QUEUE per group (at most one pending;
+  superseded pending runs dropped), so event bursts don't storm — they just don't cancel the
+  executing run.
+- **Part B — `merge-bot.yml`:** before the latest-check-per-name dedupe, `checkRuns` is filtered
+  `conclusion !== 'cancelled'` (in-progress runs, `conclusion: null`, kept so `anyRunning` still
+  works); latest-per-name, `anyFailed`, and the `CODEX_CHECK` lookup all operate on the filtered
+  list. An older SUCCESS on the same head stays authoritative past a cancelled tail (checks are
+  pinned to the head SHA); if EVERY `check-codex-status` on the head is cancelled → lookup finds
+  nothing → fail-closed skip (unchanged).
 
-**Semantics.** Default stays hidden — the safe default for PUBLIC downstreams, where the transcript
-can echo file contents into world-readable logs. A PRIVATE repo flips the repository Actions
-variable `CLAUDE_SHOW_FULL_OUTPUT=true` temporarily to enumerate denials by tool name, then flips it
-back off. `--max-turns` (50), `--allowedTools`, tokens, triggers, concurrency — all unchanged.
+### INCIDENT 2 — merge-bot crash: `Resource not accessible by personal access token`
+merge-bot reached its checks read on the first real candidate and died. The whole github-script step
+is bound to `AUTOMATION_PAT`, and **fine-grained PATs cannot be granted the Checks permission at all**
+(no such option exists in the PAT UI), so `checks.listForRef` on the PAT can never succeed.
+- **Part C — `merge-bot.yml`:** added `env: GH_READONLY_TOKEN: ${{ github.token }}` and built
+  `const readonly = require('@actions/github').getOctokit(process.env.GH_READONLY_TOKEN)`. Switched
+  ONLY the two read calls (`checks.listForRef` + `repos.listCommitStatusesForRef`) to `readonly`.
+  `github-token` stays `AUTOMATION_PAT` — every MUTATION (`pulls.merge` [must be PAT-authored so the
+  push to main triggers downstream], labels, comments, `deleteRef`, issue-close) is unchanged.
+  `GITHUB_TOKEN` carries the workflow's already-declared `checks: read` + `statuses: read`.
 
-**Handoffs updated in the SAME commit:** `handoffs/CONTEXT.md` (claude fixer bullet — the debug
-toggle + when to use it), `LOOP_STATE.md` (claude.yml fix #16 bullet), `handoffs/loop-build.md`
-(dated 2026-07-03 entry referencing the #58 error_max_turns / 21-denials incident).
+**Validation greps:** no `cancel-in-progress: true` directive remains in codex-gate.yml; the cancelled
+filter sits before latest-per-name; `readonly` is used for exactly the two reads (no other
+`readonly.rest.`); `github-token` still `AUTOMATION_PAT`. Handoffs updated in the same commit:
+`handoffs/CONTEXT.md` (gate concurrency semantics + merge-bot cancelled-filter + two-token split +
+fine-grained-PAT/Checks limitation), `LOOP_STATE.md` (codex-gate + merge-bot entries, fix #17),
+`handoffs/loop-build.md` (dated entry: stranded-green-PR + merge-bot PAT crash).
 
-**Validation:** actionlint clean on both `claude.yml` copies; `git hash-object` equal across
-`workflows/` and `.github/workflows/`; `show_full_output` present on line 94 of both; name-guard clean.
-
-**Next:** on the next private-repo `error_max_turns`, flip the var on → read denied tool names →
-tighten/loosen `--allowedTools`. Propagates to downstreams on the next daily sync.
+**Next:** watch the next real green candidate merge cleanly — no cancelled-tail strand, no PAT-Checks
+crash. Propagates to downstreams on the next daily sync.
