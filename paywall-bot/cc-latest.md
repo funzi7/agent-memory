@@ -1,60 +1,106 @@
-# paywall-bot — markets-emphasis feature (PR #62, 2026-07-03)
+diagnostic: red gate on sync PR #66 (fix #20 sync) — READ-ONLY
 
-Status: **PR #62** OPEN → main, branch `claude/emphasize-markets`, head **`258c890`**,
-URL https://github.com/funzi7/paywall-bot/pull/62 (verified via API: state=open, merged=false,
-3 files, +312/−1). Codex reviews; Codex Gate + merge-bot handle gating/merge. Did NOT touch the
-#58 quality gate, fetch chain, or paragraph scoping. `handoffs/CONTEXT.md` read first and updated
-in the SAME commit (per its own protocol).
+_All facts resolved from the GitHub API on 2026-07-03 (`gh` unavailable → REST/MCP). READ-ONLY: no
+code/PR/comment/label/run touched. Owner referenced only by login `funzi7`._
 
-## Feature — bold markets in BODY paragraphs only
-`core/telegraph_pub.py`:
-- **`_emphasize_markets_children(text) -> list`** (new helper, defined above
-  `_inline_image_figure_node`): splits a body paragraph into mixed Telegraph children — plain
-  strings + `{"tag":"strong","children":[<span>]}` nodes. Returns `[text]` when nothing matches;
-  every original character/space preserved exactly (asserted byte-for-byte); no dir/bdi additions.
-- **`_build_nodes` body loop** (`nodes.append({"tag":"p","children":
-  _emphasize_markets_children(p)})`) — the ONLY call site. Title, subtitle blockquote, byline
-  ("מאת:"), Cocoon block, figcaptions, footer "מקור: TheMarker", and the source-link node keep
-  flat string children.
+## 0. the open sync PR
+```
+#66  chore/sync-automation-core @ 3d80048bfe2428c43ef40a779c0b9db245b0be63  created=2026-07-03T15:46:02Z
+title: chore(automation): sync from automation-core   (2 files changed, +29/-38)
+base:  main @ 43de8e221d57bda0f9a523d18c02d021daa9198d   state=open  mergeable_state=unstable
+latestCommitDate (max committer date across PR commits) = 2026-07-03T15:46:00Z   (1 commit: 3d80048)
+files: .github/workflows/claude-fallback-watchdog.yml (+14/-9), .github/workflows/merge-bot.yml (+15/-29)
+        → diff is FIX #20 verbatim (roPage/roPaged Link rel="next", 50-page ceiling; replaces the 10-page valve)
+```
 
-## Editable constants (module-level, "extend freely")
-`INDEX_NAMES` (optional leading "מדד " joins the bolded span; דאו ג'ונס, נאסד"ק, S&P 500,
-ראסל 2000, ניקיי, דאקס, פוטסי/FTSE, ת"א 35/125/90/בנקים/ביטוח/נדל"ן/בנייה/נפט וגז/טכנולוגיה,
-מדד הבנייה, מדד הנדל"ן) · `COMPANY_NAMES` (whole-token only; טבע…בלקרוק incl. OpenAI, ספייס אקס)
-· `MOVEMENT_VERBS` (all listed inflections of עלה/ירד/זינק/צנח/קפץ/נפל/התחזק/נחלש/הוסיף/איבד/
-צלל/התרסק/נסוג/התאושש/התייצב/צמח) · `RECORD_PHRASES` (שיא יומי חדש, שיא (של) כל הזמנים,
-שיא חדש, שבר שיא, רשם שיא).
+## 1. every check-run on the head 3d80048, chronological (verbatim titles)
+```
+2026-07-03T15:46:09Z  check-codex-status   [completed/failure]  (job, run 28670733504)
+2026-07-03T15:46:10Z  test-message-format  [completed/success]  (real CI — ci.yml, GREEN)
+2026-07-03T15:47:52Z  check-codex-status   [completed/failure]  (job, run 28670814274)
+2026-07-03T15:49:32Z  check-codex-status   [completed/failure]  (job, run 28670892084)
+2026-07-03T15:49:35Z  codex-gate-verdict   [completed/failure]  :: "🟡 Waiting for Codex review"
+      summary: "Codex hasn't reviewed 3d80048 yet (rerun attempt 3/3). The gate re-checks
+                automatically; it turns green once Codex reviews with no active P1/P2. Manual
+                override: add the `codex-p1-acknowledged` label."
+```
+NONE of the check-codex-status runs is `cancelled`; all three are `completed/failure` (pending verdict).
 
-## Matching (one pass, NON-OVERLAPPING)
-Rule priority: 1) INDEX_NAMES (optional `מדד\s+` prefix inside the span) → 2) COMPANY_NAMES
-(whole-token) → 3) RECORD_PHRASES → 4) movement verb + adjacent magnitude AS ONE SPAN
-(`verb \s+ (?:[בל][-–־]?)? \d[\d.,]* \s* %` — bare verb with no % NEVER bolded) → 5) standalone
-percentages incl. ב-X%/ל-X%. Longest-first alternation within each rule; later rules never match
-inside an already-claimed span; Hebrew-safe boundaries `(?<![A-Za-zא-ת0-9])…(?![A-Za-zא-ת0-9])`
-(no `\b` — gershayim inside נאסד"ק/ת"א break it). Regexes precompiled in `_EMPH_RULES`.
+## 2. Codex signals on PR #66
+```
+--- reviews (pulls/66/reviews) ---            : []   (NO Codex review of any state on the head)
+--- issue-level reactions (issues/66/reactions) : 0    (NO 👍 — no late Codex ack)
+--- issue comments (issues/66/comments) ---   : []
+--- review comments containing P1/P2 ---      : []   (no inline findings at all)
+```
+=> ZERO Codex signal of any kind on head 3d80048 (no review, no comment, no reaction).
 
-## Tests (tests/test_message_format.py; labels F2F2F+ because C2C2C-E2E2E were taken)
-- **F2F2F** `test_f2f2f_markets_emphasis_exact_spans` — the spec sentence → strong spans exactly
-  `["מדד דאו ג'ונס","עלה ב-0.6%","שיא יומי חדש","נאסד\"ק","התחזק ב-2.1%"]`; "עם נעילת המסחר"
-  plain; rejoined == original.
-- **G2G2G** `test_g2g2g_markets_emphasis_bare_verb_not_bolded` — "המתח עלה בין הצדדים" → no strong.
-- **H2H2H** `test_h2h2h_markets_emphasis_body_only` — market text placed in subtitle/author/cocoon/
-  figcaption/source-link stays flat while the body paragraph in the same build gets strong spans.
-Validation: `python3 -m py_compile` on changed modules OK; standalone
-`python3 -m tests.test_message_format` all green (full pytest can't run in sandbox — CI
-`test-message-format` is the arbiter, per CONTEXT §5.3).
+## 3. gate runs on this head — did every attempt COMPLETE (fix #17 check) + poll window
+```
+2026-07-03T15:46:05Z  pull_request       completed/failure  run=28670733504  attempt=1
+2026-07-03T15:47:47Z  workflow_dispatch  completed/failure  run=28670814274  attempt=1  (self-rerun 2/3)
+2026-07-03T15:49:27Z  workflow_dispatch  completed/failure  run=28670892084  attempt=1  (self-rerun 3/3)
+```
+All 3 COMPLETED (failure); ZERO cancelled. The head-targeted self-rerun poll exhausted at 3/3
+(~15:49:38Z) — after which the gate stops re-dispatching and sits pending until a Codex signal or the
+override label.
 
-## CONTEXT.md updated in the same commit — 3 NEW OPEN TODO items (production posts 2026-07-02/03)
-1. **Space-before-period after trailing numbers/Latin** ("בפברואר 2022 ." not "2022.") — diagnose
-   WHERE the space is injected (node join vs source text) before fixing.
-2. **Residual isolated foreign homoglyphs INSIDE Hebrew words** in cocoon/body (Arabic ر/ض,
-   Cyrillic н, CJK 城市的, stray Latin fragments) — single chars pass the dominance-ratio filters
-   by design; raw-fetch diagnosis (source-side vs pipeline-side) needed before any fix.
-3. **Cocoon/paragraph alignment renders LTR in some posts** — no direction mechanism exists in the
-   pipeline (verified); candidate fix: prepend RLM to Hebrew-containing paragraph/cocoon text nodes.
+## 4. watchdog since the PR opened — did the sweep tick, and is it even functional
+```
+watchdog total_count = 43;   NEWEST run = 2026-07-03T14:54:13Z (id 28668140575, completed/FAILURE)
+runs created AFTER the PR opened (>15:46:02Z): NONE
+```
+The watchdog has NOT ticked since the PR was created (last tick 14:54 = ~52 min BEFORE the 15:46 PR).
+And the deployed watchdog on `main` is BROKEN — the 14:54 run's sweep step crashed (verbatim):
+```
+Error: Cannot find module '@actions/github'
+Require stack:
+- /home/runner/work/_actions/actions/github-script/v7/dist/index.js
+##[error]Unhandled error: Error: Cannot find module '@actions/github'  ... code: 'MODULE_NOT_FOUND'
+```
+i.e. `main` still runs the pre-fix-#19 watchdog whose late-signal sweep does `require('@actions/github')`
+inside `actions/github-script@v7` — the exact bug fix #19 removed and this very sync PR (fix #20, which
+sits on top of #19's fetch helpers) would deploy. So the sweep is dead-on-arrival every tick AND has not
+run for #66.
 
-## Repo state
-#58 + #59 merged (in-chain gates + fix-#15 two-check gate live on main); #61 sync merged.
-PR #62 (this) open awaiting Codex + gate + merge-bot. Pending: fix #16 upstream (show-full-output)
-→ sync → merge; manual deletion of `diag/run-brokenimg`, `diag/run-srclink`,
-`diag/telethon-vs-posted-guids`.
+## 5. merge-bot wakes since — and why it skipped
+```
+28670817528  2026-07-03T15:47:51Z  workflow_run  completed/SKIPPED   (the only #66-era wake)
+28669680851  2026-07-03T15:24:38Z  workflow_run  completed/success   (pre-#66, other head)
+28669526305  2026-07-03T15:21:27Z  workflow_run  completed/failure   (pre-#66)
+```
+The 15:47:51 wake SKIPPED at the job `if:` — merge-bot proceeds only on a Codex Gate `workflow_run`
+whose `conclusion == 'success'`; this gate run concluded `failure`, so the job never ran (no candidate
+scan). Correct fail-closed behavior: merge-bot never touched the red/ungated #66.
+
+---
+
+# VERDICT
+
+**(a) The red's cause — PENDING, no Codex signal on the head.** The authoritative `check-codex-status`
+is `failure` because the cosmetic tile reads **"🟡 Waiting for Codex review" — "Codex hasn't reviewed
+3d80048 yet (rerun attempt 3/3)."** Reviews `[]`, comments `[]`, reactions `0`: Codex has posted NO
+signal on the head. It is **not** an active P1/P2 (no findings exist) and **not** a gate malfunction
+(the gate evaluated correctly, published its verdict, and completed). Because a sync PR receives no
+Codex auto-review, this pending never self-clears.
+
+**(b) fix #17 regression check — CLEAN (yes, all completed, zero cancelled).** All three gate runs on
+head 3d80048 are `completed/failure` (one `pull_request`, two head-targeted `workflow_dispatch`
+self-reruns); NONE is `cancelled`. The concurrency-cancel-mid-verdict strand fix #17 fixed does not
+recur here.
+
+**(c) sweep behavior — has NOT ticked for this PR, and is broken on main anyway.** The newest watchdog
+run is 2026-07-03T14:54:13Z, ~52 min BEFORE the PR opened; there are ZERO watchdog runs after the PR
+was created, so the sweep never evaluated #66. Separately, that 14:54 run FAILED with `Cannot find
+module '@actions/github'` — main still carries the pre-fix-#19 sweep (`require` inside github-script@v7),
+so the sweep would crash even if it ran. **Crucially this is NOT a late-signal-uncaught-by-sweep case:**
+there is NO fresh Codex signal on the head (no review, no 👍), so a working sweep would have found
+nothing to dispatch. The red is genuinely (a) pending-no-signal, not (b).
+
+**(d) P1/P2 on the fix #20 diff — none.** No Codex finding exists on #66. (Standing rule for when one
+does appear on a synced workflow: the fix belongs UPSTREAM in `automation-core`, never patched in this
+repo — the next sync overwrites any downstream workflow edit.)
+
+**(e) Recommended next step:** add the `codex-p1-acknowledged` override label to #66 (or admin-merge) —
+sync PRs never get a Codex review so the pending gate can't self-clear; merging lands fix #19/#20 on
+`main`, which also repairs the crashing watchdog late-signal sweep.
