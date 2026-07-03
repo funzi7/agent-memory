@@ -1,45 +1,55 @@
 # automation-core — latest Claude Code status
 
-## fix #17 — gate never dies mid-verdict; merge-bot ignores cancelled checks + reads on GITHUB_TOKEN
+## HOTFIX (merge-bot YAML) + fix #18 (watchdog late-signal sweep)
 
-**main commit `a03a807`** (direct to main, ONE commit, author funzi7). Two live failures from today,
-three parts. Both changed workflows byte-identical across `workflows/` ↔ `.github/workflows/`
-(codex-gate `140e929`, merge-bot `f08ea09`); actionlint clean on all four copies; `node --check` OK
-on merge-bot's github-script body.
+**main commit `7b0e2be`** (direct to main, ONE commit, author funzi7). Both changed workflows
+byte-identical across `workflows/` ↔ `.github/workflows/` (merge-bot `8811de6`, watchdog `9cb7d42`);
+actionlint + `yaml.safe_load` pass on all four copies; `node --check` on both script bodies.
 
-### INCIDENT 1 — a green PR stranded by a self-cancelled gate run
-A codex-gate run read Codex's 👍, CREATED the green `codex-gate-verdict` tile, then got CANCELLED
-mid-run by the workflow's own `cancel-in-progress` BEFORE the job concluded — leaving the
-authoritative `check-codex-status` job check `cancelled` on the head. merge-bot treats cancelled as
-failed → the PR stranded until a manual re-run.
-- **Part A — `codex-gate.yml`:** `cancel-in-progress: true → false` (group key UNCHANGED). In-progress
-  runs now always run to completion; GitHub still collapses the QUEUE per group (at most one pending;
-  superseded pending runs dropped), so event bursts don't storm — they just don't cancel the
-  executing run.
-- **Part B — `merge-bot.yml`:** before the latest-check-per-name dedupe, `checkRuns` is filtered
-  `conclusion !== 'cancelled'` (in-progress runs, `conclusion: null`, kept so `anyRunning` still
-  works); latest-per-name, `anyFailed`, and the `CODEX_CHECK` lookup all operate on the filtered
-  list. An older SUCCESS on the same head stays authoritative past a cancelled tail (checks are
-  pinned to the head SHA); if EVERY `check-codex-status` on the head is cancelled → lookup finds
-  nothing → fail-closed skip (unchanged).
+### PART A — HOTFIX: merge-bot.yml was broken YAML on main (both copies)
+A manual paste of the `github-script v8` + `__original_require__` fix landed badly:
+- `.github/workflows/merge-bot.yml` had a stray `+ const { getOctokit } = __original_require__(...)`
+  diff-artifact line, then the real getOctokit line + `const readonly = ...` at **column 0**.
+- `workflows/merge-bot.yml` had getOctokit indented but `const readonly` at **column 0**.
 
-### INCIDENT 2 — merge-bot crash: `Resource not accessible by personal access token`
-merge-bot reached its checks read on the first real candidate and died. The whole github-script step
-is bound to `AUTOMATION_PAT`, and **fine-grained PATs cannot be granted the Checks permission at all**
-(no such option exists in the PAT UI), so `checks.listForRef` on the PAT can never succeed.
-- **Part C — `merge-bot.yml`:** added `env: GH_READONLY_TOKEN: ${{ github.token }}` and built
-  `const readonly = require('@actions/github').getOctokit(process.env.GH_READONLY_TOKEN)`. Switched
-  ONLY the two read calls (`checks.listForRef` + `repos.listCommitStatusesForRef`) to `readonly`.
-  `github-token` stays `AUTOMATION_PAT` — every MUTATION (`pulls.merge` [must be PAT-authored so the
-  push to main triggers downstream], labels, comments, `deleteRef`, issue-close) is unchanged.
-  `GITHUB_TOKEN` carries the workflow's already-declared `checks: read` + `statuses: read`.
+A column-0 line **terminates** the `script: |` block scalar, so `yaml.safe_load` failed at line 92
+col 1 on BOTH copies — the whole file wouldn't parse (and had synced broken to a downstream). Fixed:
+the block is now
+```
+            const { getOctokit } = __original_require__('@actions/github');
+            const readonly = getOctokit(process.env.GH_READONLY_TOKEN);
+```
+at the 12-space script indent, no column-0 lines anywhere in the block. The `actions/github-script@v8`
+bump itself is CORRECT and **stays** (v8 sandboxes `require`, so `__original_require__` is required to
+load the bundled `@actions/github`). Every OTHER workflow left on `@v7`. `readonly` still used for
+exactly the two reads (`checks.listForRef` + `repos.listCommitStatusesForRef`); `github-token` still
+`AUTOMATION_PAT`.
 
-**Validation greps:** no `cancel-in-progress: true` directive remains in codex-gate.yml; the cancelled
-filter sits before latest-per-name; `readonly` is used for exactly the two reads (no other
-`readonly.rest.`); `github-token` still `AUTOMATION_PAT`. Handoffs updated in the same commit:
-`handoffs/CONTEXT.md` (gate concurrency semantics + merge-bot cancelled-filter + two-token split +
-fine-grained-PAT/Checks limitation), `LOOP_STATE.md` (codex-gate + merge-bot entries, fix #17),
-`handoffs/loop-build.md` (dated entry: stranded-green-PR + merge-bot PAT crash).
+### PART B — fix #18: watchdog late-signal sweep closes the late-👍 gap
+INCIDENT: Codex's 👍 landed AFTER the gate's 3-attempt poll window (~4.5 min) closed. A reaction
+fires **no webhook event**, so nothing re-runs the gate → the PR strands 🟡-pending forever (until a
+manual re-run). Fix: a SECOND `github-script@v7` step in `claude-fallback-watchdog.yml`, AFTER the
+existing timeout logic, on the SAME 5-min schedule (**zero new billed runs**), whole-body +
+per-PR `try/catch` so it never blocks the timeout step:
+- For each open PR, read the newest `codex-gate-verdict` check-run on the head via a **GITHUB_TOKEN
+  readonly** client (`require('@actions/github').getOctokit(env.GH_READONLY_TOKEN)` — v7 plain
+  `require`; fine-grained PATs can't hold Checks, so added `checks: read` to the watchdog perms).
+- Candidate iff the verdict title is **`🟡 Waiting for Codex review`** (verbatim from the gate's
+  publish call) OR no verdict on the head. 🟢 needs nothing; 🔴 (active P1/P2) is the bridge's job.
+- For a candidate, if a **fresh Codex signal on the head** exists — a Codex review
+  `submitted_at > latestCommitDate` OR a Codex-authored issue-level 👍 `created_at > latestCommitDate`,
+  using the gate's EXACT `isCodex` matcher and `latestCommitDate` (max committer date across
+  `pulls.listCommits`) — it re-dispatches the gate on the head branch **exactly as `scheduleRerun`**
+  (`createWorkflowDispatch` `codex-gate.yml`, `ref: pr.head.ref`, `inputs.pr_number`) via
+  **AUTOMATION_PAT** (`github`, the watchdog's dispatch token; fix #4 loud-fail = `core.error` +
+  Telegram), logging `late-signal sweep: dispatching gate for PR #N @ <head7>`.
+- **Self-limiting:** after the dispatched run the verdict is 🟢 (candidate clears) or 🔴 (skipped
+  thereafter) → at most one extra gate run per stuck head per watchdog tick.
 
-**Next:** watch the next real green candidate merge cleanly — no cancelled-tail strand, no PAT-Checks
-crash. Propagates to downstreams on the next daily sync.
+**Handoffs updated in the same commit:** `handoffs/CONTEXT.md` (merge-bot: v8 `require` lesson +
+manual-edit/YAML rules; watchdog: the late-👍 sweep), `LOOP_STATE.md` (merge-bot hotfix +
+watchdog fix #18), `handoffs/loop-build.md` (dated entry: broken-YAML-on-main + stranded-green-PR,
+both closed here).
+
+**Next:** a late Codex 👍 now self-heals within one watchdog tick (≤5 min) instead of stranding until
+a manual re-run. Propagates to downstreams on the next daily sync.
