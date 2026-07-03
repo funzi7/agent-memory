@@ -1,55 +1,51 @@
 # automation-core — latest Claude Code status
 
-## HOTFIX (merge-bot YAML) + fix #18 (watchdog late-signal sweep)
+## fix #19 — eliminate in-script module loading; raw REST via built-in `fetch`
 
-**main commit `7b0e2be`** (direct to main, ONE commit, author funzi7). Both changed workflows
-byte-identical across `workflows/` ↔ `.github/workflows/` (merge-bot `8811de6`, watchdog `9cb7d42`);
+**main commit `de5eb9a`** (direct to main, ONE commit, author funzi7). Both changed workflows
+byte-identical across `workflows/` ↔ `.github/workflows/` (merge-bot `7563959`, watchdog `b952c9f`);
 actionlint + `yaml.safe_load` pass on all four copies; `node --check` on both script bodies.
 
-### PART A — HOTFIX: merge-bot.yml was broken YAML on main (both copies)
-A manual paste of the `github-script v8` + `__original_require__` fix landed badly:
-- `.github/workflows/merge-bot.yml` had a stray `+ const { getOctokit } = __original_require__(...)`
-  diff-artifact line, then the real getOctokit line + `const readonly = ...` at **column 0**.
-- `workflows/merge-bot.yml` had getOctokit indented but `const readonly` at **column 0**.
+### The bug (empirical, both majors)
+`require('@actions/github')` crashed merge-bot on **github-script v7** (`Cannot find module
+…/v7/dist/index.js`), and `__original_require__('@actions/github')` crashed it **again on v8** (same
+error, v8/dist in the stack). Root cause: the action ships an **ncc-bundled `dist` with NO
+`node_modules`** — there is nothing to resolve, under either require, in either major. The fix #18
+watchdog sweep carried the SAME dead construct (plain `require` on v7), so it was **dead-on-arrival
+every tick** (threw before reading a single verdict).
 
-A column-0 line **terminates** the `script: |` block scalar, so `yaml.safe_load` failed at line 92
-col 1 on BOTH copies — the whole file wouldn't parse (and had synced broken to a downstream). Fixed:
-the block is now
-```
-            const { getOctokit } = __original_require__('@actions/github');
-            const readonly = getOctokit(process.env.GH_READONLY_TOKEN);
-```
-at the 12-space script indent, no column-0 lines anywhere in the block. The `actions/github-script@v8`
-bump itself is CORRECT and **stays** (v8 sandboxes `require`, so `__original_require__` is required to
-load the bundled `@actions/github`). Every OTHER workflow left on `@v7`. `readonly` still used for
-exactly the two reads (`checks.listForRef` + `repos.listCommitStatusesForRef`); `github-token` still
-`AUTOMATION_PAT`.
+### The fix — built-in global `fetch`, zero modules
+Replaced the second-token octokit client in BOTH files with `fetch`-based helpers at the same script
+spot:
+- `roGet(path)` — `Bearer $GH_READONLY_TOKEN` + `Accept: application/vnd.github+json` +
+  `X-GitHub-Api-Version: 2022-11-28`; throws with status + body slice on non-OK.
+- `roCheckRuns(ref)` — `GET /repos/{o}/{r}/commits/{ref}/check-runs?per_page=100&page=N` (paged to 10).
+- `roStatuses(ref)` — `GET /repos/{o}/{r}/commits/{ref}/statuses?per_page=100&page=N` (**merge-bot only**;
+  the watchdog reads only check-runs).
 
-### PART B — fix #18: watchdog late-signal sweep closes the late-👍 gap
-INCIDENT: Codex's 👍 landed AFTER the gate's 3-attempt poll window (~4.5 min) closed. A reaction
-fires **no webhook event**, so nothing re-runs the gate → the PR strands 🟡-pending forever (until a
-manual re-run). Fix: a SECOND `github-script@v7` step in `claude-fallback-watchdog.yml`, AFTER the
-existing timeout logic, on the SAME 5-min schedule (**zero new billed runs**), whole-body +
-per-PR `try/catch` so it never blocks the timeout step:
-- For each open PR, read the newest `codex-gate-verdict` check-run on the head via a **GITHUB_TOKEN
-  readonly** client (`require('@actions/github').getOctokit(env.GH_READONLY_TOKEN)` — v7 plain
-  `require`; fine-grained PATs can't hold Checks, so added `checks: read` to the watchdog perms).
-- Candidate iff the verdict title is **`🟡 Waiting for Codex review`** (verbatim from the gate's
-  publish call) OR no verdict on the head. 🟢 needs nothing; 🔴 (active P1/P2) is the bridge's job.
-- For a candidate, if a **fresh Codex signal on the head** exists — a Codex review
-  `submitted_at > latestCommitDate` OR a Codex-authored issue-level 👍 `created_at > latestCommitDate`,
-  using the gate's EXACT `isCodex` matcher and `latestCommitDate` (max committer date across
-  `pulls.listCommits`) — it re-dispatches the gate on the head branch **exactly as `scheduleRerun`**
-  (`createWorkflowDispatch` `codex-gate.yml`, `ref: pr.head.ref`, `inputs.pr_number`) via
-  **AUTOMATION_PAT** (`github`, the watchdog's dispatch token; fix #4 loud-fail = `core.error` +
-  Telegram), logging `late-signal sweep: dispatching gate for PR #N @ <head7>`.
-- **Self-limiting:** after the dispatched run the verdict is 🟢 (candidate clears) or 🔴 (skipped
-  thereafter) → at most one extra gate run per stuck head per watchdog tick.
+**merge-bot.yml** (`@v8`, kept): call sites became `const checkRunsAll = await roCheckRuns(headSha);`
+and `const statuses = await roStatuses(headSha);`.
+**claude-fallback-watchdog.yml** (`@v7`, kept): the sweep's call site became
+`const checkRuns = await roCheckRuns(headSha);`; false "v7 exposes require" comment + require line
+deleted; all sweep logic (candidate rule, fresh-signal matchers, dispatch, loud-fail) unchanged.
 
-**Handoffs updated in the same commit:** `handoffs/CONTEXT.md` (merge-bot: v8 `require` lesson +
-manual-edit/YAML rules; watchdog: the late-👍 sweep), `LOOP_STATE.md` (merge-bot hotfix +
-watchdog fix #18), `handoffs/loop-build.md` (dated entry: broken-YAML-on-main + stranded-green-PR,
-both closed here).
+REST payload fields are **identical** to what octokit returned (check runs:
+`name`/`status`/`conclusion`/`started_at`/`completed_at`/`output`; statuses: `state`/`context`/
+`created_at`), so every downstream consumer — the fix #17 cancelled filter, latest-per-name dedupe,
+`anyRunning`/`anyFailed`, `CODEX_CHECK` lookup, status handling, and the sweep's `output.title`
+verdict read — is untouched. `github-token: AUTOMATION_PAT` (mutations/dispatch) and the
+`GH_READONLY_TOKEN: github.token` env line unchanged on both.
 
-**Next:** a late Codex 👍 now self-heals within one watchdog tick (≤5 min) instead of stranding until
-a manual re-run. Propagates to downstreams on the next daily sync.
+### Validation
+`yaml.safe_load` on both copies of both files; actionlint clean on all four; `node --check` on each
+extracted script body; grep across `workflows/` + `.github/workflows/` returns **ZERO** hits for
+`require('@actions/github')`, `__original_require__`, `getOctokit`, and `readonly.`; `git hash-object`
+equal per file.
+
+**Handoffs updated in the same commit:** `handoffs/CONTEXT.md` (new **HARD RULE** in §7 CONVENTIONS —
+never load a module in github-script; the only sanctioned second-token pattern is raw REST via built-in
+`fetch`; merge-bot + watchdog sections corrected), `LOOP_STATE.md` (merge-bot + watchdog fix #19
+entries), `handoffs/loop-build.md` (dated entry: v7 + v8 crash record, both replaced with fetch).
+
+**Next:** merge-bot's checks/statuses reads and the watchdog late-signal sweep now actually execute
+(were throwing every run). Propagates to downstreams on the next daily sync.
