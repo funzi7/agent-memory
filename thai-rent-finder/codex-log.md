@@ -5,6 +5,24 @@ History of Codex auto-fix activities. Newest first.
 ---
 
 ## PR #82 — fix(scraper): stop staleness sweep from deactivating user-curated listings
+**Date:** 2026-07-04T15:44:51Z
+**Reviewed commit:** unknown
+**Source:** [PR comment](https://github.com/funzi7/thai-rent-finder/pull/82#discussion_r3523445173)
+
+**Summary**
+* Updated stale sweep city scoping so scrapers that track `completedCities` honor that completion signal before falling back to `opts.city`. This prevents a failed ThailandProperty single-city scan from sweeping stale rows for a city whose inventory was not fully read. [src/scrapers/core/BaseScraper.tsL215-L239](https://github.com/funzi7/thai-rent-finder/blob/43fadf8911882a604b139f9725db34e91261aaa9/src/scrapers/core/BaseScraper.ts#L215-L239)
+* Preserved the fallback single-city sweep behavior for scrapers that do **not** track per-city completion. [src/scrapers/core/BaseScraper.tsL224-L239](https://github.com/funzi7/thai-rent-finder/blob/43fadf8911882a604b139f9725db34e91261aaa9/src/scrapers/core/BaseScraper.ts#L224-L239)
+
+**Testing**
+* ✅ `npx tsc --noEmit`
+
+Committed the fix as `daf086b fix(scraper): skip stale sweep after failed tracked city runs` and created a PR via the `make_pr` tool.
+
+ [View task →](https://chatgpt.com/s/cd_6a4929d083c08191a22e713afc3eddfe)
+
+---
+
+## PR #82 — fix(scraper): stop staleness sweep from deactivating user-curated listings
 **Date:** 2026-07-04T15:13:16Z
 **Reviewed commit:** unknown
 **Source:** [PR comment](https://github.com/funzi7/thai-rent-finder/pull/82#pullrequestreview-4629816220)
