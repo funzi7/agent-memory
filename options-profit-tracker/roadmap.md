@@ -543,3 +543,9 @@ REMAINING Covered Put improvements (not done this round):
 - Social thumbnail: before treating "no image" as a bug, confirm imageUrl is present via Logcat tag SOCIAL_FEED ("X posts, Y with images").
 - StockRealized drill-down: route per-sale rows to the correct POSITION screen (target pending owner choice), NOT TickerDetail; make BACK restore the screen via rememberSaveable for expandedTicker + scroll position.
 - Deploy note (not code): app "downgrades" on reboot due to Android Studio Apply Changes / streamed install not persisting — fix is a full APK install (assembleDebug + adb install -r). The GO BootReceiver does not address this.
+
+### 2026-07-04 Owner rules + verified gaps (M1)
+- GLOBAL RULE (owner): Back navigation must restore the exact previous spot — screen state + scroll — everywhere in the app.
+- GLOBAL RULE (owner): No large flickers or involuntary jumps anywhere in the app. Banner ✕ dismissal must be smooth, and the monthly-target card must NOT refill/re-animate when a banner is dismissed. (Small live-value refreshes like the unrealized-P&L card are fine.)
+- FEATURE GAP (verified in code): short-close (buy-to-cover) is invisible. importStockSoldEvents skips every trade where buySell != "SELL" (ImportViewModel ~line 1303) and EventType has no stock-BUY value — so a short's closing BUY, which carries IBKR's fifoPnlRealized, never becomes a feed event or stock-realized P&L. Owner closed a short at a profit days ago; it appears nowhere. Needs: surface closing STK BUY trades as a feed event + include them in stock-realized totals. Design pending owner approval.
+- DIAGNOSIS NEEDED: dashboard banner returns on every dashboard entry after ✕ despite GP1's cache-vs-dismissedSig check. Suspect (unverified): the worker rewrites the cache string between entries so the signature no longer matches. Requires a read/log diagnostic before any fix.

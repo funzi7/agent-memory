@@ -82,3 +82,19 @@ On-device verification owed (run on the real Android app; Hebrew UI area names):
 ### 2026-06-21 Carry-forward (Claude Code) — calendar progress-bar jump + risk IV-buffer device test
 - [ ] Calendar "לוח שנה": navigate between a month that HAS a target (progress bar shown, monthlyTarget>0) and a month that has NO target (bar hidden) — the layout must NOT shift vertically. (Currently it STILL jumps because the bar is conditional; fix = reserve the bar's height in no-bar months via the alpha-reserved/maxLines approach used for the summary-card stock lines. The "היום" chip + summary card already stay put.)
 - [ ] Risk/intel IV-buffer (CODEX 24c50b6) — not yet device-verified (no open PUT at the time). On דוחות/AddPosition: a PUT at price≈25 / strike≈24 / IV≈122% → risk HIGH/caution AND intel cautionary (NOT "התנאים תומכים בהמשך החזקה"); a genuinely-far low-IV case (price 100 / strike 80 / IV 20%) → still far/VERY_LOW. Confirm RISK_DBG shows bufferPct/IV/expMovePct/band/verdict.
+
+### 2026-07-04 Consolidated device tests, rounds GM→R2 (statuses per owner reports; NO regression tests per owner rule)
+CONFIRMED WORKING on device:
+- [x] GM2 sort persistence in "רווח/הפסד מניות": survives re-entry and cold start; feed deep-link still jumps/expands/highlights under any saved sort.
+- [x] R2 navigation: tapping an inner sale row in the drill-down opens the actual position page (open OR closed); ticker with only a short opens the short page.
+FAILED on the owner's current device build — retest ONLY after pulling latest main + full install (adb install -r):
+- [ ] R1a: a Covered Put row in "פוזיציות פתוחות" shows the assignment-probability readout (percent + bar + risk color), wording speaks of buy-to-cover, breakeven labeled "מחיר כיסוי אפקטיבי".
+- [ ] R1b: numbers sit in place inside Hebrew feed titles ("100 מניות", not "מניות 100") — check a short-open row and a stock-sale row.
+- [ ] GP1: after dismissing a banner with ✕, re-entering the dashboard does NOT bring it back while the worker cache is unchanged. (Owner reports it still returns every entry — under diagnosis, see roadmap.)
+PENDING (not yet testable or not yet run):
+- [ ] GN1: with 2+ positions expiring within 7 days — one banner per alert; ✕ closes only that banner (needs real expiring positions).
+- [ ] GN2: "רווח/הפסד מניות" opens on the current month; falls back to the newest month with data when the current month is empty; a feed deep-link overrides to the tapped sale's month.
+- [ ] GO BootReceiver: after a FULL apk install, reboot the phone, wait ~2 minutes, open the app — data refreshed without manual sync (auto-sync enabled).
+- [ ] GP2: CoveredPutDetailScreen shows an assignment-probability card (percent, bar, risk color, Hebrew risk label) next to the economics block.
+- [ ] R2-restore: pressing back from the position page returns to "רווח/הפסד מניות" with the same expanded ticker and the same scroll spot (exact current symptom being clarified with owner).
+- [ ] Covered Put core (8d8907b): "פוט מכוסה" appears in the strategy picker; picking a shorted ticker auto-detects short shares + entry price; contracts exceeding the short show a coverage warning; the detail screen shows status / covered / uncovered / strike / expiry / multiplier / premium / effective cover price / upside break-even / max profit / short P&L / option P&L / combined P&L / assignment simulation / unlimited-upside-risk warning; MULL fixture to the cent: premium 1,820.00, effective cover 23.60, upside break-even 29.9912, max profit 6,488.56; on a real assignment the short SHRINKS (no new long position) and only assigned contracts are marked; OTM expiry realizes the full premium with the short unchanged.
