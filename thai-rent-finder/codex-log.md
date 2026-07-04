@@ -4,6 +4,38 @@ History of Codex auto-fix activities. Newest first.
 
 ---
 
+## PR #82 — fix(scraper): stop staleness sweep from deactivating user-curated listings
+**Date:** 2026-07-04T15:13:16Z
+**Reviewed commit:** unknown
+**Source:** [PR comment](https://github.com/funzi7/thai-rent-finder/pull/82#pullrequestreview-4629816220)
+
+
+### 💡 Codex Review
+
+Here are some automated review suggestions for this pull request.
+
+**Reviewed commit:** `43fadf8911`
+    
+
+<details> <summary>ℹ️ About Codex in GitHub</summary>
+<br/>
+
+[Your team has set up Codex to review pull requests in this repo](https://chatgpt.com/codex/cloud/settings/general). Reviews are triggered when you
+- Open a pull request for review
+- Mark a draft as ready
+- Comment "@codex review".
+
+If Codex has suggestions, it will comment; otherwise it will react with 👍.
+
+
+
+
+Codex can also answer questions or update the PR. Try commenting "@codex address that feedback".
+            
+</details>
+
+---
+
 ## PR #75 — chore(automation): bootstrap sync from automation-core
 **Date:** 2026-05-12T11:08:34Z
 **Reviewed commit:** unknown
