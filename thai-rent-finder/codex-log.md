@@ -5,6 +5,27 @@ History of Codex auto-fix activities. Newest first.
 ---
 
 ## PR #88 — Enrich Lazudi extraction, "עודכן" dates, mobile search + recents, dead-concern cleanup
+**Date:** 2026-07-05T18:18:01Z
+**Reviewed commit:** unknown
+**Source:** [PR comment](https://github.com/funzi7/thai-rent-finder/pull/88#issuecomment-4887110601)
+
+**Summary**
+* Reset the mobile search pagination by deleting the `page` query param whenever `SearchBox` commits a new search term, ensuring changed searches start from page 1. [src/components/SearchBox.tsxL29-L41](https://github.com/funzi7/thai-rent-finder/blob/c3b700effbce652871bd9420abec35d0a51ba009/src/components/SearchBox.tsx#L29-L41)
+* Synced `FiltersBar`’s internal search state from URL-driven `q` changes after restore, so mobile search terms are preserved when filters are edited later. [src/components/FiltersBar.tsxL187-L195](https://github.com/funzi7/thai-rent-finder/blob/c3b700effbce652871bd9420abec35d0a51ba009/src/components/FiltersBar.tsx#L187-L195)
+
+**Commit**
+* Created commit `3c42f82` (`fix(search): sync mobile search with filters`).
+
+**Testing**
+* ✅ `npx tsc --noEmit`
+* ✅ `git diff --check`
+* ⚠️ `git push` (warning due to this checkout having no configured Git remote / push destination)
+
+ [View task →](https://chatgpt.com/s/cd_6a4a9f76cdf481918f67ace3b42b6140)
+
+---
+
+## PR #88 — Enrich Lazudi extraction, "עודכן" dates, mobile search + recents, dead-concern cleanup
 **Date:** 2026-07-05T17:58:44Z
 **Reviewed commit:** unknown
 **Source:** [PR comment](https://github.com/funzi7/thai-rent-finder/pull/88#pullrequestreview-4631736633)
