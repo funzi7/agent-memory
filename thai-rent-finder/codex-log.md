@@ -5,6 +5,24 @@ History of Codex auto-fix activities. Newest first.
 ---
 
 ## PR #84 — Solo-use cadence + leaner Hebrew concerns + state.md footer fix
+**Date:** 2026-07-05T08:47:16Z
+**Reviewed commit:** unknown
+**Source:** [PR comment](https://github.com/funzi7/thai-rent-finder/pull/84#discussion_r3524578417)
+
+**Summary**
+* Updated Thailand Property’s deadline comment to reflect that `search()` is intended for GitHub Actions because the serverless scrape route now blocks this source. [src/scrapers/sources/thailand-property.tsL32-L37](https://github.com/funzi7/thai-rent-finder/blob/af69d8771fea7d192cb1182f2fcbd972e50066e0/src/scrapers/sources/thailand-property.ts#L32-L37)
+* Changed Thailand Property city completion semantics so capped scans return `false`, preventing capped Bangkok runs from being treated as stale-sweep-safe. [src/scrapers/sources/thailand-property.tsL942-L949](https://github.com/funzi7/thai-rent-finder/blob/af69d8771fea7d192cb1182f2fcbd972e50066e0/src/scrapers/sources/thailand-property.ts#L942-L949) [src/scrapers/sources/thailand-property.tsL957-L964](https://github.com/funzi7/thai-rent-finder/blob/af69d8771fea7d192cb1182f2fcbd972e50066e0/src/scrapers/sources/thailand-property.ts#L957-L964) [src/scrapers/sources/thailand-property.tsL1090-L1103](https://github.com/funzi7/thai-rent-finder/blob/af69d8771fea7d192cb1182f2fcbd972e50066e0/src/scrapers/sources/thailand-property.ts#L1090-L1103)
+* Added `thailand-property` to the GitHub-Actions-only scrape route guard to avoid running its 3.5-minute scrape deadline under Vercel’s 60-second `maxDuration`. [src/app/api/scrape/\[source\]/route.tsL50-L61](https://github.com/funzi7/thai-rent-finder/blob/af69d8771fea7d192cb1182f2fcbd972e50066e0/src/app/api/scrape/%5Bsource%5D/route.ts#L50-L61)
+* Committed the changes on the current branch with commit `65bfdab` and created the PR via `make_pr`.
+
+**Testing**
+* ✅ `npx tsc --noEmit`
+
+ [View task →](https://chatgpt.com/s/cd_6a4a18e9b1dc8191a57a9c122cbcf583)
+
+---
+
+## PR #84 — Solo-use cadence + leaner Hebrew concerns + state.md footer fix
 **Date:** 2026-07-05T07:08:59Z
 **Reviewed commit:** unknown
 **Source:** [PR comment](https://github.com/funzi7/thai-rent-finder/pull/84#pullrequestreview-4630908196)
