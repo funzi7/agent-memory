@@ -16,3 +16,13 @@
 - [ ] Next TP run (group A day, 09:00 ICT): log shows city order PTY→CMI→PHK→BKK, all 4 completed, BKK yielded ≤2, duration ~4-6 min
 - [ ] Site-health after an off-day: no false stale alerts (80h threshold holding)
 - [ ] agent-memory state.md after next auto-update: single footer, ~20 duplicates gone, cron table reflects */3 cadence
+
+## PR #85 — search/sort/favorites/lazudi (post-deploy)
+
+- [ ] Merge PR, wait for Vercel deploy
+- [ ] /listings?favoriteOnly=1 → favorited listings show
+- [ ] favoriteOnly=1&status=SHORTLISTED → still shows; favoriteOnly=1&status=NEW → empty (AND semantics)
+- [ ] Search box: "riviera" finds Riviera; Hebrew building-name query finds a match
+- [ ] List cards show building name line where available
+- [ ] Sort by size asc/desc works; sqm range filter narrows; year sort puts nulls last
+- [ ] After next Lazudi run (group B day): a Lazudi listing shows a real description, not "View property listing."

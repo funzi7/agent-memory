@@ -1,100 +1,66 @@
 # thai-rent-finder — cc-latest
 
-## Diagnostic: "favorites only" returns zero (READ-ONLY)
+## Search / sort / favorites / building-name / Lazudi — PR #85 (`claude/features-search-sort-favorites`, open, NOT merged)
 
-Traced the `favoriteOnly` pipeline end-to-end at `main` tip `3704a1d`. Target rows:
-`cmoklt6cy001oui0284t0uobp` "Riviera Ocean Drive" and `cmoklt4x9001hui02gt9rwab1`
-"Dusit Grand Condo View For Rent" (both asserted is_active=true, UserStatus.status=SHORTLISTED).
+Five listings-experience improvements. One branch off `main`, 5 commits.
+`tsc --noEmit` clean, `next build` green, `scripts/test-filters.ts` passes.
 
-### HOP 1 — UI toggle
-`src/components/FiltersBar.tsx:470-476` — the "רק מועדפים" control is a plain
-checkbox that sets **React state**, not a URL param directly:
-```tsx
-<input
-  type="checkbox"
-  className="h-4 w-4 accent-primary"
-  checked={favoriteOnly}
-  onChange={(e) => setFavoriteOnly(e.target.checked)}
-/>
-רק מועדפים
-```
-The URL param is produced by the sync effect at `FiltersBar.tsx:207-231`:
-`filtersToQueryString({ …, favoriteOnly, … })` (`:209`,`:215`) → `router.replace("/listings?"+finalQs)` (`:230`).
-So param name/value are whatever `filtersToQueryString` emits (HOP 2).
+### What changed, per commit
 
-### HOP 2 — param round-trip (`src/types/filters.ts`)
-- Serialize: `filters.ts:157` → `if (f.favoriteOnly) params.set("favoriteOnly", "1");`
-  → param **name `favoriteOnly`**, **value `"1"`**.
-- Parse: `filters.ts:107` → `const favoriteOnly = get(sp, "favoriteOnly") === "1";`
-  → reads **`favoriteOnly`**, compares to **`"1"`**.
-- **Name matches; value matches (`"1" === "1"`). Round-trip consistent. ✓**
+**Commit 1 — `fix(listings): favoriteOnly composes with status (AND semantics)`**
+- `src/app/listings/page.tsx`: the status/favoriteOnly branch was `if/else-if`, so an
+  explicit `?status=` silently bypassed `?favoriteOnly=1`. Now composed with AND on the
+  single UserStatus enum: both set → the explicit status iff it's in FAVORITE_STATUSES,
+  else `{ is: { status: { in: [] } } }` (honest empty). `favoriteOnly=1&status=SHORTLISTED`
+  shows; `favoriteOnly=1&status=NEW` is empty.
 
-### HOP 3 — query build (`src/app/listings/page.tsx`)
-`page.tsx:52-56`:
-```ts
-if (filters.status) {
-  where.status = { is: { status: filters.status } };
-} else if (filters.favoriteOnly) {
-  where.status = { is: { status: { in: [...FAVORITE_STATUSES] } } };
-}
-```
-Status list source: `page.tsx:21` → `import { FAVORITE_STATUSES } from "@/lib/favorite-status";`
-(HOP 5). Note the `else if`: an explicit `status=` param wins and **skips** favoriteOnly.
-Two other conditions are always applied to the same `where`: `is_active: true` and
-`price_thb: { lte: filters.maxPrice }` (`page.tsx:38-40`; default maxPrice 40000).
+**Commit 2 — `feat(listings): free-text search over title + building name`**
+- `src/types/filters.ts`: `q?: string` (parse from `?q=`, trimmed, empty→undefined;
+  serialize when non-empty; counted).
+- `src/app/listings/page.tsx`: `where.OR = [{ title: contains }, { building_name: contains }]`
+  (mode insensitive), ANDed with all other filters.
+- `src/components/FiltersBar.tsx`: text input "חיפוש לפי שם / בניין…" wired to the sync
+  effect with a dedicated ~400ms debounce.
 
-### HOP 4 — schema (`prisma/schema.prisma`)
-- Listing side, `:119` → `status              UserStatus?` — **optional to-one (1-1)**.
-- UserStatus, `:193-199` → `listing_id String @id` (PK == FK ⇒ strictly one-to-one) and
-  `status Status @default(NEW)` (the enum field the filter targets).
-- The HOP-3 shape `{ status: { is: { status: { in: [...] } } } }` = Listing.`status`
-  relation → `is` → UserStatus.`status` enum → `in`. **`is` is the correct/valid
-  relation-filter for an optional to-one in Prisma. Shape is valid. ✓**
+**Commit 3 — `feat(listings): show building name on the list card`**
+- `src/components/ListingCard.tsx`: muted secondary line under the title when
+  `building_name` is non-null and differs from the title. No layout restructuring.
 
-### HOP 5 — status list (`src/lib/favorite-status.ts:31-37`)
-```ts
-export const FAVORITE_STATUSES: readonly Status[] = [
-  Status.VIEWED,
-  Status.SHORTLISTED,   // ← present
-  Status.CONTACTED,
-  Status.VISITED,
-  Status.RENTED,
-] as const;
-```
-**SHORTLISTED is in the list. ✓**
+**Commit 4 — `fix(lazudi): drop placeholder meta description so real body text wins`**
+- `src/scrapers/sources/lazudi.ts`: added `isPlaceholderDescription()` (exact match,
+  case-insensitive, optional trailing dot) and treat the placeholder "View property
+  listing." (or empty) meta as `""` at the read point so description falls through to the
+  `$("main")` body fallback. Rest of parser unchanged.
+- Note: existing Lazudi rows keep the old text until their next scrape/rescrape.
 
-### VERDICT — ALL FIVE HOPS ARE CORRECT IN CODE
-No param-name mismatch (`favoriteOnly` throughout), no value mismatch (`"1"==="1"`),
-the Prisma relation-filter shape is valid for the 1-1 `Listing.status → UserStatus`
-relation, and `FAVORITE_STATUSES` includes `SHORTLISTED`. With `is_active=true`,
-`UserStatus.status=SHORTLISTED`, and `price_thb ≤ maxPrice` all true at query time, this
-code **should** return the two rows. **The break is not in the traced code as written.**
-Not guessing a bug — the deciding factor is runtime/data, distinguishable by:
+**Commit 5 — `feat(listings): sort by size/year with direction + sqm/year range filters`**
+- `src/types/filters.ts`: sort reworked from 4 combined keys to `SortField`
+  (newest|price|size|year) + `SortDir` (asc|desc). Back-compat parse maps legacy keys
+  (price_asc/price_desc/size_desc/newest) and honors an explicit `?dir=`. New int range
+  params `minSqm/maxSqm/minYear/maxYear` (invalid dropped).
+- `src/app/listings/page.tsx`: orderBy — price→price_thb, size→sqm,
+  year→`building_year { sort: dir, nulls: "last" }`, newest→last_seen_at — all with the
+  chosen direction. Range filters via gte/lte on sqm / building_year (an active year range
+  naturally excludes null-year rows).
+- `src/components/FiltersBar.tsx`: sort dropdown gains גודל + שנת בנייה, an asc/desc toggle
+  button, and compact numeric inputs for sqm + year ranges (year labeled
+  "קיים רק בחלק מהמקורות"). localStorage restore normalizes legacy sort keys.
+- `scripts/test-filters.ts`: round-trip fixture updated to the field+dir model.
 
-1. **Generated SQL.** Run the app (or a script) with `new PrismaClient({ log: ['query'] })`
-   and hit `/listings?favoriteOnly=1`; confirm the emitted SQL joins `UserStatus` and
-   filters `"UserStatus"."status" IN ('VIEWED','SHORTLISTED','CONTACTED','VISITED','RENTED')`.
-2. **Raw DB check against the SAME database the deployed app uses:**
-   ```sql
-   SELECT l.id, l.is_active, l.price_thb, us.status
-   FROM "Listing" l
-   LEFT JOIN "UserStatus" us ON us.listing_id = l.id
-   WHERE l.id IN ('cmoklt6cy001oui0284t0uobp','cmoklt4x9001hui02gt9rwab1');
-   ```
-   If `us.status` is NULL / not SHORTLISTED, or `is_active=false`, the data — not the
-   filter — is the cause (e.g. the "confirmed" facts were read from a different
-   DB/branch/time than production queries).
-3. **Confounders on the always-applied `where`:** verify `price_thb ≤ 40000` for both
-   (TP scrapes with `max_price=25000`, so unlikely) and that no `status=` param is also
-   on the URL (which takes the `if (filters.status)` branch at `page.tsx:52` and bypasses
-   favoriteOnly).
-4. **Deploy freshness:** confirm the running Vercel build is on `3704a1d`, not a stale
-   bundle predating the unified favorite/status logic.
+Sort-key table:
+| `sort` | Prisma orderBy | dir |
+|---|---|---|
+| newest (default) | last_seen_at | asc/desc |
+| price | price_thb | asc/desc |
+| size | sqm | asc/desc |
+| year | building_year { sort: dir, nulls: last } | asc/desc |
 
-Most likely: a data/deploy/URL-state mismatch (the SQL from check #1 + the raw query in
-check #2 on the production DB will isolate it in one shot), not an ORM/param defect.
+### New URL params
+`q`, `dir`, `minSqm`, `maxSqm`, `minYear`, `maxYear`.
 
-### BONUS — free-text name/title search
-None. No `q`/`search`/`title` param in `filters.ts`, no text `<input>` in `FiltersBar.tsx`,
-and no `contains`/`title` clause in the listings `where` — the only `searchParams`/`query`
-references are Next.js URL plumbing and pagination links.
+### Notes
+- Size column is `sqm` (there is no `size_sqm`); range params `minSqm/maxSqm` map to `sqm`.
+- `SortKey` type replaced by `SortField`+`SortDir`; only consumers (FiltersBar, page.tsx,
+  test-filters.ts) updated. Legacy saved filters / localStorage round-trip correctly.
+
+Post-deploy checklist appended to `thai-rent-finder/pending-tests.md`.
