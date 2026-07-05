@@ -26,3 +26,13 @@
 - [ ] List cards show building name line where available
 - [ ] Sort by size asc/desc works; sqm range filter narrows; year sort puts nulls last
 - [ ] After next Lazudi run (group B day): a Lazudi listing shows a real description, not "View property listing."
+
+## PR #88 — enrich/dates/search/cleanup (post-deploy)
+
+- [ ] Merge PR, wait for Vercel deploy
+- [ ] /api/admin/cleanup-dead-concerns?key=SEED_KEY&dry_run=true → counts > 0
+- [ ] Real run → deleted_total matches; open a listing that had "חסר מידע על ריהוט/חיות מחמד" → cards gone
+- [ ] Cards show "עודכן: dd.MM.yy HH:mm" in Thailand time; detail page header shows the same line
+- [ ] Mobile: search box visible above results without opening סננים; searching adds a recent-chip; chips survive reload; chip click re-applies; ✕ removes
+- [ ] After next Lazudi run (group B day): a Lazudi listing shows קומה on the card and מרוהט=כן on the detail page; amenities chips appear
+- [ ] PR-body skipped-labels list reviewed (decide if renthub/LI need a findings-doc update later)
