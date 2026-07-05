@@ -1,68 +1,52 @@
 # automation-core — latest Claude Code status
 
-## fix #23 — the full fixer ladder, delivery-judged + auto update-branch
+## fix #24 — honesty + push-instruction hardening on the fixer chain
 
-**main commit `eed3728`** (direct to main, ONE commit, author funzi7). Both changed workflows
-byte-identical across `workflows/` ↔ `.github/workflows/` (claude.yml `d69cae3`, watchdog `1b59163`);
-`yaml.safe_load` + actionlint pass on all four copies; `node --check` on all 5 script bodies.
+**main commit `7bfb28a`** (direct to main, ONE commit, author funzi7). Both changed workflows
+byte-identical across `workflows/` ↔ `.github/workflows/` (codex-backup-fix `efad70a`, watchdog
+`6b0a06d`); `yaml.safe_load` + actionlint pass on all four copies; `node --check` on all 9 script bodies.
 
-### Forensic (TRF PR #84)
-1. `claude-code-action` concluded **`success` in 15 seconds with ZERO commits** — a no-op success — so
-   fix #10's `outcome != 'success'` guard skipped the 👎 and the chain looked healthy while delivering
-   nothing.
-2. The 👀 on the trigger was placed by the **hosted `claude[bot]` App** — a DIFFERENT identity whose
-   reactions we cannot delete — so the 👎 must be **ADDED**, never "swapped".
-3. The chain only advanced because the owner manually commented `@codex fix` (a PAT/owner-authored
-   comment provably wakes subscription-billed Codex Cloud) and manually clicked **Update branch**.
+### codex-backup-fix.yml
+- **Part A — freshness filter.** The findings gather now computes `latestCommitDate` (MAX committer
+  date across the PR's commits, else `pr.created_at` — codex-gate's date-only model) and keeps a Codex
+  review **COMMENT** only if `created_at > latestCommitDate` and a review **BODY** only if
+  `submitted_at > latestCommitDate`. Stale, already-addressed P1/P2s are no longer fed to the agent.
+  The generic fallback line stays for the empty case.
+- **Part B — honest end states.** The apply/push bash step gains `id: apply` and a `pushed` step output:
+  `'false'` on the empty-patch no-op, `'true'` **only after `git push` succeeds**. The single marker step
+  is split by outcome (all under `stale=='false'`):
+  - `pushed=='true'` → `agent=codex state=pushed` (unchanged text);
+  - `pushed=='false'` → `agent=codex state=no_change` (+ `core.notice`, "empty patch — not counted as a fix");
+  - apply step FAILED (`if: failure()`) → `agent=codex state=patch_failed` (+ `core.error`, loud).
+  **Was:** it posted `state=pushed` even on an EMPTY patch (a lie). Verified the fix #23 watchdog judges
+  the codex-api stage by `deliveredSince` (real commits) and reads only `agent=codex state=requested` — it
+  **never** treats `no_change`/`patch_failed`/`pushed` as delivered, so the markers can't lie to the ladder.
 
-### Part A — claude.yml: delivery-aware verdict
-- New **Delivery check** step (`id: delivery`, `always() && has_key`): lists commits on the PR head ref
-  since the trigger comment's time → `delivered = ≥1 new commit` (via `github.rest.repos.listCommits`,
-  injected octokit, zero modules). Fail-soft: unknown → treat as delivered (no false 👎).
-- The fix-#10 step is rewritten: guard is now
-  `always() && has_key=='true' && (steps.claude.outcome != 'success' || steps.delivery.outputs.delivered != 'true')`.
-  It **ADDS** a 👎 (the cross-identity delete-eyes logic is GONE) and upserts a
-  `agent=claude state=no_delivery head=<sha>` ai-loop marker so the watchdog can advance the ladder
-  **without waiting the full 20-min timeout**.
-
-### Part B — claude-fallback-watchdog.yml: the ladder (delivery-judged)
-Per open PR with an unanswered `agent=claude state=requested` marker, the per-PR decision is now a
-ladder, each stage judged ONLY by `deliveredSince(pingTime)` (a commit on the head ref after the ping;
-injected octokit, zero modules) and firing **at most once per head** (marker dedupe):
-1. **claude** — failed = a `claude/no_delivery` marker OR the 20-min window elapsed with no delivery.
-2. **codex-api** — ONLY if `vars.CODEX_BACKUP_ENABLED == 'true'`: the existing `codex-backup-fix.yml`
-   dispatch (unchanged; Codex runs IN Actions) + its own 20-min window. **Skipped when the var is unset**
-   (today's reality — dead OpenAI quota).
-3. **codex-cloud (NEW)** — a TOP-LEVEL `@codex fix` issue comment via AUTOMATION_PAT + `[auto-triggered]`
-   + the findings digest COPIED from the bridge's most recent `@claude fix` comment (located by its
-   ai-loop marker; else "see the Codex review") + marker `agent=codex-cloud state=requested`.
-   **HARD LIMIT: one codex-cloud attempt per head** (dedupe via the marker). Then a 20-min window.
-4. **escalate** — only after every ENABLED stage failed delivery: the existing `needs-owner` upsert
-   (fix #14B) + Telegram, message naming the chain.
-The old fixed 3-attempt cap AND the "backup-disabled → escalate on first timeout" block are BOTH
-replaced by this per-head ladder; unused `MAX_ATTEMPTS`/`CLAUDE_APP` consts removed. Each advance sends
-a Telegram info line.
-
-### Part C — sweep: auto update-branch
-In the existing sweep loop, a new candidate class: any **loop PR** (carries an ai-loop marker OR a
-`claude/*` head ref OR a trusted sync) that is `mergeable_state == 'behind'` and NOT `needs-owner` →
-`pulls.updateBranch({ expected_head_sha })` via AUTOMATION_PAT — the owner used to click Update branch by
-hand. **NEVER for `'dirty'`** (real conflicts stay a human's job). Log `auto update-branch: PR #N`,
-loud-fail (`core.error` + Telegram), at most once per PR per tick. The update advances the head → the
-gate re-runs → the ladder continues on the fresh head.
+### claude-fallback-watchdog.yml
+- **Part C — Cloud-stage texts.** The codex-cloud `@codex fix` body now appends, right after
+  `[auto-triggered]`, an explicit push instruction: **"Commit and push your fix directly to this PR's head
+  branch (you have write permission) — do not leave the diff waiting in the task."** (the Codex Connector
+  app is CONFIRMED to hold Read&Write on code+workflows across all repos, so autonomous push is a
+  product-behavior question, not a permissions one). The final escalation comment appends, when a
+  codex-cloud marker exists for the head, a **View-task hint**: "A Codex Cloud task may have completed with
+  a ready diff — open the task (View task) and apply it / Update branch." (Chain-naming text kept.)
+- **Part D — fork guards on the new paths.** The same-repo guard
+  (`pr.head.repo.full_name === owner/repo`, mirroring codex-backup-fix's guard) is added to BOTH fix #23
+  paths: a **fork-headed PR is NEVER pinged for a cloud fix** (skip + `core.info`, falls through to
+  escalate) and **NEVER auto-update-branched** (`loopPr && !hasNeedsOwner && sameRepo`).
 
 ### Validation
-`yaml.safe_load` + actionlint on both copies of both files; `node --check` on all 5 script bodies (3 in
-claude.yml, 2 in the watchdog); greps — claude.yml's new guard references `steps.delivery.outputs.delivered`;
-`state=no_delivery` / `agent=codex-cloud` / `updateBranch` present in the watchdog; the one-cloud-per-head
-dedupe (`newestMarker('codex-cloud','requested')`) present; regression guard **ZERO**
-`require('@actions/github')` / `__original_require__` / `getOctokit` anywhere; `git hash-object` equal per file.
+`yaml.safe_load` + actionlint on both copies of both files; `node --check` on all 9 script bodies (7 in
+codex-backup-fix, 2 in the watchdog); greps — `latestCommitDate` present in codex-backup-fix,
+`state=no_change` + `state=patch_failed` present, the pushed-marker gated on
+`steps.apply.outputs.pushed == 'true'`, the push-instruction line in the cloud ping, the `full_name`
+guard in BOTH new watchdog paths, "View task" present; regression guard **ZERO**
+`require('@actions/github')` / `__original_require__` / `getOctokit` anywhere; `git hash-object` equal per
+file.
 
-**Handoffs updated in the same commit:** `handoffs/CONTEXT.md` (fixer-chain section rewritten — the
-4-stage ladder, delivery-based verdicts, success≠delivery, add-only 👎 + the `claude[bot]`-identity note,
-auto update-branch, one-cloud cap), `LOOP_STATE.md` (claude.yml + watchdog fix #23 entries),
-`handoffs/loop-build.md` (dated entry citing TRF #84).
+**Handoffs updated in the same commit:** `handoffs/CONTEXT.md` (codex-backup freshness + honest states;
+watchdog cloud push instruction + View-task hint + fork guards + the confirmed-Read&Write note),
+`LOOP_STATE.md` (both files, fix #24), `handoffs/loop-build.md` (dated entry).
 
-**Next:** an `@claude` no-op success no longer looks healthy — 👎 + `no_delivery` marker fire immediately,
-the watchdog climbs to Codex Cloud before escalating, and a stale loop-PR head is auto-updated.
-Propagates downstream on the next daily sync.
+**Next:** the codex-api backup no longer claims a fix it didn't make; the Cloud ping tells Codex to push
+autonomously; the new fix #23 paths are fork-guarded. Propagates downstream on the next daily sync.
