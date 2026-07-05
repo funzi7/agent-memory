@@ -5,6 +5,25 @@ History of Codex auto-fix activities. Newest first.
 ---
 
 ## PR #85 — Search + sort/range filters, favorites AND status, building name on card, Lazudi description
+**Date:** 2026-07-05T15:54:46Z
+**Reviewed commit:** unknown
+**Source:** [PR comment](https://github.com/funzi7/thai-rent-finder/pull/85#discussion_r3525179808)
+
+### Summary
+* Updated saved filter creation to persist the newly added fields: search text, `betterOnly`, excluded concerns, sort direction, sqm range, and year range, so saved presets reapply the full active filter state. [src/components/SavedFiltersBar.tsxL103-L121](https://github.com/funzi7/thai-rent-finder/blob/15244b2a850b75dcff62f438bb03119ced2849a2/src/components/SavedFiltersBar.tsx#L103-L121)
+* Expanded the save-dialog preview chips to display the newly persisted filters before saving. [src/components/SavedFiltersBar.tsxL259-L300](https://github.com/funzi7/thai-rent-finder/blob/15244b2a850b75dcff62f438bb03119ced2849a2/src/components/SavedFiltersBar.tsx#L259-L300)
+* Committed the change with commit `5bbe18f` and created a pull request.
+* Note: `package-lock.json` had an unrelated pre-existing working-tree modification and was not included in the commit.
+
+**Testing**
+* ✅ `npx tsc --noEmit`
+* ✅ `npm run test:filters`
+
+ [View task →](https://chatgpt.com/s/cd_6a4a7ddc99688191ae48054ca861d1d4)
+
+---
+
+## PR #85 — Search + sort/range filters, favorites AND status, building name on card, Lazudi description
 **Date:** 2026-07-05T15:40:22Z
 **Reviewed commit:** unknown
 **Source:** [PR comment](https://github.com/funzi7/thai-rent-finder/pull/85#pullrequestreview-4631556581)
