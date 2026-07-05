@@ -5,6 +5,35 @@ History of Codex auto-fix activities. Newest first.
 ---
 
 ## PR #84 — Solo-use cadence + leaner Hebrew concerns + state.md footer fix
+**Date:** 2026-07-05T09:07:56Z
+**Reviewed commit:** unknown
+**Source:** [PR comment](https://github.com/funzi7/thai-rent-finder/pull/84#discussion_r3524602724)
+
+**Summary**
+* Added Thailand Property’s `scrape.yml` workflow to the site-health Actions freshness `sources` list so the 80h cadence monitor checks that workflow directly. [.github/workflows/site-health.ymlL90-L97](https://github.com/funzi7/thai-rent-finder/blob/3610ccdd1a23b841425dd2fe11bb4cf5a6c935d7/.github/workflows/site-health.yml#L90-L97)
+* Added `thailand-property` to the `/jobs` GitHub-Actions-only source config, linking users to the correct workflow instead of rendering the inline scrape trigger for an API path that now returns 503. [src/app/jobs/page.tsxL28-L40](https://github.com/funzi7/thai-rent-finder/blob/3610ccdd1a23b841425dd2fe11bb4cf5a6c935d7/src/app/jobs/page.tsx#L28-L40)
+* Updated the touched Actions scraper schedule labels to reflect the new every-3-days cadence for Thailand Property, FazWaz, Renthub, Living Insider, and Lazudi. [src/app/jobs/page.tsxL34-L75](https://github.com/funzi7/thai-rent-finder/blob/3610ccdd1a23b841425dd2fe11bb4cf5a6c935d7/src/app/jobs/page.tsx#L34-L75)
+
+**Testing**
+* ✅ `npx tsc --noEmit`
+* ⚠️ `python3 - <<'PY'
+import yaml
+from pathlib import Path
+for p in ['.github/workflows/site-health.yml']:
+    with open(p) as f:
+        yaml.safe_load(f)
+    print(f'{p}: ok')
+PY` (warning due to missing `yaml` Python module in the environment)
+* ✅ `ruby -e "require 'yaml'; YAML.load_file('.github/workflows/site-health.yml'); puts '.github/workflows/site-health.yml: ok'"`
+* ✅ `git diff --check -- .github/workflows/site-health.yml src/app/jobs/page.tsx`
+
+Committed changes on the current branch with commit `e723ce0` and created the PR via `make_pr`. Note: `package-lock.json` was already modified in the working tree and was left uncommitted.
+
+ [View task →](https://chatgpt.com/s/cd_6a4a1e93f6f481919d14818a0f53423f)
+
+---
+
+## PR #84 — Solo-use cadence + leaner Hebrew concerns + state.md footer fix
 **Date:** 2026-07-05T09:02:42Z
 **Reviewed commit:** unknown
 **Source:** [PR comment](https://github.com/funzi7/thai-rent-finder/pull/84#pullrequestreview-4631041677)
