@@ -7,3 +7,12 @@
 - [ ] Call again without dry_run — expect reactivated>=2
 - [ ] Browser: main list + board show Riviera & Dusit again
 - [ ] After next scrape.yml run: audit-listings shows both still is_active=true (sweep exemption held)
+
+## PR #84 — solo cadence + concerns cleanup (post-deploy)
+
+- [ ] Merge PR, wait for Vercel deploy
+- [ ] Run /api/listings/<riviera-id>/recompute-concerns?key=SEED_KEY&source=all — new concerns are plain Hebrew, only 4 categories, no wifi/furniture/pets cards
+- [ ] Same for the Dusit listing
+- [ ] Next TP run (group A day, 09:00 ICT): log shows city order PTY→CMI→PHK→BKK, all 4 completed, BKK yielded ≤2, duration ~4-6 min
+- [ ] Site-health after an off-day: no false stale alerts (80h threshold holding)
+- [ ] agent-memory state.md after next auto-update: single footer, ~20 duplicates gone, cron table reflects */3 cadence

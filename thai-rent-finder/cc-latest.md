@@ -1,67 +1,77 @@
 # thai-rent-finder — cc-latest
 
-## Deactivation data-safety fix — PR #82 (`claude/deactivation-safety`, open, NOT merged)
+## Solo-use cadence + concerns cleanup + state.md footer fix — PR #84 (`claude/solo-cadence-and-concerns`, open, NOT merged)
 
-Fixes the verified production incident where `scrape.yml` (thailand-property, no
-city arg) deactivated **49 listings city-wide**, including the user's SHORTLISTED
-**Riviera Ocean Drive** and **Dusit Grand Condo View** (confirmed `is_active=false`
-via `/api/admin/audit-listings`). One branch off `main`, 4 commits, build green.
-
-### Root cause (recap, verified read-only @ `06d10d9`)
-- Stale sweep in `src/scrapers/core/BaseScraper.ts` filtered only
-  `source + is_active + last_seen_at<now-7d + NOT-in-seen` — **no UserStatus
-  exclusion**.
-- No `opts.city` was passed (`scripts/scrape.ts`), so the sweep's optional city
-  clause vanished → it spanned **all 4 TP cities** while the 55s deadline
-  (`thailand-property.ts:27`, top-of-run break `:906-915`, mid-city return
-  `:1001-1010`) meant only BKK+PTY were actually scraped.
+Solo-use tuning: fewer/better listings, minimal Actions minutes, clearer Hebrew AI
+output. One branch off `main`, 6 commits. `tsc --noEmit` clean, `next build` green,
+all 7 changed workflow YAMLs parse.
 
 ### What changed, per commit
 
-**Commit 1 — `fix(scraper): exempt shortlisted+ listings from staleness deactivation`**
-- `src/scrapers/core/BaseScraper.ts`: added a `NOT`/none condition on the
-  `UserStatus` relation to the stale-sweep `where`, so any listing whose status is
-  in `SHORTLIST_OR_BETTER` (SHORTLISTED / CONTACTED / VISITED) is **never** swept,
-  regardless of staleness. Imports `SHORTLIST_OR_BETTER` from
-  `src/lib/status-gates.ts` (not redefined); uses the same
-  `status: { is: { status: { in: … } } }` shape as the concerns endpoints. Comment:
-  "User-curated listings (shortlist or better) are exempt from staleness
-  deactivation. They may only leave the list by explicit user action."
+**Commit 1 — `feat(concerns): plain-Hebrew AI output, 4 categories only; drop 2 low-value rules`**
+- `src/lib/ai-concerns.ts`: prompt rewritten in plain natural Hebrew with explicit
+  anti-machine-translation guidance ("חיות מחמד" not "חיות חמות", "רעש" not "קול",
+  "תיירות" not "טוריזם"). Output constrained to 4 categories only — רעש /
+  תנאי חוזה ומחיר / תחזוקה וגיל בניין / מיקום וסביבה — ≤1 item each. Dropped wifi,
+  workspace, furniture-detail, photo-count, pets. Trimmed model input (removed
+  `furnished`, `pet_friendly`, `photos_count`). **Output budget: `max_tokens`
+  1500 → 750; item count 3–7 → up to 4.**
+- `src/lib/concerns.ts`: removed the two auto-rules "חסר מידע על ריהוט"
+  (`no_furnished_info`) and "חסר מידע על חיות מחמד" (`no_pet_info`). Neither is a
+  `FILTER_CONCERN_KEY`; all other rules untouched.
 
-**Commit 2 — `fix(scraper): scope stale sweep to cities the run actually completed`**
-- `src/scrapers/core/BaseScraper.ts`: new `protected completedCities: string[] | null = null`
-  field; sweep city-scoping now runs in three branches — (1) `opts.city` set →
-  `{ city: opts.city }`; (2) `completedCities !== null` → `{ city: { in: completedCities } }`,
-  and **skip the sweep entirely** when the array is empty (no city completed);
-  (3) `completedCities === null` → original source-wide sweep (other scrapers
-  unchanged).
-- `src/scrapers/sources/thailand-property.ts`: `search()` initializes
-  `completedCities = []` and pushes a city only when `searchCity()` returns `true`.
-  `searchCity()` now returns `AsyncGenerator<RawListing, boolean>` — `true` only on
-  natural end (cap reached / clean exhaustion), `false` on every early exit (run
-  deadline at page boundary + mid-candidate `:1001-1010`, index-fetch failure,
-  no-detail-links page). Incompletely-scanned or unreached cities are never swept.
+**Commit 2 — `perf(scraper): TP city priority, BKK cap 2, 3.5min deadline, job timeout`**
+- `src/scrapers/sources/thailand-property.ts`: `CITY_PATH` iteration reordered to
+  **PTY, CMI, PHK, BKK** (Bangkok last so a deadline abort costs BKK, not the small
+  cities). Added `PER_CITY_CAP_OVERRIDES = { BKK: 2 }` + `capFor(city)`; both cap
+  checks in `searchCity` use it. `PER_RUN_DEADLINE_MS` 55_000 → 210_000 (3.5 min;
+  Actions-only path).
+- `.github/workflows/scrape.yml`: job `timeout-minutes` 30 → 10.
+- **Report-only 2d findings:**
+  - `PER_RUN_DEADLINE_MS` is module-private, referenced only inside
+    `search()`/`searchCity()`. The 3 Vercel admin routes importing
+    `ThailandPropertyScraper` — `rescrape-all` (route.ts:135), `rescrape-listing`
+    (:60), `listing-debug` (:57) — all call `parseDetail()` on one listing, never
+    `search()`/`run()`. **Raising the deadline has zero effect on any Vercel route.**
+  - `rescrape-all` **does** bump `last_seen_at`: `rescrape-all/route.ts:276`
+    (`last_seen_at: now,` in the update `data`, written via `prisma.listing.update`
+    at :292); also pre-bumps `scraped_at` at :178 before `parseDetail`.
+  - `PER_CITY_CAP` usages (now all `capFor`-driven): the constant, plus the
+    page-loop guard and the candidate-loop guard in `searchCity`.
 
-**Commit 3 — `docs(scraper): make re-seen reactivation explicit at the upsert`**
-- `src/scrapers/core/BaseScraper.ts`: **Finding — `is_active: true` is ALREADY set
-  in the update branch.** It lives in the shared `data` object backing both
-  `create: data` and `update: updateData` (updateData only strips lat/lng for
-  `lat_lng_manual` rows). So re-seen listings already reactivate alongside the
-  `last_seen_at` bump, and the ~47 wrongly-swept rows self-heal on future runs.
-  Behavior unchanged; added a comment pinning this reactivation contract against a
-  future create-only refactor.
+**Commit 3 — `chore(ci): every-3-days staggered scrape cadence for solo use`**
+- 5 scraper crons → every-3-days, only day-of-month field changed, hours kept:
+  - A: `scrape.yml '0 2 */3 * *'`
+  - B: `scrape-renthub.yml '30 20 2-31/3 * *'`, `scrape-lazudi.yml '30 22 2-31/3 * *'`
+  - C: `scrape-fazwaz.yml '0 20 3-31/3 * *'`, `scrape-living-insider.yml '0 21 3-31/3 * *'`
+  - Month-boundary quirk (A day-31→1 back-to-back; B/C up to 4-day gap) documented + accepted.
 
-**Commit 4 — `feat(admin): add reactivate-curated restore endpoint`**
-- New `src/app/api/admin/reactivate-curated/route.ts` (GET|POST, `SEED_KEY`-gated).
-  Finds `is_active=false` + `UserStatus.status in SHORTLIST_OR_BETTER`, sets
-  `is_active=true`, bumps `last_seen_at=now()` (belt-and-suspenders atop the
-  Commit-1 exemption). `?dry_run=true` supported. Response:
-  `{ ok, dry_run, reactivated, rows: [{ id, title, source, city, status }] }`.
+**Commit 4 — `chore(ci): raise site-health freshness threshold to 80h for 3-day cadence`**
+- `.github/workflows/site-health.yml`: single `DEFAULT_MAX_AGE_HOURS = 80`
+  (72h + ~8h buffer); dropped redundant fazwaz=50h override. Age-vs-threshold
+  reporting kept.
 
-### Acceptance
-- `npx tsc --noEmit` clean; `next build` green (route builds as dynamic `ƒ`
-  function). The repo `build` script also runs `prisma migrate deploy`, which needs
-  a live DB (CI/Vercel only); `next build` was validated directly with placeholder
-  env.
+**Commit 5 — `fix(scraper): widen stale window 7d -> 14d for 3-day cadence`**
+- `src/scrapers/core/BaseScraper.ts`: `SEVEN_DAYS_MS` → `STALE_WINDOW_MS = 14 days`
+  (~4–5× the 3-day cadence). Only 2 usages (constant + sweep cutoff), both here.
 
-Post-deploy checklist tracked in `thai-rent-finder/pending-tests.md`.
+**Commit 6 — `fix(state): stop state.md footer self-duplication (diagnostic Q7)`**
+- `scripts/generate-state.js`: footer no longer contains the literal
+  `<!-- manual-section-start/end -->` strings (described in words).
+- `.github/workflows/auto-update-state.yml`: strict preserve step — recognise a
+  manual block only when the START marker is on its **own line**, drop any extracted
+  line carrying **both** markers (legacy footer copies), append nothing if empty.
+  Cleans the ~20 accumulated duplicates on the next run and prevents recurrence.
+  Verified with a mock legacy file (real block kept, all duplicates dropped) and a
+  legacy-only file (nothing appended, no `pipefail` crash).
+
+### New cadence (ICT = UTC+7)
+| Group | Source | UTC cron | ICT | Days |
+|---|---|---|---|---|
+| A | thailand-property | `0 2 */3 * *` | 09:00 | 1,4,…,31 |
+| B | Renthub | `30 20 2-31/3 * *` | 03:30 (+1d) | 2,5,…,29 |
+| B | Lazudi | `30 22 2-31/3 * *` | 05:30 (+1d) | 2,5,…,29 |
+| C | FazWaz | `0 20 3-31/3 * *` | 03:00 (+1d) | 3,6,…,30 |
+| C | Living-Insider | `0 21 3-31/3 * *` | 04:00 (+1d) | 3,6,…,30 |
+
+Post-deploy checklist appended to `thai-rent-finder/pending-tests.md`.
