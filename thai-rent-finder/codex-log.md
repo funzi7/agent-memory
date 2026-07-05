@@ -4,6 +4,38 @@ History of Codex auto-fix activities. Newest first.
 
 ---
 
+## PR #85 — Search + sort/range filters, favorites AND status, building name on card, Lazudi description
+**Date:** 2026-07-05T15:40:22Z
+**Reviewed commit:** unknown
+**Source:** [PR comment](https://github.com/funzi7/thai-rent-finder/pull/85#pullrequestreview-4631556581)
+
+
+### 💡 Codex Review
+
+Here are some automated review suggestions for this pull request.
+
+**Reviewed commit:** `15244b2a85`
+    
+
+<details> <summary>ℹ️ About Codex in GitHub</summary>
+<br/>
+
+[Your team has set up Codex to review pull requests in this repo](https://chatgpt.com/codex/cloud/settings/general). Reviews are triggered when you
+- Open a pull request for review
+- Mark a draft as ready
+- Comment "@codex review".
+
+If Codex has suggestions, it will comment; otherwise it will react with 👍.
+
+
+
+
+Codex can also answer questions or update the PR. Try commenting "@codex address that feedback".
+            
+</details>
+
+---
+
 ## PR #84 — Solo-use cadence + leaner Hebrew concerns + state.md footer fix
 **Date:** 2026-07-05T09:07:56Z
 **Reviewed commit:** unknown
