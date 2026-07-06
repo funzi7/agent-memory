@@ -4,6 +4,38 @@ History of Codex auto-fix activities. Newest first.
 
 ---
 
+## PR #89 — chore(automation): sync from automation-core
+**Date:** 2026-07-06T07:06:21Z
+**Reviewed commit:** unknown
+**Source:** [PR comment](https://github.com/funzi7/thai-rent-finder/pull/89#pullrequestreview-4633573593)
+
+
+### 💡 Codex Review
+
+Here are some automated review suggestions for this pull request.
+
+**Reviewed commit:** `6b942f27f7`
+    
+
+<details> <summary>ℹ️ About Codex in GitHub</summary>
+<br/>
+
+[Your team has set up Codex to review pull requests in this repo](https://chatgpt.com/codex/cloud/settings/general). Reviews are triggered when you
+- Open a pull request for review
+- Mark a draft as ready
+- Comment "@codex review".
+
+If Codex has suggestions, it will comment; otherwise it will react with 👍.
+
+
+
+
+Codex can also answer questions or update the PR. Try commenting "@codex address that feedback".
+            
+</details>
+
+---
+
 ## PR #88 — Enrich Lazudi extraction, "עודכן" dates, mobile search + recents, dead-concern cleanup
 **Date:** 2026-07-05T18:18:01Z
 **Reviewed commit:** unknown
