@@ -50,3 +50,5 @@ date,portfolio_id,strategy,ticker,side,shares,fill_price,commission,cash_after,e
 2026-07-02,twitter_track_10k,twitter_track,NOW,SELL,9.0,106.1669,1.0,1864.35,10309.89,קנייה לפי @theaiportfolios
 2026-07-02,twitter_track_10k,twitter_track,PGY,SELL,44.0,18.7106,1.0,2686.62,10349.4,קנייה לפי @theaiportfolios
 2026-07-02,twitter_track_10k,twitter_track,MGNI,BUY,128.0,20.2901,1.0,88.48,10359.9,קנייה לפי @theaiportfolios
+2026-07-06,leveraged_momentum_10k,leveraged_momentum,AMDL,SELL,15.0,68.9655,1.0,2889.64,9347.44,סטופ הועלה לנקודת הכניסה — מתחת לכניסה
+2026-07-06,screener_track_10k,screener_track,CELH,SELL,25.0,33.3633,1.0,2199.57,10734.96,"מימוש חלקי +18% — נמכרה מחצית, סטופ הועלה לכניסה"
