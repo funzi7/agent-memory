@@ -5,6 +5,26 @@ History of Codex auto-fix activities. Newest first.
 ---
 
 ## PR #89 — chore(automation): sync from automation-core
+**Date:** 2026-07-06T13:30:13Z
+**Reviewed commit:** unknown
+**Source:** [PR comment](https://github.com/funzi7/thai-rent-finder/pull/89#discussion_r3529252244)
+
+**Summary**
+* Restored `actions: write` for Codex Gate so green non-head runs can re-dispatch the workflow onto the PR head, where merge-bot reads `check-codex-status`. [.github/workflows/codex-gate.ymlL90-L99](https://github.com/funzi7/thai-rent-finder/blob/6b942f27f7012adf53c5c9bb0788a8f7f08ea03c/.github/workflows/codex-gate.yml#L90-L99)
+* Added a guarded `dispatchHeadRunIfNeeded` helper that skips actual head runs, warns for fork heads, and dispatches `codex-gate.yml` with the PR number on same-repo head branches. [.github/workflows/codex-gate.ymlL242-L260](https://github.com/funzi7/thai-rent-finder/blob/6b942f27f7012adf53c5c9bb0788a8f7f08ea03c/.github/workflows/codex-gate.yml#L242-L260)
+* Re-dispatches after Codex fix Summary clears, trusted-sync grace clears, and other green verdicts so the authoritative head check is created instead of only the cosmetic verdict tile. [.github/workflows/codex-gate.ymlL390-L395](https://github.com/funzi7/thai-rent-finder/blob/6b942f27f7012adf53c5c9bb0788a8f7f08ea03c/.github/workflows/codex-gate.yml#L390-L395) [.github/workflows/codex-gate.ymlL420-L427](https://github.com/funzi7/thai-rent-finder/blob/6b942f27f7012adf53c5c9bb0788a8f7f08ea03c/.github/workflows/codex-gate.yml#L420-L427) [.github/workflows/codex-gate.ymlL443-L455](https://github.com/funzi7/thai-rent-finder/blob/6b942f27f7012adf53c5c9bb0788a8f7f08ea03c/.github/workflows/codex-gate.yml#L443-L455)
+
+**Testing**
+* ✅ `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/codex-gate.yml"); puts "yaml ok"'`
+* ✅ `git diff --check .github/workflows/codex-gate.yml`
+
+Committed changes with `967d35a` and created the follow-up PR. Note: `package-lock.json` still has pre-existing uncommitted changes that I did not touch or include.
+
+ [View task →](https://chatgpt.com/s/cd_6a4bad113cb081918980c45096fe75ad)
+
+---
+
+## PR #89 — chore(automation): sync from automation-core
 **Date:** 2026-07-06T07:06:21Z
 **Reviewed commit:** unknown
 **Source:** [PR comment](https://github.com/funzi7/thai-rent-finder/pull/89#discussion_r3526976533)
