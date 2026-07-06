@@ -7,6 +7,19 @@ History of Codex auto-fix activities. Newest first.
 ## PR #89 — chore(automation): sync from automation-core
 **Date:** 2026-07-06T07:06:21Z
 **Reviewed commit:** unknown
+**Source:** [PR comment](https://github.com/funzi7/thai-rent-finder/pull/89#discussion_r3526976533)
+
+**<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>  Re-dispatch resolved comment runs onto the PR head**
+
+When a Codex fix Summary arrives via `issue_comment`, this branch now exits after creating only the cosmetic `codex-gate-verdict`; the actual `check-codex-status` job for an `issue_comment` run is attached to the default-branch SHA, not `pr.head.sha`. I checked `merge-bot.yml`, and it requires a successful `check-codex-status` check on the PR head, while the watchdog sweep skips heads whose verdict tile is already green, so a PR with a valid fix Summary can stay blocked until someone manually reruns the gate on the head branch. Restore a head-targeted dispatch for green non-head runs or have the sweep verify the authoritative head check before skipping.
+
+Useful? React with 👍 / 👎.
+
+---
+
+## PR #89 — chore(automation): sync from automation-core
+**Date:** 2026-07-06T07:06:21Z
+**Reviewed commit:** unknown
 **Source:** [PR comment](https://github.com/funzi7/thai-rent-finder/pull/89#pullrequestreview-4633573593)
 
 
