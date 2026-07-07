@@ -3,10 +3,10 @@
 Date: 2026-07-07. This is self-contained for a future ChatGPT/Codex session.
 
 ## Commits
-- New documentation-normalization automation-core commit: full `1b205d1137d2126bb8bbd78b8f7b625cec3a4da1`; 7-character `1b205d1`.
+- New documentation-normalization automation-core commit: full `11ba6a6bf13c91b1be61d4292b853dd15c37063b`; 7-character `11ba6a6`.
 - Fix #27 implementation commit: full `93f6acb9d2e0396afad3e10854503024843c32de`; 7-character `93f6acb`.
 - Previous documentation reconciliation commit: full `ff57a73220faa5dbb563edc7b035fc6cc653c509`; 7-character `ff57a73`.
-- Same final-normalization session also published doc-only updates to `LOOP_STATE.md` and `handoffs/CONTEXT.md` before the final handoff-log commit: `421d37fd473dc46e3fb9bdcf05b8e1f04e671e49` and `051ec7af9c9319f15897d0c344447544132ad712`.
+- Same final-normalization session also published doc-only support commits before the final SHA above: `421d37fd473dc46e3fb9bdcf05b8e1f04e671e49`, `051ec7af9c9319f15897d0c344447544132ad712`, and `1b205d1137d2126bb8bbd78b8f7b625cec3a4da1`.
 
 ## Current Architecture
 Delivery-judged fixer ladder:
@@ -157,7 +157,9 @@ E. Longer-term work:
 
 ## Validation Notes
 - Initial local `git status --short` in `/root/work/automation-core` was clean.
-- Local `git pull --ff-only`, local file writes, and local `git diff --check` against the intended edits were blocked by the workspace error `bwrap: fchdir to oldroot: No such file or directory`.
-- Because local writes were blocked, documentation commits were published directly through the GitHub connector on `main`; no force push was used.
+- Local `git pull --ff-only`, local file writes, and local checkout of the remote connector edits were blocked by the workspace error `bwrap: fchdir to oldroot: No such file or directory`.
+- `git diff --check` was run and exited clean on the local worktree; because local checkout of the remote connector edits was blocked, remote readback was used to review the updated Markdown and stale-claim normalization.
+- Local `git status --short` was clean in both `/root/work/automation-core` and `/root/work/agent-memory` after the remote connector commits.
+- Documentation commits were published directly through the GitHub connector on `main`; no force push was used.
 - Markdown structure was reviewed in the replacement content.
 - Stale current-tense phrases were removed from the rewritten documentation content or retained only as HISTORICAL/SUPERSEDED context.
