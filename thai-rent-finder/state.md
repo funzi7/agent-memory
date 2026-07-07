@@ -1,23 +1,25 @@
 # thai-rent-finder — State
 
 > Living document. Auto-updated daily at 02:00 UTC by `auto-update-state.yml`.
-> Last auto-update: 2026-07-06
+> Last auto-update: 2026-07-07
 > Production: https://thai-rent-finder.vercel.app
-> Total listings in DB: 1769
+> Total listings in DB: 1815
 
 ## Sources status (current)
 
 | Source | Tier | Cron (ICT) | Status | Listings 7d |
 |--------|------|------------|--------|-------------|
-| FAZWAZ | 2 (GH Actions) | 03:00 | ⚠️ no fresh listings | 0 |
+| FAZWAZ | 2 (GH Actions) | 03:00 | ✅ active | 43 |
 | RENTHUB | 2 (GH Actions) | 03:30 | ✅ active | 490 |
 | LIVING_INSIDER | 2 (GH Actions) | 04:00 | ⚠️ no fresh listings | 0 |
 | LAZUDI | 2 (GH Actions) | 05:30 | ✅ active | 50 |
-| THAILAND_PROPERTY | 1 (Vercel) | n/a | ✅ active | 10 |
+| THAILAND_PROPERTY | 1 (Vercel) | n/a | ✅ active | 23 |
 | HIPFLAT | 3 (deferred) | n/a | 🔴 deferred (Cloudflare 403) | n/a |
 
 ## Recently merged PRs (last 7 days)
 
+- **#88** — Enrich Lazudi extraction, "עודכן" dates, mobile search + recents, dead-concern cleanup
+- **#89** — chore(automation): sync from automation-core
 - **#87** — chore(automation): sync from automation-core
 - **#86** — fix(saved-filters): persist new listing filters
 - **#85** — Search + sort/range filters, favorites AND status, building name on card, Lazudi description
@@ -56,6 +58,7 @@
 - `/api/admin/audit-listings`
 - `/api/admin/backfill-buildings`
 - `/api/admin/ci-runs`
+- `/api/admin/cleanup-dead-concerns`
 - `/api/admin/cleanup-icon-photos`
 - `/api/admin/cleanup-seeded`
 - `/api/admin/concerns-recompute-all`
