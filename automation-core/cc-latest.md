@@ -1,165 +1,90 @@
-# automation-core — final post-fix #27 documentation normalization handoff
+# automation-core — codex-backup-fix agent-failure path fix handoff
 
-Date: 2026-07-07. This is self-contained for a future ChatGPT/Codex session.
+Date: 2026-07-09. Self-contained handoff for the upstream fix to the Codex backup workflow.
 
-## Commits
-- New documentation-normalization automation-core commit: full `11ba6a6bf13c91b1be61d4292b853dd15c37063b`; 7-character `11ba6a6`.
-- Fix #27 implementation commit: full `93f6acb9d2e0396afad3e10854503024843c32de`; 7-character `93f6acb`.
-- Previous documentation reconciliation commit: full `ff57a73220faa5dbb563edc7b035fc6cc653c509`; 7-character `ff57a73`.
-- Same final-normalization session also published doc-only support commits before the final SHA above: `421d37fd473dc46e3fb9bdcf05b8e1f04e671e49`, `051ec7af9c9319f15897d0c344447544132ad712`, and `1b205d1137d2126bb8bbd78b8f7b625cec3a4da1`.
+## Commit
+- New automation-core commit: full `06118053e21e0afe3c5f75a930dadcaecc0ee706`; 7-character `0611805`.
+- Commit message: `fix: gate codex backup apply path on agent success`.
+- Published directly to automation-core `main` as a fast-forward update; no force push.
 
-## Current Architecture
-Delivery-judged fixer ladder:
+## Triggering Downstream Evidence
+- Downstream repo: `funzi7/paywall-bot`.
+- Downstream PR: #73.
+- Codex finding: P2 `Skip patch download after agent failure`.
+- Finding file in downstream PR: `.github/workflows/codex-backup-fix.yml`.
+- The downstream PR was read for evidence only. It was not modified directly.
 
-```text
-Codex auto-review
--> Claude
--> Codex API only when CODEX_BACKUP_ENABLED == 'true'
--> Codex Cloud unless CODEX_CLOUD_ENABLED == 'false'
--> Claude proxy only after genuine Claude no_delivery and only if it can deliver to the original PR head
--> needs-owner
--> Codex Gate
--> Merge Bot
-```
+## Root Cause
+`apply-and-push` intentionally had a broad job-level condition so it could run marker-only terminal paths after fork skips or Codex agent failures. However, the normal patch apply steps were guarded only by `needs.generate-patch.outputs.proceed == 'true'`.
 
-The direct-to-main convention is preserved for automation-core maintenance commits. The only escalation label is `needs-owner`.
+When `openai/codex-action` failed after the same-repo guard, `proceed` remained `true` and `codex_agent_failed` was also `true`. That let the normal path run after the intended `api_error` marker path, including PR-head resolve, checkout, `codex-patch` artifact download, apply/push, and potentially a misleading secondary `patch_failed` marker caused only by the missing patch artifact.
 
-## Delivery Definition
-Delivery means a real commit reaches the actual relevant PR head branch after that stage's request marker.
+## Exact Fix
+- Added `patch_ready` as a `generate-patch` job output from a new `Mark patch artifact ready` step that only runs after the Codex agent succeeds and `codex.patch` exists.
+- Kept the `apply-and-push` job-level condition broad enough for marker-only terminal paths and the normal patch path.
+- Added a first step in `apply-and-push`, `Classify apply-and-push path`, which sets `normal_patch_path=true` only when:
+  - `proceed == 'true'`;
+  - `fork_pr != 'true'`;
+  - `codex_agent_failed != 'true'`;
+  - `patch_ready == 'true'`.
+- Gated all normal patch steps on `steps.path.outputs.normal_patch_path == 'true'`:
+  - Resolve PR head ref + stale-head guard;
+  - checkout PR head branch;
+  - download `codex-patch`;
+  - apply patch and push;
+  - post pushed marker;
+  - post no-change marker;
+  - post patch-failed marker;
+  - stale-head note.
+- After `codex_agent_failed == 'true'`, only the intended Codex `api_error` marker path runs. It does not download or apply a patch and cannot emit `no_change` or `patch_failed` from a missing artifact.
+- Clarified the workflow comments that disabled Codex API backup is skipped by the watchdog ladder, not immediate escalation.
 
-Not delivery: workflow success alone, View task, task diff, Created commit wording, Cloud-side commit hint, ready diff without a branch push, or a secondary PR.
-
-## Verification Split
-Code-verified:
-- `CLAUDE_ENABLED != 'false'` is default ON.
-- Public-repo Claude comment triggers require an owner-authored comment.
-- Fork PRs are not run with writable credentials or secrets.
-- `CODEX_BACKUP_ENABLED === 'true'` is required for Codex API backup; disabled backup is skipped, not escalated.
-- `CODEX_CLOUD_ENABLED !== 'false'` is default ON.
-- Trusted Codex identity is exactly `chatgpt-codex-connector[bot]`.
-- Bridge/gate severity supports P1 + P2 for actionable findings.
-
-Runtime-verified:
-- No new runtime delivery verification was completed in this final documentation-normalization task.
-
-Runtime-unverified:
-- Claude PR-head delivery from fix #27 is implemented but not proven in a successful post-fix live Claude run.
-- Claude proxy is implemented but not proven in live runtime.
-- Codex API backup is not proven in live runtime while API quota is unavailable.
-
-Unknown / not checked:
-- Current downstream secrets, variables, permissions, and Actions runtime health.
-- Whether downstream repos have the newest synced workflow contents beyond the known merged sync PR facts below.
-
-## Current Stage State
-Claude:
-- Default ON unless `CLAUDE_ENABLED == 'false'`.
-- Same-repo PR comments resolve the PR head and are intended to commit directly to the original head branch.
-- Public comment triggers must be owner-authored.
-- Fork heads are guarded from writable credential/secrets execution.
-- Current runtime state: blocked/unverified because recent Claude runs return Anthropic `billing_error`.
-
-Codex API backup:
-- Default OFF.
-- Enabled only by literal `CODEX_BACKUP_ENABLED == 'true'`.
-- Disabled means SKIPPED, not immediate escalation.
-- Stale does not advance the old cycle to Cloud.
-- Current runtime state: blocked/unverified while OpenAI API quota is unavailable.
-
-Codex Cloud:
-- Default ON unless `CODEX_CLOUD_ENABLED == 'false'`.
-- A Cloud View task or ready diff is not delivery without an actual commit on the relevant branch.
-- There is no supported automatic Update branch action when Cloud leaves only a View task/diff.
-- No browser automation, session-cookie automation, UI automation, fake API workaround, or fake Update-branch implementation exists or was added.
-- A ready diff without branch push may consume the Cloud stage for that head.
-
-Claude proxy:
-- Implemented after genuine Claude `no_delivery` only when it can deliver to the original PR head.
-- Runtime-unverified because Claude budget is unavailable.
-- Do not describe it as verified.
-
-Codex Gate:
-- Code-verified as delivery-judged and strict about the trusted Codex bot identity.
-- Current bridge/gate severity supports P1 + P2.
-- Current live health was not checked in this task.
-
-Merge Bot:
-- Runs after the gate according to the ladder.
-- Current live health was not checked in this task.
-
-## Codex Cloud Limitation
-Cloud-side task state is not enough. If Codex Cloud leaves only a View task, task diff, or ready diff, the automation has no supported non-UI Update branch action to convert that into delivery. Success requires a real commit on the relevant PR head branch after the Cloud request marker.
-
-## Downstream Facts
-Verified current known facts:
-- OptionsProfitTracker PR #12 is merged.
-- thai-rent-finder PR #80 is merged.
-
-Unverified in this task:
-- Downstream secrets.
-- Downstream Actions variables.
-- Downstream permissions settings.
-- Downstream runtime health.
-- Whether any downstream repository is fully synced to the latest automation-core workflow contents.
-
-## Prioritized TODO
-A. Documentation/state work completed:
-- `LOOP_STATE.md`, `handoffs/CONTEXT.md`, and `handoffs/loop-build.md` were normalized for post-fix #27 current architecture.
-- Stale current-tense claims were removed, rewritten, or marked HISTORICAL/SUPERSEDED.
-
-B. Claude-budget-blocked runtime verification:
-- Restore Anthropic credit.
-- Run the exact Claude live test below.
-- Record whether the commit reaches the original PR head and whether the watchdog recognizes delivery.
-
-C. OpenAI API quota-blocked verification:
-- Restore OpenAI API quota.
-- Run a controlled Codex API backup test with `CODEX_BACKUP_ENABLED == 'true'`.
-- Verify disabled backup remains a skip path, not escalation.
-
-D. Downstream sync / secrets / variables audit:
-- Audit only current evidence from each downstream repository.
-- Verify secrets, variables, permissions, and synced workflow contents before claiming health.
-- Do not infer sync state from older onboarding notes.
-
-E. Longer-term work:
-- Keep Cloud limitation explicit until a supported non-UI Update branch mechanism exists.
-- Keep delivery markers tied to real branch commits, not workflow wording or task UI state.
-- Continue preserving useful incident history only when marked historical and pointed at current architecture.
-
-## Exact Next Live Test Plan
-1. Create one harmless same-repo PR.
-2. Ensure it has an active P1 or P2 finding.
-3. Trigger `@claude fix` from an owner-authored public-repo comment.
-4. Verify a real commit reaches the original PR head branch after the Claude marker.
-5. Verify no secondary branch or PR is created.
-6. Verify the watchdog recognizes delivery.
-7. Verify no `no_delivery` marker remains after the successful push.
-
-## Documentation Files Updated
+## Files Changed In automation-core
+- `workflows/codex-backup-fix.yml`
+- `.github/workflows/codex-backup-fix.yml`
 - `LOOP_STATE.md`
-- `handoffs/CONTEXT.md`
 - `handoffs/loop-build.md`
-- `/root/work/agent-memory/automation-core/cc-latest.md`
 
 ## Files Intentionally Not Changed
-- `workflows/`
-- `.github/workflows/`
-- `sync-config.json`
-- Any downstream repository
-- Any workflow logic
+- `funzi7/paywall-bot` and every downstream repository.
+- Any workflow other than the mirrored `codex-backup-fix.yml` copies.
+- `.github/workflows/` files other than `.github/workflows/codex-backup-fix.yml`.
+- `sync-config.json`.
+- `handoffs/CONTEXT.md`.
+- Secrets, Actions variables, permissions, and downstream settings.
 
-## Explicit Non-Actions
-- No workflow logic was changed.
+## Validation Run And Results
+- Initial local `/root/work/automation-core` `git status --short`: clean.
+- `git pull --ff-only`: blocked by sandbox error `bwrap: fchdir to oldroot: No such file or directory`.
+- Local write test in `/tmp`: blocked by the same `bwrap` error, so the fix was published through GitHub git API tree/commit/ref operations.
+- Remote compare `11ba6a6bf13c91b1be61d4292b853dd15c37063b...06118053e21e0afe3c5f75a930dadcaecc0ee706`: one fast-forward commit, exactly four automation-core files changed.
+- `git diff --check`: exited clean on the local worktree.
+- Remote trailing-whitespace check via `gh api --jq` over all four changed files: no trailing whitespace output.
+- Mirror identity: both workflow copies have identical Git blob SHA `174dc5a5b2182e7a59bd6dfb22992c2056a5a612`.
+- GitHub workflow metadata check: `codex-backup-fix.yml` reports `active .github/workflows/codex-backup-fix.yml`.
+- YAML parse attempt: blocked by the sandbox for available local interpreters/parsers (`ruby`, `node`, `python3`, `perl`, `awk`) with `bwrap: fchdir to oldroot: No such file or directory`; no package installation was attempted.
+- `actionlint` availability/run attempt: blocked by the same sandbox wrapper error; no package installation was attempted.
+- Remote grep/readback via `gh api --jq` confirmed:
+  - `codex_agent_failed` is checked in the `normal_patch_path` classifier;
+  - the agent-failure marker step is separate;
+  - `Resolve PR head ref + stale-head guard`, checkout, `Download patch artifact`, `Apply patch and push`, `pushed`, `no_change`, `patch_failed`, and stale-note steps all use `steps.path.outputs.normal_patch_path == 'true'`;
+  - no normal apply step after the classifier is guarded only by `needs.generate-patch.outputs.proceed == 'true'`.
+- Final local `git status --short` was clean in both `/root/work/automation-core` and `/root/work/agent-memory`.
+
+## Sync Impact
+- paywall-bot was not modified directly.
+- paywall-bot PR #73 must be updated/refreshed by the normal sync from automation-core.
+- Do not merge PR #73 until the refreshed sync includes commit `0611805` and Codex Gate is green.
+- No downstream sync was run in this task.
+
+## Remaining TODO
+1. Refresh/sync paywall-bot PR #73 from automation-core.
+2. Re-check PR #73 after the refreshed sync lands.
+3. Return to PR #72 only after sync workflows are current.
+
+## Guardrails Observed
 - No downstream repository changed.
-- No force push was used.
-- No browser automation, Playwright, session-cookie automation, UI automation, or fake Codex Cloud Update-branch implementation was used.
-
-## Validation Notes
-- Initial local `git status --short` in `/root/work/automation-core` was clean.
-- Local `git pull --ff-only`, local file writes, and local checkout of the remote connector edits were blocked by the workspace error `bwrap: fchdir to oldroot: No such file or directory`.
-- `git diff --check` was run and exited clean on the local worktree; because local checkout of the remote connector edits was blocked, remote readback was used to review the updated Markdown and stale-claim normalization.
-- Local `git status --short` was clean in both `/root/work/automation-core` and `/root/work/agent-memory` after the remote connector commits.
-- Documentation commits were published directly through the GitHub connector on `main`; no force push was used.
-- Markdown structure was reviewed in the replacement content.
-- Stale current-tense phrases were removed from the rewritten documentation content or retained only as HISTORICAL/SUPERSEDED context.
+- No force push.
+- No browser automation, Playwright, session-cookie automation, UI automation, or fake Codex Cloud Update-branch implementation.
+- Public-repo wording does not include the owner’s personal name.
+- The only escalation label referenced is `needs-owner`.
