@@ -1,54 +1,68 @@
-# paywall-bot — PR #72 body tag boundary matching fix handoff
+# paywall-bot — PR #72 mp4 video source selection and full Wave 3 audit handoff
 
 Date: 2026-07-09
 
 ## Commit
 
-- Full SHA: `744c25a5844c3971806ed4cf22cb1e75e8e82e8b`
-- 7-character SHA: `744c25a`
+- Full SHA: `a816ec7a6fe5dd84ddac6e0934748efa9af5d89a`
+- 7-character SHA: `a816ec7`
 - PR: #72
 - Branch: `claude/wave3-quality`
 - Push: committed and pushed to the existing PR branch; no new branch and no new PR.
 
 ## Root Cause
 
-Wave 3 added body-aware keyword tags, but `sites/themarker/tags.py::build_tags` still used raw
-case-insensitive substring checks for title and body keyword matches. Body text is much longer than
-titles, so substrings such as `מניה` inside `גרמניה` and `AI` inside `Airbnb` or `retail` could emit
-wrong keyword tags.
+The in-body video extraction branch in `core/article_parser.py::_extract_inline_images` used the
+direct `<video src>` or only the first child `<source src>`, then accepted any resolved http(s) URL.
+Common markup can put webm, HLS, blob, or data candidates before a later usable mp4, so the parser
+could miss the mp4 or publish an unsupported video URL.
 
 ## Exact Fix
 
-Added a local boundary-aware keyword helper in `sites/themarker/tags.py`. Keyword matches now reject
-occurrences embedded inside larger Hebrew or ASCII word tokens. Token chars are normal Hebrew
-U+0590-U+05FF, Hebrew Presentation Forms U+FB1D-U+FB4F, ASCII letters/digits, and underscore.
-Matching remains case-insensitive for ASCII and checks the first and last character of the whole
-keyword phrase, so punctuation and whitespace boundaries are valid.
+Added `_is_usable_inline_video_src` and `_select_usable_inline_video_src` in `core/article_parser.py`.
+The selector prefers a usable direct `<video src>` and otherwise scans all child `<source>` entries in
+DOM order. A candidate is accepted only when it resolves to http(s) and is mp4 by URL path before
+query/fragment or by `video/mp4` type metadata. HLS, webm, blob, data, and other unsupported sources
+are rejected.
 
-`build_tags` now uses the helper for both title keyword matches and body keyword matches. Section
-URL prefix matching, declaration-order priority, dedupe, cap behavior, no-match behavior, and
-title-before-body ordering are unchanged.
+`_extract_inline_images` now uses that selector. Valid mp4 videos still emit `InlineImage(kind="video")`.
+Unsupported videos inside `<figure>` fall through to the existing poster/thumbnail `<img>` branch.
+Unsupported bare `<video>` elements emit nothing. Existing dedupe, caps, captions, anchor placement,
+and end-marker protections remain unchanged.
 
-## Mandatory Audit
+## Full Wave 3 Audit
 
-- Invariant: keyword tag matching must match whole Hebrew/ASCII tokens or phrases, not substrings
-  embedded inside larger Hebrew/Latin tokens.
-- Audited code paths: `KEYWORD_TAGS`; `build_tags`; title keyword matching; body keyword matching
-  over `BODY_SCAN_PARAGRAPHS`; `_post_article`; immediate `process_item` publish path; retry
-  `_fetch_and_publish` path; tests for title priority, body-only matches, and no-match behavior.
-- Changed paths: `build_tags` title keyword matching and body keyword matching now call the shared
-  `_keyword_in_text` helper; R2R2R tests now use boundary-valid keywords; new R2R2Rb regression
-  covers body false positives, title adjacent false positives, and valid standalone matches.
-- Inspected but intentionally unchanged paths: `KEYWORD_TAGS` contents; `SECTION_TAGS` URL prefix
-  logic; `DEFAULT_SECTION_TAG`; `MAX_TAGS`; `BODY_SCAN_PARAGRAPHS`; `_post_article` call signature;
-  both call sites that pass `parsed.paragraphs` to `_post_article`; Telegram Markdown tag rendering.
-- Remaining risk: Hebrew prefixes attached to a keyword, such as a definite article prefix, no
-  longer count as keyword matches unless the keyword list includes that form. That follows the
-  whole-token invariant and avoids the false positives from embedded substrings.
+- Invariants audited: A inline text/join; B end-of-body markers; C inline media; D source-link
+  extraction; E publish-boundary residue scan; F tag keyword matching; G tests and call-site
+  consistency.
+- Audited code paths: `_inline_text`, `_clean`, `_extract_paragraphs`, figcaption extraction,
+  `_extract_cocoon_paragraphs`, `_extract_subtitle`, `HTML_END_OF_BODY_MARKERS`,
+  `_is_html_end_of_body_marker_text`, `_truncate_at_end_of_body_marker`, `_extract_inline_images`,
+  `_select_best_image_src`, `InlineImage`, `_finalize`, `_build_nodes`, `_extract_source_link`,
+  `_scan_foreign_residue`, `_foreign_scan_char_ok`, `publish_article`, `LAST_PUBLISH_STATS`,
+  `KEYWORD_TAGS`, `build_tags`, `BODY_SCAN_PARAGRAPHS`, `_post_article`, `process_item`, and
+  `_fetch_and_publish`.
+- Changed paths: video source selection in `core/article_parser.py`; Q2Q2Qd regression coverage and
+  runner registration in `tests/test_message_format.py`; repo handoff in `handoffs/CONTEXT.md`; this
+  agent-memory handoff.
+- Inspected but intentionally unchanged paths: `core/telegraph_pub.py`, `sites/themarker/tags.py`,
+  `core/main.py`, existing parser cleaner behavior, source-link phrase/host gating, residue whitelist,
+  tag keyword lists, section-tag rules, workflow files, labels, and merge state.
+- Tests covering audited invariants: L2L2L covers inline join and figcaption spacing; M2M2M covers
+  paragraph end markers; P2P2Pb and Q2Q2Qb cover source-link/media marker stops; Q2Q2Q covers valid
+  in-body mp4 video and rail exclusion; Q2Q2Qc covers poster fallback for unusable figure video;
+  Q2Q2Qd covers mp4 source selection, type-hinted mp4, poster fallback, and unsupported bare video;
+  PPPPP covers `_finalize` preserving video kind; N2N2N covers residue hits and Hebrew Presentation
+  Forms/emoji whitelist; O2O2O covers subtitle label normalization; P2P2P and U1U1U cover source-link
+  capture and domestic-host rejection; R2R2R and R2R2Rb cover body-aware tags, title priority,
+  no-match behavior, and Hebrew/ASCII token boundaries.
+- Remaining risk: local runtime dependencies are incomplete, so `pytest` and the standalone test
+  module could not run in this container. CI remains the full test arbiter. The changed helper was
+  directly smoke-tested with import stubs, and static validation passed.
 
 ## Files Changed
 
-- `sites/themarker/tags.py`
+- `core/article_parser.py`
 - `tests/test_message_format.py`
 - `handoffs/CONTEXT.md`
 - `/root/work/agent-memory/paywall-bot/cc-latest.md`
@@ -57,28 +71,27 @@ title-before-body ordering are unchanged.
 
 - `automation-core`
 - `/root/work/agent-memory/automation-core/cc-latest.md`
+- `core/telegraph_pub.py`
+- `sites/themarker/tags.py`
 - `core/main.py`
-- `KEYWORD_TAGS` entries
-- Section URL tag rules
 - GitHub labels, including `needs-owner`
 - PR metadata, PR body, workflow files, and merge state
 
 ## Validation
 
-- `python3 -m py_compile sites/themarker/tags.py tests/test_message_format.py` — passed.
+- `python3 -m py_compile core/article_parser.py core/telegraph_pub.py sites/themarker/tags.py tests/test_message_format.py` — passed.
 - `python3 -m pytest tests/test_message_format.py -q` — blocked in this environment:
   `/usr/bin/python3: No module named pytest`.
 - `python3 -m tests.test_message_format` — fallback blocked because runtime dependencies are not
   installed: `ModuleNotFoundError: No module named 'telegram'`.
-- Direct `build_tags` smoke check — passed:
-  `גרמניה` did not emit `בורסה`; `Airbnb`/`retail` did not emit `בינה_מלאכותית`; title false
-  positives were blocked; standalone `מניה` emitted `בורסה`; standalone `AI` emitted
-  `בינה_מלאכותית`; title priority and no-match behavior held.
+- Direct helper smoke check with local import stubs — passed:
+  direct `.mp4` accepted; later `.mp4` selected after HLS/webm; `video/mp4` type-hinted non-`.mp4`
+  URL accepted; webm, HLS, blob, and data sources rejected; unsupported candidates returned empty.
+- Pre-commit self-review search — passed:
+  no remaining `video.find("source")`; source scanning uses the new helper; body-wrapper walkers and
+  tag matching remain on marker-aware/helper-based paths.
 - `git diff --check` — passed.
 - `git status --short` in the main repo — clean after commit and push.
-
-Full pytest was not run. The repo handoff documents the known full-suite sandbox issue; the
-requested targeted pytest command could not start here because pytest is unavailable.
 
 ## Remaining TODO
 
