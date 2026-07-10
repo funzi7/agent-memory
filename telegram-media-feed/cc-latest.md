@@ -2,46 +2,52 @@
 
 - Repo name: `funzi7/telegram-media-feed`
 - Branch name: `main`
-- Date/time: `2026-07-10T18:53:32Z`
-- telegram-media-feed HEAD before final handoff commit: `e9ea077c18c7a9d6abf237913e004774144360f2`
-- agent-memory HEAD before final handoff commit: `eaa67e86b5e2fcf48578cfecbabf09ec9865e590`
+- Date/time: `2026-07-10T19:27:04Z`
+- telegram-media-feed HEAD before final handoff commit: `1b64ede72d72d9ead05c670cb7cc2f58d35b1764`
+- agent-memory HEAD before final handoff commit: `08d61eef7ad3c2f9b105601700354b8ece848b0c`
 - Final pushed HEADs are reported by the completing agent after commit/push.
 
 ## Current Update
 
-- Split feed overlays into persistent content and auto-hidden control layers.
-- Persistent overlay keeps the clickable topic label plus caption visible/readable.
-- Auto-hidden controls now include mute, progress, `Open in Telegram`, and date/time; tapping the video restores the full controls.
-- Captions show under the topic label, clamp to 3 lines, and support `More` / `Less` expansion.
-- Too-large media fallback cards still show `Open in Telegram`.
-- Playback failures now auto-retry up to 2 times with a subtle `Retrying` state before permanent `Playback failed` + manual `Retry`.
-- Retry handling ignores aborted media errors and no longer keys the `<video>` element, so observer/playback state survives source-version retries.
-- Active videos preload with `auto`, nearby videos use `metadata`, and farther videos use `none`.
-- Feed mute state now uses `tmf_feed_muted`, migrates `tmf_video_muted`, persists across route/topic changes, and preserves the intended unmuted preference if a browser requires muted autoplay.
+- Fixed video-surface taps so a single tap both reveals controls and toggles play/pause.
+- Topic and caption interactions stay separate from playback toggles.
+- Removed rendered top feed/filter controls; date/time, `Open in Telegram`, `All feed`, and secondary menu controls now live in the per-card auto-hidden controls layer.
+- Persistent overlay now contains only the right-side lower-third topic label and caption.
+- Captions clamp to 3 lines with `More` / `Less`, stay under the topic label, and are spaced above controls/progress.
+- Mute/unmute remains visible on playable videos while controls are visible unless browser introspection confirms no audio, in which case `No audio` is shown.
+- `tmf_feed_muted` still persists the intended mute preference; autoplay muted fallback does not overwrite it.
+- Auto retry is faster and bounded with 150ms then 450ms retry delays before fallback.
+- Too-large fallback cards still keep `Open in Telegram` visible.
+- Removed stale top-control CSS selectors.
 
 ## Validation
 
+- `git diff --check`: passed.
 - `npm run typecheck`: passed.
 - `npm run build`: passed.
-- Port `3000` was occupied; validated rebuilt app with `npm start -- -p 3001`.
-- `/`, `/history`, `/history?topic=7053`, `/admin/topics`, `/admin/ingest`: `HTTP 200`.
-- `/api/feed?limit=8`: `HTTP 200`.
-- `/api/feed?topic=7053&limit=8`: `HTTP 200`, all returned posts matched topic `7053`.
-- `/api/history?topic=7053&limit=8&visibility=active`: `HTTP 200`, all returned items matched topic `7053`.
-- `/api/admin/ingest?limit=5`: `HTTP 200`.
-- `/api/media/4`, `/api/media/5`, `/api/media/7` with `Range: bytes=0-0`: `HTTP 206`.
-- Playwright Chromium validation passed with temporary local WebM interception:
-  - feed/topic feed load
-  - date/time and `Open in Telegram` hide with controls
-  - tap restores controls
-  - topic label stays visible/clickable
-  - caption is readable on mobile viewport
-  - long caption expands/collapses
-  - auto retry happens before permanent error
-  - manual `Retry` still works
-  - mute/unmute preference persists across videos
-  - too-large fallback `Open in Telegram` remains visible
-- `git diff --check`: passed.
+- Port `3000` was occupied; rebuilt app was validated with `npm start -- -p 3001`.
+- HTTP checks passed:
+  - `/`, `/history`, `/history?topic=47`, `/admin/topics`, `/admin/ingest`: `HTTP 200`.
+  - `/api/feed?limit=8`: `HTTP 200`, 8 items.
+  - `/api/feed?topic=47&limit=8`: `HTTP 200`, all posts matched topic `47`.
+  - `/api/history?topic=47&limit=8&visibility=active`: `HTTP 200`, all items matched topic `47`.
+  - `/api/admin/ingest?limit=5`: `HTTP 200`.
+  - `/api/media/4`, `/api/media/5`, `/api/media/7` with `Range: bytes=0-0`: `HTTP 206`.
+- Browser validation used a temporary `/tmp` Playwright install only.
+- Playwright checks passed:
+  - real feed loaded 8 posts
+  - real `/?topic=47` loaded
+  - real `/admin/ingest` loaded
+  - one tap toggled play/pause and restored hidden controls
+  - topic tap opened topic feed and did not toggle playback
+  - date/time, `Open in Telegram`, and `All feed` hid with controls
+  - controls were not near the top safe area
+  - topic label appeared right-side lower/mid-lower
+  - `Topic 47` fallback displayed cleanly
+  - caption was readable, clamped, and expandable without toggling playback
+  - mute/unmute appeared on videos, synced with `video.muted`, and persisted to the next video
+  - image card did not show mute
+  - auto retry showed `Retrying` quickly (`333ms` final run), was bounded, and manual `Retry` cleared fallback immediately
 
 ## TODO
 
@@ -52,7 +58,7 @@
 - No Eximo ingestion fix was attempted.
 - No TDLib/MTProto reader, X/Twitter fetcher, or Eximo replacement pipeline was added.
 - No permanent Playwright/browser-test dependency was added.
-- Topic filtering, history, topics admin, ingest audit, soft delete/visibility, media proxy, source display, and large-media fallback behavior were not intentionally changed.
+- Topic filtering, history, topics admin, ingest audit, soft delete/visibility, media proxy range streaming, source display, captions data, and large-media fallback behavior were not intentionally changed.
 
 ## Known Limits
 
@@ -66,16 +72,18 @@
 
 ## Useful Commands And Routes
 
+- `git diff --check`
 - `npm run typecheck`
 - `npm run build`
 - `npm start -- -p 3001`
-- `git diff --check`
 - `/`
-- `/?topic=7053`
+- `/?topic=47`
 - `/history`
-- `/history?topic=7053`
+- `/history?topic=47`
 - `/admin/topics`
 - `/admin/ingest`
-- `/api/feed?topic=7053&limit=8`
-- `/api/history?topic=7053&limit=8&visibility=active`
+- `/api/feed?limit=8`
+- `/api/feed?topic=47&limit=8`
+- `/api/history?topic=47&limit=8&visibility=active`
+- `/api/admin/ingest?limit=5`
 - `/api/media/4`, `/api/media/5`, `/api/media/7`
