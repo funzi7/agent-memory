@@ -1,68 +1,76 @@
 # telegram-media-feed latest handoff
 
-- Repo name: `funzi7/telegram-media-feed`
-- Branch name: `main`
-- Date/time: `2026-07-10T19:27:04Z`
-- telegram-media-feed HEAD before final handoff commit: `1b64ede72d72d9ead05c670cb7cc2f58d35b1764`
-- agent-memory HEAD before final handoff commit: `08d61eef7ad3c2f9b105601700354b8ece848b0c`
+- Repo: `funzi7/telegram-media-feed`
+- Branch: `main`
+- Date/time: `2026-07-10T20:13:17Z`
+- telegram-media-feed HEAD before this handoff commit: `fe49a522057be822c8b613442c135e93c8bd874f`
+- agent-memory HEAD before this handoff commit: `6989d09eea52fa283c02552d882e4e361d885b49`
 - Final pushed HEADs are reported by the completing agent after commit/push.
 
 ## Current Update
 
-- Fixed video-surface taps so a single tap both reveals controls and toggles play/pause.
-- Topic and caption interactions stay separate from playback toggles.
-- Removed rendered top feed/filter controls; date/time, `Open in Telegram`, `All feed`, and secondary menu controls now live in the per-card auto-hidden controls layer.
-- Persistent overlay now contains only the right-side lower-third topic label and caption.
-- Captions clamp to 3 lines with `More` / `Less`, stay under the topic label, and are spaced above controls/progress.
-- Mute/unmute remains visible on playable videos while controls are visible unless browser introspection confirms no audio, in which case `No audio` is shown.
-- `tmf_feed_muted` still persists the intended mute preference; autoplay muted fallback does not overwrite it.
-- Auto retry is faster and bounded with 150ms then 450ms retry delays before fallback.
-- Too-large fallback cards still keep `Open in Telegram` visible.
-- Removed stale top-control CSS selectors.
+- `/api/media/[mediaId]` now sends private browser-cache headers for playable media: `Cache-Control: private, max-age=86400`, stable `ETag`, stable `Last-Modified`, and `Accept-Ranges: bytes`.
+- Non-range media requests with matching validators can return `304`; range requests still preserve `200`/`206`, `Content-Length`, and `Content-Range`.
+- Too-large media remains a `413` JSON fallback with `Cache-Control: private, no-store`.
+- Normal video URLs are stable; retry URLs only add `retry=<n>` after bounded playback failures.
+- Feed client now stores recent per-topic snapshots in `sessionStorage`, including full/topic items, topic filter, next cursor, scroll position, active post id/index, and active album item index.
+- Returning from topic-filtered feed to full feed restores the previous post when possible; stale snapshots revalidate instead of permanently hiding new items.
+- Video preload is bounded:
+  - active playable video uses `preload="auto"`
+  - next 2-3 playable videos use `preload="metadata"`
+  - too-large media is skipped as playable preload
+  - inactive metadata preload errors are non-fatal and do not show `Playback failed`
+- Multi-media posts now have an Instagram-like horizontal carousel with touch swipe, `1/2` counter, dots, desktop edge arrows, and per-item image/video/too-large fallback rendering.
+- Inactive album videos pause and do not compete with the active item.
+- Existing topic links, captions, controls auto-hide, mute persistence, history/admin links, and too-large `Open in Telegram` fallback behavior were preserved.
 
 ## Validation
 
-- `git diff --check`: passed.
+- `git diff --check`: passed in `telegram-media-feed` and `agent-memory`.
 - `npm run typecheck`: passed.
 - `npm run build`: passed.
-- Port `3000` was occupied; rebuilt app was validated with `npm start -- -p 3001`.
-- HTTP checks passed:
-  - `/`, `/history`, `/history?topic=47`, `/admin/topics`, `/admin/ingest`: `HTTP 200`.
-  - `/api/feed?limit=8`: `HTTP 200`, 8 items.
-  - `/api/feed?topic=47&limit=8`: `HTTP 200`, all posts matched topic `47`.
-  - `/api/history?topic=47&limit=8&visibility=active`: `HTTP 200`, all items matched topic `47`.
-  - `/api/admin/ingest?limit=5`: `HTTP 200`.
-  - `/api/media/4`, `/api/media/5`, `/api/media/7` with `Range: bytes=0-0`: `HTTP 206`.
-- Browser validation used a temporary `/tmp` Playwright install only.
-- Playwright checks passed:
-  - real feed loaded 8 posts
-  - real `/?topic=47` loaded
-  - real `/admin/ingest` loaded
-  - one tap toggled play/pause and restored hidden controls
-  - topic tap opened topic feed and did not toggle playback
-  - date/time, `Open in Telegram`, and `All feed` hid with controls
-  - controls were not near the top safe area
-  - topic label appeared right-side lower/mid-lower
-  - `Topic 47` fallback displayed cleanly
-  - caption was readable, clamped, and expandable without toggling playback
-  - mute/unmute appeared on videos, synced with `video.muted`, and persisted to the next video
-  - image card did not show mute
-  - auto retry showed `Retrying` quickly (`333ms` final run), was bounded, and manual `Retry` cleared fallback immediately
+- Port `3000` was occupied; production validation used `npm start -- -p 3001`.
+- API/HTTP:
+  - `/`: `HTTP 200`
+  - `/history?topic=6828`: `HTTP 200`
+  - `/api/feed?limit=8`: `HTTP 200`, 8 items
+  - `/api/feed?topic=6828&limit=8`: `HTTP 200`, all posts matched topic `6828`
+  - `/api/admin/ingest?limit=5`: `HTTP 200`
+  - `/api/media/4`, `/api/media/5`, `/api/media/7` with `Range: bytes=0-0`: `HTTP 206`
+  - `/api/media/4` with matching `If-None-Match`: `HTTP 304`
+- Browser validation used temporary Playwright under `/tmp/tmf-playwright`, not repo dependencies.
+- Mobile browser checks passed:
+  - feed rendered 8 posts
+  - initial image/fallback post attached 3 future playable video sources, all `metadata`
+  - active playable video switched to `preload="auto"`
+  - active plus lookahead video sources stayed bounded at 4
+  - too-large media IDs were not attached as playable video sources
+  - album post `20` showed `1/2`, swiped to `2/2`, then back to `1/2`
+  - album dot indicator updated
+  - album item with too-large fallback stayed swipeable
+  - vertical feed swipe still worked after album interaction
+  - topic click opened topic-filtered feed
+  - returning via `All feed` restored post `12` to the top
+  - full-feed and topic-feed snapshots existed in `sessionStorage`
+  - `/admin/ingest` loaded
 
 ## TODO
 
 - Replace query-string media access tokens with cookie/session auth before wider sharing.
+- Consider reducing noisy server error logging for client-aborted media range requests; the client now treats inactive preload cancellations as non-fatal.
 
 ## Explicitly Not Done
 
 - No Eximo ingestion fix was attempted.
 - No TDLib/MTProto reader, X/Twitter fetcher, or Eximo replacement pipeline was added.
+- No permanent per-user seen/unseen history was added.
 - No permanent Playwright/browser-test dependency was added.
-- Topic filtering, history, topics admin, ingest audit, soft delete/visibility, media proxy range streaming, source display, captions data, and large-media fallback behavior were not intentionally changed.
+- `/api/feed`, `/api/feed?topic=<message_thread_id>`, `/history`, `/history?topic=<message_thread_id>`, `/admin/topics`, `/admin/ingest`, soft delete/visibility behavior, source display behavior, captions data, and large-media fallback semantics were not intentionally changed.
 
 ## Known Limits
 
 - Hosted Telegram Bot API still has the 20MB `getFile` limit; larger files remain fallback cards.
+- Browser private cache is per browser/profile and subject to normal browser eviction rules.
 - Eximo diagnosis:
   - user media appears in `/admin/ingest`
   - Eximo media does not appear in `/admin/ingest`
@@ -77,13 +85,12 @@
 - `npm run build`
 - `npm start -- -p 3001`
 - `/`
-- `/?topic=47`
+- `/?topic=6828`
 - `/history`
-- `/history?topic=47`
+- `/history?topic=6828`
 - `/admin/topics`
 - `/admin/ingest`
 - `/api/feed?limit=8`
-- `/api/feed?topic=47&limit=8`
-- `/api/history?topic=47&limit=8&visibility=active`
+- `/api/feed?topic=6828&limit=8`
 - `/api/admin/ingest?limit=5`
 - `/api/media/4`, `/api/media/5`, `/api/media/7`
