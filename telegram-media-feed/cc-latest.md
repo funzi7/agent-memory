@@ -2,23 +2,26 @@
 
 - Repo name: `funzi7/telegram-media-feed`
 - Branch name: `main`
-- Latest project commit SHA: `6b015ae715c094fc3772a9d93670b0a89f1882c1`
-- Date/time: `2026-07-09T19:20:00Z`
+- Date/time: `2026-07-10T10:39:00Z`
 
 ## Current Update
 
-- Replaced native feed video controls with a custom mobile player in `app/feed-page.tsx`.
-- Added tap-to-play/pause, centered paused-state play affordance, mute toggle, buffering hint, and tappable seek bar.
-- Added `IntersectionObserver` autoplay/pause behavior for visible feed videos while keeping `muted`, `playsInline`, and `preload="metadata"`.
-- Moved refresh/lock actions into a compact top-right menu and adjusted overlay spacing/pointer behavior in `app/globals.css`.
-- Preserved image/fallback rendering and token-gated media URLs through `/api/media/[mediaId]`.
+- Hardened `/api/media/[mediaId]` range handling and response headers for under-limit videos, with explicit `Accept-Ranges`, `Content-Length`, and `Content-Range` behavior plus safer proxy failure logs.
+- Added frontend retry behavior for video playback errors so small videos do not immediately collapse into a permanent unavailable state, while preserving the custom vertical-feed player controls.
+- Split fallback UX between too-large videos and playback failures, showing file size and Telegram open actions.
+- Added topic display title resolution with DB title preference and a temporary mapping for thread `4403` to `חיילות`.
+- Added concise webhook ingest logs with update/message/thread/media/file/post identifiers and no secret values.
 
 ## Validation
 
 - `git diff --check`: passed.
 - `npm run typecheck`: passed.
 - `npm run build`: passed.
-- `NODE_OPTIONS='--dns-result-order=ipv4first' npm run dev`: started successfully on `http://localhost:3000`.
-- `/api/feed?limit=2`: `HTTP=200`, returned `2` items.
-- `/api/media/3`: `HTTP=200`.
-- `/api/media/4`: `HTTP=200`.
+- `PORT=3001 npm start`: passed.
+- `/api/health`: `HTTP 200`, `ok=true`.
+- `/api/feed?limit=20`: `HTTP 200`, returned `5` items (`8,7,6,5,4`).
+- `/api/media/4` with `Range: bytes=0-1023`: `HTTP 206`, `Content-Type=video/mp4`, `Content-Length=1024`, `Accept-Ranges=bytes`, `Content-Range=bytes 0-1023/1918131`.
+- `/api/media/5` with `Range: bytes=0-1023`: `HTTP 206`, `Content-Type=video/mp4`, `Content-Length=1024`, `Accept-Ranges=bytes`, `Content-Range=bytes 0-1023/8778081`.
+- `/api/media/7` with `Range: bytes=0-1023`: `HTTP 206`, `Content-Type=video/mp4`, `Content-Length=1024`, `Accept-Ranges=bytes`, `Content-Range=bytes 0-1023/12700385`.
+- `/api/media/6`: `HTTP 413`.
+- `/api/media/8`: `HTTP 413`.
