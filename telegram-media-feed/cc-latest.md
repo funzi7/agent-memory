@@ -2,16 +2,19 @@
 
 - Repo name: `funzi7/telegram-media-feed`
 - Branch name: `main`
-- Date/time: `2026-07-10T12:46:05Z`
+- Date/time: `2026-07-10T18:02:26Z`
 
 ## Current Update
 
-- Added display-layer detection for Telegram anonymous/group-sent messages (`GroupAnonymousBot` / fake sender id) so History shows `Sent as group · <sender chat>` instead of `@GroupAnonymousBot`.
-- History now includes the helper note `Telegram hides the real sender for anonymous/group-sent messages.` for those sources.
-- Added DB-backed `source_aliases` table and owner-only `PATCH /api/admin/source-aliases` so source display aliases such as `אני` can be set without changing raw Telegram source fields.
-- `/history` Sources panel now exposes compact Filter plus Alias/Save/Clear controls and preserves raw source keys separately from display titles.
-- `/admin/topics` now renders explicit mobile topic cards at narrow widths while keeping the desktop table for wide screens; mobile nav spacing was tightened.
-- History badges were adjusted to avoid mobile clipping; soft delete/visibility behavior was preserved.
+- Added `GET /api/feed?topic=<message_thread_id>` while preserving the default unfiltered feed.
+- Feed topic chips now link to topic-filtered feed views; filtered feed shows a compact topic pill with `History` and `All feed`.
+- `/history?topic=...` initializes the topic filter and accepts both existing `topic:<chat>:<thread>` keys and simple thread ids.
+- History card topic titles link to topic-filtered history; history `Open in feed` links now include the topic query.
+- Polished custom video controls: progress rail is at the viewport bottom, controls auto-hide while playing, taps reveal/toggle playback, mute preference persists in `localStorage`, and unmuted autoplay rejection falls back without marking media unavailable.
+- Added `webhook_ingest_audit` migration and redacted audit persistence for every valid Telegram webhook update after secret validation.
+- Added owner-only `GET /api/admin/ingest` plus `/admin/ingest` page with source username, bot, topic, media key, and result filters.
+- Admin ingest page includes the Eximo delivery diagnostic note: if no update appears there, Telegram did not deliver that bot message to this bot via Bot API.
+- README/TODO now note that media access tokens in query URLs should be replaced with cookie/session auth before sharing with friends.
 
 ## Validation
 
@@ -21,13 +24,12 @@
 - Port `3000` was occupied; validated rebuilt app with `npm start -- -p 3001`.
 - `/api/health`: `HTTP 200`.
 - `/api/feed?limit=20` with `APP_ACCESS_TOKEN`: `HTTP 200`.
+- `/api/feed?topic=7053&limit=20` with `APP_ACCESS_TOKEN`: `HTTP 200`, all returned posts matched topic `7053`.
 - `/history`: `HTTP 200`.
+- `/history?topic=7053`: `HTTP 200`.
+- `/api/history?topic=7053&limit=20&visibility=active` with `APP_ACCESS_TOKEN`: `HTTP 200`, all returned items matched topic `7053`.
 - `/admin/topics`: `HTTP 200`.
-- `/api/history` without token: `HTTP 401`.
-- `/api/history?limit=80&visibility=all` with `APP_ACCESS_TOKEN`: `HTTP 200`, returned media.
-- Real local `GroupAnonymousBot` rows displayed as `Sent as group`, not `@GroupAnonymousBot`, and included the anonymous sender helper.
-- Source alias save to `אני`, reflected History display, and prior alias restore all passed; unauthenticated alias write returned `HTTP 401`.
-- Hide/delete/restore transition on one feed media item passed; hidden/deleted were excluded from feed and visible through matching History filters.
-- Mobile History layout checked at `360x740` Android viewport with Playwright: 10 cards inspected, badge clipping/overflow check passed.
-- Mobile Topics layout checked at `360x740`: desktop table hidden, topic cards visible, no horizontal overflow, nav controls did not overlap.
+- `/admin/ingest`: `HTTP 200`.
+- `/api/admin/ingest` with `APP_ACCESS_TOKEN`: `HTTP 200`.
+- Synthetic webhook POST with a fake `EximoDiagnostics` bot text message returned `HTTP 200`; `/api/admin/ingest?sourceUsername=EximoDiagnostics&isBot=true&mediaType=text&result=ignored` showed the redacted audit row. The local fake row was removed after validation so it will not pollute real Eximo searches.
 - `/api/media/4`, `/api/media/5`, `/api/media/7` with range request and `APP_ACCESS_TOKEN`: `HTTP 206`.
