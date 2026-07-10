@@ -2,29 +2,31 @@
 
 - Repo name: `funzi7/telegram-media-feed`
 - Branch name: `main`
-- Date/time: `2026-07-10T10:58:43Z`
+- Date/time: `2026-07-10T11:37:18Z`
 
 ## Current Update
 
-- Removed the incorrect hardcoded topic mapping for thread `4403`.
-- Added SQLite migration `002_topic_manual_titles` with an idempotent column check for `topics.manual_title`.
-- Feed topic titles now resolve as manual owner title, captured Telegram topic title, then `Topic <message_thread_id>`; null-thread posts keep the existing General fallback.
-- Added owner-only `/api/admin/topics` GET/PATCH/POST routes requiring `APP_ACCESS_TOKEN`.
-- Added `/admin/topics` for reviewing detected media topics, counts, last dates/message id, sample captions, and saving or clearing manual titles.
-- Preserved existing media streaming and large-file fallback behavior.
+- Added migration `003_post_sources` and defensive schema repair for source columns on `posts`.
+- Telegram ingestion now captures `from.id`, `from.username`, names, `from.is_bot`, and `sender_chat` id/title/username without filtering out bot-uploaded media.
+- Added source display helpers with `Unknown source` fallback for old rows.
+- Added authenticated `/api/history` with paging and filters for topic, source, type, status, and search.
+- Added `/history` archive UI with lightweight media cards, source summaries, and links to Feed/Topics.
+- Added Feed -> History/Topics, Topics -> Feed/History, and History -> Feed/Topics navigation.
+- Existing feed, media proxy, custom player, topics admin, and manual topic names were preserved.
 
 ## Validation
 
 - `git diff --check`: passed.
 - `npm run typecheck`: passed.
 - `npm run build`: passed.
-- `PORT=3001 APP_ACCESS_TOKEN=<temporary validation token> npm start`: passed.
+- Port `3000` was already occupied by an existing `next-server`; validated rebuilt app with `PORT=3001 npm start`.
 - `/api/health`: `HTTP 200`, `ok=true`.
-- `/api/feed?limit=20`: `HTTP 200`, returned `5` items (`8,7,6,5,4`).
+- `/api/feed?limit=20` with `APP_ACCESS_TOKEN`: `HTTP 200`, returned posts `8,7,6,5,4`.
 - `/admin/topics`: `HTTP 200`.
-- `/api/admin/topics`: `HTTP 200`, returned `2` detected topics.
-- Manual title save for thread `4403`: `HTTP 200`, then appeared in `/api/feed`.
-- Manual title clear for thread `4403`: `HTTP 200`, feed returned to `Topic 4403`.
-- `/api/media/4` with `Range: bytes=0-1023`: `HTTP 206`, `Content-Type=video/mp4`.
-- `/api/media/5` with `Range: bytes=0-1023`: `HTTP 206`, `Content-Type=video/mp4`.
-- `/api/media/7` with `Range: bytes=0-1023`: `HTTP 206`, `Content-Type=video/mp4`.
+- `/history`: `HTTP 200`.
+- `/api/history` without token: `HTTP 401`.
+- `/api/history?limit=30` with `APP_ACCESS_TOKEN`: `HTTP 200`, returned media `8,7,6,5,4,3`.
+- History included existing media rows `4,5,6,7,8`.
+- Existing rows with no source fields displayed as `Unknown source`.
+- Source summaries returned `unknown:6`.
+- `/api/media/4`, `/api/media/5`, `/api/media/7` with range request and `APP_ACCESS_TOKEN`: `HTTP 206`.
