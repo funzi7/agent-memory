@@ -2,81 +2,65 @@
 
 - Repo: `funzi7/telegram-media-feed`
 - Branch: `main`
-- Date/time: `2026-07-10T20:13:17Z`
-- telegram-media-feed HEAD before this handoff commit: `fe49a522057be822c8b613442c135e93c8bd874f`
-- agent-memory HEAD before this handoff commit: `6989d09eea52fa283c02552d882e4e361d885b49`
+- Date/time: `2026-07-11T06:20:07Z`
+- telegram-media-feed HEAD: `6efcea9f35e98da577bd3bc9f930d7702971bd66` (pushed)
+- agent-memory HEAD before this handoff commit: `5d75c9d5e5ad9ce83fb4c74a005a92e6e64d7fdd`
 - Final pushed HEADs are reported by the completing agent after commit/push.
 
 ## Current Update
 
-- `/api/media/[mediaId]` now sends private browser-cache headers for playable media: `Cache-Control: private, max-age=86400`, stable `ETag`, stable `Last-Modified`, and `Accept-Ranges: bytes`.
-- Non-range media requests with matching validators can return `304`; range requests still preserve `200`/`206`, `Content-Length`, and `Content-Range`.
-- Too-large media remains a `413` JSON fallback with `Cache-Control: private, no-store`.
-- Normal video URLs are stable; retry URLs only add `retry=<n>` after bounded playback failures.
-- Feed client now stores recent per-topic snapshots in `sessionStorage`, including full/topic items, topic filter, next cursor, scroll position, active post id/index, and active album item index.
-- Returning from topic-filtered feed to full feed restores the previous post when possible; stale snapshots revalidate instead of permanently hiding new items.
-- Video preload is bounded:
-  - active playable video uses `preload="auto"`
-  - next 2-3 playable videos use `preload="metadata"`
-  - too-large media is skipped as playable preload
-  - inactive metadata preload errors are non-fatal and do not show `Playback failed`
-- Multi-media posts now have an Instagram-like horizontal carousel with touch swipe, `1/2` counter, dots, desktop edge arrows, and per-item image/video/too-large fallback rendering.
-- Inactive album videos pause and do not compete with the active item.
-- Existing topic links, captions, controls auto-hide, mute persistence, history/admin links, and too-large `Open in Telegram` fallback behavior were preserved.
+- Active playable videos now have a compact fullscreen control tied to controls visibility. It uses standard Fullscreen API with WebKit/native-video fallback, fails gracefully when unavailable, does not force rotation, and preserves playback/mute/progress state.
+- Only the active playable slide renders fullscreen; photos, too-large fallbacks, and offscreen album videos do not expose it.
+- Each post has a Share action using Web Share or clipboard/legacy-copy fallback with `Link copied` confirmation.
+- Shared URLs are rebuilt as same-origin `/?topic=<message_thread_id>` URLs and exclude the current query, access token, bot token, media proxy URL, Telegram file URL, and Telegram post URL.
+- Added authenticated `GET /api/topics` plus a mobile-first `/topics` directory with display titles, secondary thread ids, active media/video/photo counts, latest/update dates, topic-feed links, and topic-history links.
+- Feed/Topics/History navigation points normal users to `/topics`; `/admin/topics` remains the manual-title editor.
+- Previous album swipe, private cache/bounded preload, topic filtering, captions, source display, soft-delete, and too-large fallback behavior were preserved.
+- Large-video roadmap is documented: hosted `getFile` remains limited to 20MB; the [official Local Bot API Server](https://core.telegram.org/bots/api#using-a-local-bot-api-server) is the preferred future solution for unlimited downloads and local absolute file paths. Future architecture is Next.js plus Local Bot API Server on persistent hosting/VPS, with optional `ffmpeg`; TDLib/MTProto is the heavier alternative.
 
 ## Validation
 
-- `git diff --check`: passed in `telegram-media-feed` and `agent-memory`.
+- `git diff --check`: passed in both repos.
 - `npm run typecheck`: passed.
-- `npm run build`: passed.
-- Port `3000` was occupied; production validation used `npm start -- -p 3001`.
-- API/HTTP:
-  - `/`: `HTTP 200`
-  - `/history?topic=6828`: `HTTP 200`
-  - `/api/feed?limit=8`: `HTTP 200`, 8 items
-  - `/api/feed?topic=6828&limit=8`: `HTTP 200`, all posts matched topic `6828`
-  - `/api/admin/ingest?limit=5`: `HTTP 200`
-  - `/api/media/4`, `/api/media/5`, `/api/media/7` with `Range: bytes=0-0`: `HTTP 206`
-  - `/api/media/4` with matching `If-None-Match`: `HTTP 304`
-- Browser validation used temporary Playwright under `/tmp/tmf-playwright`, not repo dependencies.
-- Mobile browser checks passed:
-  - feed rendered 8 posts
-  - initial image/fallback post attached 3 future playable video sources, all `metadata`
-  - active playable video switched to `preload="auto"`
-  - active plus lookahead video sources stayed bounded at 4
-  - too-large media IDs were not attached as playable video sources
-  - album post `20` showed `1/2`, swiped to `2/2`, then back to `1/2`
-  - album dot indicator updated
-  - album item with too-large fallback stayed swipeable
-  - vertical feed swipe still worked after album interaction
-  - topic click opened topic-filtered feed
-  - returning via `All feed` restored post `12` to the top
-  - full-feed and topic-feed snapshots existed in `sessionStorage`
-  - `/admin/ingest` loaded
+- `npm run build`: passed, including `/topics` and `/api/topics`.
+- Production HTTP/API checks passed:
+  - feed, topic feed, `/topics`, topic history, `/admin/ingest`, and `/admin/topics`: `HTTP 200`
+  - `/api/feed`: 8 items; topic `6828`: 3 matching items
+  - `/api/topics`: 6 valid count-consistent items
+  - `/api/media/4`, `/api/media/5`, `/api/media/7` range requests: `HTTP 206`
+  - `/api/media/23` kept the expected too-large `HTTP 413`
+- Temporary Playwright checks passed:
+  - topic card/feed and History links, required fields, mobile/desktop responsiveness
+  - fullscreen visible only on active playable video, real enter/exit, unavailable-API fallback, portrait/landscape layout
+  - source/play/mute/progress preservation, one-tap pause/resume, controls hide/show, preload bound, and topic cache
+  - no fullscreen on photos; album `1/3 -> 2/3 -> 1/3`
+  - Web Share and clipboard fallback both emitted a secret-free topic URL
 
 ## TODO
 
-- Replace query-string media access tokens with cookie/session auth before wider sharing.
-- Consider reducing noisy server error logging for client-aborted media range requests; the client now treats inactive preload cancellations as non-fatal.
+- Replace query-string access-token media URLs with Mini App, cookie, or session authentication before real friend-sharing. Until then, share only a safe app/topic URL.
+- Implement Local Bot API Server support as a separate future task; optionally add `ffmpeg`, then deploy the app/server on persistent hosting/VPS infrastructure.
+- Consider TDLib/MTProto only if the heavier history/message-access requirements justify it.
 
 ## Explicitly Not Done
 
-- No Eximo ingestion fix was attempted.
-- No TDLib/MTProto reader, X/Twitter fetcher, or Eximo replacement pipeline was added.
-- No permanent per-user seen/unseen history was added.
-- No permanent Playwright/browser-test dependency was added.
-- `/api/feed`, `/api/feed?topic=<message_thread_id>`, `/history`, `/history?topic=<message_thread_id>`, `/admin/topics`, `/admin/ingest`, soft delete/visibility behavior, source display behavior, captions data, and large-media fallback semantics were not intentionally changed.
+- Local Bot API Server, `ffmpeg`, TDLib/MTProto, persistent media hosting, and changes to the existing over-20MB fallback were not implemented.
+- No Eximo ingestion fix, X/Twitter fetcher, or Eximo replacement was attempted.
+- No permanent seen/unseen history or permanent Playwright dependency was added.
+- `/admin/topics` remains the manual-title editing interface.
 
 ## Known Limits
 
-- Hosted Telegram Bot API still has the 20MB `getFile` limit; larger files remain fallback cards.
-- Browser private cache is per browser/profile and subject to normal browser eviction rules.
+- Hosted Telegram Bot API `getFile` still cannot serve files over 20MB; larger files remain fallback cards with `Open in Telegram`.
+- Current token-based access is not appropriate for unrestricted friend-sharing. Shared links must exclude `APP_ACCESS_TOKEN` and all secrets until proper session/Mini App auth exists.
+- Fullscreen/orientation, Web Share, and clipboard support vary by browser and must fail gracefully.
+- Browser private cache is per browser/profile and subject to eviction.
 - Eximo diagnosis:
   - user media appears in `/admin/ingest`
   - Eximo media does not appear in `/admin/ingest`
-  - Telegram is not delivering Eximo bot messages to this bot webhook
+  - Telegram does not deliver Eximo bot messages to this bot webhook
   - this is not a feed/history bug
-  - future options are our own X/Twitter fetcher, TDLib/MTProto, or replacing Eximo
+  - future options are an owned X/Twitter fetcher, TDLib/MTProto, or replacing Eximo
 
 ## Useful Commands And Routes
 
@@ -85,12 +69,14 @@
 - `npm run build`
 - `npm start -- -p 3001`
 - `/`
-- `/?topic=6828`
+- `/?topic=<message_thread_id>`
+- `/topics`
 - `/history`
-- `/history?topic=6828`
+- `/history?topic=<message_thread_id>`
 - `/admin/topics`
 - `/admin/ingest`
 - `/api/feed?limit=8`
-- `/api/feed?topic=6828&limit=8`
+- `/api/feed?topic=<message_thread_id>&limit=8`
+- `/api/topics`
 - `/api/admin/ingest?limit=5`
 - `/api/media/4`, `/api/media/5`, `/api/media/7`
