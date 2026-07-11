@@ -1,7 +1,7 @@
 # thai-rent-finder — State
 
 > Living document. Auto-updated daily at 02:00 UTC by `auto-update-state.yml`.
-> Last auto-update: 2026-07-10
+> Last auto-update: 2026-07-11
 > Production: https://thai-rent-finder.vercel.app
 > Total listings in DB: 1866
 
@@ -18,6 +18,7 @@
 
 ## Recently merged PRs (last 7 days)
 
+- **#91** — chore(automation): sync from automation-core
 - **#90** — chore(automation): sync from automation-core
 - **#88** — Enrich Lazudi extraction, "עודכן" dates, mobile search + recents, dead-concern cleanup
 - **#89** — chore(automation): sync from automation-core
