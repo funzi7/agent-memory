@@ -1,67 +1,79 @@
 # telegram-media-feed latest handoff
 
 - Repo: `funzi7/telegram-media-feed`
-- Branch: `claude/personalization-telegram-auth-98x51m`
+- Branch: `claude/personalization-telegram-auth-98x51m` (upstream `origin/<same>` verified to match)
 - Updated: `2026-07-12`
-- Task starting telegram-media-feed HEAD: `eaac840b1d9fa83ec1e7f0231f8c411b7d752a11` (first personalization release; the user confirmed this build is deployed and running on port 3000)
-- Final pushed telegram-media-feed HEAD: `a18e2748ab0893b40d29257691637fa51141a773`
-- Task starting agent-memory HEAD: `cec30f7e95faad0ec1fd3c2d7731e9505779c1ee`
-- The final pushed agent-memory HEAD is reported by the completing response because this file is part of that commit.
-- Work stayed on the checked-out branch; nothing was reset to `main`; the corrected carousel implementation is untouched.
+- Task starting telegram-media-feed HEAD: `a18e2748ab0893b40d29257691637fa51141a773`
+- Final pushed telegram-media-feed HEAD: `96aeb8cbb90e0c717d5a61e86ba0ed36d5d38d67`
+- Task starting agent-memory HEAD: `9804faf25f4054e74c891c86dc34f7ddedc25a46`
+- Final pushed agent-memory HEAD: reported by the completing response (this file is part of that commit).
+- Work stayed on the checked-out branch; nothing reset to `main`; carousel untouched.
 
-## Deployment status (important)
+## Deployment status
 
-- **Port 3000 still runs the PREVIOUS commit `eaac840…`** (deployed by the user before this task).
-- **The new commit `a18e274…` was validated on a production build on port 3001** with a seeded validation database, and is pushed — but this task did NOT deploy it to port 3000 and did NOT touch the Cloudflare tunnel. Deploying the new commit is a user step (`git pull && npm run build && restart`).
-- Round-1 caveat acknowledged: earlier "works" conclusions before the round-1 build was actually deployed were invalid; this round validated everything on a test port and labels deployment status explicitly.
+- The user configured BotFather + Cloudflare and deployed the PREVIOUS commit on port 3000; the Mini App opens there but demanded APP_ACCESS_TOKEN (the bug fixed in this round).
+- This round's commit `96aeb8c…` was validated on a production build on **port 3001** and pushed. It is **not deployed** to port 3000 by this task (per instructions); the user must pull/build/restart to get the fix live. BotFather, tunnel, `.env.local`, runtime data, port 3000 untouched.
 
-## Exact bugs fixed / features added (round 2)
+## Root cause: Mini App required APP_ACCESS_TOKEN
 
-1. **Rail disappears after video ends** — `onEnded` now forces controls visible and the auto-hide timer is disabled while `video.ended` or the menu is open. Like/Share/Mute/Fullscreen/Menu stay usable after ended; unmuting an ended video no longer auto-replays; single tap replays and normal auto-hide resumes; post change resets; completion stays idempotent.
-2. **Menu auto-closed by the controls timer** — while `postMenuOpen` the timer is suppressed and hide requests are ignored; the menu closes only via toggle, outside pointerdown, navigating action, active-post change, or Lock. Root-cause extra fix: `.post-controls-menu` now has `pointer-events: auto` — previously the container inherited `none`, so taps on menu padding fell through to the video tap target (also fixes Android menu scrolling).
-3. **Rail order** — exact top-to-bottom order **Like, Share, Mute, Fullscreen, Menu** in one gap-free bottom-anchored column. Active `FeedVideo` registers `{hasAudio, isMuted, isFullscreen, toggleMute, toggleFullscreen}` into the rail; images get Like/Share/Menu. In fullscreen, mute/exit duplicates render inside the video shell (only that subtree is visible there). 48x48 circles/centering preserved.
-4. **Liked heart empty after reload** — `/api/feed` now embeds `viewerState` (`liked`, `completed`, `maxWatchPercent`, `lastPositionSeconds`) per media item for the authenticated identity, in all modes, pagination, and topic feeds; absent without identity. The client seeds hearts from the same payload that renders posts; the sessionStorage snapshot folds in live viewer state (a real second bug found in validation: cached items previously kept fetch-time state, so a like made during the session flashed empty after reload). Revalidation skips media mutated after the request started. Unknown identity → disabled `is-unknown` heart, never a false "not liked". Feed cache key bumped `tmf_feed_cache_v5` → `tmf_feed_cache_v6`. The old client bulk media-state fetch was removed (`GET /api/me/media-state` remains for ad-hoc use).
-5. **Double-tap like/unlike** — `lib/tap-gesture.ts` recognizer: `DOUBLE_TAP_WINDOW_MS = 250`, `DOUBLE_TAP_MAX_DISTANCE_PX = 64`; only clean taps enter (video < 12 px movement, image ≤ 6 px, multi-touch blocked). Double-tap cancels the pending single tap (play/pause or photo viewer fire after the window resolves); applies to the settled album item; swipes/pinch/progress/rail/menu/viewer taps never count; keyboard activation bypasses it. Like mutations serialized per media id — latest mutation wins, out-of-order responses discarded, failure rolls back with a compact `Like failed` notice.
-6. **Heart burst animation** — one centered inline-SVG `.like-burst` per unliked→liked transition (button or double-tap): scale-in/overshoot/fade ~750 ms, `pointer-events: none`, no layout shift, removed on `animationend` + 1.2 s safety timeout; never on unlike; `prefers-reduced-motion` gets a plain fade.
-7. **Avatar dark ring removed completely** — with a usable image URL the wrapper is transparent from the first loading frame: `border: 0; outline: 0; background: none; box-shadow: none; padding/margin: 0`; img `display: block; object-fit: cover; transform: scale(1.01)` (hides anti-aliased rim); `overflow: hidden` + circle kept; error → deterministic initials fallback (only imageless topics show it, gradient kept). Shared component also kills the dark `#121212` ring `/topics` applied to image avatars.
-8. **Cross-tab video cache** — diagnosed: fresh tab → memory empty → `acquireStored` aborted by the fixed 120 ms probe before Cache Storage init + large-blob `response.blob()` could finish → duplicate full direct download. Fixed with a two-stage lookup: `VideoWarmCache.hasStored()` / store `has()` (header-only `cache.match`, no body read, no network, no full initialize) bounded at `VIDEO_STORED_EXISTENCE_WAIT_MS = 450`; when the entry exists, materialization is awaited up to `VIDEO_STORED_MATERIALIZE_WAIT_MS = 4000` with no parallel direct request; a miss falls through to direct range playback immediately. Bounded limits, too-large exclusion, and secret-free keys unchanged.
-9. **Diagnostics** — `/admin/personalization` + `GET /api/admin/personalization` (`lib/personalization-diagnostics.ts`): admin token required, Telegram session never qualifies; shows current actor (identity type, masked `actor#<id>`, username), browser feed mode, topic preference table (score + per-type points/counts + updated), 50 recent events (type/media/topic/weight/created/reversed), 50 recent media states, and the +1/+2/+3 explanation; proves duplicates add nothing. No destructive controls, no tokens, no other users. Menu gained a `Personalization` link (History/Topics/Manage topics/Ingest/Refresh/Lock/Open in Telegram kept). One-time `Completed · +1` transient notice on first completion per media (server `changed` flag gates repeats).
-10. **Ranking untouched** — weights/formula/constants/modes/exploration/stability exactly as round 1.
+Client-side only. `bootstrapIdentity` read `window.Telegram.WebApp.initData` exactly once, synchronously, when the initial React effect ran. On the real device the telegram.org bridge script often had not executed yet, so initData was `undefined`; the code fell through to the browser-profile bootstrap (401 without a token), the failed identity was cached per token, and the token form appeared permanently. Server-side initData validation, the allowlist, and session-based feed access were already correct (a session cookie minted manually did grant `/api/feed`).
 
-## API / schema / storage changes
+## Exact fixes
 
-- `/api/feed` response media items: new optional `viewerState` object (only for the requesting identity). No other response changes; no database schema changes; no env-var changes.
-- New route: `GET /api/admin/personalization`. New page: `/admin/personalization`.
-- Client storage: `tmf_feed_cache_v6` (was v5). Cookie names unchanged (`tmf_session`).
-- New module `lib/tap-gesture.ts`; `PersistentVideoWarmStore` gained optional `has(key)`.
+### Authentication state machine (`app/personalization.ts`, `app/feed-page.tsx`)
 
-## Validation performed (port 3001 test build)
+1. Bounded bridge wait: `waitForTelegramInitData()` polls every 100 ms up to `TELEGRAM_BRIDGE_WAIT_MS = 1800`, with an early exit 250 ms after `document.readyState === "complete"` (the bridge script is a blocking resource, so "complete" means its initData decision is final). Plain browsers stay fast; slow WebViews get the full window.
+2. `ready()` safely + `expand()` only when supported and `isExpanded === false`; no Telegram fullscreen, no `disableVerticalSwipes()` (no real-device evidence of conflict), no host UI interference.
+3. `authenticateTelegram(initData)`: POST `/api/auth/telegram` with `credentials: "include"`, then immediately verify the fresh cookie via `GET /api/auth/me`. Failure taxonomy: `invalid-init-data`, `not-allowlisted` (server error code `telegram_user_not_allowed`), `session-verify` (Set-Cookie didn't stick), `network`.
+4. UI phases: neutral loading (`data-testid="auth-booting"`) while booting → feed on success → Telegram-specific error screen with Retry (`data-testid="telegram-auth-error"`) on rejection → token form ONLY when no initData was present (plain browser). A mid-session feed 401 under a Telegram identity also becomes the `session-verify` error, never the token form.
+5. Cookie-only Mini App: `effectiveAccessToken = identityType === "telegram" ? "" : accessToken` — feed requests carry no Authorization header and media/topic-asset URLs carry NO `access_token` query under a Telegram session; a stale stored `tmf_access_token` is ignored there (kept for browser/admin use). All auth/session/event fetches set `credentials: "include"` explicitly.
+6. Origin/proxy: `isTrustedRequestOrigin` (unchanged logic) verified against the tunnel architecture — Origin is matched against the first `X-Forwarded-Host` entry, else `Host`; tests cover direct, proxied, proxy-chain, missing-Origin (allowed; SameSite=Lax is the backstop), hostile, and `null` origins. Nothing was broadly disabled.
 
-- `git diff --check` clean; `npm run typecheck`; `npm run build`.
-- `npm test` **79/79** (64 prior + 15 new: recognizer single/double/distant/rapid/cancel; cache existence-without-body-read, miss/abort/ineligible, memory reporting, slow-materialization-no-abort-no-duplicate-fetch; feed hydration first-response/pagination/topic/for-you/user-isolation/no-identity; diagnostics exact totals + reversal + no token leak + admin-only).
-- HTTP: all pages 200 incl. `/admin/personalization`; feed and diagnostics APIs 401 without token; hydrated viewer state verified with/without identity and on topic feeds; too-large 413.
-- Headless Chromium (390x844, deterministic WebM/JPEG substitution): **21/21** — completion notice exactly once, ended pins rail (checked 3.2 s past auto-hide), exact rail order + Like topmost, replay, menu open > auto-hide with video advancing, in-menu tap kept open, outside tap closes, ended+menu both visible, double-tap like + single burst + self-removal, unlike with no animation, image double-tap likes without opening viewer, single-tap viewer still opens, liked heart filled at first paint after reload, unliked correct after reload, touch swipe moves exactly one album item and likes nothing, diagnostics show completion +1 for the browser actor, initials fallback gradient intact.
-- Round-1 regression browser suite re-run on the new build: **19/19** (token unlock, identity bootstrap grants nothing, mode switch/persistence, Latest chronological, 48x48 rail, collisions, avatar, RTL placement, carousel arrows, no Telegram-absent error).
-- Avatar screenshots at normal scale and DPR 3 over image and video posts saved as validation artifacts (not committed).
+### Draggable progress bar
 
-## Manual checks NOT performed / limitations
+- Pointer-captured scrubbing: press anywhere on the bar, drag continuously (tracking continues outside the bar while captured), live fill/thumb/floating-timestamp updates, commit on release, `pointercancel`/unmount cleanup, clamped [0, duration]; playing videos pause during the scrub and resume after; paused videos stay paused.
+- Root fix behind "stays paused": new `userPausedRef` explicit-pause intent gates the `canplay`/`loadeddata` autoplay, so a seek can never resume a deliberately paused video; new/changed media still autoplays.
+- Keyboard: ArrowLeft/Right ±5 s, Home, End; accurate `aria-valuemin/max/now/valuetext`; visible focus ring. Visuals: 4 px bar (6 px scrubbing), 14→18 px thumb, 30 px invisible touch target; `touch-action: none`.
 
-- Physical Android device (touch vendor behavior, decoder, Web Share chrome, real quota pressure).
-- Real media `200/206` against Telegram upstream (sandbox has none; the media route was not modified this round).
-- Real Telegram WebView Mini App auth (fixtures only, as before).
-- Port 3000 was not redeployed; the new commit is validated but NOT live there.
-- Cross-tab: a brand-new tab still pays local blob materialization/decode time for large entries (bounded, spinner-represented, no network); two tabs racing before the first warm persists still cause one direct download in the second tab; without Cache Storage the fallback is direct playback.
-- In-memory rate limits remain per-process.
+### Playback speed
 
-## tmfup false positive
+- Exactly 0.5×/1×/1.5×/2× as a "Playback speed" group inside the Menu for playable videos (rail order untouched); `aria-pressed` + `is-active`; selection keeps the Menu open.
+- Persisted in localStorage `tmf_playback_rate`; applied via effect + `loadedmetadata` + `playing`, surviving source changes, retries, warm-swaps, album/feed navigation; never resets position/mute/like/fullscreen.
+- Rate-aware watch accounting `lib/watch-accounting.ts`: accept a media delta only if `≤ wallDelta × playbackRate × 1.35 + 0.08 s`, absolute cap 4 s. Replaces the fixed 1.5 s threshold that would have rejected legitimate 2× progress. 2× full watch completes; 0.5× never undercounts; seeks (incl. double-tap ±5 and scrubs) contribute zero.
 
-`tmfup` exists only as an external shell alias outside every accessible repository, so its checker could not be edited (shell config intentionally untouched). Its `FINAL DIAGNOSIS: FAILED_CHECK_LOG` was a false positive: the sole log line `nohup: ignoring input` is harmless nohup noise and the checker should ignore exactly that line (while keeping real warnings/exceptions). Also: `/api/feed` returning `401` without a token/session is expected authorization behavior, not a server failure.
+### Video double-tap zones
 
-## Explicitly Not Done (unchanged roadmap)
+- Physical thirds of the rendered width (RTL never mirrors): left −5 s (clamp 0) with a `−5` indicator, right +5 s (clamp duration) with `+5`, center Like/Unlike (heart burst on like only). Recognizer window/radius unchanged (250 ms / 64 px); the double-tap cancels the pending single tap, so zone seeks never also play/pause. Play/pause state preserved; repeats accumulate; indicators are pointer-transparent, one-shot (animationend + 900 ms safety), reduced-motion aware. Images unchanged; settled album item only.
 
-Local Bot API Server (>20MB, high priority), ffmpeg, Android folder uploader, Eximo workaround, full personal History UI, push notifications, comments, social profiles, ML, negative scoring, ranking-weight changes, global recommendations, BotFather/tunnel changes.
+### Album sibling preloading
+
+- Trigger: active post's video fires `playing` → `albumPlayingPostId` → `collectVideoWarmTargets(..., { playingPostId })` emits the album's other playable videos as role `album`, carousel order, only while that post is active.
+- Priorities: current 0 / album 1 / ahead 2 / previous 3 (`reconcile`); queue ties keep insertion order; global concurrency stays at the proven bound of 2; per-key dedup prevents duplicate downloads; early swipe promotes the sibling's pending task to priority 0.
+- Warmed siblings persist in Cache Storage (existing limits: 8/96 MiB storage, 5/64 MiB memory, 20 MiB per entry) for instant carousel playback, cross-tab reuse, and returns. Photos/too-large/duplicates excluded; leaving the post cancels unfinished tasks (completed entries stay); memory eviction now prefers non-retained entries first while hard bounds always hold. Diagnostic: `getQueueSnapshot()`.
+
+## API/schema/storage changes
+
+- No server API or database changes this round. New localStorage key: `tmf_playback_rate`. New client constants: `TELEGRAM_BRIDGE_WAIT_MS=1800`, seek step 5 s, zone thirds ⅓/⅔, watch tolerance 1.35×+0.08 s/cap 4 s.
+
+## Validation performed (port 3001 production build)
+
+- `git diff --check`, `npm run typecheck`, `npm run build` clean; `npm test` **96/96** (79 prior + 17 new: watch-accounting; album policy/queue priority/promotion/cancellation/quota-fallback; telegram cookie-only feed+media+topic-asset access, admin denial, browser-cookie denial; origin matrix).
+- Round-3 browser suite **30/30** (390×844, realistic bridge simulation by intercepting `telegram-web-app.js` itself, range-capable media substitution): plain-browser token flow intact; Mini App feed with zero token usage (fresh and with stale stored token), `/api/auth/me` verification, ready/expand called, reload persistent; 900 ms-late initData authenticates; non-allowlisted and tampered initData show their specific errors + Retry (never the token form); drag scrub commit/resume, paused-stays-paused, keyboard ±5/Home, ARIA; 2× applied/persisted/menu-open/position+mute preserved and carried to the next album video; zone double-taps ±5 with correct-side indicators + clamps + play-state preservation, center Like/Unlike with/without burst, single tap intact; album: both siblings warmed exactly once on first real playback, persisted in Cache Storage, swipe reused the blob with no new fetch.
+- Regression: round-2 suite **21/21** and round-1 suite **19/19** re-run against this build (newest-post expectation updated for newly seeded validation posts).
+- Two test-harness findings worth remembering: (1) the browser media substitute must implement byte ranges or direct playback is unseekable (the real backend serves 206s); (2) simulate delayed initData by delaying the bridge script response, which also delays `readyState === "complete"` exactly like reality.
+
+## Not performed / limitations (honest)
+
+- **Real Telegram device validation was NOT performed** — the BotFather Mini App cannot be exercised from this environment. All Telegram auth validation used signed fixtures + a simulated bridge. Real-device acceptance still needed for: WebView cookie persistence, scrub/zone touch feel, decoder behavior, host gesture interaction.
+- Real upstream media 200/206 untested here (no Telegram upstream; media route untouched this round).
+- Port 3000 still runs the previous commit until the user redeploys.
+- `disableVerticalSwipes()` deliberately not called pending real-device evidence.
+
+## Explicitly deferred
+
+Local Bot API Server (>20MB, high priority), ffmpeg, Android folder importer, Eximo, personal History UI, push notifications, comments, social profiles, ML, negative scoring, ranking changes, browser-flow query-token removal.
 
 ## HEADs
 
-- telegram-media-feed final pushed HEAD: `a18e2748ab0893b40d29257691637fa51141a773`
+- telegram-media-feed final pushed HEAD: `96aeb8cbb90e0c717d5a61e86ba0ed36d5d38d67` (branch and origin verified identical)
 - agent-memory final pushed HEAD: reported in the completing response (this commit).
