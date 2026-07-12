@@ -2,143 +2,175 @@
 
 - Repo: `funzi7/telegram-media-feed`
 - Branch: `agent/fix-album-carousel-swipe`
-- Updated: `2026-07-11T17:01:46Z`
-- Task starting telegram-media-feed HEAD: `c90fe72150da96f8174f2b5feb2689e3e4d554de`
-- Current/pushed telegram-media-feed HEAD: `c58132abdce73560dff9971ba6de8da39372db9b`
-- Task starting and pre-handoff agent-memory HEAD: `161f150e5981dd70960a25ac34b00ab59755a998`
+- Updated: `2026-07-12`
+- Task starting telegram-media-feed HEAD: `c58132abdce73560dff9971ba6de8da39372db9b`
+- Current/pushed telegram-media-feed HEAD: `44fb7cd705b7b1e5d4f9fdd118b7936abc69f9fc`
+- Task starting and pre-handoff agent-memory HEAD: `e6aad17b3a76d86ed8b809ce682cbf703c348a81`
 - The final pushed agent-memory HEAD is reported by the completing response because this file is part of that commit.
+- Work stayed on the checked-out branch. Nothing was reset to `main`, and the corrected carousel implementation was not discarded or rewritten.
 
-## Pre-Task Manual Confirmation
+## Pre-Task Manual Confirmation / Protected State
 
-The user manually tested and confirmed the corrected album carousel on this branch before the task. It advanced exactly one item, settled correctly, synchronized dots/counter, preserved vertical feed scrolling, and retained the current item across resize/rotation. The user also marked the vertical feed, topic-filtered feed/history, video controls auto-hide/show, single-tap play/pause, progress, mute persistence, retry, fullscreen, sharing, APIs/pages, caching/preload, soft-delete behavior, and the existing Eximo diagnosis working. These were protected behaviors, not redesign targets.
+The user manually confirmed the corrected album carousel before this task: exactly one item per swipe, exact settling, synchronized dots/counter, preserved vertical feed swiping, and current-item retention on resize/orientation. Its gesture constants, one-step target calculation, settle logic, and event wiring were preserved.
 
-## Implemented
+The user declared topic gallery/profile-image management, viewer, fullscreen, share, topic/feed/history filtering, controls, mute persistence, admin pages, soft-delete/restore, ingest audit, GroupAnonymousBot display, large-media fallback, image quality selection, original image-document streaming, and existing API routes working unless a small integration change was required. Those features remained protected.
 
-### Highest-resolution Telegram photo selection
+## Exact Implementation
 
-- `lib/telegram-media-selection.ts` is a pure/testable extraction helper used by `lib/telegram.ts`.
-- Telegram photo arrays now choose by `width * height` first and use `file_size` only as the secondary tie-breaker for equal dimensions.
-- A larger variant with missing `file_size` beats a smaller variant with a size. Input order does not matter.
-- Existing SQLite upsert behavior retains the selected variant's actual `file_id`, `file_unique_id`, width, height, and available file size.
-- Image documents retain the original document id and bytes. Their Telegram thumbnail is never stored or rendered as primary media, and thumbnail dimensions are no longer presented as original dimensions.
-- Six tests cover missing sizes, smaller sized variants, equal-dimension size ties, unordered arrays, preservation of all selected fields, and original image-document selection.
+### Tall/high-resolution images
 
-### Direct images and mobile photo viewer
+- Stored intrinsic dimensions classify tall media at `height / width >= 1.65`.
+- Tall feed images fill the complete media width at original aspect ratio, align to the top, and are clipped by the one-viewport post. The full long screenshot is not reduced until its text is tiny.
+- Feed/viewer continue to use the selected highest-quality Telegram proxy file. No generated thumbnail, Next optimizer, canvas, sharpening, AI upscale, or artificial downscale was added.
+- Normal-aspect images retain their existing contain-style viewport rendering.
+- The existing portal viewer opens tall images fit-to-width, top-aligned, with its own vertical scroll through the complete image.
+- Pinch zoom, zoomed pan, touch double-tap/mouse double-click, Escape, visible close SVG, modal focus/inert state, and exact opener/feed restoration remain.
+- Modal overscroll is contained and the background feed is fixed/inert, so viewer scrolling cannot advance the feed.
+- Carousel tap suppression remains tied to existing gesture movement, so a horizontal album swipe does not open the viewer.
 
-- Feed/gallery/viewer images are direct protected `/api/media/:id` `<img>` requests; there is no Next Image optimizer, canvas, generated thumbnail, blur/filter, quality transform, fake sharpening, or artificial upscaling.
-- Feed images keep `object-fit: contain`, intrinsic aspect ratio, `image-rendering: auto`, and `filter: none`.
-- A short photo tap opens a portal fullscreen dialog with the identical full proxy source. It supports pinch zoom, zoomed pan, touch double-tap/mouse double-click zoom, Escape, and a clear close SVG.
-- Zoom/pan bounds use the actual contained image box, so letterboxed images cannot be panned off-screen on a non-overflowing axis.
-- The feed becomes inert/accessibility-hidden under the modal; Tab is trapped on Close and focus returns to the opener.
-- Feed scroll and album index remain unchanged across open/close. More than 6px of image movement suppresses the viewer, including small horizontal album movement.
+### Topic identity, RTL order, and captions
 
-### Feed topic identity and icon controls
+- Persistent topic/caption block moved to the lower-right above progress and safe-area insets, with width reserved away from the left rail.
+- Captions sit directly above the topic row and remain associated with it without crossing progress, album UI, or the rail.
+- Topic identity is outside the auto-hidden controls layer and remains visible when controls fade.
+- RTL order is explicit: avatar-first markup plus fixed `direction: ltr`/`flex-direction: row-reverse` yields `[avatar far right] [topic name left]` regardless of document direction.
+- `dir="auto"`, plaintext bidi behavior, wrapping, and start alignment keep mixed Hebrew/English titles readable.
+- Avatar and title remain one clickable Next client link to `/?topic=<message_thread_id>`.
 
-- Topic identity moved to the lower-right above the progress/safe-area region. A reserved left rail prevents intersection with mute/fullscreen controls.
-- Avatar and topic name are one persistent link to `/?topic=<message_thread_id>`. Caption stays in the same lower content block.
-- Names/captions use automatic text direction/plaintext bidi/start alignment for Hebrew and mixed RTL/LTR text.
-- Identity remains visible when playback/post controls auto-hide.
-- Missing/failed profile images use deterministic initials and background color; there is no broken-image icon.
-- Fullscreen and Share visible text were replaced by conventional circular inline-SVG buttons with 44px targets, aria labels, titles/tooltips, and focus-visible styling. Existing handlers/gating and controls-layer hide/show behavior remain.
-- Share still builds a new origin-root URL with only the `topic` key. It never copies access tokens, bot tokens, media proxy URLs, Telegram file URLs, or current-page secrets.
-- Feed Menu now has separate `Topics` and `Manage topics` links.
-- Feed cache key advanced to v3 only to invalidate old cached topic objects that lack avatar metadata; cache/preload logic otherwise remains.
+### TikTok-style action rail and menu
 
-### Topic profile images
+- Actions form one left vertical line in logical top-to-bottom order: mute, playable-video fullscreen, share, menu.
+- All buttons are identical `48x48` circles on `58px` vertical slots with common touch targets, gap, border, backdrop, focus treatment, and control-layer visibility.
+- Visible actions are icon-only inline SVGs with normalized `24x24` view boxes, common `22px` render boxes, zero padding/line-height, consistent stroke/fill, and per-icon optical offsets.
+- `aria-label`, `title`, pressed state, `focus-visible`, hidden tab behavior, and menu expanded state remain.
+- Photo posts never render fullscreen. Mute is limited to relevant video/audio state. Share/menu remain available normally.
+- Rail geometry stays above progress/safe area and clear of lower-right identity/captions and album counter/dots.
+- Large surface text actions/date were removed for normal media. Menu now contains date, album metadata, active Open in Telegram, All feed when filtered, History, Topics, Manage topics, Ingest, Refresh, and Lock.
+- Too-large media remains the exception with a prominent Open in Telegram primary action.
 
-- Added idempotent SQLite migration `007_topic_profile_images.sql` with one metadata row per topic. `lib/db.ts` also repair-creates the table/index.
-- Owner uploads accept JPEG/PNG/WebP up to 5 MiB. Server validation enforces MIME, filename extension, Sharp-decoded format/dimensions/full decode, and a 40-megapixel ceiling without re-encoding.
-- Files are written mode-restricted under ignored persistent `data/topic-assets/` using UUID-based canonical filenames. Client paths are never storage paths; path resolution enforces a fixed root and strict basename pattern.
-- Replacement atomically switches metadata, changes a monotonic versioned URL, and cleans the old inaccessible file best-effort. Failed new uploads clean up strictly. Remove clears metadata/file safely and is idempotent.
-- `GET /api/topic-assets/:topicId` uses existing feed access authorization and sends the stored MIME, inline disposition, private cache/ETag, and `nosniff`.
-- `POST`/`DELETE /api/admin/topics/profile-image` use existing owner `APP_ACCESS_TOKEN` authorization.
-- `/admin/topics` shows current profile/fallback preview plus Upload/Choose, Replace, Remove on desktop/mobile. Existing manual-title Save/Clear remains. A visible Back to topics link was added.
-- Zero-media detected topics and General (`message_thread_id 0`) are now included in admin summaries so every detected topic is configurable.
-- Topic asset bytes are intentionally not in Git. Backups/server migrations must move SQLite and `data/topic-assets/` together.
+### Spinner and retry
 
-### Topics API and gallery
+- Visible `Retrying`/loading text is gone from the video surface.
+- A centered circular CSS spinner is pointer-transparent and delayed `140ms` to avoid short-wait flicker.
+- Screen readers retain `role="status"` and clipped `Retrying video`/`Loading video` text.
+- Waiting/stalled media starts a real `3.5s` recovery timer. Loaded/canplay/playing/pause paths clear the timer and spinner immediately.
+- Automatic retry remains bounded to two quick attempts (`150ms`, `450ms`); manual Retry appears only after the bound fails.
+- Retry uses the stable media URL, does not overwrite mute preference, ignores browser-cancelled media errors, and has no infinite loop.
 
-- `/api/topics` returns profile availability/versioned relative URL and optional preview media id/type/MIME/dimensions/relative URL along with existing counts/dates. Returned URLs contain no embedded secrets.
-- Preview selection first identifies the latest post containing active media, then selects an active non-too-large image within that post. Hidden/deleted media cannot cover a topic.
-- A latest standalone video without a usable thumbnail falls back to the topic profile/generated visual instead of using an older photo. A mixed latest album may use its active photo.
-- Admin counts retain existing all-visibility behavior. `/api/media` soft-delete/history semantics were not changed.
-- `/topics` is a mobile-first visual gallery: 2 columns mobile, 3 medium, 4 wide, with no horizontal overflow.
-- Cover order is latest suitable active image, profile image, deterministic gradient/initials. Full videos are never streamed as static covers.
-- Every card keeps its circular avatar, automatic-direction topic name, media/photo/video counts, small thread id/date, primary feed link, and visible History action on screen without hover.
-- `/topics` has a visible Manage topics action; `/admin/topics` has the visible return link.
+### Client navigation and feed state
 
-## Carousel Preservation
+- Feed/topic links plus topics/history/admin cross-route navigation use Next `Link` where route state supports it. History's same-page topic filter remains a normal navigation because history currently initializes query state on mount.
+- `app/page.tsx` normalizes the topic query server-side and the actual stateful feed subtree is keyed by that filter, fixing full <-> topic client transitions without a document reload.
+- Versioned feed cache `tmf_feed_cache_v4` uses module memory plus `sessionStorage`, with independent entries for full and each topic feed.
+- Entries retain fetched items/cursor/topic metadata, current post id/index/relative offset, feed scroll, and every post's selected album item.
+- Cache reuse lasts up to 30 minutes for instant restoration, but every return triggers a background `no-store` revalidation.
+- Fresh first-page items lead and replace matching cached versions; cached tail items remain in order; append/revalidation deduplicate ids. New posts therefore appear without losing position.
+- Cleanup/pagehide flushes the exact latest position. Lock, token change, and `401` clear state.
+- Feed -> topics/history -> feed can reuse the saved state rather than reconstructing a cold feed where practical.
 
-- The manually validated carousel settle, resize, pointer/touch intent, one-step target, and scroll event functions were not rewritten or simplified. The diff only threads the image-open callback through media rendering and wraps the card for the viewer portal.
-- Production browser regression reconfirmed long/normal/reverse swipes move exactly one item, every rest is an exact width multiple, counter/dot/aria stay synchronized, resize preserves item 2, small drag returns without viewer, album viewer open/close preserves item 2, and vertical touch scrolls the feed without changing the album.
+## Video Cache / Preload Architecture
+
+### Identity and targets
+
+- Feed media now includes a stable secret-free `mediaVersion`, SHA-256-derived from media id, Telegram `file_unique_id`, and file size. The media ETag uses the same version identity.
+- `app/video-warm-cache.ts` is a browser module singleton, allowing in-memory Blob leases to survive Next route transitions in the tab.
+- `app/video-warm-policy.ts` selects the active playable slide, next three playable post selections, and optionally the immediately previous playable item.
+- Only the selected album slide participates. Images, over-20MB/too-large media, hidden/deleted feed rows, inactive album slides, unrelated posts, and the whole-feed tail are not warmed.
+
+### Limits, deduplication, and eviction
+
+- Maximum concurrent storage/network warm tasks: `2`.
+- Memory Blob LRU: maximum `5` entries and `64 MiB`.
+- Versioned Cache Storage LRU: maximum `8` entries and `96 MiB`.
+- Per-entry ceiling: `20 MiB`.
+- Cache name/version: `tmf-playable-video-v1`.
+- Synthetic request shape: `/_tmf-cache/playable/v1/<media-id>/<media-version>`.
+- Synthetic keys contain no query, `APP_ACCESS_TOKEN`, bot token, Telegram URL, or file URL. Warm network fetches use the stable same-origin media path and send the app token only in `Authorization`.
+- In-flight Cache Storage/network work is deduplicated by media id/version. Target reconciliation cancels irrelevant pending work, but never revokes an attached player source.
+- Queue cancellation settles promises and releases concurrency slots even if a Cache API lookup hangs. Caller abort returns promptly without leaving an orphaned Blob pin.
+- Active leases increment pins. LRU/corrupt retirement revokes object URLs only after all pins release. A corrupt currently attached URL switches state to direct, then releases on the next animation frame.
+- Lock, `401`, access-token change, and explicit clear retire memory, abort work, revoke safe URLs, and clear the versioned persistent cache.
+
+### Startup, reuse, and fallback
+
+- Active playback probes ready memory/Cache Storage first. A ready/in-flight warm source may be awaited up to `2.5s`; a cold storage-only miss waits at most `120ms` before direct playback.
+- A missing current video intentionally uses the direct `/api/media/<id>` source so browser range/progressive startup remains available. The next three videos warm in the bounded background.
+- After a cold direct source is fully buffered or ends, one sequential full warm fetch may populate Blob/Cache Storage reuse. It can be a second transfer on the first cold visit, but does not compete with active playback.
+- Revisits and full/topic/full transitions use the same Blob when valid and do not start another full warm request.
+- If a Blob is corrupt/unplayable, it is evicted and the stable direct endpoint is tried once. A direct recoverable failure still gets bounded automatic retry.
+- Cache Storage, quota, private browsing, object URL, storage metadata, or persistent read/write failures fall back to memory Blob and then the existing media endpoint.
+- Playback controls, seeking, fullscreen, autoplay muted fallback, and stored mute preference are unchanged.
+
+## Media Route Integration
+
+- `/api/media/:id` keeps private caching, ETag, Last-Modified, full `200`, and byte-range `206` behavior.
+- Strong matching ETag or fresh date `If-Range` honors the requested range. Weak/stale/malformed validators ignore Range and return the complete `200` representation.
+- Expected browser/downstream cancellation logs as a client abort and returns `499` if a response can still be produced, rather than masquerading as an upstream `502`.
+- Retry query cache-busters were removed so browser cache, active playback, warm fetch, and route restoration share a stable endpoint identity.
 
 ## Validation Completed
 
-- `git diff --check`: passed on the final repo tree; rerun in agent-memory before its commit.
-- `npm test`: 6/6 passed.
+- `git diff --check`: passed on the committed application tree.
+- `npm test`: 24/24 passed.
 - `npm run typecheck`: passed.
-- `npm run build`: passed; existing and new pages/routes compiled.
-- Migration 007 idempotency passed. Current ignored DB records 007, contains zero profile rows after tests, and `data/topic-assets/` contains zero test files.
-- Production pages returned `200`: `/`, topic-filtered feed, `/topics`, `/history`, topic-filtered history, `/admin/topics`, `/admin/ingest`, and health.
-- Feed/topics/admin topics/admin ingest/history API payloads passed. General and zero-media topic 11679 were present in admin; active public topics had the new fields.
-- Latest-video topic 6828 returned no obsolete older-photo cover; mixed-album topic 47 retained an active album photo.
-- Normal photo media returned `200`; ranged photo/video returned `206`; existing too-large media 115 returned unchanged `413`.
-- Latest media 127/message 11764 streamed directly and decoded/browser-rendered at `1080x707`, matching SQLite.
-- JPEG/PNG/WebP topic asset upload, versioned serve, replace, safe random basename, owner/feed auth, MIME/decode mismatch rejection, oversize rejection, remove, and cleanup all passed. Browser admin Upload/Replace/Remove and manual title Save/Clear passed with original empty state restored.
-- Gallery browser checks passed at 390px/1200px: 2/4 columns, direct latest active covers and correct fallbacks, visible identities/counts/history, exact navigation, RTL, and no overflow.
-- Viewer checks passed direct source equality, intrinsic 1080x707, contain/auto/no-filter, modal inert/focus, double-tap zoom, bounded pan, close/focus restore, and scroll retention.
-- Feed checks passed lower-right geometry with no mute/fullscreen overlap, persistent avatar link, SVG labels/tooltips, safe share payload containing only `topic`, fullscreen enter/exit, and distinct navigation.
-- A supported WebM was substituted only in the temporary browser network layer to reconfirm existing single-tap play/pause, mute state, and control auto-hide/show; application media handling was unchanged.
-- `/admin/ingest` still loads; existing cache/preload, soft delete/restore, large-media fallback, source display, captions, and history/feed filtering compile and API checks remained healthy.
+- `npm run build`: passed; all existing pages and API routes compiled in production mode.
+- Final production build started successfully; feed, topics, and authenticated feed API smoke returned `200`.
+- Broader production checks returned `200` for `/`, filtered feed, `/topics`, `/history`, filtered history, `/admin/topics`, `/admin/ingest`, and authenticated feed/topics/history/admin APIs.
+- Media checks passed range `206`, matching `If-Range` `206`, stale `If-Range` full `200`, conditional ETag `304`, and unchanged too-large `413`.
 
-## Existing Photo Rows: Honest Limitation
+### Browser/mobile presentation
 
-SQLite stores only the one selected Telegram file id/unique id per media row. `webhook_ingest_audit` stores redacted media keys and size, not the original Telegram `photo[]` variants. The Bot API cannot reconstruct discarded alternate file ids from this database. No existing row was claimed or marked as upgraded; affected photos may need to be reposted after the fix.
+- Headless Chromium mobile emulation (`390x844`) rendered stored tall media `396x1280` at width `390` and height about `1261`, top-aligned in the viewport instead of compressed to full height.
+- Tall viewer opened at width `390`, had full scroll height about `1261`, started at top, scrolled independently, zoomed/reset, closed, and restored exact feed scroll/focus. Normal `1080x707` retained normal behavior.
+- Lower-right topic block, avatar to the right of name, exact topic href, persistent identity during auto-hide, caption/rail/progress clearance, and no photo fullscreen passed.
+- Rail circles measured `48x48` with one x-center and `58px` center spacing. Every SVG optical center was within subpixel tolerance.
+- Retry fixture produced two bounded direct attempts, showed only the accessible clipped retry label plus spinner, and removed the spinner after recovery.
+- Controls auto-hide/show, mute persistence, play/pause, seeking, fullscreen entry/exit, and safe share URL containing only `topic` passed.
 
-Authenticated proxy decoding matched these stored recent text-heavy photo dimensions:
+### Browser cache/navigation recording
 
-- media 121/message 11758: `720x1280`
-- media 118/message 11755: `687x1230`
-- media 106/message 11743: `396x1280`
-- media 102/message 11739: `700x535`
-- media 101/message 11738: `591x1280`
-- media 98/message 11735: `1080x437`
-- media 95/message 11732: `597x866`
-- media 94/message 11730: `700x651`
-- latest media 127/message 11764: `1080x707`
+- Deterministic WebM network substitution recorded exactly one warm fetch each for active/current plus the next three ids, maximum concurrency `2`, no mass preload, and no too-large warm.
+- Cache Storage contained only the four expected secret-free synthetic keys and declared sizes within limits.
+- Full -> topic -> full navigation kept one document boot, used Blob playback, preserved normal controls/seeking, and did not repeat the full warm fetch for the valid cached video.
+- A separate context with `window.caches` unavailable used in-memory Blob fallback with the same bounded concurrency.
+- Unit coverage also verifies media-version/key stability, warm-policy album selection, in-flight dedup, memory LRU, pinned corrupt release, persistent failure, bearer full GET, storage-only current probe, caller abort, hanging persistent lookup, slot release, and target cancellation.
 
-These checks prove the selected stored file is displayed directly. They cannot prove that an old row retained Telegram's largest historical variant because the other variants no longer exist locally.
+### Protected regressions
 
-Telegram may compress normal `photo` uploads. Sending an image as a Telegram file/document generally preserves the original better, and image documents now always stream that original rather than a thumbnail.
+- Corrected three-item carousel reconfirmed exact one-slide touch/pointer movement, exact settles, synchronized counter/dots/aria, resize retention, vertical feed swiping, desktop arrows, and mixed too-large albums.
+- `/topics`, `/admin/topics`, `/history`, filtered history, and `/admin/ingest` load.
+- Topic profile-image upload, authenticated serve, replacement, and removal passed on an isolated validation DB; the pre-existing ignored asset stayed unchanged and temporary test assets were removed.
+- Fullscreen and secret-free topic sharing passed.
+- Existing `200/206`, soft-delete/filter behavior, and over-limit Telegram fallback remain.
+
+Browser validation was headless Chromium mobile emulation, not a physical Android Chrome device. Physical-device cache quota/eviction, decoder quirks, Web Share chrome, OS memory pressure, touch vendor behavior, and cancellation timing still need acceptance testing on the user's phone.
 
 ## Explicitly Not Done
 
-- No phone-folder automatic uploader. Future concept: a user-controlled Android folder, discovery/import of new files, and later decisions for folder access, duplicate detection, background execution, topic assignment, and Android/Termux lifecycle.
-- No Local Bot API Server or `ffmpeg`. The official Local Bot API Server remains the high-priority >20MB roadmap; current placeholder and Open in Telegram behavior remain.
-- No Eximo ingestion fix, X/Twitter fetcher, or workaround.
-- No per-user seen/unseen history.
-- No AI sharpening/upscale, invented Telegram variants, old-row reconstruction, full-video gallery covers, or permanent Playwright dependency.
-- No replacement for query-string media/asset access-token auth in this task.
+- No Telegram Local Bot API Server. This remains the high-priority >20MB solution.
+- No `ffmpeg` preview or transcoding.
+- No Android phone-folder uploader. Keep the future user-controlled folder, duplicate/idempotency, topic assignment, permission owner, background execution, and Termux/native lifecycle design.
+- No per-user seen/unseen history. Identity/session semantics remain prerequisite.
+- No Eximo fix, X/Twitter fetcher, or workaround.
+- No Telegram Mini App/login/cookie-session auth redesign.
+- No historical photo-variant reconstruction, sharpening/upscale, full-feed preload, service worker, carousel rewrite, or permanent Playwright dependency.
 
-## Known Limitations / Remaining TODOs
+## Known Limitations / Remaining Roadmap
 
-- Replace query-string `access_token` media/asset URLs with Telegram Mini App, cookie, or session auth before broader sharing. Relative API URLs are token-free, but native media elements inherit the existing limitation.
-- High priority: deploy Telegram's official Local Bot API Server on persistent hosting for >20MB files; optionally add `ffmpeg` later for compatibility.
-- Back up/migrate `data/topic-assets/` with SQLite.
-- Repost any older photo whose larger Telegram variant was discarded by the previous selection bug.
-- Telegram normal-photo compression cannot be reversed.
-- Fullscreen, Web Share, clipboard, pinch/pointer behavior, and private cache eviction remain browser-dependent.
-- Eximo diagnosis remains unchanged:
-  - user media appears in `/admin/ingest`
-  - Eximo media does not appear there
-  - Telegram does not deliver Eximo bot messages to this bot webhook
-  - this is not a feed/history bug
-  - future options remain an owned X/Twitter fetcher, TDLib/MTProto, or replacing Eximo
+- **High priority:** deploy Telegram's official Local Bot API Server on persistent hosting for files over 20MB. Keep the current prominent Open in Telegram fallback until it is proven; optionally add `ffmpeg` later for compatibility.
+- The first cold direct playback may be followed by one sequential full warm transfer. This preserves fast progressive startup, then makes later visits reusable.
+- Cache Storage is best-effort. Quota, private mode, browser policy, profile/site-data cleanup, or eviction can remove it. Memory Blob URLs do not survive a full document reload.
+- Cached private media is accessible to the unlocked browser profile. Lock clears application-managed cache; clear site data if a device/profile becomes untrusted.
+- Native image/direct-video requests still use query-string app access. Replace this with a validated Mini App/Login or cookie/session architecture before wider sharing. Generated share URLs are secret-free.
+- Topic profile assets remain local persistent files; back up/migrate `data/topic-assets/` with SQLite.
+- Existing SQLite rows contain only the selected Telegram file id. Discarded old photo variants cannot be reconstructed and may require reposting. Telegram normal-photo compression cannot be reversed.
+- Eximo remains a delivery limitation, not a feed/history bug: user media appears in `/admin/ingest`, Eximo posts do not, because Telegram does not deliver those bot messages to this bot webhook. Future options are an owned X/Twitter fetcher, TDLib/MTProto, or replacing Eximo.
+- Android folder import, per-user history, and Mini App/auth remain separate roadmap designs.
 
 ## Useful Commands And Routes
 
-- `npm test`
 - `git diff --check`
+- `npm test`
 - `npm run typecheck`
 - `npm run build`
 - `npm start -- -H 127.0.0.1 -p <available-port>`
