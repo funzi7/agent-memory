@@ -1,199 +1,80 @@
 # telegram-media-feed latest handoff
 
-- Repo: `funzi7/telegram-media-feed`
+- Repository: `/root/work/telegram-media-feed`
 - Branch: `agent/fix-album-carousel-swipe`
-- Updated: `2026-07-13`
-- Permanent-deployment task starting telegram-media-feed HEAD: `d98d1fd1da2561e79acc82855a5d71af20b477af`
-- Current/pushed telegram-media-feed HEAD: `c5fa41b77e0ebe7bced511f2ab1b78a0ea2d9ff2`
-- Permanent-deployment task starting agent-memory HEAD: `1bc5e78a3bd187dc7102d4de65e26e4965674bf7`
-- The final pushed agent-memory HEAD is reported by the completion response because this file belongs to that commit.
+- Updated: 2026-07-13 UTC
+- Diagnostics-task starting application HEAD: `c5fa41b77e0ebe7bced511f2ab1b78a0ea2d9ff2`
+- Current pushed application HEAD: `a0e9192f1e72dc2a8d3d5d6b1b0fa0dce0db1d0d`
+- Diagnostics-task starting agent-memory HEAD: `55b1e98930af1af4aaefd58ee1fc3f575803ff93`
+- The final pushed agent-memory HEAD is in the task completion response; embedding it here would change that commit's hash.
 
-## Deployment state
+## Current release state
 
-- The repository candidate was committed and pushed. It was **not** deployed or substituted for the live application. The live port-3000 server was not stopped, restarted, rebuilt, or used by the deployment validator.
-- The Cloudflare tunnel in SESSION 1 was never stopped, restarted, signalled, or reconfigured. Its process remained alive and unchanged.
-- Permanent-command validation used only temporary clean clones, a temporary origin/SQLite database/HOME, and task-owned servers on `127.0.0.1:3001`. Every validation server was stopped, the port-scoped PID file was removed, and port 3001 was unreachable afterward. The original port-3000 PID and live checkout `.next/BUILD_ID` metadata were unchanged.
-- `.env.local`, its pre-existing backup files, Telegram allowlists, BotFather, the Telegram group, webhook configuration, live/runtime SQLite files, topic assets, the live port-3000 server log/cache, screenshots, and browser profiles were not changed or committed. Task-owned `/tmp/telegram-media-feed-*` deployment logs were created during isolated validation. No real token, initData, session cookie, or private media URL was printed.
-- The candidate's share/download/zoom/autoplay/cache changes have not been physically accepted on Android Telegram. Autoplay remains a release-blocking physical gate because the owner observed intermittent failures on deployed `fdb48b1`.
+The owner deployed the pre-diagnostic autoplay candidate and tested ordinary single-video posts in the vertical feed inside the real Android Telegram Mini App.
 
-## Permanent local deployment workflow
+- Autoplay works for some ordinary feed videos.
+- For many other ordinary feed videos, the visible Play button flashes once, as though an autoplay attempt was initiated.
+- The video never reaches visible playback. It remains stopped and requires one manual tap on Play.
+- There is no evidence that playback started and was later paused. Do not summarize the failure that way.
+- Video albums and mixed albums were not tested in this round. Do not describe album autoplay as passed or failed.
+- The root cause remains unknown. Rejection, invalidation, source replacement, readiness, ownership, lifecycle, and pause/load cancellation remain hypotheses until the owner supplies a real trace.
 
-The previous Android Termux workflow pasted a large multi-stage shell block. Telegram/terminal paste could truncate it immediately after `npm run build`, leaving the old server active and producing no restart or health result. That workflow is obsolete. The exact and only normal deployment command, from any directory, is:
+This task added owner-operated diagnostics only. It made no autoplay behavior fix and did not change retries, delays, muted fallback, active/settled selection, source/cache handoff, playback-group policy, explicit Pause classification, scrolling, carousels, or watch/completion accounting.
 
-```bash
-tmfup
-```
+## Added diagnostic capture
 
-The one-time installer command is `bash scripts/install-tmfup.sh`; it prints `source ~/.bashrc` to activate the command in the current shell. The installer has been run on this host, repaired the malformed legacy pasted `tmfup` block without duplicating PATH/aliases, and installed `$HOME/.local/bin/tmfup` as a symlink to repository-owned `scripts/tmfup.sh`. `npm run deploy:local` calls the same script, but routine deployment uses only `tmfup`.
+The normal authenticated feed menu now contains **Autoplay diagnostics**. It is available to authenticated, allowlisted Telegram viewers without `APP_ACCESS_TOKEN`; no public diagnostic route was added and Telegram session and allowlist enforcement were not weakened.
 
-Optional non-repository configuration is `$HOME/.config/telegram-media-feed/deploy.env`. It accepts only `TMF_REPO` (default `/root/work/telegram-media-feed`), `TMF_PORT` (default `3000`), `TMF_HOST` (default `0.0.0.0`), and optional `TMF_PUBLIC_URL`; explicit environment values override the file. No real public URL or secret is committed, and `.env.local` is never printed or sourced by the deployment script.
+Panel behavior:
 
-`tmfup` takes a repo-wide nonblocking `flock`, refuses tracked or untracked worktree changes, refuses detached HEAD, fetches `origin`, and merges only a fast-forward from the same-name current branch. It records the exact resulting HEAD. It completes `npm ci` and `npm run build` into quiet fixed logs while the old server stays alive; only then can process replacement begin.
+- Not recording: start a clean capture or clear a previous report.
+- Recording: unobtrusive recording indicator, event count, stop, and clear/restart actions.
+- Stopped: copy, view, clear, or start a new capture.
+- Copy uses the clipboard when it truly succeeds. On failure, the exact report remains in a visible selectable text area for manual long-press copy.
+- The panel never invokes media playback, personalization sharing, Telegram sharing, downloads, or background uploads.
 
-Shutdown is PID-first using `/tmp/telegram-media-feed-<port>.pid`. The PID must still be alive, have the exact repository cwd and Next identity, and have exact configured-port evidence. The bounded pre-PID fallback uses only the configured port plus the same identity/cwd checks. There is no broad `next-server`, `pkill`, or `killall` path, so an isolated Next server on port 3001 is never selected merely by process name. Every new server runs directly under Node/Next with `nohup`, `TMF_HOST`/`TMF_PORT`, and an atomically written managed PID file.
+Capture behavior:
 
-Health semantics are exact:
+- Recording is off by default and occurs only after an explicit Start action.
+- A capture survives panel closing in memory and `sessionStorage`; diagnostics use no `localStorage` persistence.
+- Bounds are 1,000 events, 40 media identities, 10 minutes, and approximately 500 KB. Reaching a bound stops cleanly and marks the report truncated.
+- Export uses an allowlist of safe scalar fields. It excludes URLs, paths, origins, Blob URLs, tickets, Telegram file IDs, captions, usernames, topic/group data, raw errors/stacks, arbitrary objects, DOM/React data, auth/session values, cookies, and request data.
+- The header contains only safe build/client/platform/lifecycle/authentication summaries and a random per-report actor label.
+- Autoplay call/promise/media-event timing, generations, source class/version, readiness, ownership, lifecycle, DOM node identity, cache lease lifecycle, vertical settle state, and UI control rendering are correlated without changing playback.
+- Failed attempts can be compared with a later manual Play on the same media identity.
+- Report annotations cover rejected/resolved-without-playing attempts, play-without-playing, source/generation/active-item/ownership changes, unmounts, ready-without-retry observations, UI Play flashes, and manual Play after failure.
+- A recording-state signal and a bounded passive follow-up snapshot ensure the initial mounted media/control state is represented. These hooks do not call `play()`, `pause()`, `load()`, replace a source, or remount media.
 
-- local success requires the new PID to remain alive and `http://127.0.0.1:<port>/api/health` to return exactly HTTP 200 twice;
-- unauthenticated `/api/feed` is never used because its normal 401 is not a deployment failure;
-- no configured public URL reports `public_health=SKIPPED` and permits local success;
-- a configured URL checks only `<TMF_PUBLIC_URL>/api/health?<cache-buster>`;
-- public failure is reported as `failed_stage=public_health`, keeps the locally healthy new server/PID active, and never triggers another build or tunnel operation.
+## Exact owner trace workflow
 
-Predictable runtime paths are:
+After the owner deploys this commit using only `tmfup`:
 
-- lock: `/tmp/telegram-media-feed-deploy.lock`
-- PID: `/tmp/telegram-media-feed-<port>.pid`
-- server: `/tmp/telegram-media-feed-server-<port>.log`
-- Git/install/build/process/local/public health: `/tmp/telegram-media-feed-{git,install,build,process,local-health,public-health}*`
+1. Close and reopen the Telegram Mini App.
+2. Open Autoplay diagnostics.
+3. Clear the prior report.
+4. Start recording.
+5. Scroll ordinary vertical-feed videos only.
+6. Do not tap Play until a video shows the brief Play-button flash and fails.
+7. Wait about 2–3 seconds on the failed video.
+8. Tap Play manually once.
+9. Let it play for several seconds.
+10. Stop recording.
+11. Copy the diagnostic report.
+12. Paste the full report into the coding-agent conversation.
+13. Do not test albums in this reproduction unless separately asked.
 
-Normal success is exactly five concise result lines. Failure includes the failed stage, a short secret-redacted relevant log tail, the exact HEAD, and `FINAL_RESULT=FAILED`.
-
-Validation passed shell syntax, installer idempotence and legacy cleanup, dirty and detached guards, build-before-stop with a pre-PID legacy server, local health, PID creation, exact five-line success, build failure preserving the old PID, a same-branch remote fast-forward, a second scoped replacement, skipped public health, distinct public failure, static no-feed/no-broad-kill assertions, and final process cleanup. Full details are in `docs/PROJECT_STATE.md` at the project HEAD above.
-
-## Owner-confirmed externally
-
-These observations came from the owner on real deployed Telegram builds; they were not reproduced physically by this coding agent:
-
-- Telegram Mini App authentication works.
-- A numeric Telegram user absent from `ALLOWED_TELEGRAM_USER_IDS` sees **Access denied** and cannot enter the feed.
-- Telegram launches do not show the APP_ACCESS_TOKEN form.
-- Per-user progression appears to work in routine use.
-- On deployed `fdb48b1`, autoplay remained intermittent: some later videos stayed paused until manual Play. That behavior is not an accepted baseline.
-- Before Bot-to-Bot Communication was enabled, Aximo bot messages did not reach the feed bot's webhook. Manually forwarding the same media as a normal user ingested successfully, proving the parser was not the original delivery blocker.
-- The exact successful operational path was `@BotFather` → select the feed bot → **Bot Settings** → blue **Open** into the BotFather Mini App → select `@Media_feed_player_mimi_bot` → enable **Bot-to-Bot Communication**.
-- After enabling it, one **new** Aximo bot post appeared in the feed. Old bot messages were not replayed. The feed bot still needs the applicable group admin/privacy access.
-- Native Telegram delivery is therefore sufficient today. No MTProto/user bridge, X scraper, or Instagram scraper is needed. MTProto is only a future fallback if bot-to-bot delivery stops.
-
-## Implemented
-
-### Generic bot-origin ingest and source URLs
-
-- Added deterministic real-ingest fixtures for bot-origin photo, video, and mixed `media_group_id` album updates. They prove `from.is_bot=true` is accepted generically, preserve caption and exact forum `message_thread_id`, form an ordered album, and record `/admin/ingest` audit rows with `isBot=true` and `ingested` status.
-- There is no Aximo-specific sender filter or special case.
-- Added migration `010_post_source_url.sql`. Canonical post-level sources are extracted from caption/text URL and `text_link` entities, raw caption/text URLs, and reply-markup inline keyboard URL buttons while retaining Telegram message identity separately.
-- X/Twitter/Instagram links outrank other explicit external links; Telegram encounter order breaks ties. Album messages may upgrade a generic source to a recognized social source but cannot downgrade it.
-- Copy link can also recover an explicit safe URL from an older row's stored raw caption when that row predates `source_url`.
-- URL normalization rejects credentials, private/local hosts, the current private app origin, Quick Tunnel, Bot API/media-proxy paths, and token/session/initData-style query parameters. It never fabricates a source.
-- README, Security, Project State, admin ingest wording, TODO, and the release review now record the verified BotFather Mini App path, new-message-only behavior, required group access, owner-confirmed success, and why no bridge is currently needed.
-
-### Active-item media actions
-
-- Replaced the ineffective Share outcome with an accessible active-item action sheet: **Share to Telegram**, **Copy link**, and **Download image/video**. Every action derives the settled album media id rather than defaulting to item one.
-- Telegram share preparation is server-side and Mini-App-only. `POST /api/me/share/prepare` derives the current live-allowlisted Telegram viewer, validates active/finalized media, rate limits the actor, and calls Bot API `savePreparedInlineMessage` with the stored cached `file_id`. The client calls `WebApp.shareMessage` only with the prepared id.
-- A false native callback is normal cancellation. Only a true callback may consume a one-time hashed, viewer/media-bound `/api/me/share/confirm` capability and record the existing idempotent +3 share event. The old direct `/api/me/events/share` path returns `410`; opening, preparing, cancelling, copying, and downloading do not score.
-- Browser/admin sharing is clearly disabled rather than claiming success. Native callbacks are bounded at 120 seconds with late-callback settlement guards; HTTP action calls are bounded at 15 seconds.
-- Copy fallback order is canonical/legacy-caption source, active Telegram message, post Telegram message, then **No source link available**. Private app, tunnel, media-proxy, and secret-bearing URLs are never copied.
-- Download preparation requires an authenticated Telegram viewer or owner token, trusted origin, eligible active media, and a per-actor rate limit. Migration `011_media_action_tokens.sql` stores only hashes for five-minute opaque download capabilities.
-- `GET /api/download/:ticket` rechecks the Telegram actor's live allowlist and current media visibility/finalization, streams the upstream body without whole-file buffering, preserves `200`/`206` range behavior, and returns a safe filename, MIME, attachment disposition, no-store caching, `nosniff`, and narrow Telegram Web CORS.
-- The Mini App prefers `WebApp.downloadFile`; an authorized browser uses the same-origin ticketed attachment. A hosted-Bot-API oversized flag, known size over 20 MB, later `getFile` oversize, or unavailable source never claims success and retains the Open in Telegram/clear unavailable fallback.
-- Action-sheet teardown restores focus after inert cleanup for Close, success, active-item change, and post change. No duplicate live status is announced while the sheet is open.
-
-### Full-screen image zoom
-
-- Single images, image albums, and image items in mixed albums share one full-screen viewer and open the exact settled media id.
-- Pointer gestures implement two-finger pinch in/out, clamped `1×`–`5×` scale, zoomed pan, and double-tap `1×`↔`2.5×`. Pan clamps both axes; tall images remain top-aligned and vertically pannable.
-- Opening makes the feed inert and disables Telegram vertical swipes. The close control remains reachable; Escape and Telegram `WebApp.BackButton` close the viewer. Cleanup restores BackButton/vertical-swipe state and focuses the originating image.
-- Closing keeps the same post, album item, and feed position. Close/reopen or a media identity change starts with a clean transform. The modal owns zoom gestures, leaving ordinary inline carousel/feed gestures untouched.
-
-### Autoplay release-blocker investigation and fix
-
-The exact Android event sequence was unavailable because deployed `fdb48b1` had no trace, but review of that exact code found three concrete causes/race amplifiers:
-
-1. After `play()` settled, any unexpected active `pause` was persisted as explicit user Pause. Source/load/cache/group/WebView operations could therefore permanently poison that viewing until manual Play.
-2. The implementation tracked only one expected internal pause and cleared it on `playing`. A queued stale source/load pause arriving afterward was reclassified as user intent.
-3. `AbortError` only set an “awaiting readiness” state. If `readyState` was already sufficient, or `loadeddata`/`canplay` fired while `play()` was still pending, no future event remained to retry. Midpoint vertical activation, stable-URL source replacements, and ownership claimed only after playback widened these intermittent races.
-
-Candidate behavior:
-
-- Vertical playback is ownerless during a real gesture and assigned only after the final scroll-snap settle. Cancelled/edge gestures also arm settlement so playback cannot remain ownerless. Carousel activation remains final-settle-only.
-- The shared group claims the incoming settled video before invoking `play()`, pausing the previous owner first. Stale `playing` events and old promise settlements cannot retake ownership or pause a newer in-flight attempt.
-- Internal/source/group pauses are counted and classified; active ready media recovers immediately, otherwise readiness re-arms it. Recovery is event-driven, capped at three unclassified recoveries per source/view, and cannot be bypassed by same-generation configure/readiness calls. Source/view/resume or explicit user Play re-arms the budget.
-- A ready `AbortError` gets one immediate same-source-generation retry. A readiness event received while the attempt is pending is chained after settlement. No polling or continuous play loop was added.
-- Only the app Pause action or an unmarked pause from visible native/standard fullscreen controls establishes durable explicit Pause. Source replacement, cache handoff, playback-group replacement, scrubbing, visibility, Telegram activation/deactivation, and page hide/show are internal/temporary.
-- Same-URL server `mediaVersion` changes force `video.load()`, local retry/cache source versions remain distinct, and full-buffer state resets on either identity change.
-- Missing `pageshow` is repaired when the document becomes visible/Telegram activates. Unmount/deactivation cancels pending retry. Explicit pause, mute preference, playback speed, scrub, fullscreen, watch/completion accounting, album behavior, and warm-cache behavior remain intact.
-- Added bounded media lifecycle diagnostics: automatic in development, opt-in in production with `tmf_media_debug=1`, at most 120 events per mounted trace and 600 globally. It records post/media/index, active/settled state, server/local source versions, direct versus warm Blob, readiness/network/play/pause/buffer/lifecycle state, stored versus actual mute, and autoplay generations. Sources are reduced to redacted classes and errors are scrubbed; no path, origin, URL capability, initData, cookie, or token is logged.
-
-### Release security and product review
-
-- Fixed a release-blocking warm-cache authorization bypass found during the systematic review. Manual Cache Storage reuse previously bypassed the media route's HTTP revalidation and could hand already-warmed speculative bytes to a removed viewer or replay newly hidden media.
-- Every active memory/persistent Blob lease now first issues a credentialed, no-store `HEAD /api/media/:mediaId`. HEAD performs live feed authorization/allowlist plus active/finalized lookup (with the explicit owner History exception), returns only a secret-free media version/ETag, and never calls Telegram `getFile`.
-- Reuse requires `200` plus exact version/ETag. `401`/`403`/`404`, mismatch, abort, or network failure yields no lease, retires memory/task state, schedules persistent eviction, and falls back to the direct authenticated source.
-- Normal viewers can GET only active media in single posts/finalized albums. The owner token retains hidden/deleted/settling media access for History. Direct media is `private, no-cache`.
-- History and all admin pages now wait for Telegram launch classification before touching localStorage. Telegram launches never read/send/show a stored owner token; feed/Topics hide owner-only navigation. Browser owner/admin workflows remain separate; Feed/History still have no Lock.
-- Added `docs/RELEASE_REVIEW.md` with media, navigation, playback, image, action, authentication/security, Aximo, and network/error matrices. Each row records automated/manual status, defect, severity, whether fixed, and remaining physical validation. Larger/ambiguous product work remains TODO rather than a redesign.
-- Existing ranking, canonical passed/consumed progression, one-video ownership, mute semantics, watch/completion accounting, topic assets, and admin separation were preserved.
-
-## Validated
+## Validation completed
 
 - `git diff --check`: passed.
-- `npm test`: passed, **235/235**.
+- `npm test`: 265/265 passed.
 - `npm run typecheck`: passed.
-- `npm run build`: passed cleanly with Next.js `15.5.20`.
-- Deterministic coverage includes bot photo/video/album ingest and audit; source entity/raw/button ordering and unsafe URLs; prepared share security/cancellation/scoring; active photo/video/album download/range/filename/auth/oversize/no-score; viewer pinch/pan/double-tap/reset/item selection; cache HEAD authorization and eviction; auth/session/owner-tool boundaries; and progression/ranking regressions.
-- Autoplay coverage includes 20 consecutive vertical transitions, direct/warm Blob swaps, successful-play→stale-internal-pause recovery, ready and in-flight `AbortError`, multiple server/local source versions, rapid final settle, slow/waiting/stalled recovery, feed head merge, restored progression, alternating album/vertical transitions, explicit Pause, fullscreen/native pause, visibility/WebView lifecycle, and cancellation after inactive/unmount.
-- Final isolated production HTTP on `127.0.0.1:3001` passed: health and owner feed/topics returned 200; anonymous feed/media/share-preparation/download-preparation returned 401.
-- Final isolated headless Chromium passed: anonymous launch rendered **Private feed** and its owner token form with no Next error portal; the owner-browser unlock reached the empty For You/Latest feed with no error portal.
-- The task-owned server/browser were stopped and temporary data removed. Port 3000/tunnel remained untouched.
-- None of these results proves Android Telegram pinch, media policy, native share picker, native download dialog, or real Aximo X/Instagram formatting.
+- `npm run build`: passed in a fresh isolated mirror without reading or copying `.env*`, `.git`, `.next`, or runtime data; the primary worktree's `.next` was not touched.
+- Isolated production browser validation on port 3001 proved the allowlisted authenticated Start/Stop/View/Copy workflow, Play-icon control events, truthful clipboard success, selectable fallback after forced clipboard rejection, and no client error portal.
+- Anonymous and signed non-allowlisted users could not access the diagnostic UI or protected feed.
+- Opening, starting, stopping, viewing, and copying diagnostics preserved the instrumented media `play`/`pause`/`load` counters and paused state. A separately induced non-diagnostic readiness transition produced the expected existing play attempt, and subsequent diagnostic actions remained inert.
+- The isolated server was stopped and port 3001 was confirmed free.
+- Headless validation did not reproduce the Android failure and is not evidence that autoplay is fixed.
 
-## Exact next physical Telegram acceptance plan
+No physical Android diagnostic report has been captured yet. The next step is for the owner to deploy with `tmfup`, follow the exact workflow above, and paste the complete report. Diagnose from that evidence before considering any playback behavior change.
 
-Run only after the owner explicitly deploys `c5fa41b77e0ebe7bced511f2ab1b78a0ea2d9ff2` with `tmfup`. Record Android device and Telegram client versions. Do not publish acceptance content to the source group without separate owner authorization.
-
-1. Open as allowlisted A. Confirm token-free entry, no feed flash, and no owner-token form. In the same cookie context switch to non-allowlisted B: confirm **Access denied**, no inherited data/token form, and direct feed/media/share/download denial. Switch A→different allowlisted B and confirm likes/progression remain separate. Remove a test id from the allowlist and confirm live denial on the next protected request.
-2. Exercise Latest, For You, two topic feeds, Topics, owner-browser History, caught-up, refresh, pagination, and album swipe. Forward-settle through posts/albums, close/reopen, Force stop, and use another device with the same account. Confirm next stable item at time zero, media-first album progression, independent contexts, and no auto-pass merely from closing.
-3. Autoplay is the release-blocking gate. Without pressing **Play**:
-   - cold-open and scroll through at least **20 consecutive video posts**;
-   - close/reopen and repeat at least 20 transitions;
-   - Force stop Telegram, reopen, and repeat at least 20 transitions;
-   - set the stored preference muted and repeat;
-   - explicitly **Unmute** and repeat, confirming any policy-forced muted fallback does not overwrite the later preference;
-   - alternate vertical transitions with video albums and mixed image/video albums, including video 1→2 with late readiness, image→video, and video→image→video.
-   Every finally settled video must start and only one may play. Regress explicit Pause, scrub, fullscreen, all four speeds, background/return, and source/cache handoff: only actual user Pause may remain suppressed, and lifecycle pauses must not poison later items. If anything sticks, enable the bounded redacted trace for one reproduction, capture only post/media/index and event sequence, then remove the flag.
-4. On a single image, image album, and mixed album, open the exact settled image. Physically test pinch out/in across `1×`–`5×`, pan/clamping, double-tap zoom/reset, reachable close and Telegram BackButton, no feed/carousel movement while open, same post/item/position on close, and clean transform after change/reopen. Confirm normal inline carousel swipe before opening.
-5. From photo, video, supported animation/document, and multiple mixed-album positions, open Media actions. Confirm labels and every target follow the settled item; dismissal restores the feed and leaves no invisible interception.
-6. Share supported active media to Saved Messages or another private acceptance target, never the source group. Confirm the actual Telegram media/caption rather than an app/tunnel URL. Cancel normally with no +3; confirm only a true success creates one idempotent share event. Test unsupported browser/client, preparation failure, expiry, and rate-limit states.
-7. Copy from a real Aximo X entity, raw Twitter caption, Instagram caption, inline-button source, multiple-URL post, and no-URL post. Confirm social/source/active-Telegram/post-Telegram order, the exact no-link message, no private/tunnel/proxy/credential URL, and no share score.
-8. Test native Android download for active photo/video and album item 2+. Confirm safe filename/MIME/playable bytes, cancellation/failure, and no share/completion event. Test browser attachment fallback. Oversized/unavailable media must not claim success and must direct the owner to Open in Telegram/clear unavailability.
-9. Only if explicitly authorized, send new Aximo X-style, Instagram-style, captioned, inline-keyboard, and album posts. Confirm `/admin/ingest` shows `from.is_bot=true`, `status=ingested`, caption/thread/album/source preservation. Do not expect old posts to replay. The generic one-post success is already owner-confirmed; these formats are not.
-10. Exercise source-not-ready, aborted/failed media, Retry, failed share preparation, clipboard unavailable, download unavailable, offline/reconnect, and session expiry. Recheck Like, completion/watch accounting, Open in Telegram, one-video ownership, browser/admin separation, admin `Sign out of admin`, and continued absence of Lock.
-
-## TODO
-
-- Deploy only as an explicit owner operation, then complete the full physical plan above. Do not mark autoplay fixed until the 20-item Android Telegram runs pass.
-- Capture a bounded redacted lifecycle trace only if the candidate still fails physically; the actual deployed WebView event order is still unknown.
-- Keep Local Bot API Server/optional ffmpeg as the future solution for hosted-Bot-API files over 20 MB.
-- Keep MTProto/TDLib only as a fallback if native bot-to-bot delivery stops or a separately authorized history project needs it.
-- Eventually remove the legacy browser owner-token query form from media URLs after the session migration is complete.
-
-## Not done
-
-- No deployment or live port-3000/tunnel operation.
-- No physical Android Telegram autoplay, pinch, native `shareMessage`, or native download-dialog validation.
-- No real Aximo X-style/Instagram-style/inline-button/album acceptance post by this agent.
-- No BotFather change, Telegram group post, webhook publication, `.env.local` edit, allowlist edit, or APP_ACCESS_TOKEN distribution.
-- No MTProto/user bridge, X scraper, Instagram scraper, Local Bot API Server, ffmpeg/transcoding, Android folder importer, comments, profiles, notifications, topic snooze, timestamp redesign, or ranking rewrite.
-- Exact video timestamp resume remains intentionally disabled.
-
-## Bugs and limitations
-
-- The candidate has no known automated stop-ship failure, but the autoplay outcome is still physically unaccepted. Fake media elements and Chromium are not Telegram Android WebView proof.
-- The exact real-device event that triggered each deployed `fdb48b1` failure was not captured; the candidate fixes all code-substantiated permanent-stall mechanisms and adds safe instrumentation for any recurrence.
-- No web app can revoke bytes already delivered into a browser profile. The application now refuses and evicts unauthorized warm-cache reuse, but a person with profile-level access may inspect local site data; clear site data on lost/shared devices.
-- Telegram native share/download APIs depend on client support. Browser sharing stays unavailable; browser download uses the short-lived capability fallback.
-- Copy link can use only a safe explicit URL Telegram supplied/stored; it never guesses one.
-- Bot-to-Bot Communication delivers only new bot messages. Old Aximo history is not replayed.
-- Hosted Bot API `getFile` still cannot serve/download files over 20 MB. Open in Telegram remains the current fallback.
-- Network/offline failure can leave durable progression behind the newest pending settled departure until a later successful retry; playback remains non-blocking.
-- Closing while only viewing an item intentionally leaves it eligible on reopen. Exact timestamp resume remains disabled by design.
-
-## Useful commands and routes
-
-- Deployment: `tmfup` only. Validation/development commands: `git diff --check`, `npm test`, `npm run typecheck`, `npm run build`, `npm start -- -H 127.0.0.1 -p 3001`
-- UI: `/`, `/?mode=for-you|latest`, `/?topic=<thread>`, `/topics`, `/history`, `/admin/topics`, `/admin/ingest`, `/admin/personalization`
-- Auth/feed: `/api/auth/telegram`, `/api/auth/me`, `/api/auth/logout`, `/api/auth/browser-profile`, `/api/feed`, `GET|HEAD /api/media/<id>`, `/api/topic-assets/<topicId>`
-- Viewer: `/api/me/feed-progress`, `/api/me/media-state`, `/api/me/events/progress|complete|like`; legacy Share event is disabled
-- Actions: `/api/me/share/prepare`, `/api/me/share/confirm`, `/api/me/download/prepare`, `/api/download/<ticket>`
-- Diagnostics/admin: `/api/health`, `/api/admin/personalization`, `/api/admin/topics`, `/api/admin/ingest`
+Port 3000, SESSION 1, the Cloudflare tunnel, and deployment were not touched. No `.env.local` value or secret was read, printed, copied, or changed.
