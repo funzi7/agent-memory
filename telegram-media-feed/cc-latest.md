@@ -3,18 +3,53 @@
 - Repo: `funzi7/telegram-media-feed`
 - Branch: `agent/fix-album-carousel-swipe`
 - Updated: `2026-07-13`
-- Task starting telegram-media-feed HEAD: `fdb48b1707bdf218c4f774a4d822da986708bf04`
-- Current/pushed telegram-media-feed HEAD: `d98d1fd1da2561e79acc82855a5d71af20b477af`
-- Task starting agent-memory HEAD: `57d081d6db150dc4f27510230b3f58ab5308173a`
+- Permanent-deployment task starting telegram-media-feed HEAD: `d98d1fd1da2561e79acc82855a5d71af20b477af`
+- Current/pushed telegram-media-feed HEAD: `c5fa41b77e0ebe7bced511f2ab1b78a0ea2d9ff2`
+- Permanent-deployment task starting agent-memory HEAD: `1bc5e78a3bd187dc7102d4de65e26e4965674bf7`
 - The final pushed agent-memory HEAD is reported by the completion response because this file belongs to that commit.
 
 ## Deployment state
 
-- The repository candidate was committed and pushed. It was **not** deployed or substituted for the live application.
-- The live application on port 3000 was intentionally not stopped, restarted, requested, or tested. The Cloudflare tunnel/SESSION 1 was not touched.
-- Final production validation used only a task-owned server on `127.0.0.1:3001`, a temporary SQLite database, and a temporary Chromium profile. Those processes were stopped and the temporary data was removed.
-- `.env.local`, its pre-existing backup files, Telegram allowlists, BotFather, the Telegram group, webhook configuration, live/runtime SQLite files, topic assets, logs, caches, screenshots, and browser profiles were not changed or committed. No real token, initData, session cookie, or private media URL was printed.
+- The repository candidate was committed and pushed. It was **not** deployed or substituted for the live application. The live port-3000 server was not stopped, restarted, rebuilt, or used by the deployment validator.
+- The Cloudflare tunnel in SESSION 1 was never stopped, restarted, signalled, or reconfigured. Its process remained alive and unchanged.
+- Permanent-command validation used only temporary clean clones, a temporary origin/SQLite database/HOME, and task-owned servers on `127.0.0.1:3001`. Every validation server was stopped, the port-scoped PID file was removed, and port 3001 was unreachable afterward. The original port-3000 PID and live checkout `.next/BUILD_ID` metadata were unchanged.
+- `.env.local`, its pre-existing backup files, Telegram allowlists, BotFather, the Telegram group, webhook configuration, live/runtime SQLite files, topic assets, the live port-3000 server log/cache, screenshots, and browser profiles were not changed or committed. Task-owned `/tmp/telegram-media-feed-*` deployment logs were created during isolated validation. No real token, initData, session cookie, or private media URL was printed.
 - The candidate's share/download/zoom/autoplay/cache changes have not been physically accepted on Android Telegram. Autoplay remains a release-blocking physical gate because the owner observed intermittent failures on deployed `fdb48b1`.
+
+## Permanent local deployment workflow
+
+The previous Android Termux workflow pasted a large multi-stage shell block. Telegram/terminal paste could truncate it immediately after `npm run build`, leaving the old server active and producing no restart or health result. That workflow is obsolete. The exact and only normal deployment command, from any directory, is:
+
+```bash
+tmfup
+```
+
+The one-time installer command is `bash scripts/install-tmfup.sh`; it prints `source ~/.bashrc` to activate the command in the current shell. The installer has been run on this host, repaired the malformed legacy pasted `tmfup` block without duplicating PATH/aliases, and installed `$HOME/.local/bin/tmfup` as a symlink to repository-owned `scripts/tmfup.sh`. `npm run deploy:local` calls the same script, but routine deployment uses only `tmfup`.
+
+Optional non-repository configuration is `$HOME/.config/telegram-media-feed/deploy.env`. It accepts only `TMF_REPO` (default `/root/work/telegram-media-feed`), `TMF_PORT` (default `3000`), `TMF_HOST` (default `0.0.0.0`), and optional `TMF_PUBLIC_URL`; explicit environment values override the file. No real public URL or secret is committed, and `.env.local` is never printed or sourced by the deployment script.
+
+`tmfup` takes a repo-wide nonblocking `flock`, refuses tracked or untracked worktree changes, refuses detached HEAD, fetches `origin`, and merges only a fast-forward from the same-name current branch. It records the exact resulting HEAD. It completes `npm ci` and `npm run build` into quiet fixed logs while the old server stays alive; only then can process replacement begin.
+
+Shutdown is PID-first using `/tmp/telegram-media-feed-<port>.pid`. The PID must still be alive, have the exact repository cwd and Next identity, and have exact configured-port evidence. The bounded pre-PID fallback uses only the configured port plus the same identity/cwd checks. There is no broad `next-server`, `pkill`, or `killall` path, so an isolated Next server on port 3001 is never selected merely by process name. Every new server runs directly under Node/Next with `nohup`, `TMF_HOST`/`TMF_PORT`, and an atomically written managed PID file.
+
+Health semantics are exact:
+
+- local success requires the new PID to remain alive and `http://127.0.0.1:<port>/api/health` to return exactly HTTP 200 twice;
+- unauthenticated `/api/feed` is never used because its normal 401 is not a deployment failure;
+- no configured public URL reports `public_health=SKIPPED` and permits local success;
+- a configured URL checks only `<TMF_PUBLIC_URL>/api/health?<cache-buster>`;
+- public failure is reported as `failed_stage=public_health`, keeps the locally healthy new server/PID active, and never triggers another build or tunnel operation.
+
+Predictable runtime paths are:
+
+- lock: `/tmp/telegram-media-feed-deploy.lock`
+- PID: `/tmp/telegram-media-feed-<port>.pid`
+- server: `/tmp/telegram-media-feed-server-<port>.log`
+- Git/install/build/process/local/public health: `/tmp/telegram-media-feed-{git,install,build,process,local-health,public-health}*`
+
+Normal success is exactly five concise result lines. Failure includes the failed stage, a short secret-redacted relevant log tail, the exact HEAD, and `FINAL_RESULT=FAILED`.
+
+Validation passed shell syntax, installer idempotence and legacy cleanup, dirty and detached guards, build-before-stop with a pre-PID legacy server, local health, PID creation, exact five-line success, build failure preserving the old PID, a same-branch remote fast-forward, a second scoped replacement, skipped public health, distinct public failure, static no-feed/no-broad-kill assertions, and final process cleanup. Full details are in `docs/PROJECT_STATE.md` at the project HEAD above.
 
 ## Owner-confirmed externally
 
@@ -105,7 +140,7 @@ Candidate behavior:
 
 ## Exact next physical Telegram acceptance plan
 
-Run only after the owner explicitly deploys `d98d1fd1da2561e79acc82855a5d71af20b477af`. Record Android device and Telegram client versions. Do not publish acceptance content to the source group without separate owner authorization.
+Run only after the owner explicitly deploys `c5fa41b77e0ebe7bced511f2ab1b78a0ea2d9ff2` with `tmfup`. Record Android device and Telegram client versions. Do not publish acceptance content to the source group without separate owner authorization.
 
 1. Open as allowlisted A. Confirm token-free entry, no feed flash, and no owner-token form. In the same cookie context switch to non-allowlisted B: confirm **Access denied**, no inherited data/token form, and direct feed/media/share/download denial. Switch A→different allowlisted B and confirm likes/progression remain separate. Remove a test id from the allowlist and confirm live denial on the next protected request.
 2. Exercise Latest, For You, two topic feeds, Topics, owner-browser History, caught-up, refresh, pagination, and album swipe. Forward-settle through posts/albums, close/reopen, Force stop, and use another device with the same account. Confirm next stable item at time zero, media-first album progression, independent contexts, and no auto-pass merely from closing.
@@ -156,7 +191,7 @@ Run only after the owner explicitly deploys `d98d1fd1da2561e79acc82855a5d71af20b
 
 ## Useful commands and routes
 
-- Commands: `git diff --check`, `npm test`, `npm run typecheck`, `npm run build`, `npm start -- -H 127.0.0.1 -p 3001`
+- Deployment: `tmfup` only. Validation/development commands: `git diff --check`, `npm test`, `npm run typecheck`, `npm run build`, `npm start -- -H 127.0.0.1 -p 3001`
 - UI: `/`, `/?mode=for-you|latest`, `/?topic=<thread>`, `/topics`, `/history`, `/admin/topics`, `/admin/ingest`, `/admin/personalization`
 - Auth/feed: `/api/auth/telegram`, `/api/auth/me`, `/api/auth/logout`, `/api/auth/browser-profile`, `/api/feed`, `GET|HEAD /api/media/<id>`, `/api/topic-assets/<topicId>`
 - Viewer: `/api/me/feed-progress`, `/api/me/media-state`, `/api/me/events/progress|complete|like`; legacy Share event is disabled
