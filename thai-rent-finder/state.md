@@ -1,19 +1,19 @@
 # thai-rent-finder — State
 
 > Living document. Auto-updated daily at 02:00 UTC by `auto-update-state.yml`.
-> Last auto-update: 2026-07-12
+> Last auto-update: 2026-07-13
 > Production: https://thai-rent-finder.vercel.app
-> Total listings in DB: 1879
+> Total listings in DB: 1914
 
 ## Sources status (current)
 
 | Source | Tier | Cron (ICT) | Status | Listings 7d |
 |--------|------|------------|--------|-------------|
-| FAZWAZ | 2 (GH Actions) | 03:00 | ✅ active | 70 |
-| RENTHUB | 2 (GH Actions) | 03:30 | ✅ active | 557 |
+| FAZWAZ | 2 (GH Actions) | 03:00 | ✅ active | 95 |
+| RENTHUB | 2 (GH Actions) | 03:30 | ✅ active | 497 |
 | LIVING_INSIDER | 2 (GH Actions) | 04:00 | ⚠️ no fresh listings | 0 |
-| LAZUDI | 2 (GH Actions) | 05:30 | ✅ active | 64 |
-| THAILAND_PROPERTY | 1 (Vercel) | n/a | ✅ active | 30 |
+| LAZUDI | 2 (GH Actions) | 05:30 | ✅ active | 54 |
+| THAILAND_PROPERTY | 1 (Vercel) | n/a | ✅ active | 36 |
 | HIPFLAT | 3 (deferred) | n/a | 🔴 deferred (Cloudflare 403) | n/a |
 
 ## Recently merged PRs (last 7 days)
@@ -22,10 +22,6 @@
 - **#90** — chore(automation): sync from automation-core
 - **#88** — Enrich Lazudi extraction, "עודכן" dates, mobile search + recents, dead-concern cleanup
 - **#89** — chore(automation): sync from automation-core
-- **#87** — chore(automation): sync from automation-core
-- **#86** — fix(saved-filters): persist new listing filters
-- **#85** — Search + sort/range filters, favorites AND status, building name on card, Lazudi description
-- **#84** — Solo-use cadence + leaner Hebrew concerns + state.md footer fix
 
 ## Open issues
 
