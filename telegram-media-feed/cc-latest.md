@@ -1,71 +1,85 @@
-# telegram-media-feed — latest handoff (round 4: real-device Telegram bootstrap fix + Lock removal)
+# Telegram Media Feed — Android autoplay-policy handoff
 
-- Date: 2026-07-12
-- Repo: `funzi7/telegram-media-feed`, branch `claude/personalization-telegram-auth-98x51m` (upstream `origin/<same>` verified to match)
-- Task starting HEAD: `96aeb8cbb90e0c717d5a61e86ba0ed36d5d38d67` (round 3, deployed on port 3000)
-- agent-memory starting HEAD: `4eec0f076cf7c6f6512969c7214ec12dd4759de8`
-- Final HEADs: reported by the completing response and visible in `git log` on both branches (this file is committed with the final push).
+Date: 2026-07-14
 
-## Why this round existed
+## Repository state
 
-After deploying `96aeb8c` with the user's numeric ID present in `ALLOWED_TELEGRAM_USER_IDS` (`.env.local`) and a server restart, the real Telegram Android Mini App STILL showed the `Private feed` / `Access token` form. The user had also previously pressed the feed `Lock` button, which cleared the locally stored token.
+- Application repository: `/root/work/telegram-media-feed`
+- Branch: `agent/fix-album-carousel-swipe`
+- Verified starting application HEAD: `a0e9192f1e72dc2a8d3d5d6b1b0fa0dce0db1d0d`
+- Pushed application HEAD for this fix: `5cbfd4a346dd1119f8c7b6fed44a99697a294866`
+- Verified starting/parent agent-memory HEAD: `c653708cefd228f119a5ee5b8b475179ab013f61`
+- The exact pushed agent-memory handoff HEAD is reported in the completion response because a commit cannot contain its own SHA.
+- Both repositories were clean at their verified starting HEADs. Only task-owned files were changed.
 
-## Exact root cause (diagnosed from code, reproduced in a browser scenario)
+## Trace-confirmed cause
 
-The round-3 `waitForTelegramInitData` had an early exit: it aborted the bounded wait ~250 ms after `document.readyState === "complete"`, on the assumption that the bridge script's initData decision was final once the document finished loading. On real Telegram Android that assumption is false:
+The owner captured a physical ordinary single-video trace from application build `a0e9192f1e72`, Telegram 9.6 on Android, and Chromium 149. Albums were not exercised.
 
-- the document reaches `complete` quickly (the bridge script itself loads fast),
-- `window.Telegram.WebApp` already EXISTS at that point but with an EMPTY `initData` string,
-- the WebView populates `initData` slightly later.
+- Media 1458 was active, settled, muted, and used a memory Blob. The trusted Autoplay diagnostics Start action had left browser user activation active. The programmatic call was followed by `play`, `playing`, promise resolution, and normal time advancement.
+- Media 1457 was active, settled, muted, preferred-muted, and used a memory Blob. It reached `readyState=4`, `networkState=1`, and had its complete 12.31-second range buffered, but browser user activation was inactive and `autoplayAttribute=false`.
+- Media 1457 received three automatic JavaScript `play()` calls: initial active/source configuration, metadata readiness, and full readiness. All three rejected immediately with policy `NotAllowedError`; no `play` or `playing` event occurred.
+- Full readiness and buffering did not help. Missing bytes, network loading, `AbortError`, source replacement during the failed attempt, late readiness, internal pause, ownership loss, and playback starting then stopping were ruled out.
+- Manual Play on the same element and memory Blob succeeded within about 5 ms once a trusted viewer action made user activation active.
 
-So the wait returned null early → bootstrap fell through to the browser-profile path → `/api/auth/browser-profile` gave a personalization-only identity with no feed access → feed request 401 → `needsToken` → token form. The failed identity was also cached per token in `ensurePersonalizationIdentity`, so the page didn't recover within its lifetime. **Why document-complete / early bridge detection was insufficient: document readiness and bridge-script completion say nothing about when Telegram's WebView injects initData; the only valid signals are the actual appearance of a non-empty `initData` or the full timeout.** The user's Lock press was a red herring — the stored token must be (and now is) irrelevant to Telegram launches.
+The confirmed root cause was the old programmatic-first path: it attached/prepared the source, waited for vertical settlement, and then relied on delayed JavaScript `play()` while the mounted element had no declarative autoplay attribute. The first observed video appeared to work only because diagnostic Start supplied transient activation; later settlement happened after that activation expired. The old muted fallback could not help because the failed calls were already muted.
 
-## New bootstrap state machine (`app/personalization.ts`, consumed by `app/feed-page.tsx`)
+## Implemented fix
 
-Order on every fresh mount (all auth fetches same-origin with `credentials: "include"`, `cache: "no-store"`):
+- Feed `<video>` elements are created with declarative `autoplay`, `muted`, and `playsinline` behavior. The ref callback and pre-source path synchronously establish `video.autoplay = true`, `video.muted = true`, `video.defaultMuted = true`, and `video.playsInline = true`, plus safe matching attributes, before any direct URL or memory/cache Blob is assigned.
+- Source ordering is now: element exists; autoplay/mute/default-muted/plays-inline policy is installed; exclusive active eligibility is established; the media/source generation and playback group are configured; the active source is attached; the browser may start declaratively; the coordinator observes and claims accepted playback.
+- The ordinary path gives a DOM source only to the final settled vertical post or settled carousel item. Inactive, outgoing, speculative, and warm-only elements remain sourceless; warm downloading remains separate.
+- After the playback group has observed a real muted policy block in this WebView session, a trusted vertical release may synchronously promote only the exact nearest snap candidate as the exclusive provisional owner while activation is live. It uses an already authorized prepared Blob when available; otherwise it uses an authenticated direct source locked for that viewing so a late Blob cannot replace it after activation expires. Final settlement atomically confirms that candidate or invalidates its generation and owner and selects the real final target.
+- The provisional path cannot be used by unrelated clicks. Untrusted/synthetic input, explicitly false user activation, duplicates across pointer/touch/click, stale settlement, lifecycle suspension, and explicit Pause are suppressed. Ownership is replaced before playback, so outgoing and incoming media cannot both play.
+- Browser-originated declarative `play`/`playing` is accepted without a redundant coordinator `play()` call. The coordinator remains responsible for group ownership, stale attempts, source/view generations, lifecycle suspension/resume, explicit Pause, and bounded fallback/recovery.
+- One post-`canplay` fallback may discover a WebView policy block after the browser has had an opportunity to honor declarative autoplay. A muted automatic `NotAllowedError` latches the current source generation as policy-blocked, keeps it active/loaded, consumes no internal-pause recovery budget, and prevents identical retries from metadata/data/canplay/canplaythrough or readiness changes. There is no polling or busy loop.
+- A policy-blocked current source may retry synchronously once per source generation on a trusted activation-bearing pointer/touch/click path. The group session latch also permits the narrower trusted vertical-release provisional path described above. Every recovery call remains muted and group-owned.
+- Every newly attached source starts actually muted and default-muted, independently of the stored preference. A stored muted preference remains muted. A stored unmuted preference may restore sound only after authoritative `playing` while user activation is active; otherwise playback continues muted without changing the stored preference. Only an explicit viewer Mute/Unmute action persists preference, and the rail reflects the element's actual mute state.
+- Manual Play remains immediate and may bypass the policy latch under the trusted viewer action. Explicit manual Pause remains durable for that viewing through source/cache updates, readiness events, diagnostics, lifecycle resume, and cancelled/edge gestures; it is cleared only by manual Play or navigation to different media.
+- The central control renders Pause and begins auto-hide only after accepted actual `playing`. Ownership, expected state, and a pending/called `play()` may show bounded loading but cannot imply Pause. A rejected attempt returns directly to stable Play without the prior icon flash.
+- Diagnostics remain authenticated, off by default, playback-inert, bounded, and structurally redacted. Safe evidence now covers pre-source policy installation, declarative eligibility and actual playback, policy-block generation, bounded trusted recovery, source classification, and actual UI versus coordinator expectation without exporting source addresses, private content, identifiers, credentials, or arbitrary error text.
 
-1. **Session first** — `GET /api/auth/me`. A valid Telegram session opens the feed cookie-only immediately; the stored APP_ACCESS_TOKEN is never consulted; the token form never shows.
-2. **Hint detection** — `detectTelegramLaunchHints()`: non-empty `WebApp.initData`; bridge `platform` other than ``/`unknown`; `tgWebAppData|tgWebAppVersion|tgWebAppPlatform` in `location.hash`/`location.search`; the official bridge's `sessionStorage.__telegram__initParams` containing `tgWebApp`. A bare bridge object with empty initData is NOT a hint (the script defines `window.Telegram` in any browser). Hints select the UI path only — never authentication; `initDataUnsafe` is never trusted.
-3. **Full-window wait** — `waitForTelegramInitData()` polls every 100 ms for the FULL `TELEGRAM_BRIDGE_WAIT_MS = 2000`. Deliberately NO early exit on `document.readyState`, script completion, or a bridge with empty initData. `ready()` is called safely once when the bridge appears; `expand()` stays optional/safe; no Telegram fullscreen APIs.
-4. **Authenticate + verify** — POST initData to `/api/auth/telegram` (server-side official HMAC validation + allowlist, unchanged), then an immediate `/api/auth/me` verifies the fresh cookie BEFORE the feed loads.
-5. **Failure handling** — with launch hints, the token form is UNREACHABLE. Specific screens with Retry: `no-init-data` (new; copy: "Telegram did not provide sign-in data. Close the Mini App, reopen it from the bot, and retry."), `invalid-init-data`, `not-allowlisted`, `session-verify`, `network`. A mid-session feed 401 under a Telegram identity maps to `session-verify`, never the token form.
+## Validation completed
 
-**Token form conditions (exhaustive):** no existing session AND no initData after the full 2 s AND no Telegram launch hints — i.e. only a normal browser launch.
+- `git diff --check` — passed.
+- `npm test` — passed, 293/293 tests.
+- `npm run typecheck` — passed.
+- `npm run build` — passed in a clean task-owned mirror excluding repository/build/runtime/environment state.
+- Isolated browser validation — passed on task-owned port 3001 against the exact application source. The server was stopped and the port released afterward.
+- The browser run observed 22 source assignments with autoplay, muted, default-muted, plays-inline properties and attributes present before `src`.
+- Native declarative playback was accepted with zero redundant JavaScript `play()` calls.
+- Twenty ordinary vertical transitions passed, as did rapid final-target selection, cancelled/edge durability, 20 policy-gated promoted transitions, direct-source locking, provisional confirmation, and changed-final-target invalidation. At most one element had a source or was playing.
+- The policy simulation produced one muted fallback without readiness retries. Synthetic input and inactive activation were suppressed; trusted recovery ran at most once per generation.
+- Stored unmuted preference remained separate while startup stayed actually muted. Pause and auto-hide followed actual `playing`, and rejected autoplay did not flash Pause.
+- Diagnostics stayed playback-inert and their secret-free export regression coverage passed.
+- The browser showed no client error portal. Anonymous and validly signed non-allowlisted access were denied.
+- Regression coverage retained albums, warm Blob handoff/source replacement, visibility/pagehide, progression, watch/completion, likes, sharing, downloads, zoom, authentication, and allowlist behavior.
 
-Stored-token isolation: the sessionStorage feed cache is applied only AFTER identity resolves (`applyCachedFeedEntry`; requires a telegram identity or a real browser token), so no token-era cache renders before Telegram auth; `effectiveAccessToken` is `""` under a Telegram identity, so media/feed/event requests carry no Authorization header or `access_token` query param; stale `needsToken` cannot survive a successful Telegram bootstrap.
+Headless Chromium proves implementation mechanics, not Android Telegram media-policy acceptance. The fix must not be reported physically accepted until the owner completes the plan below. Albums remain physically untested and have no pass/fail result from the ordinary-video trace.
 
-Diagnostics (secret-free): `BootstrapStage` enum (`checking-session`, `existing-telegram-session`, `telegram-hints-found`, `waiting-bridge`, `init-data-found`, `authenticating`, `verifying-session`, `telegram-ready`, `telegram-failed:<reason>`, `browser-fallback`) surfaced as `data-boot-stage` on the `auth-booting` and `telegram-auth-error` testid nodes. No initData/tokens/cookies logged anywhere.
+## Required physical Android acceptance
 
-## Lock removal
+1. Owner deploys using only `tmfup`.
+2. Force-close Telegram.
+3. Reopen Telegram and the Mini App.
+4. Open Autoplay diagnostics and start a clean capture.
+5. Scroll through 20 consecutive ordinary single-video vertical-feed posts.
+6. Never press Play.
+7. Every final settled video must begin playing automatically.
+8. Verify only one video plays at a time.
+9. Verify no Play-button flash remains.
+10. Repeat after closing/reopening the Mini App.
+11. Repeat after Telegram Force stop.
+12. Repeat with stored mute preference muted.
+13. Repeat after setting stored preference unmuted.
+14. If one video fails, wait 2–3 seconds, stop diagnostics, and copy the report.
+15. Albums remain a separate later physical test and must not be reported passed or failed from this ordinary-video run.
 
-- Feed menu: `Lock` button, `handleLock`, `handleLockClick`, and the `onLock` prop chain deleted from `app/feed-page.tsx`. No user-facing path clears the stored token, feed caches, warm video cache, or personalization identity, and nothing forces `needsToken=true`.
-- History page: visible `Lock` button removed (internal 401 handling kept).
-- Admin pages (`/admin/topics`, `/admin/ingest`, `/admin/personalization`): action relabeled exactly **`Sign out of admin`**; handlers clear only the locally stored APP_ACCESS_TOKEN + page state (never Telegram sessions, personalization data, or media caches).
-- Authorization split unchanged: Telegram allowlist → feed/media cookie-only, never admin; APP_ACCESS_TOKEN → admin; no username auth.
+Do not report autoplay fixed until this exact plan passes on the owner's physical Android Telegram client.
 
-## Validation performed (port 3001 production build; port 3000 untouched)
+## Operational boundaries observed
 
-- `git diff --check`, `npm run typecheck`, `npm run build` clean.
-- `npm test` **103/103** (96 prior + 7 new in `tests/telegram-bootstrap.test.ts`: hint matrix incl. empty-bridge non-hint; immediate initData + single ready(); late bridge; bridge-present-empty-initData with late data; document-complete-with-800ms-late-initData root-cause reproduction; full-window elapse before returning null).
-- Round-4 browser suite (`browser-check-5.mjs`) **15/15**, including the real-device reproduction: bridge defined synchronously with empty initData + android platform, document long complete, initData populated 900 ms later → app authenticates and opens the feed with zero token usage; existing-cookie launch with the bridge removed; hints-without-initData reopen/Retry error with `data-boot-stage=telegram-failed:no-init-data` and working Retry; hints + stale stored token never show the token form; plain browser still unlocks with the token; no Lock in feed menu or history; admin shows `Sign out of admin`; non-allowlisted user gets the allowlist error.
-- Regression suites: round-3 **30/30** (cookie-only auth, scrub, keyboard, speeds, double-tap zones, album warming, cross-tab reuse), round-2 **21/21**, round-1 **19/19** (one round-1 check updated to await the token form, which now legitimately appears only after the full bounded wait — expected behavior change, not a regression).
-
-## Still pending / honest limitations
-
-- **Real Telegram on a physical device was NOT exercised** — this sandbox cannot run Telegram. All Telegram behavior was validated with signed initData fixtures and a simulated bridge, including the exact document-complete-before-initData failure mode. Real-device acceptance is the immediate next step after deployment.
-- **Deployment status: port 3000 still runs `96aeb8c` (the broken bootstrap) until the user redeploys this round's commit.** The fix cannot help the real device before that.
-- Real upstream Telegram media 200/206 not testable in the sandbox (media route untouched this round).
-- `.env.local`, BotFather, the Cloudflare tunnel, runtime SQLite, and topic assets were not modified.
-
-## Next-step candidates
-
-1. User deploys this branch's HEAD to port 3000 and reopens the Mini App from the bot on Android; if a failure screen shows, `data-boot-stage` on the error panel identifies the failing stage without exposing secrets.
-2. Real-device acceptance of round-3 interactions (scrub, speeds, double-tap zones, album preloading).
-3. Deferred items unchanged: Local Bot API Server for >20MB, ffmpeg, history importer, Eximo, personal History UI, browser-flow query-token removal, `disableVerticalSwipes()` (needs real-device evidence).
-
-## Environment notes for the next agent
-
-- Repo checkout lives at `/home/user/telegram-media-feed` (task prompts may say `/root/work/...` — wrong).
-- Tests: `npm test` (tsx --test, CJS: no top-level await; DB tests set `process.env.SQLITE_PATH` then `require(...) as typeof import(...)`; the new bootstrap tests mock `globalThis.window`/`document` BEFORE requiring `../app/personalization`).
-- Playwright: import from `/opt/node22/lib/node_modules/playwright/index.mjs`, chromium at `/opt/pw-browsers/chromium-1194/chrome-linux/chrome`; simulate Telegram by intercepting `https://telegram.org/js/telegram-web-app.js`; media stubs MUST implement byte-range 206 responses or direct video playback is unseekable.
-- Validation scratch suites (session-scoped, may be gone): browser-check-{regression,3,4,5}.mjs under the session scratchpad `tmf-validate/` with a dedicated `app.sqlite`, fake bot token `123456:TEST-FAKE-BOT-TOKEN-for-validation`, allowlisted test id `777000111`, server on 3001.
+- No deployment was performed. The owner deploys afterward using only `tmfup`.
+- The live application on port 3000 was not stopped, restarted, tested, or modified.
+- SESSION 1 and the Cloudflare tunnel were not touched.
+- No runtime environment file or secret value was read, printed, copied, or changed.
