@@ -5,69 +5,79 @@ synthetic dry-run; finance/X/LLM/Finnhub hosts are firewalled here, so live read
 only in GitHub Actions)._
 
 ## What this change did
-Scoped the dashboard's **monthly-TARGET pace** ("קצב מול יעד" / "בפועל: X%/mo") to the
-**current calendar month** so it RESETS each month. Scoped to `funzi7/paper-trader`,
-fresh branch off `origin/main`. Cumulative/since-inception figures untouched.
+Added a new **additive** strategy **`pullback`** — the pullback-entry counterpart to
+`swing` over the same S&P 500 universe: buy high-relative-strength LEADERS when they pull
+back to a **rising 50SMA**, exit when support breaks. Scoped to `funzi7/paper-trader`,
+fresh branch off `origin/main`. Fee math + T→T+1 + every existing strategy unchanged.
 
-**NEW PR: https://github.com/funzi7/paper-trader/pull/20**
-(branch `fix/monthly-target-pace-reset`, diffed against current `origin/main` — 3 files:
-`papertrader/report.py`, `tests/selftest.py`, `handoffs/CONTEXT.md`).
+**NEW PR: https://github.com/funzi7/paper-trader/pull/21**
+(branch `feat/pullback-leaders-strategy` — 8 files: new
+`papertrader/strategies/pullback.py` + `strategies/__init__.py`, `config.yaml`,
+`earnings.py`, `report.py`, `main.py`, `tests/selftest.py`, `handoffs/CONTEXT.md`).
 
-## Diagnosis (reported before any change)
-`report.compute_pace` computed the pace from SINCE-INCEPTION equity:
-`days = len(equity_history)` (all days since inception), `base = account_size`
-(inception), `pace = (equity_now − inception) / days_since_inception × 21`. The dated
-points in `equity_history` were **unused** → a strong June kept inflating July's pace;
-nothing reset at the calendar-month boundary. (Different bug from the earlier 1-day×~30
-blow-up, which the same function already guards.) Cumulative fields (total equity, total
-return, realized P&L, "מאז התחלה") are computed in `portfolio.py` — never in
-`compute_pace` — so they were correct and had to stay untouched.
+## Strategy (papertrader/strategies/pullback.py)
+- **ENTRY (all on close T; buy open T+1):** (1) relative-strength LEADER — trailing
+  `rs_lookback_days` (126) return ranks ≥ `rs_percentile` (0.85) among the S&P 500
+  (`rs_percentile()` = the fraction of the field a name beats); (2) near the 50SMA —
+  `|close−SMA|/SMA ≤ near_pct` (0.025); (3) rising 50SMA — SMA now > SMA
+  `sma_rising_lookback` (10) bars ago. No volume/RSI (the pullback side). Rank by RS
+  percentile, take `top_n` (5), equal-weight, same whole-share + small_account_fill as
+  swing (`#k` in the reason; `$100` participates, unaffordable → `qty=0`).
+- **EXIT (any; open T+1), precedence support_break > take_profit > time_stop:** support
+  break `close < SMA×(1−break_pct 0.03)` → `התמיכה נשברה — מתחת לממוצע 50`; take profit
+  +20%; time stop 30 bars.
 
-## Fix (isolated to `report.compute_pace`)
-Calendar-month scoped, derived from the persisted `equity_history` dates:
-- **baseline** = equity carried INTO the current month = the last `equity_history` point
-  of the PREVIOUS month; the inception `account_size` when the portfolio's first month
-  IS the current one (mid-month start — no special-casing).
-- **denominator** = only the `equity_history` points dated in the current month.
-- `pace = (equity_now − month_start_equity) / days_this_month × 21` — same methodology,
-  only the baseline + elapsed-days denominator changed.
-- Below `pace_min_days` (7) INTO THE CURRENT MONTH → the existing `too_short` honest flag
-  (first ~7 trading days of a new month don't extrapolate).
+## Cross-cutting layers wired + verified
+- **stop-skip-if-top-ranked:** the SUPPORT-BREAK exit is registered as pullback's stop —
+  a support-break on a name still in its own `top_n` is skipped and the name held
+  (Hebrew note); take-profit/time-stop unaffected. With defaults `near_pct(0.025) <
+  break_pct(0.03)` a support-broken name is usually already outside the near band so the
+  skip rarely fires (correct — a broken name isn't a re-entry candidate); it fires when
+  `near_pct ≥ break_pct`.
+- **earnings catalyst:** `pullback` added to `earnings.RANKED_ENTRY` → Mode A blackout
+  skips a fresh entry with imminent earnings (next-ranked leader fills the slot); Mode D
+  warns on holdings/pendings.
+- **partial exit:** `pullback` added to `partial_exit.strategies` — scale out half at
+  +15%, stop to breakeven; since `take_profit_pct` is 0.20 the +15% partial fires first
+  and the remainder can still reach +20%.
 
-**No new stored field / no state migration** — the month boundary is recovered from
-`equity_history` (dated points, appended once/day, never trimmed), so
-**cumulative/since-inception fields stay byte-identical**. Applied uniformly via
-`attach_pace` to all 22 portfolios incl. `combined_*`, `twitter_track`, `guru_track`.
-The user's target number itself (client-side) is unchanged — only which period's
-performance is compared to it resets monthly.
-
-## Concrete month-boundary demonstration
-June 10000→11000 (+$1000); July then declines 11000→10800 (−$200):
-- End of June (10d): pace **+$2100/mo** (ok)
-- July day 1–3: **too_short** — June NOT carried over
-- July day 8: pace **−$525/mo** (July only) — the old since-inception basis would show
-  **+$933/mo** (blending June's gain; wrong sign). CUMULATIVE since-inception return
-  stays **+8%**, unaffected — the two legitimately diverge.
+## Wiring
+Registered in `REGISTRY` + a `config.yaml` block → `pullback_100`/`pullback_10k`
+(**24 portfolios** incl. the combined pair). Held+pending pullback names added to
+`main.py` core fetch (like swing) + `SOFT`; never-scanned first-scan path covers them;
+`combined_*` includes pullback automatically — its `strat_names` is the **dynamic**
+enabled-strategy list, now **1/N with N=11** (was effectively 1/10; the old "1/9" doc
+text was stale, now corrected). Report holding lines show `חוזק יחסי {rs}% · מרחק מממוצע
+50 {±d}%` (`Pullback.holding_info` → `report._holding_lines`); pending buys carry
+structured rank/price/qty.
 
 ### Dashboard note (agent-memory side)
-`monthly_pace` / `monthly_pace_status` / `monthly_pace_note` / `pace_days` are now
-**this-calendar-month** figures (reset at each month boundary; `too_short` for the first
-~7 trading days of a month). The since-inception equity/return/realized-P&L you already
-render are UNCHANGED and remain the cumulative numbers — keep showing pace and cumulative
-as two distinct things (they can diverge in sign). The user's monthly target (localStorage)
-is unchanged.
+A new strategy `pullback` (+ `pullback_100`/`pullback_10k`) now appears in
+`portfolios.json`, and `combined_*` blends 11 strategies (1/11 each) instead of 10 — both
+are picked up automatically by the data-driven dashboard, **no dashboard change needed**.
+Pullback holdings carry the same optional `rank`/`price` and `earnings_in_days` fields as
+the other ranked strategies.
+
+## Concrete demonstration (offline)
+```
+① ENTRY: BUY AAA (RS 100%, #1), BUY BBB (RS 89%, #2)
+   (CCC excluded — RS 78% < 85th; FLATs excluded — SMA not rising)
+② SUPPORT-BREAK EXIT: התמיכה נשברה — מתחת לממוצע 10
+③ STOP-SKIP: AAA support-broken but still a top candidate → HELD
+   note: סטופ לא בוצע — עדיין בטופ 1 לכניסה, מוחזק
+```
 
 ## Verification (offline)
-- `pip install -r requirements.txt` OK; `tests/selftest.py` **622 green** —
-  `test_monthly_pace` rewritten with real ISO dates: reset across a June→July boundary;
-  month-start baseline; too_short after rollover despite long total history; mid-month
-  inception uses inception baseline; cumulative fields byte-identical after `attach_pace`.
-- `python main.py --dry-run --synthetic` runs clean; no secrets printed.
+- `pip install -r requirements.txt` OK; `tests/selftest.py` **655 green** (new
+  `test_pullback`: RS percentile; each entry gate independently; ranking + top_n + $100
+  fill; exit precedence + realized P&L; support-break stop-skip held+note / out-of-top
+  sells; earnings blackout; partial-before-take-profit; combined auto-include). Existing
+  portfolio-count assertions updated 20→22 for the added strategy.
+- `python main.py --dry-run --synthetic` renders pullback cleanly; no secrets printed.
 
 ## Rules honored
-ONLY `funzi7/paper-trader`. Fresh branch off `origin/main`, NEW PR (#20) — no push to any
-closed-PR branch. Diagnosed current behavior first and reported it before changing code.
-Only the target-pace basis changed; cumulative/since-inception fields completely
-untouched (no change to `combined.py` / `engine.py` / `portfolio.py`).
-`handoffs/CONTEXT.md` updated in the SAME commit (§5c pace scope + baseline-storage note,
-config `pace_min_days` note). No secrets printed.
+ONLY `funzi7/paper-trader`. Fresh branch off `origin/main`, NEW PR (#21) — no push to any
+closed-PR branch. Additive: no change to fee math / T→T+1 / other strategies; support-break
+registered as the strategy's stop for the stop-skip rule; earnings blackout + partial-exit
+wired; combined auto-includes it via the dynamic strategy list. `handoffs/CONTEXT.md`
+updated in the SAME commit (§5m + 24-portfolio / dynamic-1/N notes). No secrets printed.
