@@ -349,7 +349,10 @@ window.PT = (function () {
     const specs = [], unpriced = [], meta = {};
     for (const o of buys) {
       const px = closes[o.ticker];
-      const rank = orderRank(o.reason);
+      // Order by the STRUCTURED rank field when present (screener_track / ranked
+      // strategies now stamp it), falling back to the reason string only for older
+      // data that lacks it — no reason-parsing when the field is there.
+      const rank = (typeof o.rank === "number") ? o.rank : orderRank(o.reason);
       if (px == null) { unpriced.push({ ticker: o.ticker, reason: o.reason, rank }); continue; }
       specs.push({ ticker: o.ticker, price: px * (1 + FEES.slip), rank });
       meta[o.ticker] = { reason: o.reason, px };
