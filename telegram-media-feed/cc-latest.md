@@ -1,85 +1,123 @@
-# Telegram Media Feed — Android autoplay-policy handoff
+# Telegram Media Feed — image-first same-node prime handoff
 
-Date: 2026-07-14
+Date: 2026-07-15
 
 ## Repository state
 
 - Application repository: `/root/work/telegram-media-feed`
-- Branch: `agent/fix-album-carousel-swipe`
-- Verified starting application HEAD: `a0e9192f1e72dc2a8d3d5d6b1b0fa0dce0db1d0d`
-- Pushed application HEAD for this fix: `5cbfd4a346dd1119f8c7b6fed44a99697a294866`
-- Verified starting/parent agent-memory HEAD: `c653708cefd228f119a5ee5b8b475179ab013f61`
-- The exact pushed agent-memory handoff HEAD is reported in the completion response because a commit cannot contain its own SHA.
-- Both repositories were clean at their verified starting HEADs. Only task-owned files were changed.
+- Application branch: `agent/fix-album-carousel-swipe`
+- Verified takeover/base application HEAD: `9b55a24ac836892c5c1cddf6418f26388c94da9d`
+- Pushed application HEAD: `6bfd191ff44558b42e94d397c91c0dade71049b6`
+- Application upstream contains that exact commit and the application worktree was clean after push.
+- Agent-memory repository: `/root/work/agent-memory`
+- Agent-memory branch: `agent/fix-album-carousel-swipe`
+- Verified parent agent-memory HEAD: `c2606408123550e0eb1b4a2cd2ff8f0bef6eab90`
+- The exact pushed agent-memory commit cannot be written inside itself; it belongs in the completion response.
 
-## Trace-confirmed cause
+The takeover audit found no application commit newer than `9b55a24` on either the checked-out upstream or `origin/claude/personalization-telegram-auth-98x51m`. The known Claude agent-memory branch also contained no newer handoff commit beyond the previously identified completed history. No generated work was merged blindly.
 
-The owner captured a physical ordinary single-video trace from application build `a0e9192f1e72`, Telegram 9.6 on Android, and Chromium 149. Albums were not exercised.
+## Physical baseline and remaining gap
 
-- Media 1458 was active, settled, muted, and used a memory Blob. The trusted Autoplay diagnostics Start action had left browser user activation active. The programmatic call was followed by `play`, `playing`, promise resolution, and normal time advancement.
-- Media 1457 was active, settled, muted, preferred-muted, and used a memory Blob. It reached `readyState=4`, `networkState=1`, and had its complete 12.31-second range buffered, but browser user activation was inactive and `autoplayAttribute=false`.
-- Media 1457 received three automatic JavaScript `play()` calls: initial active/source configuration, metadata readiness, and full readiness. All three rejected immediately with policy `NotAllowedError`; no `play` or `playing` event occurred.
-- Full readiness and buffering did not help. Missing bytes, network loading, `AbortError`, source replacement during the failed attempt, late readiness, internal pause, ownership loss, and playback starting then stopping were ruled out.
-- Manual Play on the same element and memory Blob succeeded within about 5 ms once a trusted viewer action made user activation active.
+Application build `9b55a24ac836892c5c1cddf6418f26388c94da9d` physically passed Android Telegram startup when the restored initial item was an ordinary video and passed every later tested ordinary-video transition. Later videos played while browser activation reported false, video → image → video worked, and the same `persistentPlayerNodeId` remained in use.
 
-The confirmed root cause was the old programmatic-first path: it attached/prepared the source, waited for vertical settlement, and then relied on delayed JavaScript `play()` while the mounted element had no declarative autoplay attribute. The first observed video appeared to work only because diagnostic Start supplied transient activation; later settlement happened after that activation expired. The old muted fallback could not help because the failed calls were already muted.
+The only observed ordinary-video autoplay failure was image-first startup. In that case the persistent ordinary-feed node had never emitted its first genuine `playing` event, so the first later video could not use the already-unlocked-element path. Albums were not physically tested and have no physical pass/fail result.
 
-## Implemented fix
+## Implemented image-first session prime
 
-- Feed `<video>` elements are created with declarative `autoplay`, `muted`, and `playsinline` behavior. The ref callback and pre-source path synchronously establish `video.autoplay = true`, `video.muted = true`, `video.defaultMuted = true`, and `video.playsInline = true`, plus safe matching attributes, before any direct URL or memory/cache Blob is assigned.
-- Source ordering is now: element exists; autoplay/mute/default-muted/plays-inline policy is installed; exclusive active eligibility is established; the media/source generation and playback group are configured; the active source is attached; the browser may start declaratively; the coordinator observes and claims accepted playback.
-- The ordinary path gives a DOM source only to the final settled vertical post or settled carousel item. Inactive, outgoing, speculative, and warm-only elements remain sourceless; warm downloading remains separate.
-- After the playback group has observed a real muted policy block in this WebView session, a trusted vertical release may synchronously promote only the exact nearest snap candidate as the exclusive provisional owner while activation is live. It uses an already authorized prepared Blob when available; otherwise it uses an authenticated direct source locked for that viewing so a late Blob cannot replace it after activation expires. Final settlement atomically confirms that candidate or invalidates its generation and owner and selects the real final target.
-- The provisional path cannot be used by unrelated clicks. Untrusted/synthetic input, explicitly false user activation, duplicates across pointer/touch/click, stale settlement, lifecycle suspension, and explicit Pause are suppressed. Ownership is replaced before playback, so outgoing and incoming media cannot both play.
-- Browser-originated declarative `play`/`playing` is accepted without a redundant coordinator `play()` call. The coordinator remains responsible for group ownership, stale attempts, source/view generations, lifecycle suspension/resume, explicit Pause, and bounded fallback/recovery.
-- One post-`canplay` fallback may discover a WebView policy block after the browser has had an opportunity to honor declarative autoplay. A muted automatic `NotAllowedError` latches the current source generation as policy-blocked, keeps it active/loaded, consumes no internal-pause recovery budget, and prevents identical retries from metadata/data/canplay/canplaythrough or readiness changes. There is no polling or busy loop.
-- A policy-blocked current source may retry synchronously once per source generation on a trusted activation-bearing pointer/touch/click path. The group session latch also permits the narrower trusted vertical-release provisional path described above. Every recovery call remains muted and group-owned.
-- Every newly attached source starts actually muted and default-muted, independently of the stored preference. A stored muted preference remains muted. A stored unmuted preference may restore sound only after authoritative `playing` while user activation is active; otherwise playback continues muted without changing the stored preference. Only an explicit viewer Mute/Unmute action persists preference, and the rail reflects the element's actual mute state.
-- Manual Play remains immediate and may bypass the policy latch under the trusted viewer action. Explicit manual Pause remains durable for that viewing through source/cache updates, readiness events, diagnostics, lifecycle resume, and cancelled/edge gestures; it is cleared only by manual Play or navigation to different media.
-- The central control renders Pause and begins auto-hide only after accepted actual `playing`. Ownership, expected state, and a pending/called `play()` may show bounded loading but cannot imply Pause. A rejected attempt returns directly to stable Play without the prior icon flash.
-- Diagnostics remain authenticated, off by default, playback-inert, bounded, and structurally redacted. Safe evidence now covers pre-source policy installation, declarative eligibility and actual playback, policy-block generation, bounded trusted recovery, source classification, and actual UI versus coordinator expectation without exporting source addresses, private content, identifiers, credentials, or arbitrary error text.
+- The feed still renders exactly one ordinary-feed `HTMLVideoElement`. No second/hidden unlock video, audio element, Web Audio context, synthetic click, unrelated sample, generated silent media, or placeholder source was added.
+- Priming waits through the empty pre-feed render. Authentication, authorized feed loading, and restored progression must establish a visible ordinary single image before the one-shot decision is consumed.
+- Candidate selection scans only forward from that image and chooses the nearest eligible ordinary single-video item already in the loaded feed. Images, albums, unavailable/hidden/deleted/unplayable rows, invalid identities/sources, and hosted-Bot-API oversized placeholders are skipped.
+- An initial normal video uses the existing path and skips priming. An initial album also skips it. A feed with no eligible future candidate records one stable no-candidate decision. There is at most one automatic candidate/attempt per authenticated feed session.
+- The existing source order is reused: already materialized and authorized memory Blob lease, then materialized persisted-cache Blob lease, then the authorized direct URL. The selected source is locked for the attempt; a late warm Blob cannot replace it.
+- The controller installs `autoplay`, `muted`, `defaultMuted`, `playsInline`, and `preload=auto` properties/attributes before assigning the source once, then calls `play()` immediately in the authenticated bootstrap layout path.
+- The stable absolute host stays mounted and connected. While priming it is `visibility:hidden`, pointer-inert, and never `display:none`, so it neither covers/intercepts the visible image nor creates a black frame or layout shift.
+- Only a current-source/current-generation genuine `playing` event is authority. A resolved promise or elapsed timer cannot unlock the controller.
+- Authoritative prime playing unlocks the same persistent node, issues one expected intentional pause, prevents recovery for that pause, rewinds to zero when metadata permits, hides the host, and marks the session complete.
+- Prime media events have no visible item/post context. They cannot record watch time, last position, completion, feed progression, History, active-post changes, rail/control/spinner state, Like, share, or download activity.
+- Reaching the exact candidate promotes the existing source at time zero with no `src` rewrite and no `load()`. Any late prepared lease for that same media is released rather than substituted.
+- Reaching a different video invalidates hidden prime state and uses the same already-unlocked node for the requested viewing. A user arriving while the original prime is still pending promotes or replaces it generation-safely.
+- Feed revalidation, restored-progression changes, candidate removal, viewer/account bootstrap changes, pagehide/visibility/WebApp deactivation, NotAllowedError, external AbortError, terminal media error, and stale events are bounded. A failed prime stays invisible, never marks the controller unlocked, and never loops.
+- A queued intentional pause from an old prime operation cannot clear truthful playback after the same node has already started a newer source/viewing.
+- Viewer/account re-bootstrap is tracked as a new authenticated feed session even when public identity type and token-presence shape do not change. Prepared leases and viewer-sensitive warm memory are released before the controller rebinds.
+
+## Next-launch diagnostics
+
+- The authenticated Menu now includes **Record next Mini App launch** and a cancel action.
+- The only cross-launch value is the literal boolean `true` under one dedicated key. No report, identity, credential, URL, media value, or private content is persisted with it.
+- On the next launch the flag is read and removed before capture starts. Consumption runs at client module initialization, before feed bootstrap, persistent-player creation, candidate selection, or prime attempt.
+- The tested launch needs no diagnostics Start tap.
+- Added safe events: `session-prime-candidate-selected`, `session-prime-attempt`, `session-prime-play-pending`, `session-prime-playing`, `session-prime-paused`, `session-prime-complete`, `session-prime-promoted`, `session-prime-cancelled`, `session-prime-failed`, and `session-prime-no-candidate`.
+- Events retain only existing allowlisted scalar structure, including the same safe `persistentPlayerNodeId` and viewing/source generations. Existing 1,000-event, 40-media-identity, 10-minute, and approximate 500-KB report bounds and structural redaction are unchanged.
+
+## Deterministic and browser coverage
+
+The final deterministic suite passed **345/345**. New/extended coverage proves:
+
+- nearest eligible future ordinary-video selection;
+- album, oversized, unavailable, hidden, deleted, and unplayable skipping;
+- exactly one ordinary player node and identical prime/visible node identity;
+- genuine-playing unlock authority, intentional-pause suppression, and rewind;
+- no watch/completion/progression/History or visible UI during prime;
+- exact promotion without source assignment/load and different-video reuse;
+- video-first no duplicate prime and stable no-candidate state;
+- slow pending source retention and late-Blob non-replacement;
+- one bounded invisible policy/Abort/terminal failure;
+- viewer and lifecycle cancellation with lease release;
+- stale prime playing/pause/promise events unable to mutate current playback;
+- activation-false first-visible and 20 later transitions on one node;
+- existing video → image → video, manual controls, watch accounting, anonymous denial, nonallowlisted denial, and album automation;
+- next-launch flag ordering, clearing, playback inertness, and secret-free diagnostic export.
+
+The tracked isolated suite `scripts/browser-check-session-prime.cjs` passed on task-owned loopback port 3001 with an element-scoped browser policy model:
+
+- successful image-first prime;
+- promise resolution alone did not unlock;
+- activation remained false after the authoritative prime;
+- exact first-visible promotion plus 20 later visible videos used one DOM node/id;
+- zero post-unlock NotAllowedError;
+- zero source-churn AbortError;
+- policy-rejected prime made one attempt and exposed no control/spinner;
+- video-first startup made no prime attempt.
+
+The browser server was stopped and port 3001 released. Headless Chromium and the deterministic policy model do not prove Android Telegram acceptance.
 
 ## Validation completed
 
 - `git diff --check` — passed.
-- `npm test` — passed, 293/293 tests.
+- `npm test` — passed, 345/345.
 - `npm run typecheck` — passed.
-- `npm run build` — passed in a clean task-owned mirror excluding repository/build/runtime/environment state.
-- Isolated browser validation — passed on task-owned port 3001 against the exact application source. The server was stopped and the port released afterward.
-- The browser run observed 22 source assignments with autoplay, muted, default-muted, plays-inline properties and attributes present before `src`.
-- Native declarative playback was accepted with zero redundant JavaScript `play()` calls.
-- Twenty ordinary vertical transitions passed, as did rapid final-target selection, cancelled/edge durability, 20 policy-gated promoted transitions, direct-source locking, provisional confirmation, and changed-final-target invalidation. At most one element had a source or was playing.
-- The policy simulation produced one muted fallback without readiness retries. Synthetic input and inactive activation were suppressed; trusted recovery ran at most once per generation.
-- Stored unmuted preference remained separate while startup stayed actually muted. Pause and auto-hide followed actual `playing`, and rejected autoplay did not flash Pause.
-- Diagnostics stayed playback-inert and their secret-free export regression coverage passed.
-- The browser showed no client error portal. Anonymous and validly signed non-allowlisted access were denied.
-- Regression coverage retained albums, warm Blob handoff/source replacement, visibility/pagehide, progression, watch/completion, likes, sharing, downloads, zoom, authentication, and allowlist behavior.
+- `npm run build` — passed with `TMF_NEXT_DIST_DIR=.next-codex-prime`.
+- A before/after metadata comparison proved the deployed `.next/BUILD_ID` did not change. The task-owned build directory was removed afterward.
+- `TMF_BROWSER_PORT=3001 node scripts/browser-check-session-prime.cjs` — passed; its loopback server closed.
+- The application commit was pushed by a normal fast-forward update; no force push was used.
 
-Headless Chromium proves implementation mechanics, not Android Telegram media-policy acceptance. The fix must not be reported physically accepted until the owner completes the plan below. Albums remain physically untested and have no pass/fail result from the ordinary-video trace.
+## Documentation and deferred roadmap
 
-## Required physical Android acceptance
+README, TODO, project state, and release review now preserve these requirements without implementing them in this task:
 
-1. Owner deploys using only `tmfup`.
-2. Force-close Telegram.
-3. Reopen Telegram and the Mini App.
-4. Open Autoplay diagnostics and start a clean capture.
-5. Scroll through 20 consecutive ordinary single-video vertical-feed posts.
-6. Never press Play.
-7. Every final settled video must begin playing automatically.
-8. Verify only one video plays at a time.
-9. Verify no Play-button flash remains.
-10. Repeat after closing/reopening the Mini App.
-11. Repeat after Telegram Force stop.
-12. Repeat with stored mute preference muted.
-13. Repeat after setting stored preference unmuted.
-14. If one video fails, wait 2–3 seconds, stop diagnostics, and copy the report.
-15. Albums remain a separate later physical test and must not be reported passed or failed from this ordinary-video run.
+- Build `9b55a24` physically passed video-first and all later tested ordinary transitions; image-first remained the sole ordinary failure.
+- The new same-node prime is machine-validated but physical Android image-first acceptance remains pending.
+- Albums retain automated behavior but remain physically untested. Native share, download, image zoom/pinch, oversized media, and network/session/failure-state physical acceptance also remain open.
+- Final full acceptance is deferred until persistent VPS production with a fixed domain.
+- Future **Copy link** means a stable internal app permalink to the current post and exact media item. It must not copy or prefer X, Twitter, Instagram, or another source URL. It is deferred until the fixed domain exists and must contain no token, initData, cookie, credential, media capability, or private query value; unauthorized/nonallowlisted viewers remain denied.
+- Future per-user **Not interested in this topic right now** is a temporary topic snooze with a suggested 24-hour default, immediate Undo, early restore from Topics/settings, automatic reappearance on expiry, no deletion, and no effect on other viewers.
+- Preserve 24-hour timestamps, explicit Owner/Admin separation, persistent VPS hosting, fixed domain, Telegram Local Bot API, and support for videos over 20 MB as future work.
 
-Do not report autoplay fixed until this exact plan passes on the owner's physical Android Telegram client.
+## Required owner acceptance
+
+After the owner deploys using only `tmfup`:
+
+1. On the prior launch, choose **Record next Mini App launch** and restore to a single image with a later eligible ordinary video.
+2. Force-close/reopen Telegram. Do not tap diagnostics Start on the tested launch.
+3. Confirm recording started before one invisible candidate/attempt and the genuine-playing → intentional-pause → complete sequence on the stable node.
+4. After activation reports false, reach the first visible video without pressing Play. It must start at time zero on the same node; exact promotion must show no source reattachment/load.
+5. Continue through that video plus 20 later ordinary transitions, including image ↔ video. Require one node, automatic playback, zero post-unlock policy rejection, zero source-churn abort, and no Play flash.
+6. Repeat close/reopen, Force stop, stored muted/unmuted, video-first no-duplicate-prime, and stable no-candidate behavior. Preserve a bounded report for any failure.
+7. Do not claim a physical album pass from this ordinary-video run.
 
 ## Operational boundaries observed
 
-- No deployment was performed. The owner deploys afterward using only `tmfup`.
-- The live application on port 3000 was not stopped, restarted, tested, or modified.
-- SESSION 1 and the Cloudflare tunnel were not touched.
-- No runtime environment file or secret value was read, printed, copied, or changed.
+- No deployment was performed. The owner deploys later with `tmfup`.
+- Live port 3000 and the deployed process/build tree were not stopped, restarted, tested, or replaced.
+- SESSION 1, Cloudflare/Quick Tunnel, webhook configuration, BotFather, and Telegram group content were untouched.
+- No environment file, token, initData, cookie, private URL, database content, private media value, user identity, chat identity, caption, or file identifier was printed or copied into this handoff.
