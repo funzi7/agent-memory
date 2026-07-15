@@ -1,25 +1,24 @@
 # thai-rent-finder — State
 
 > Living document. Auto-updated daily at 02:00 UTC by `auto-update-state.yml`.
-> Last auto-update: 2026-07-14
+> Last auto-update: 2026-07-15
 > Production: https://thai-rent-finder.vercel.app
-> Total listings in DB: 1914
+> Total listings in DB: 1934
 
 ## Sources status (current)
 
 | Source | Tier | Cron (ICT) | Status | Listings 7d |
 |--------|------|------------|--------|-------------|
 | FAZWAZ | 2 (GH Actions) | 03:00 | ✅ active | 71 |
-| RENTHUB | 2 (GH Actions) | 03:30 | ✅ active | 497 |
+| RENTHUB | 2 (GH Actions) | 03:30 | ✅ active | 551 |
 | LIVING_INSIDER | 2 (GH Actions) | 04:00 | ⚠️ no fresh listings | 0 |
-| LAZUDI | 2 (GH Actions) | 05:30 | ✅ active | 54 |
-| THAILAND_PROPERTY | 1 (Vercel) | n/a | ✅ active | 36 |
+| LAZUDI | 2 (GH Actions) | 05:30 | ✅ active | 94 |
+| THAILAND_PROPERTY | 1 (Vercel) | n/a | ✅ active | 27 |
 | HIPFLAT | 3 (deferred) | n/a | 🔴 deferred (Cloudflare 403) | n/a |
 
 ## Recently merged PRs (last 7 days)
 
 - **#91** — chore(automation): sync from automation-core
-- **#90** — chore(automation): sync from automation-core
 
 ## Open issues
 
