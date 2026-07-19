@@ -15,8 +15,10 @@ task**). Full investigation evidence and the post-merge procedure are in
   `8795a8935746c3ce7a5770d5509666b4000815f9` (latest techfeedil state commit;
   wave-2 PR #76 already merged at `bbcfbd68e6ee8a00ec242e61af5b860463efffe5`).
 - Branch: `fix/techfeedil-attribution-health`.
-- Feature commit / local HEAD / remote HEAD / PR head (all verified equal):
-  `77845675ef347d1ff9f6fd45e95961dccae7b7f4`.
+- Feature commits: `77845675ef347d1ff9f6fd45e95961dccae7b7f4` (main change) +
+  `c3928bcc3d8f627dd45236717897688e8cfc20b7` (review round: byline evidence
+  priority + section-label rejection). Local HEAD / remote HEAD / PR head
+  (all verified equal): `c3928bcc3d8f627dd45236717897688e8cfc20b7`.
 - Ready, non-draft PR: **#77**,
   `https://github.com/funzi7/paywall-bot/pull/77` — verified via API: open,
   targets `main`, `draft: false`, head SHA exactly as above. NOT merged.
@@ -126,7 +128,7 @@ into discovery with no historical flood.
   tracking/path-identity equivalence, published-after-poll,
   truly-missed, missing-baseline suppression, generation mismatch,
   timestampless double-observation, activation escalation, digest shapes,
-  429 backoff/bounds), NEW `tests.test_techfeedil_quality` **36 OK**
+  429 backoff/bounds), NEW `tests.test_techfeedil_quality` **42 OK**
   (attribution ×4, byline scenarios ×9, Cocoon/residue fixtures ×9, tag
   rules ×15 incl. TheMarker-unchanged contract). New suite wired into
   `.github/workflows/ci.yml`.
@@ -140,6 +142,38 @@ into discovery with no historical flood.
   state through the new code (TGspot item now fresh; TGR activation_pending;
   digest renders reasons end-to-end) + production Actions-log evidence.
   Run the post-merge procedure in `docs/techfeedil-attribution-health.md`.
+
+## Review round (same PR #77, second commit)
+
+The production screenshot's `מאת: דיגיטל` (an N12 desk label from generic
+metadata) was not fully covered by the first commit. Corrections:
+
+- **Author evidence priority** in `_extract_author`: explicit VISIBLE byline
+  node → Article/NewsArticle JSON-LD author (`_jsonld_article_authors`) →
+  generic meta author fields → none. A generic meta value can never override
+  a better visible byline; invalid candidates skip to the next tier. "bio"
+  added to the author-node class blocklist (an author-bio biography block is
+  never the byline — caught by the wave-2 Gadget Reviews fixture).
+- **Source-aware section-label rejection hook**:
+  `sites/techfeedil/parser.py` `AUTHOR_SECTION_LABELS` +
+  `author_is_section_label(author, parser_id=…)`, called from `_finalize`.
+  n12 rejects bare דיגיטל / N12 דיגיטל / TECH12 / טכנולוגיה / חדשות / mako /
+  N12 / נקסטר; per-source lists exist for walla/gadgety/geektime/tgspot/
+  theverifier/pc/hwzone/thegadgetreviews. Never global: one source's list
+  cannot reject another source's genuine author; `מערכת …` newsroom bylines
+  (מערכת N12, מערכת N12 דיגיטל, מערכת וואלה, מערכת האתר) always pass;
+  TheMarker has no parser module so the hook is a no-op there and its byline
+  fixtures are unchanged.
+- Regressions in `tests/test_techfeedil_quality.py` (now **42**): bare
+  `דיגיטל` metadata omitted end-to-end (no `מאת:` node in Telegraph);
+  visible `מאת: יואב זיתון` beats metadata `דיגיטל`, JSON-LD `דיגיטל`, and a
+  plausible named metadata author; newsroom bylines preserved; per-source
+  label matrix incl. cross-source non-rejection.
+- Re-validated: test_message_format 185 checks, test_techfeedil 21,
+  test_techfeedil_wave2 17, test_source_health 50, test_techfeedil_quality
+  42; compileall / 15-workflow YAML / bash -n / git diff --check all pass.
+- PR #77 description updated to state the visible-over-JSON-LD-over-meta
+  priority and that bare publisher desk/section labels are not authors.
 
 ## Post-merge (owner)
 
