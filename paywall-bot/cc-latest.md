@@ -19,6 +19,8 @@ source-health, and wave-2 details are in §8, §9, and §10 respectively.
 - `gh pr view` verified PR #76 is open, targets `main`, has
   `isDraft: false`, and points to the exact SHA above. `git ls-remote` verified
   the feature branch points to the same SHA. The PR was not merged.
+- Final remote checks passed: `test-message-format`, `check-codex-status`, and
+  the cosmetic `codex-gate-verdict` were all green on that head.
 - The feature worktree was clean after commit/push. No production state,
   health state, Telegraph token, tracked error log, session, credential,
   downloaded HTML, or third-party article body was committed.
