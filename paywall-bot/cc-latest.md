@@ -15,8 +15,11 @@ docs file.
   `4496513bf1d90f88eb95fdf3b021d86e84768e2b` (PR #77 merged at `dabad7f` +
   the first post-merge production poll state).
 - Branch: `fix/techfeedil-stale-promo-queue`.
-- Hotfix commit / local HEAD / remote HEAD / PR head (verified equal):
-  `9c622697543ae92107171f4f5b24b9b0d29a0392`.
+- Hotfix commits: `9c622697543ae92107171f4f5b24b9b0d29a0392` (main change) +
+  `61fa4b4c4453b8a1f29d9cc3edf6d8433cc2484a` (review round: tracked-log
+  hygiene + test isolation + CI cleanliness gate). Local HEAD / remote
+  HEAD / PR head (verified equal):
+  `61fa4b4c4453b8a1f29d9cc3edf6d8433cc2484a`.
 - Ready, non-draft PR: **#78**,
   `https://github.com/funzi7/paywall-bot/pull/78` — verified via API: open,
   targets `main` (base exactly `4496513…`), `draft: false`, head SHA as
@@ -85,6 +88,34 @@ had one).
   `bash -n scripts/*.sh`, `git diff --check` — pass.
 - `state/errors.log` test noise restored before commit; no state files in
   the diff.
+
+## Review round (same PR #78, second commit)
+
+A review caught a test-generated TheMarker defer line committed into the
+TRACKED `state/errors.log`. Root cause: `set_site_context(themarker)`
+re-points the tenant error log to the tracked path; the hotfix suite's
+TheMarker-context test (plus latent paths in the quality suite and the
+legacy `test_message_format` runner, which had always logged to the tracked
+file) wrote through it. Fixed properly:
+
+- `state/errors.log` restored byte-exactly to origin/main — the PR diff now
+  contains NO file under state/ (verified via the PR files API: 9 files,
+  none in state/).
+- `tests/test_techfeedil_hotfix.py` + `tests/test_techfeedil_quality.py`:
+  every `set_site_context` call goes through an `_activate` helper that
+  immediately redirects logging to a per-test temp path.
+- `tests/test_message_format.py`: all logging redirected to a disposable
+  temp file at module import, before any test runs.
+- New harness guard `test_zz_tracked_state_files_untouched` (hotfix suite,
+  now 13 tests): sha256 snapshot of every tracked state/ file before the
+  suite, asserted byte-identical after.
+- CI: `git diff --exit-code -- state/` added after all suites (fails CI on
+  any tracked-state mutation) plus an explicit `git diff --check` step.
+- Re-validated with cleanliness gates BETWEEN suites: test_message_format
+  185 checks -> state/ clean; unittest 143 (techfeedil 21, wave2 17,
+  source_health 50, quality 42, hotfix 13) -> state/ clean; compileall /
+  16-workflow YAML / bash -n / git diff --check /
+  git diff --exit-code -- state/ all pass.
 
 ## Post-merge (owner)
 
