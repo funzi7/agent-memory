@@ -1,132 +1,132 @@
-# paywall-bot — Tech Feed IL stale/promo discovery-queue hotfix handoff
+# paywall-bot — Cocoon ASCII integrity + Instant-View verification handoff
 
 Date: 2026-07-19 UTC
 
-This is the current authoritative agent handoff (supersedes the PR #77
-attribution/health handoff, which is preserved in `handoffs/CONTEXT.md` §11
-and `docs/techfeedil-attribution-health.md`). This hotfix's record is
-CONTEXT §11b plus the "Stale/promotional queue hotfix" section of the same
-docs file.
+Current authoritative agent handoff (supersedes the PR #78 stale/promo
+handoff; that record stays in `handoffs/CONTEXT.md` §11b). This task's
+record: CONTEXT §11c + the "Cocoon ASCII corruption + missing Instant View"
+section of `docs/techfeedil-attribution-health.md` (incl. the exact
+post-merge repair procedure).
 
 ## Git and pull request
 
 - Primary repository: `funzi7/paywall-bot`.
 - Authoritative starting `origin/main`:
-  `4496513bf1d90f88eb95fdf3b021d86e84768e2b` (PR #77 merged at `dabad7f` +
-  the first post-merge production poll state).
-- Branch: `fix/techfeedil-stale-promo-queue`.
-- Hotfix commits: `9c622697543ae92107171f4f5b24b9b0d29a0392` (main change) +
-  `61fa4b4c4453b8a1f29d9cc3edf6d8433cc2484a` (review round: tracked-log
-  hygiene + test isolation + CI cleanliness gate). Local HEAD / remote
-  HEAD / PR head (verified equal):
-  `61fa4b4c4453b8a1f29d9cc3edf6d8433cc2484a`.
-- Ready, non-draft PR: **#78**,
-  `https://github.com/funzi7/paywall-bot/pull/78` — verified via API: open,
-  targets `main` (base exactly `4496513…`), `draft: false`, head SHA as
-  above. NOT merged. No Backfill was run; nothing was published; no
-  production state file is edited by the PR.
+  `3f70b53c1b396a95d58227ff54161f4f13dfd35d` (PR #78 merged at `a9e1610`,
+  publishing poll state `8d900d9`, later TheMarker state commit).
+- Branch: `fix/techfeedil-cocoon-instant-view`.
+- Commit / local HEAD / remote HEAD / PR head (verified equal):
+  `3ee97d1e7d0782990a43fe0b46cf2ec9411d8dc1`.
+- Ready, non-draft PR: **#79**,
+  `https://github.com/funzi7/paywall-bot/pull/79` — verified via API: open,
+  targets `main`, `draft: false`, head SHA as above, 12 files, NO file under
+  state/. NOT merged. No Backfill; no publish; no Telegraph create/edit; no
+  channel post or owner DM during development.
 
-## Incident
+## Production evidence (poll run 29704212502, ~21:22 UTC, from logs + state 8d900d9)
 
-The 18:16 UTC poll (first after PR #77) worked as designed — The Gadget
-Reviews baseline was created, the previously frozen TGspot feed flowed —
-but it queued three TGspot items, including `godeal24-jul26-vol2`
-(published 2026-07-16T16:00Z, **74h old at discovery**, "משלמים פעם אחת
-וזהו: … במחירי קיץ מיוחדים" — a pure GoDeal software-license sale). The
-Android-backup (13:38Z) and Kimi/OpenAI (17:08Z) items are legitimate.
-Gaps: no admission age limit (a repaired feed can queue everything its
-baseline missed, however old) and no TGspot promo exclusion (TGR already
-had one).
+- Both TGspot articles published via `direct`, `foreign=0`:
+  - **Android backup**: page's AI-summary area visibly shipped `b6b`,
+    `google-`, `awy` + raw `Cocoon AI Summary` label with corrupted
+    word/RTL boundaries. POST-RECORD `cocoon=0` — widget text rode the
+    extracted content (body fingerprint `גוגלgoogle…` shows glued Latin);
+    all tokens are printable ASCII → invisible to the Unicode-only scan
+    (that is WHY it was insufficient: it whitelists all printable ASCII).
+  - **Kimi**: preview card, no ⚡ Instant View; Android post from the SAME
+    run has IV. Concrete structural diffs: `images=1` vs `0`, `---` run in
+    the Telegraph path (title's " – "). IV root cause = documented
+    Telegram-side uncertainty (IV generation is async server-side;
+    sandbox cannot reach telegra.ph/MTProto) — resolved operationally via
+    the new verification + doctor cached-page check, not guessed.
+- The Verifier article sits deferred; Poll workflow intentionally disabled
+  until this merges.
 
-## The hotfix
+## The fixes
 
-- **A. TGspot promotional exclusions** (`sites/techfeedil/config.yaml`,
-  existing feed-filter architecture — not Telegram-side): narrow
-  `exclude_title_url_pattern` (godeal…/coupon/deal URL slugs, bounded
-  קופון/קופונים tokens, explicit sale phrases מחירי קיץ/חורף/אביב/סתיו/חג/
-  השקה מיוחדים, מבצע לזמן מוגבל) + `exclude_categories`
-  קופונים/מבצעים/דילים. Reviews ("האם שווה את המחיר?"), launches and
-  substantive price reporting ("מחיר האייפון בישראל ירד…") tested NOT
-  matched.
-- **B. Admission freshness guard** — `defer.max_new_item_age_hours`
-  (Tech = 24; TheMarker unset → disabled/unchanged). Enforced in
-  `core.main._phase1_discover` at FIRST discovery, only with a trustworthy
-  feed timestamp; fresh-admitted items are never evicted for aging through
-  retries; timestampless items keep the existing flow. Suppressed
-  identities go to bounded `state["suppressed_items"]` (key/reason/
-  source_id/published_at only — never titles/bodies; cap 300) and
-  `_filter_fresh_items` excludes them, so stale feed rows neither reappear
-  each hourly poll nor consume the per-run cap.
-- **C. One-shot queue cleanup** — `_cleanup_stale_promo_deferred`
-  (core/main.py; runs in `run_poll` after `_normalize_deferred_queue`,
-  gated on max_new_item_age_hours + marker `stale_promo_cleanup_v1`).
-  Re-evaluates ONLY existing deferred entries from stored metadata:
-  removes entries already beyond the limit at their ORIGINAL
-  `first_seen_at`, or failing their own source's current feed exclusions;
-  retained entries stay byte-identical (retry_count/first_seen_at
-  preserved). Replayed on a copy of the committed production state:
-  removes exactly `godeal24-jul26-vol2`
-  (`promotional_filter_cleanup`), retains the two legitimate articles,
-  second run is a byte-identical no-op, removed identity filtered from
-  re-discovery.
+- **Cocoon token-integrity gate** —
+  `article_parser.sanitize_cocoon_paragraphs`, tenant opt-in
+  `ai_summary.strict_token_gate` (Tech on, TheMarker off). Every
+  Latin/alnum token needs evidence: `COCOON_LATIN_ALLOWLIST` (AI/API/SMS/
+  GB/MB/…), `COCOON_BRAND_CANONICAL` (Google/Android/OpenAI/ChatGPT/Kimi/
+  Moonshot/… with safe lowercase→canonical normalization), article-context
+  tokens (title/subtitle/body), or valid shape (TitleCase brand, `K3`
+  model, `15GB` unit, 4–5-letter acronym). Rejected CLASSES: 1–3-letter
+  lowercase fragments (`awy`), alnum garbage (`b6b`), dangling hyphens
+  (`google-`), Latin glued to Hebrew (prefix forms `ל-15GB`/`ב-SMS`
+  valid), punctuation runs, vendor residue. Unexplained token → drop
+  paragraph; dropped ≥ kept → omit ENTIRE block. Fail closed: missing
+  summary acceptable, corrupted one is not. `COCOON-GATE` bounded logs.
+- **Wide vendor-label matcher** — `vendor_label_present` /
+  `strip_vendor_label_wide`: per-letter with optional separators (space,
+  zero-width, bidi, soft hyphen, dash, underscore, dot, glued) — catches
+  casing/HTML-nesting/obfuscation variants; label never enters
+  `cocoon_paragraphs`; Tech caption `🤖 סיכום AI של Tech Feed IL` renders
+  exactly once iff a valid block renders (standalone strong-node count, so
+  a label-normalized subtitle isn't a false duplicate); serialized-node
+  assertions prove absence.
+- **Final publish-boundary validator** —
+  `telegraph_pub.validate_publish_fields` + `_serialized_page_violations`
+  immediately before createPage/editPage, per-field: vendor label, control
+  chars, unsupported-script LETTERS (emoji/symbols remain log-only),
+  strict cocoon gate. Cocoon-only findings → drop block, rebuild once,
+  revalidate; mandatory-field findings → DO NOT publish (defers).
+  `PUBLISH-VALIDATE url= field= reason= token= codepoints= context=`
+  bounded diagnostics. `publish_article(edit_path=…)` → `editPage`
+  (repair only; never duplicate page, never a Telegram post).
+- **Instant-View verification** — opt-in
+  `features.instant_view_verification` + `instant_view:` schedule
+  (window 6h, recheck ≥20min, ≤5 checks/run, max age 48h). Bounded
+  body-free `state["publication_ledger"]` (cap 100: identity, Telegraph
+  URL, message id via new `tg_bot.LAST_MESSAGE_ID`, timestamps, iv_status,
+  alerted). `_verify_instant_view_ledger` in run_poll rechecks read-only
+  via new `telethon_client.message_webpage_status` (`cached_page` ⇒
+  instant_view; else preview_no_iv / preview_pending /
+  inspection_unavailable). One owner alert per publication after the
+  window; never delete/repost/duplicate.
+- **Page doctor** — `tools/telegraph_page_doctor.py`: read-only diagnose
+  (`--url` / `--message-id`: validity, node summary, contamination
+  findings, cached-page status); repair dry-run by default, `--apply` +
+  exact path + `--source-url` required, re-parses with production code,
+  full validator, `editPage` only, refuses non-owned pages, no
+  credentials/full-body logging.
+
+## No-publish replay (J)
+
+State copy of `8d900d9` + sanitized Android fixture through the real
+parser: raw widget summary extracted (2 paragraphs + label) → gate omits
+the block (`vendor_label_only`, `alnum_garbage`,
+`block_incoherent_after_drops`) → final nodes `{figure, p×5, strong, hr,
+a}` carry NONE of the four leaked tokens, no caption without a block,
+body/hero/author/footer/Telegram message intact; state copy untouched;
+zero Telegraph/Telegram/DM calls. Kimi vs Android structural comparison
+recorded from production data.
 
 ## Validation
 
-- NEW `tests/test_techfeedil_hotfix.py` — **12 OK** (72h reject at
-  discovery incl. no-title registry; 5h accept; fresh-then-aged retained
-  with retry count; timestampless never rejected; godeal URL + pure
-  sale-title rejected; substantive price coverage retained; exact
-  three-item production fixture removes only the deal; suppression
-  persists across polls; idempotence + marker gating; TheMarker unchanged
-  incl. inert cleanup; Telegraph/Telegram calls hard-fail if attempted).
-  Wired into `.github/workflows/ci.yml`.
-- Full matrix green: `tests.test_message_format` 185 checks
-  (`All tests passed.`); unittest `tests.test_techfeedil` 21,
-  `tests.test_techfeedil_wave2` 17, `tests.test_source_health` 50,
-  `tests.test_techfeedil_quality` 42, `tests.test_techfeedil_hotfix` 12
-  (142 total, OK); `compileall`, PyYAML parse of all 16 workflows,
-  `bash -n scripts/*.sh`, `git diff --check` — pass.
-- `state/errors.log` test noise restored before commit; no state files in
-  the diff.
+- NEW `tests/test_techfeedil_cocoon_iv.py` — **15 OK** (wired into ci.yml):
+  exact Android fixture (four tokens absent from final nodes; valid
+  Google/Android/Google One/15GB/40MB preserved; caption exactly once when
+  valid; block omitted when unrepairable; article/hero/author/footer/
+  message valid), token-gate matrix, vendor-label variants (zero-width/
+  bidi/standalone/prefixed), mixed/fully-contaminated blocks, TheMarker
+  unchanged (b6b still ships there — established behavior), validator
+  abort vs repair (dash-label title aborts; control char aborts; foreign
+  letters repaired upstream; emoji passes), edit_path→editPage, IV ledger
+  transitions/single-alert/bounds/age-out, doctor helpers, tracked-state
+  guard, hard no-network guards.
+- Full matrix green: `tests.test_message_format` 185 checks; unittest
+  **158** (techfeedil 21, wave2 17, source_health 50, quality 42, hotfix
+  13, cocoon_iv 15); compileall; 16-workflow YAML parse; `bash -n
+  scripts/*.sh`; `git diff --check`; `git diff --exit-code -- state/`.
 
-## Review round (same PR #78, second commit)
+## Post-merge (owner) — exact steps in docs/techfeedil-attribution-health.md
 
-A review caught a test-generated TheMarker defer line committed into the
-TRACKED `state/errors.log`. Root cause: `set_site_context(themarker)`
-re-points the tenant error log to the tracked path; the hotfix suite's
-TheMarker-context test (plus latent paths in the quality suite and the
-legacy `test_message_format` runner, which had always logged to the tracked
-file) wrote through it. Fixed properly:
-
-- `state/errors.log` restored byte-exactly to origin/main — the PR diff now
-  contains NO file under state/ (verified via the PR files API: 9 files,
-  none in state/).
-- `tests/test_techfeedil_hotfix.py` + `tests/test_techfeedil_quality.py`:
-  every `set_site_context` call goes through an `_activate` helper that
-  immediately redirects logging to a per-test temp path.
-- `tests/test_message_format.py`: all logging redirected to a disposable
-  temp file at module import, before any test runs.
-- New harness guard `test_zz_tracked_state_files_untouched` (hotfix suite,
-  now 13 tests): sha256 snapshot of every tracked state/ file before the
-  suite, asserted byte-identical after.
-- CI: `git diff --exit-code -- state/` added after all suites (fails CI on
-  any tracked-state mutation) plus an explicit `git diff --check` step.
-- Re-validated with cleanliness gates BETWEEN suites: test_message_format
-  185 checks -> state/ clean; unittest 143 (techfeedil 21, wave2 17,
-  source_health 50, quality 42, hotfix 13) -> state/ clean; compileall /
-  16-workflow YAML / bash -n / git diff --check /
-  git diff --exit-code -- state/ all pass.
-
-## Post-merge (owner)
-
-1. Merge PR #78 through the normal review process. **Do not run Backfill.**
-2. On the next scheduled poll expect the log line
-   `deferred cleanup: removed …godeal24-jul26-vol2… (promotional_filter_cleanup)`
-   and `state["suppressed_items"]` gaining that identity with the marker
-   `stale_promo_cleanup_v1` set.
-3. The Android-backup and Kimi/OpenAI articles publish through the normal
-   30-minute defer lifecycle (verify channel-brand header, footer-only
-   source link, byline rules, Hebrew AI-summary caption, topic tags with
-   source last — per the PR #77 checklist).
-4. GoDeal/coupon rows must never enter `deferred_items` again; older-than-
-   24h rows at discovery are suppressed with `stale_at_discovery:<age>h`.
+1. Merge PR #79 (normal review). Re-enable the Poll workflow afterwards.
+2. Repair the published Android page with the page doctor (dry-run, then
+   `--apply`): same URL, corrupted summary omitted, no repost needed.
+3. Recheck the Kimi message: doctor `--message-id` → cached-page status;
+   `preview_no_iv` after 24–48h = Telegram never generated IV; there is no
+   safe forced-refresh — the ledger alerts and records instead.
+4. The Verifier deferred article publishes through the validated path;
+   verify the next posts' POST-RECORD + absence of PUBLISH-VALIDATE
+   warnings, and `publication_ledger` IV statuses.
