@@ -1,283 +1,246 @@
-# paywall-bot — Tech Feed IL per-source health handoff
+# paywall-bot — Tech Feed IL source expansion wave 2 handoff
 
-Date: 2026-07-19
+Date: 2026-07-19 UTC
 
-## Current Git status
+This is the current authoritative agent handoff. Repository architecture and
+older deployment history remain in `handoffs/CONTEXT.md`; Tech Feed IL MVP,
+source-health, and wave-2 details are in §8, §9, and §10 respectively.
+
+## Git and pull request
 
 - Primary repository: `funzi7/paywall-bot` at `/root/work/paywall-bot`.
-- Starting `origin/main` HEAD:
-  `b3417d6b1d41bdeb8ceb440145344d58fccbd2b7`.
-- Branch: `feat/techfeedil-source-health`.
-- Feature commit / branch HEAD:
-  `23a62b8129b84dfbed47091a8e054d8ee6f84c14`.
-- Remote branch SHA was verified with `git ls-remote` and equals the local HEAD.
-- Draft PR: #75, `https://github.com/funzi7/paywall-bot/pull/75`.
-- `gh pr view` verified that PR #75 is open, targets `main`, uses the requested
-  feature branch, and points to
-  `23a62b8129b84dfbed47091a8e054d8ee6f84c14`.
-- `main` was not merged or modified by this task.
+- Authoritative starting `origin/main`:
+  `b00679d9b9633b0c2e8d5c852547a42328218f5c`.
+- Branch: `feat/techfeedil-source-wave2`.
+- Feature commit / local / remote / PR head:
+  `88f3d5bb9e8f6df345bda8ddc523854ed491587a`.
+- Ready, non-draft PR: #76,
+  `https://github.com/funzi7/paywall-bot/pull/76`.
+- `gh pr view` verified PR #76 is open, targets `main`, has
+  `isDraft: false`, and points to the exact SHA above. `git ls-remote` verified
+  the feature branch points to the same SHA. The PR was not merged.
+- The feature worktree was clean after commit/push. No production state,
+  health state, Telegraph token, tracked error log, session, credential,
+  downloaded HTML, or third-party article body was committed.
 
-The maintained repository handoff is `handoffs/CONTEXT.md`; Tech tenant MVP
-context is in §8 and this monitor is fully recorded in §9.
+## Delivered result
 
-## Delivered scope
+Tech Feed IL now has 14 active discovery components grouped into nine
+independent first-party publishers:
 
-- Added production-grade active per-source health monitoring for the already
-  configured `techfeedil` tenant.
-- No publisher, feed, parser adapter, or production content source was added or
-  enabled. The existing configured sources remain Gadgety, Geektime, TGspot,
-  The Verifier, and N12/mako.
-- The monitor is strictly no-publish: it does not create Telegraph pages and
-  does not send Telegram channel posts. Only owner alert/digest DMs are allowed.
-- TheMarker production behavior is preserved. Its feeds, parser/fetch chain,
-  publishing/state, schedules, secrets, aggregate health workflow, and
-  `poll-themarker` concurrency remain unchanged.
+1. Gadgety
+2. Geektime
+3. TGspot
+4. The Verifier
+5. N12
+6. אנשים ומחשבים
+7. וואלה TECH
+8. HWzone
+9. The Gadget Reviews
 
-## Active monitor architecture
+Geektime discovery is repaired. The former official
+`/category/technology/feed/` remained HTTP 200/parseable but its newest row was
+2026-06-01 while the publisher was actively posting. It was replaced by the
+current official `https://www.geektime.co.il/feed/`, retaining
+`source_id: geektime`, domain/parser identity, and stable
+`feed_id: geektime-technology`.
 
-- Entry point: `python -m core.source_health --site techfeedil`.
-- Forced publisher extraction: add `--deep`.
-- Local no-DM validation: add `--no-alerts`; authentication and permission
-  validation still runs because `--no-alerts` suppresses DMs only.
-- Every run probes all nine configured discovery endpoints independently and
-  records:
-  - configured/final URL, HTTP status, redirect, latency, content type;
-  - WAF, Cloudflare, Radware, CAPTCHA, access-denied, consent, and generic
-    error-page detection even on HTTP 200;
-  - parse success, raw/valid item counts, newest canonical URL/timestamp;
-  - invalid, duplicate, unexpected-host URL counts;
-  - per-feed freshness against configurable thresholds.
-- RSS probes use the same production entry parsing helpers. HTML category
-  probes use the configured production category adapter. N12's existing Jina
-  category fallback is reported explicitly; no fallback/source was invented.
-- Discovery and extraction work use a maximum of four workers. Discovery
-  requests have explicit 15-second timeouts. Telegram API validation also has
-  explicit 15-second per-call timeouts. The configured 270-second monitor
-  budget reserves 60 seconds for shared authentication checks and persists
-  unfinished endpoint/publisher IDs as `runtime_budget_exhausted` where
-  technically possible. The workflow hard timeout is ten minutes.
-- Deep checks group by `source_id`, not feed. Gadgety's four feeds count as one
-  publisher; N12's category and RSS count as one publisher. Each publisher gets
-  at most one representative extraction per run.
-- A deep check runs when:
-  - the newest canonical URL changed since the publisher's last successful
-    deep result;
-  - no successful deep check exists;
-  - the parser/quality configuration signature changed;
-  - the previous success is at least 48 hours old; or
-  - `--deep` / workflow `force_deep` is selected.
-- An unchanged publisher with a successful deep result less than 48 hours old
-  is skipped. A failed attempt never advances its successful timestamp or URL,
-  so scheduled failures are retried.
-- Deep extraction uses the real production `article_parser.fetch_and_parse`
-  direct/Jina chain and shared quality gates. A thread-local optional collector
-  captures body-free attempt diagnostics without changing the established
-  return contract. It reports fetch source, fallback use, title/author/
-  canonical/hero presence, paragraph/character/Hebrew counts and ratio, and
-  exact quality failures including partial/empty body, site chrome, sponsored
-  markers, related rails, talkbacks, teaser shape, and publisher adapter
-  failures.
-- The command emits title in its ephemeral structured JSON because title is a
-  required extraction diagnostic. Persisted health state never stores title,
-  article body, paragraph, excerpt, credential, bot token, Telegraph token, or
-  session string.
+All four requested publishers are enabled from direct first-party discovery.
+No publisher was substituted by Google News, Telegram, an aggregator, or a
+copied index. The official HWzone Gadgets feed was researched but not enabled:
+its newest eligible row was roughly 101 days old. HWzone is healthy and active
+through its current Technology and Computers feeds. This rejected endpoint is
+not a task blocker.
 
-## Pipeline and state health
+TheMarker production behavior is preserved. No TheMarker config, parser,
+identity, token, credentials, state, schedules, publishing format, tags, or
+workflow was changed. Existing Tech polling and source-health schedules/job
+topology/concurrency are unchanged; CI only runs the new focused suite.
 
-- Production state is read through a strict, non-mutating JSON reader. Missing,
-  unreadable, corrupt, or invalid state cannot silently become an empty healthy
-  snapshot.
-- Pipeline diagnostics include last successful poll age, baseline presence per
-  configured feed, deferred/stuck items by source, retry totals/maxima,
-  source-aware permanent failures, and newest feed items not represented in
-  posted/deferred/baseline/terminal state after the configured grace period.
-- Tech polling now opt-in records `last_successful_poll_at` after successful
-  discovery, unions `discovery_ids` when multiple feeds converge on one
-  deferred canonical item, and records a bounded 250-row
-  `terminal_failures` ledger before removing a permanent-failure deferred row.
-  The ledger is body/title/excerpt-free. TheMarker does not enable this feature,
-  so its state shape remains unchanged.
-- Monitor state is isolated at `state/techfeedil-health.json`. It contains
-  alert counters/cooldowns, publisher deep-success identity/timestamps,
-  canonical observations, safe endpoint summaries, pipeline counts, request
-  counts, unfinished checks, and durations.
-- Corrupt health state is preserved byte-for-byte and reported critical instead
-  of being overwritten. A resolved-path guard refuses health writes when the
-  health path overlaps production state.
-- `scripts/commit_source_health_state.sh` runs only in GitHub Actions on the
-  default branch and stages exactly `state/techfeedil-health.json`. It never
-  stages `state/techfeedil.json`, either Telegraph token, or an error log.
+## Active discovery and live verification
 
-## Shared infrastructure checks
+All accepted endpoints were fetched and parsed on 2026-07-19 UTC. Full
+accepted/rejected evidence is in
+`docs/techfeedil-wave2-source-validation.md`.
 
-- Telegram bot token is validated with `getMe`; constructor/malformed-token and
-  API failures become body-free critical checks rather than uncaught errors.
-- The resolved bot username must be `@Tech_Feed_IL_Bot`.
-- Channel lookup and bot membership validate that `@Tech_Feed_IL` is a channel
-  and the bot is owner or administrator with Post Messages permission. No test
-  message is sent.
-- Missing Tech Telegraph token is `not_initialized` before first publication.
-  Once a token exists it is validated with `getAccountInfo` only. The monitor
-  never calls Telegraph account/page creation.
+| Publisher | Active discovery | Live result | Representative extraction |
+| --- | --- | --- | --- |
+| Gadgety | four existing category RSS feeds | 10 valid per feed; newest publisher row `2026-07-19T12:20:19Z`; healthy | direct, 23 paragraphs / 2,215 chars, hero |
+| Geektime | `https://www.geektime.co.il/feed/` | 30 raw / 24 eligible; newest `2026-07-19T15:45:04Z`; healthy | direct, 10 / 2,607, author + hero |
+| TGspot | `https://www.tgspot.co.il/feed/rss` | 10 valid; healthy discovery | direct 403 then Jina, 5 / 1,423, hero; degraded fallback |
+| The Verifier | `https://theverifier.co.il/feed/` | 10 valid; newest `2026-07-18T09:16:00Z`; healthy | direct, 12 / 1,996, author + hero |
+| N12 | TECH12 HTML + filtered Digital RSS | 18 category + 15 RSS; category Radware then Jina; degraded | direct article, 11 / 4,141, author + hero |
+| אנשים ומחשבים | `https://www.pc.co.il/category/news/feed/` | 30 valid; newest `/featured/455290/` at `2026-07-19T16:13:34Z`; healthy | direct, 9 / 3,069, author + hero |
+| וואלה TECH | `https://rss.walla.co.il/feed/6?type=main` | 30 exact TECH rows; newest `2026-07-19T11:01:00Z`; healthy | direct, 3 / 888, author + hero |
+| HWzone | `main-tech/feed/` + `main-computers/feed/` | 50 + 47 eligible; publisher newest `2026-07-01T16:38:49Z`; healthy | guarded official WP REST direct, 6 / 2,771, author + hero |
+| The Gadget Reviews | `https://thegadgetreviews.com/feed/` | 50 raw / 31 eligible; newest `2026-07-19T09:32:30Z`; healthy | direct, 14 / 5,098, author + hero |
 
-## Alert and exit policy
+The final forced-deep command used the real production discovery/parser chain
+with alerts disabled. It created no Telegraph page, sent no channel post or
+owner DM, and generated state/log changes were restored. Pre-merge missing
+baseline/visibility checks are expected until the activation poll and are not
+publisher extraction failures.
 
-- First ordinary scheduled source/component failure records state without an
-  urgent alert.
-- Second consecutive scheduled failure sends an owner DM.
-- Identical repeated alerts have a six-hour cooldown.
-- An alerted component sends recovery when it becomes healthy.
-- Manual runs do not increment scheduled failure counters, including critical
-  counters. Critical failures still alert immediately and respect cooldown.
-- One ordinary failed publisher degrades the report but exits zero while
-  alternatives remain. It never marks the whole channel unavailable.
-- Shared critical failures exit nonzero after state and alert attempts:
-  - invalid/missing bot credentials;
-  - lost channel access/posting permission;
-  - corrupt/unreadable production or health state;
-  - inability to inspect any configured feed;
-  - all publishers failing discovery;
-  - inability to persist health state or deliver required owner messaging.
-- One concise daily digest separates healthy publishers, degraded publishers
-  with working alternatives, and failed shared infrastructure. Healthy sources
-  do not receive one DM each. Alert text uses existing Telegram MarkdownV2
-  escaping and length controls.
+Final monitor metrics:
 
-## Workflow and Actions cost
+- 14 feeds / nine publishers / nine deep extractions;
+- 13.466 seconds total;
+- 8.815 seconds discovery;
+- 4.630 seconds extraction wall time;
+- 23 direct requests and two Jina requests;
+- zero unfinished checks;
+- projected 6.73 raw Linux minutes/month at 30 daily runs, or 30 minutes with
+  a conservative one-minute billed-job floor. Normal documented range remains
+  30–150 minutes/month including runner setup, below the requested cap.
 
-- New workflow: `.github/workflows/source-health-techfeedil.yml`.
-- Schedule: once daily at `37 3 * * *` (03:37 UTC), plus manual
-  `workflow_dispatch` with `force_deep`.
-- One Ubuntu 24.04 job; no source matrix; `timeout-minutes: 10`; pip cache.
-- It shares `bot-state-techfeedil` with Tech poll/backfill and does not block
-  TheMarker. After acquiring the lock it fetches and fast-forwards to the
-  latest default-branch state before monitoring.
-- The monitor step exposes exactly:
-  `TECH_TELEGRAM_BOT_TOKEN`, `TECH_TELEGRAM_CHANNEL`, and
-  `TELEGRAM_OWNER_ID`.
-- The health sidecar commit runs with `if: always()` so ordinary/critical
-  diagnostics survive after the command has attempted alerts.
-- Metrics record total, discovery, extraction and per-source duration; direct
-  and Jina requests; conditional/forced mode; and unfinished checks.
-- `GITHUB_STEP_SUMMARY` computes raw and per-job-rounded projections using
-  approximately 30 scheduled runs/month.
-- Normal one-to-five-minute runs project to 30–150 Linux minutes/month. Thirty
-  ten-minute timeout jobs would project to 300 minutes. Manual runs add usage,
-  so the normal design stays below the requested approximately 500-minute
-  monitoring budget.
-- PR #75 includes the calculation command and range in its description. The
-  exact command used was:
+## Discovery filters and parser architecture
 
-  ```bash
-  .venv/bin/python - <<'PY'
-  from core.source_health import project_monthly_minutes
-  for seconds in (60, 300, 600):
-      print(seconds, project_monthly_minutes(seconds, scheduled_runs=30))
-  PY
-  ```
+- The production Tech fetch chain remains `direct → jina`; existing quality
+  thresholds remain three meaningful paragraphs, 600 characters, 100 Hebrew
+  letters, and 45% Hebrew ratio. Direct + Jina failure stays deferred/retried;
+  the original publisher URL is never posted as fallback.
+- Shared feed filtering now supports exact categories, bounded conditional
+  title signals, strong-category bypasses, path allowlists, source-local
+  inclusion/exclusion regexes, and production off-domain rejection. Health
+  observes raw invalid/duplicate/unexpected-host rows before policy filtering.
+- Geektime filters exact jobs/events/Insider/culture taxonomies and proven
+  promotion/registration paths; normal editorial reporting is not restricted
+  by brittle title keywords.
+- PC uses the official News feed, excludes exact sponsored/community/event
+  paths, and canonicalizes proven numeric post identities across `/featured/`,
+  nested `/news/`, tracking, and terminal AMP forms.
+- Walla permits only exact `tech.walla.co.il/item/<id>` rows. Its parser reads
+  NewsArticle JSON-LD, reconstructs paired-`br` paragraphs, and removes
+  related/talkback/player shells.
+- HWzone permits guarded `/main.../<slug>/` editorial rows. Normal article HTML
+  is Cloudflare 403 and Jina returned CAPTCHA, so `direct_request_url` maps only
+  guarded rows to the same-origin official WordPress REST post representation.
+  Exactly one published row must match the requested/canonical host and decoded
+  slug. Trusted title, excerpt/subtitle, author, time, hero/caption and rendered
+  body then enter the shared parser. Jina remains the fail-closed second step.
+- The Gadget Reviews main feed excludes exact lifestyle and deal/coupon rows.
+  `כללי` and `גיימינג` require a bounded device/technology title signal unless
+  an exact verified strong category (headphones, computer accessories, robot
+  vacuums, smartphones, smartwatches, or televisions) is also present. Broad
+  News/Gaming do not bypass. Direct parsing truncates the related tail before
+  paragraph/inline-media extraction. Jina must report the exact first-party
+  source URL and supply its own independent H1; the adapter never invents one.
+- JSON-LD metadata bridging is limited to the wave-2 publishers that require
+  it, so established Tech parser behavior is unchanged.
+- Telegraph/Telegram output remains Tech's existing behavior: generated
+  Telegraph URL only in the channel post, dynamic clickable source footer on
+  Telegraph, RTL-safe blocks, no AI summaries, and source/topic tags from the
+  existing tag architecture.
 
-  Results were 30, 150, and 300 rounded monthly minutes respectively.
+## Safe activation / no historical flood
 
-## Final live no-publish verification
+This is the critical deployment invariant:
 
-The final code was run with all configured feeds, `force_deep=True`, temporary
-health/log/Telegraph paths, synthetic local Telegram auth objects, no DMs, and
-the real production state read-only. It made no Telegram or Telegraph network
-call and wrote no production state.
+- Each new feed gets an independent first-observation baseline. Current rows
+  from a newly added feed are stored only in that feed's baseline; they enter
+  neither `posted_guids` nor `deferred_items`.
+- Established feeds continue normal discovery during the same run. A genuine
+  active-feed item is not suppressed merely because a new feed also sees it.
+- Geektime keeps the stable feed ID and uses `baseline_generation: 2`, so only
+  the replacement endpoint is re-baselined. Existing Gadgety, TGspot, The
+  Verifier and N12 baselines remain generation 1 and are untouched.
+- A restart after the baseline commit reuses matching generations.
+- Corrupt optional legacy baseline fields fail closed in production by
+  re-baselining the affected feed; source health reports corrupt production
+  state as shared critical.
+- Old health components/observations for feeds or publishers no longer active
+  are pruned. A stable replaced feed ID recovers through its current check and
+  does not retain the old stale result forever.
 
-- Overall: exit 0, `degraded` only because Geektime was stale; total 13.238 s,
-  discovery 8.386 s, publisher extraction wall time 4.832 s, 14 direct
-  requests, two Jina requests, five healthy publisher extractions, and zero
-  unfinished checks.
-- Gadgety: all four RSS endpoints HTTP 200, ten fresh items each. Direct
-  representative extraction: 23 paragraphs, 2,215 body chars, 1,419 Hebrew
-  chars, ratio 0.8456, hero present.
-- Geektime: RSS HTTP 200, 30 valid items, but correctly failed its 72-hour
-  freshness gate. Newest timestamp was `2026-06-01T07:25:31+00:00`, roughly
-  1,158 hours old on the run. Direct representative extraction remained
-  healthy: 5 paragraphs, 2,033 chars, 1,396 Hebrew chars, ratio 0.9313, hero.
-- TGspot: RSS HTTP 200, ten fresh items. Direct article HTTP 403 then healthy
-  Jina extraction: 5 paragraphs, 1,423 chars, 1,112 Hebrew chars, ratio 0.9823,
-  hero.
-- The Verifier: RSS HTTP 200, ten fresh items. Direct extraction: 12
-  paragraphs, 1,996 chars, 1,520 Hebrew chars, ratio 0.9596, hero.
-- N12: authoritative TECH12 direct response was HTTP 200 but detected as a
-  Radware challenge; its already-configured Jina discovery fallback produced
-  18 trusted rows. The supplementary official filtered RSS produced 14 fresh
-  technology matches. Direct representative extraction: 11 paragraphs, 4,141
-  chars, 3,205 Hebrew chars, ratio 0.9576, hero.
+Tests cover one and several new feeds, a genuine established-feed item in the
+same run, no historical posted/deferred rows, restart, stable feed identity,
+isolated Geektime generation migration, same-publisher canonical overlap,
+mobile/tracking/AMP variants, and cross-publisher independence.
 
-## Files changed in primary repository
+## Files changed in PR #76
 
-- New:
-  - `.github/workflows/source-health-techfeedil.yml`
-  - `core/source_health.py`
-  - `scripts/commit_source_health_state.sh`
-  - `state/techfeedil-health.json`
-  - `tests/test_source_health.py`
-- Updated:
-  - `.github/workflows/ci.yml`
-  - `.github/workflows/health.yml`
-  - `README.md`
-  - `core/article_parser.py`
-  - `core/main.py`
-  - `handoffs/CONTEXT.md`
-  - `sites/techfeedil/config.yaml`
-  - `tests/test_techfeedil.py`
+Added:
 
-No production publishing state, Telegraph token, actual credential/session,
-tracked error log, downloaded HTML, generated third-party article body, or
-sensitive state was committed.
+- `docs/techfeedil-wave2-source-validation.md`
+- `tests/test_techfeedil_wave2.py`
+
+Updated:
+
+- `.github/workflows/ci.yml`
+- `README.md`
+- `core/article_parser.py`
+- `core/feeds.py`
+- `core/main.py`
+- `core/source_health.py`
+- `core/url_utils.py`
+- `handoffs/CONTEXT.md`
+- `sites/techfeedil/config.yaml`
+- `sites/techfeedil/parser.py`
+- `sites/techfeedil/tags.py`
+- `tests/test_source_health.py`
 
 ## Exact validation results
 
-- `.venv/bin/python -m tests.test_message_format` — 185 PASS, 0 FAIL; final
+- `.venv/bin/python -m tests.test_message_format` — 185 checks passed; final
   line `All tests passed.`
 - `.venv/bin/python -m unittest tests.test_techfeedil -v` — 21 tests, `OK`.
-- `.venv/bin/python -m unittest tests.test_source_health -v` — 34 tests, `OK`.
+- `.venv/bin/python -m unittest tests.test_source_health -v` — 35 tests,
+  `OK`.
+- `.venv/bin/python -m unittest tests.test_techfeedil_wave2 -v` — 17 tests,
+  `OK`.
 - `.venv/bin/python -m compileall -q core sites tests tools` — passed.
-- PyYAML `safe_load` of all 15 `.github/workflows/*.yml` files — passed.
+- PyYAML `safe_load` of all 15 workflow files — passed.
 - `bash -n scripts/*.sh` — passed.
 - `git diff --check` — passed.
-- Sensitive-value pattern scan across all 13 changed files — passed.
-- Two independent read-only release/runtime audits reported no remaining
-  release blocker, no publication path, and no token output/persistence path.
+- Staged scan of all 2,954 added lines found zero bot-token, API-key,
+  GitHub-token, private-key, Telethon-session, or suspicious credential-value
+  patterns.
+- Independent final code audit found no release blocker and verified exact 14
+  feeds / two active HWzone feeds.
 
-## Required manual setup / exact next steps
+## Secrets and post-merge procedure
 
-1. Review PR #75 and let CI complete. Do not merge directly from an agent
-   session.
-2. Confirm existing GitHub Actions secrets exactly:
-   - `TECH_TELEGRAM_BOT_TOKEN`
-   - `TECH_TELEGRAM_CHANNEL`
-   - `TELEGRAM_OWNER_ID`
-3. Confirm the token resolves to `@Tech_Feed_IL_Bot`, the bot is an
-   administrator of `@Tech_Feed_IL` with Post Messages permission, and the
-   owner has sent `/start` to the bot.
-4. Merge through the repository's normal reviewed PR flow.
-5. From the default branch, manually dispatch **Source Health — Tech Feed IL**
-   once with `force_deep=true`. It will not publish. Confirm the owner digest,
-   `GITHUB_STEP_SUMMARY`, job runtime, and the isolated health-sidecar commit.
-6. Leave subsequent source health on its daily schedule. Do not enable a new
-   source based only on this monitoring PR.
+No new GitHub secret is introduced. Existing requirements remain exactly:
 
-## Known limitations / risks
+- `TECH_TELEGRAM_BOT_TOKEN`
+- `TECH_TELEGRAM_CHANNEL`
+- `TELEGRAM_OWNER_ID`
 
-- Geektime's configured official technology RSS was materially stale during
-  both live checks. Investigate publisher cadence or a verified first-party
-  endpoint change in a separate PR; do not silently weaken the threshold or add
-  a replacement source here.
-- N12 category discovery currently depends on its already-configured Jina
-  fallback after a Radware HTTP-200 challenge. TGspot article extraction may
-  depend on Jina after direct Cloudflare HTTP 403.
-- Per-source terminal-failure attribution begins after this feature deploys.
-  Older aggregate `stats.permanent_fail` history cannot be reconstructed.
-- Actual GitHub-billed job duration includes checkout/setup/dependency time;
-  validate the projected monthly range from the first merged runs.
-- Repository documentation says workflows are synced from
-  `funzi7/automation-core`. Mirror/approve this dedicated workflow in that
-  source of truth if sync automation would otherwise overwrite PR #75's
-  workflow changes.
-- The Tech Telegraph result remains `not_initialized` until the first real
-  publication creates the tenant-specific token. After initialization,
-  `invalid_telegraph_token` is a shared critical failure.
+Never print or commit their values. The bot must remain administrator of
+`@Tech_Feed_IL` with Post Messages permission, and the owner must have started
+the bot for DMs.
+
+After PR #76 is reviewed and merged through the normal repository process:
+
+1. **Do not run Backfill.**
+2. From `main`, manually run **Poll & Post — Tech Feed IL** once. This creates
+   six new/replacement baselines: Geektime generation 2, PC, Walla, two
+   HWzone feeds, and The Gadget Reviews.
+3. Confirm no historical wave-2 article was posted or entered
+   `deferred_items`, existing baselines did not reset, and only the intended
+   baseline records changed.
+4. Manually run **Source Health — Tech Feed IL** with `force_deep`.
+5. Review the one owner digest, all nine publishers, Telegram bot/channel
+   permissions, committed body-free health state, runtime/request metrics, and
+   `GITHUB_STEP_SUMMARY` projection.
+6. Wait for genuinely new articles to complete the normal 30-minute defer
+   lifecycle.
+
+## Known limitations / follow-up watchlist
+
+- TGspot direct article fetching currently receives Cloudflare 403 and succeeds
+  through Jina. This is degraded, not failed.
+- N12 TECH12 category discovery currently receives a Radware shell and succeeds
+  through its existing Jina category fallback. This is degraded, not failed.
+- HWzone depends on its guarded official REST representation while normal
+  HTML/Jina is challenged. Monitor endpoint/schema/slug parity.
+- The Gadget Reviews current Jina render omits an independent H1 and therefore
+  fails closed if direct extraction also fails.
+- PC produced one transient 15-second feed timeout among repeated successful
+  responses; normal polling retry and the two-consecutive-health-alert policy
+  remain appropriate.
+- Reconsider the official HWzone Gadgets feed only if it resumes current
+  publication. Do not widen freshness thresholds or substitute an unapproved
+  third-party source.
+- Do not interpret pre-activation missing baselines/production visibility as a
+  source extraction failure. Follow the exact activation sequence above.
