@@ -9,9 +9,11 @@ Date: 2026-07-19
   `1c94032b34a8c85c5547b4a5bee328bb50ae2f97`.
 - Feature branch: `feat/techfeedil-mvp`.
 - Final commit and branch HEAD:
-  `8b16b2554b92f2cca18b8245bb14feb76844fb77` (`8b16b25`).
-- Push: new branch pushed successfully to
-  `origin/feat/techfeedil-mvp`; upstream tracking is configured.
+  `6f3c600eba54416997b6d837d52ceb1f60e6849a` (`6f3c600`).
+- Push: branch pushed successfully to `origin/feat/techfeedil-mvp`; upstream
+  tracking is configured. Before the final push it was rebased onto three
+  intervening TheMarker state-only `origin/main` commits (latest `cf64521`),
+  then updated with an explicit force-with-lease and both suites were rerun.
 - `main` was not merged or modified by this task.
 
 ## Delivered
