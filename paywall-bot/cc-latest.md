@@ -1,74 +1,79 @@
 # paywall-bot — latest Claude Code session state
 
-Updated: 2026-07-20 (UTC)
+Updated: 2026-07-20 (UTC), second round
 
 ## What just happened
 
-Two-part task after PR #79 merged (main `a21f49c`):
+PR #80 was STRENGTHENED IN PLACE (same branch
+`fix/techfeedil-theverifier-content-rtl`, do not merge without review) —
+new production screenshots showed the Verifier defect classes on OTHER
+publishers too. Head is now
+`44a0b81abc2468af21e16656cd7c647cb632d123` (2 commits, 11 files, no
+`state/` files). https://github.com/funzi7/paywall-bot/pull/80
 
-1. **Android/Kimi operational Telegraph repair — STILL BLOCKED, nothing
-   applied.** Re-verified fresh this session: the sandbox egress proxy
-   answers 403 to CONNECT for `api.telegra.ph` (and tgspot/theverifier/
-   `api.telegram.org`), and no Telethon credentials exist in the
-   environment (`TELEGRAM_API_ID`/`API_HASH`/session absent). The page
-   doctor is proven correct up to the network boundary; the owner must run
-   the documented diagnose → dry-run → `--apply` → re-diagnose sequence
-   from an egress-capable machine (commands in
-   `docs/techfeedil-attribution-health.md`). 0 Telegraph pages
-   created/edited, 0 Telegram operations, 0 state changes.
+The fix is now VERIFIED ACROSS THE SHARED MULTI-PUBLISHER Tech Feed IL
+pipeline: `tests/test_techfeedil_multisource.py` parses one contaminated
+fixture with the source metadata of all nine publishers (Gadgety,
+Geektime, TGspot, The Verifier, N12, אנשים ומחשבים, וואלה TECH, HWzone,
+The Gadget Reviews) and asserts byte-identical cleaned output — no
+per-parser policy copies.
 
-2. **PR #80 opened (do not merge without review): The Verifier content +
-   RTL fix.** Branch `fix/techfeedil-theverifier-content-rtl` from
-   `a21f49c`, head `227e567f42a73ab44f7f41133ffd82ddc33584c4`, non-draft
-   to main, 10 files, no `state/` files.
-   https://github.com/funzi7/paywall-bot/pull/80
+## Round-2 additions (on top of the round-1 Verifier fix)
 
-## PR #80 contents (all tenant-gated; TheMarker byte-identical)
+- `is_source_metadata_line` — standalone publisher chrome rows
+  ("20 Jul 2026, 13:09 by פיד טכנולוגיה", "July 20, 2026 by …", ISO
+  date-times, Hebrew dates, "20.07.2026 | 13:09", time-only,
+  published/updated labels). Rejected as subtitle / body / cocoon /
+  excerpt / caption / heading / flash body; tags covered transitively.
+  Anchored full-line — date-discussing sentences never match.
+- Layered unsupported-script policy (letters only; emoji log-only):
+  residue in Hebrew prose repaired → foreign-dominant paragraph dropped
+  (all-foreign body fails `is_valid` → item DEFERS) → optional subtitle
+  repaired-or-omitted at the publish boundary (no longer aborts) →
+  cocoon paragraphs with script/control/vendor findings dropped on BOTH
+  strict and non-strict validator paths (strict Latin-token gate used to
+  pass CJK letters through) → mandatory-field letter at the exact final
+  nodes aborts (defers), proven with cleaners monkey-patched out.
+- Positive preservation pins: OpenAI, Apple, Google, Android, Gemini,
+  NotebookLM, Redmi Note 17 Pro, Xiaomi, iOS, DMA, AI, API,
+  fintech junction 2026, 256GB/120Hz/4K survive byte-identical.
+- Force-RTL verified over the FULL final surface: serialized-node walk
+  (subtitle/byline/body/headings/figcaptions/cocoon/footer all RLM-led,
+  Latin-terminal pinned, no untrusted marks) + every non-empty Telegram
+  line incl. mixed hashtag line (bare-link lines unmarked by design).
+- Fixtures: Geektime-style jina (leaked metadata row as subtitle-position
+  AND body row, vendor label + clean summary that SURVIVES the gate,
+  legit OpenAI/AI/Upwind, Thai fragment), N12/PC-style HTML (CJK
+  repaired, Apple/Google kept), clean mixed review (no false rejection).
 
-Incident: Verifier article published pre-#79 shipped "3 דקות קריאה" as
-excerpt + first paragraph + fingerprint suffix (committed fingerprint
-`…openai3דקותקריאה` is the smoking gun), raw `Image N:` caption prefixes,
-caption-as-paragraph duplicates, hero repeated inline as a `-768x432`
-variant, LTR-leading blocks left-aligned, left-aligned native author
-strip, visible Cocoon residue.
+## Round-1 contents (unchanged)
 
-- `is_reading_time_label` shared classifier (standalone full-line he/en)
-  → `_is_noise_text`, subtitle candidates, heading refinement,
-  `_post_flash`.
-- `select_article_excerpt` replaces both raw `paragraphs[0]` sites; Tech
-  `prefer_subtitle_excerpt` subtitle→body→summary(gated); TheMarker
-  legacy order regression-pinned; `_is_substantive_excerpt` rejects
-  metadata shapes; nothing substantive → excerpt omitted.
-- `rich_description_candidates`: visible subtitle → og:description →
-  meta → JSON-LD (`_jsonld_article_description`).
-- `telegraph.force_rtl_blocks` (Tech): leading RLM every Telegraph block
-  + Telegram line, trailing RLM on Latin-ending blocks; untrusted source
-  bidi controls stripped first. 3 tech assertions updated deliberately.
-- `clean_image_caption`/`caption_identity` (prefix strip, figure dedup,
-  caption-as-paragraph removal), `image_asset_identity` (scheme/www/
-  query/WP `-NxN`/`-scaled`) for hero/inline dedup.
-- Jina vendor-label block opens a ONE-block summary region →
-  `cocoon_paragraphs` → #79 strict gate; check runs BEFORE the
-  artifact/metadata/emptiness filters (pure label block is emptied by
-  `_strip_cocoon_vendor_label` and would otherwise never open it).
-- Native "פיד טכנולוגיה" strip = Telegraph's own author header from
-  `author_name`/`author_url` — NOT our node, NOT claimed fixed;
-  `telegraph.author_name_rlm` (default false) is the controlled RLM
-  experiment, enable only after live verification.
-- NEW `tests/test_techfeedil_verifier.py` (13, in ci.yml) with the exact
-  sanitized Verifier jina fixture end-to-end. Full matrix green:
-  185 message-format checks + 21+17+50+42+13+15+13 unittest, compileall,
-  workflow YAML, `bash -n`, `git diff --check`, state-clean gate.
+Reading-time classifier; `select_article_excerpt` (Tech
+subtitle→body→summary; TheMarker legacy order pinned); Verifier
+description priority (visible → og → meta → JSON-LD);
+`telegraph.force_rtl_blocks` + untrusted-bidi strip; caption
+normalization/dedup (`clean_image_caption`/`caption_identity`);
+hero/inline dedup (`image_asset_identity`); jina vendor-label one-block
+summary routing before the artifact/metadata/emptiness filters; native
+"פיד טכנולוגיה" strip documented as Telegraph's own author header
+(`author_name_rlm` experiment default OFF, needs live verification —
+NOT claimed fixed); `tests/test_techfeedil_verifier.py` (13).
 
-## Post-merge (owner)
+## Test matrix (all green locally, all in ci.yml)
 
-1. Merge PR #80 through review. Do NOT run Backfill.
-2. From an egress-capable machine: run the page-doctor sequence for the
-   Verifier page (and the still-pending Android/Kimi repairs from the
-   #79 procedure) — diagnose, dry-run repair, `--apply`, re-diagnose.
-3. Watch the next Tech poll: excerpts must never be reading-time; blocks
-   right-aligned; `author_name_rlm` stays off until a live page verifies
-   the experiment.
+185 message-format checks + unittest 21 (tech) + 17 (wave2) + 50
+(source_health) + 42 (quality) + 13 (hotfix) + 15 (cocoon_iv) + 13
+(verifier) + 12 (multisource); compileall, workflow YAML, `bash -n`,
+`git diff --check`, `git diff --exit-code -- state/`.
+
+## Still blocked (operational, owner must run)
+
+Android/Kimi/Verifier Telegraph page repairs: sandbox egress denies
+CONNECT to api.telegra.ph / publishers / api.telegram.org and no
+Telethon creds exist. Nothing applied from here (0 pages, 0 Telegram
+ops, 0 state changes). Owner: run the doctor sequence in
+`docs/techfeedil-attribution-health.md` post-merge (diagnose → dry-run →
+--apply → re-diagnose).
 
 ## Standing rules (unchanged)
 
@@ -76,10 +81,9 @@ Work only in funzi7/paywall-bot (+ this memory repo). Never write the
 owner's personal name. Commits as funzi7
 (207505227+funzi7@users.noreply.github.com). Never print secrets. No
 Backfill; no publishing during development; never mutate tracked
-`state/` files (CI enforces `git diff --exit-code -- state/`). Verify
-PRs via API with full 40-char SHAs. gh CLI unavailable — use GitHub MCP
-tools. Test isolation: every suite re-points ERROR_LOG to a tempdir via
-the `_activate` pattern.
+`state/` files (CI enforces). Verify PRs via API with full 40-char SHAs.
+gh CLI unavailable — use GitHub MCP tools. Test isolation: every suite
+re-points ERROR_LOG to a tempdir via the `_activate` pattern.
 
 ## Earlier history
 
