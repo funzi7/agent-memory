@@ -1,132 +1,88 @@
-# paywall-bot — Cocoon ASCII integrity + Instant-View verification handoff
+# paywall-bot — latest Claude Code session state
 
-Date: 2026-07-19 UTC
+Updated: 2026-07-20 (UTC)
 
-Current authoritative agent handoff (supersedes the PR #78 stale/promo
-handoff; that record stays in `handoffs/CONTEXT.md` §11b). This task's
-record: CONTEXT §11c + the "Cocoon ASCII corruption + missing Instant View"
-section of `docs/techfeedil-attribution-health.md` (incl. the exact
-post-merge repair procedure).
+## What just happened
 
-## Git and pull request
+Two-part task after PR #79 merged (main `a21f49c`):
 
-- Primary repository: `funzi7/paywall-bot`.
-- Authoritative starting `origin/main`:
-  `3f70b53c1b396a95d58227ff54161f4f13dfd35d` (PR #78 merged at `a9e1610`,
-  publishing poll state `8d900d9`, later TheMarker state commit).
-- Branch: `fix/techfeedil-cocoon-instant-view`.
-- Commit / local HEAD / remote HEAD / PR head (verified equal):
-  `3ee97d1e7d0782990a43fe0b46cf2ec9411d8dc1`.
-- Ready, non-draft PR: **#79**,
-  `https://github.com/funzi7/paywall-bot/pull/79` — verified via API: open,
-  targets `main`, `draft: false`, head SHA as above, 12 files, NO file under
-  state/. NOT merged. No Backfill; no publish; no Telegraph create/edit; no
-  channel post or owner DM during development.
+1. **Android/Kimi operational Telegraph repair — STILL BLOCKED, nothing
+   applied.** Re-verified fresh this session: the sandbox egress proxy
+   answers 403 to CONNECT for `api.telegra.ph` (and tgspot/theverifier/
+   `api.telegram.org`), and no Telethon credentials exist in the
+   environment (`TELEGRAM_API_ID`/`API_HASH`/session absent). The page
+   doctor is proven correct up to the network boundary; the owner must run
+   the documented diagnose → dry-run → `--apply` → re-diagnose sequence
+   from an egress-capable machine (commands in
+   `docs/techfeedil-attribution-health.md`). 0 Telegraph pages
+   created/edited, 0 Telegram operations, 0 state changes.
 
-## Production evidence (poll run 29704212502, ~21:22 UTC, from logs + state 8d900d9)
+2. **PR #80 opened (do not merge without review): The Verifier content +
+   RTL fix.** Branch `fix/techfeedil-theverifier-content-rtl` from
+   `a21f49c`, head `227e567f42a73ab44f7f41133ffd82ddc33584c4`, non-draft
+   to main, 10 files, no `state/` files.
+   https://github.com/funzi7/paywall-bot/pull/80
 
-- Both TGspot articles published via `direct`, `foreign=0`:
-  - **Android backup**: page's AI-summary area visibly shipped `b6b`,
-    `google-`, `awy` + raw `Cocoon AI Summary` label with corrupted
-    word/RTL boundaries. POST-RECORD `cocoon=0` — widget text rode the
-    extracted content (body fingerprint `גוגלgoogle…` shows glued Latin);
-    all tokens are printable ASCII → invisible to the Unicode-only scan
-    (that is WHY it was insufficient: it whitelists all printable ASCII).
-  - **Kimi**: preview card, no ⚡ Instant View; Android post from the SAME
-    run has IV. Concrete structural diffs: `images=1` vs `0`, `---` run in
-    the Telegraph path (title's " – "). IV root cause = documented
-    Telegram-side uncertainty (IV generation is async server-side;
-    sandbox cannot reach telegra.ph/MTProto) — resolved operationally via
-    the new verification + doctor cached-page check, not guessed.
-- The Verifier article sits deferred; Poll workflow intentionally disabled
-  until this merges.
+## PR #80 contents (all tenant-gated; TheMarker byte-identical)
 
-## The fixes
+Incident: Verifier article published pre-#79 shipped "3 דקות קריאה" as
+excerpt + first paragraph + fingerprint suffix (committed fingerprint
+`…openai3דקותקריאה` is the smoking gun), raw `Image N:` caption prefixes,
+caption-as-paragraph duplicates, hero repeated inline as a `-768x432`
+variant, LTR-leading blocks left-aligned, left-aligned native author
+strip, visible Cocoon residue.
 
-- **Cocoon token-integrity gate** —
-  `article_parser.sanitize_cocoon_paragraphs`, tenant opt-in
-  `ai_summary.strict_token_gate` (Tech on, TheMarker off). Every
-  Latin/alnum token needs evidence: `COCOON_LATIN_ALLOWLIST` (AI/API/SMS/
-  GB/MB/…), `COCOON_BRAND_CANONICAL` (Google/Android/OpenAI/ChatGPT/Kimi/
-  Moonshot/… with safe lowercase→canonical normalization), article-context
-  tokens (title/subtitle/body), or valid shape (TitleCase brand, `K3`
-  model, `15GB` unit, 4–5-letter acronym). Rejected CLASSES: 1–3-letter
-  lowercase fragments (`awy`), alnum garbage (`b6b`), dangling hyphens
-  (`google-`), Latin glued to Hebrew (prefix forms `ל-15GB`/`ב-SMS`
-  valid), punctuation runs, vendor residue. Unexplained token → drop
-  paragraph; dropped ≥ kept → omit ENTIRE block. Fail closed: missing
-  summary acceptable, corrupted one is not. `COCOON-GATE` bounded logs.
-- **Wide vendor-label matcher** — `vendor_label_present` /
-  `strip_vendor_label_wide`: per-letter with optional separators (space,
-  zero-width, bidi, soft hyphen, dash, underscore, dot, glued) — catches
-  casing/HTML-nesting/obfuscation variants; label never enters
-  `cocoon_paragraphs`; Tech caption `🤖 סיכום AI של Tech Feed IL` renders
-  exactly once iff a valid block renders (standalone strong-node count, so
-  a label-normalized subtitle isn't a false duplicate); serialized-node
-  assertions prove absence.
-- **Final publish-boundary validator** —
-  `telegraph_pub.validate_publish_fields` + `_serialized_page_violations`
-  immediately before createPage/editPage, per-field: vendor label, control
-  chars, unsupported-script LETTERS (emoji/symbols remain log-only),
-  strict cocoon gate. Cocoon-only findings → drop block, rebuild once,
-  revalidate; mandatory-field findings → DO NOT publish (defers).
-  `PUBLISH-VALIDATE url= field= reason= token= codepoints= context=`
-  bounded diagnostics. `publish_article(edit_path=…)` → `editPage`
-  (repair only; never duplicate page, never a Telegram post).
-- **Instant-View verification** — opt-in
-  `features.instant_view_verification` + `instant_view:` schedule
-  (window 6h, recheck ≥20min, ≤5 checks/run, max age 48h). Bounded
-  body-free `state["publication_ledger"]` (cap 100: identity, Telegraph
-  URL, message id via new `tg_bot.LAST_MESSAGE_ID`, timestamps, iv_status,
-  alerted). `_verify_instant_view_ledger` in run_poll rechecks read-only
-  via new `telethon_client.message_webpage_status` (`cached_page` ⇒
-  instant_view; else preview_no_iv / preview_pending /
-  inspection_unavailable). One owner alert per publication after the
-  window; never delete/repost/duplicate.
-- **Page doctor** — `tools/telegraph_page_doctor.py`: read-only diagnose
-  (`--url` / `--message-id`: validity, node summary, contamination
-  findings, cached-page status); repair dry-run by default, `--apply` +
-  exact path + `--source-url` required, re-parses with production code,
-  full validator, `editPage` only, refuses non-owned pages, no
-  credentials/full-body logging.
+- `is_reading_time_label` shared classifier (standalone full-line he/en)
+  → `_is_noise_text`, subtitle candidates, heading refinement,
+  `_post_flash`.
+- `select_article_excerpt` replaces both raw `paragraphs[0]` sites; Tech
+  `prefer_subtitle_excerpt` subtitle→body→summary(gated); TheMarker
+  legacy order regression-pinned; `_is_substantive_excerpt` rejects
+  metadata shapes; nothing substantive → excerpt omitted.
+- `rich_description_candidates`: visible subtitle → og:description →
+  meta → JSON-LD (`_jsonld_article_description`).
+- `telegraph.force_rtl_blocks` (Tech): leading RLM every Telegraph block
+  + Telegram line, trailing RLM on Latin-ending blocks; untrusted source
+  bidi controls stripped first. 3 tech assertions updated deliberately.
+- `clean_image_caption`/`caption_identity` (prefix strip, figure dedup,
+  caption-as-paragraph removal), `image_asset_identity` (scheme/www/
+  query/WP `-NxN`/`-scaled`) for hero/inline dedup.
+- Jina vendor-label block opens a ONE-block summary region →
+  `cocoon_paragraphs` → #79 strict gate; check runs BEFORE the
+  artifact/metadata/emptiness filters (pure label block is emptied by
+  `_strip_cocoon_vendor_label` and would otherwise never open it).
+- Native "פיד טכנולוגיה" strip = Telegraph's own author header from
+  `author_name`/`author_url` — NOT our node, NOT claimed fixed;
+  `telegraph.author_name_rlm` (default false) is the controlled RLM
+  experiment, enable only after live verification.
+- NEW `tests/test_techfeedil_verifier.py` (13, in ci.yml) with the exact
+  sanitized Verifier jina fixture end-to-end. Full matrix green:
+  185 message-format checks + 21+17+50+42+13+15+13 unittest, compileall,
+  workflow YAML, `bash -n`, `git diff --check`, state-clean gate.
 
-## No-publish replay (J)
+## Post-merge (owner)
 
-State copy of `8d900d9` + sanitized Android fixture through the real
-parser: raw widget summary extracted (2 paragraphs + label) → gate omits
-the block (`vendor_label_only`, `alnum_garbage`,
-`block_incoherent_after_drops`) → final nodes `{figure, p×5, strong, hr,
-a}` carry NONE of the four leaked tokens, no caption without a block,
-body/hero/author/footer/Telegram message intact; state copy untouched;
-zero Telegraph/Telegram/DM calls. Kimi vs Android structural comparison
-recorded from production data.
+1. Merge PR #80 through review. Do NOT run Backfill.
+2. From an egress-capable machine: run the page-doctor sequence for the
+   Verifier page (and the still-pending Android/Kimi repairs from the
+   #79 procedure) — diagnose, dry-run repair, `--apply`, re-diagnose.
+3. Watch the next Tech poll: excerpts must never be reading-time; blocks
+   right-aligned; `author_name_rlm` stays off until a live page verifies
+   the experiment.
 
-## Validation
+## Standing rules (unchanged)
 
-- NEW `tests/test_techfeedil_cocoon_iv.py` — **15 OK** (wired into ci.yml):
-  exact Android fixture (four tokens absent from final nodes; valid
-  Google/Android/Google One/15GB/40MB preserved; caption exactly once when
-  valid; block omitted when unrepairable; article/hero/author/footer/
-  message valid), token-gate matrix, vendor-label variants (zero-width/
-  bidi/standalone/prefixed), mixed/fully-contaminated blocks, TheMarker
-  unchanged (b6b still ships there — established behavior), validator
-  abort vs repair (dash-label title aborts; control char aborts; foreign
-  letters repaired upstream; emoji passes), edit_path→editPage, IV ledger
-  transitions/single-alert/bounds/age-out, doctor helpers, tracked-state
-  guard, hard no-network guards.
-- Full matrix green: `tests.test_message_format` 185 checks; unittest
-  **158** (techfeedil 21, wave2 17, source_health 50, quality 42, hotfix
-  13, cocoon_iv 15); compileall; 16-workflow YAML parse; `bash -n
-  scripts/*.sh`; `git diff --check`; `git diff --exit-code -- state/`.
+Work only in funzi7/paywall-bot (+ this memory repo). Never write the
+owner's personal name. Commits as funzi7
+(207505227+funzi7@users.noreply.github.com). Never print secrets. No
+Backfill; no publishing during development; never mutate tracked
+`state/` files (CI enforces `git diff --exit-code -- state/`). Verify
+PRs via API with full 40-char SHAs. gh CLI unavailable — use GitHub MCP
+tools. Test isolation: every suite re-points ERROR_LOG to a tempdir via
+the `_activate` pattern.
 
-## Post-merge (owner) — exact steps in docs/techfeedil-attribution-health.md
+## Earlier history
 
-1. Merge PR #79 (normal review). Re-enable the Poll workflow afterwards.
-2. Repair the published Android page with the page doctor (dry-run, then
-   `--apply`): same URL, corrupted summary omitted, no repost needed.
-3. Recheck the Kimi message: doctor `--message-id` → cached-page status;
-   `preview_no_iv` after 24–48h = Telegram never generated IV; there is no
-   safe forced-refresh — the ledger alerts and records instead.
-4. The Verifier deferred article publishes through the validated path;
-   verify the next posts' POST-RECORD + absence of PUBLISH-VALIDATE
-   warnings, and `publication_ledger` IV statuses.
+PR #72 (wave 2), PR #77 (attribution/byline/health), PR #78 (stale/promo
+queue hotfix + state-hygiene gate), PR #79 (Cocoon ASCII gate, publish
+validator, IV ledger, page doctor) — all merged by owner.
