@@ -1,84 +1,72 @@
-# paywall-bot — latest Claude Code session state
+# paywall-bot — latest Claude Code session (2026-07-21)
 
-Updated: 2026-07-21 (UTC), content-boundaries round
+## Task: PR #85 — live-render content integrity (post-#84 regressions)
 
-## What just happened
+- **Branch**: `fix/techfeedil-live-render-content-integrity` from origin/main
+  `b237428` (contains #84 merge `c36334e`). PR #85 (non-draft → main, NOT
+  merged): https://github.com/funzi7/paywall-bot/pull/85
+- **HEAD**: `f8eac002d004a638ad50212c85bd5736e7e4c0f8` (local = remote = PR
+  head, verified via API). Two commits: product code `f08f5fc`, tests+docs
+  `f8eac00`.
 
-PR #83 merged (main `173fad1`). The 11:47Z poll (run 29827479955,
-checkout `1234ebbd9` = #83 merge, contains #82) produced two content
-incidents, fixed in **PR #84 (open, do not merge without review)**:
-branch `fix/techfeedil-content-boundaries-links-media-order` from
-`173fad1`, head `99489bba9833d41d416327e1a86badb2255f8cf3`, non-draft,
-1 commit, 10 files, no `state/` files.
-https://github.com/funzi7/paywall-bot/pull/84
+## What changed (evidence: poll run 29845436185, direct-HTML route)
 
-## Proven chronology (no false regression claims)
+- **RTL (A)**: RLM+RLI…PDI+RLM renderer-owned isolates on every TG text line
+  (title also inside the bold entity, flash 🔸 line too) and every Telegraph
+  block for force-RTL tenants. Trusted marks = {LRM, RLM, RLI, PDI}; shared
+  `_DIRECTION_MARKS_STRIP` translate table keeps `_final_tree_sections` /
+  caption counters / `_final_tree_violations` mark-insensitive. TheMarker
+  unchanged (no marks).
+- **Message gate (B)**: `article_parser.validate_channel_message` (vendor
+  label / `replacement_character:N` / `unsupported_script:U+XXXX`) runs on
+  the EXACT outgoing message in `_post_article` (strict-gate tenants);
+  findings → MSG-VALIDATE log + no send (defer).
+- **Social embeds (D)**: `features.social_embed_handling` (techfeedil).
+  Status URLs from DOM `a[href]`/`blockquote[cite]` + Jina markdown;
+  `_finalize` replaces the tweet-dump run (seeds: pic.twitter.com/status
+  URL; neighbors: meta/mostly-latin) with ONE embed dict; `_build_nodes`
+  renders blockquote + `לצפייה בפוסט המקורי ב-X` anchor; publish_article
+  re-validates embed text. No URL → dump omitted.
+- **CTA (E)**: `_extract_inline_cta_links` covers headings/buttons/adjacent
+  anchors; lexicon + לפרטים נוספים והרשמה / לפרטים והרשמה / להרשמה לתוכנית;
+  heading nodes render recovered anchors via
+  `_paragraph_children_with_links`; inline_links filter accepts heading
+  texts as anchors. **KEY BUG FOUND**: main.py's two publish call sites
+  never passed `inline_links` — #84 extracted links but production never
+  rendered them. Both now pass `inline_links` + `social_embeds`.
+- **Sections (F)**: techfeedil `prepare_html` converts `<table>` rows to
+  `• key: val | val` bullet paragraphs (before excludes); `_finalize`
+  section-integrity pass keeps a heading only if its own section has
+  paragraphs/images/embeds (footer never counts; CTA-with-link counts;
+  orphan CTA heading dropped). The old blanket tail-heading drop was
+  REMOVED (subsumed — it was killing tail-anchored CTA headings).
+- **Tags (G)**: `build_article_message` re-resolves `source_tag_for` and
+  enforces it last/once; tags.py `_apple_context_ok` (product token or ≥3
+  standalone Hebrew אפל) gates the Apple company tag.
 
-Both pages are POST-#82 (run checkout contains the recursive guard).
-The Verifier 80141 published via JINA (direct 403) with cocoon=0 and
-foreign=0 — the guard passed, so the screenshot's "Cocoon AI Summary"
-is pixels inside the leaked related/promo IMAGE, not a text node; #82
-was NOT bypassed. Geektime item was direct HTML; its CTA anchor was
-flattened by text-only extraction.
+## Tests / verification
 
-## Fixes in PR #84
+- NEW `tests/test_techfeedil_live_render.py` (21) — 7 sanitized fixtures
+  (ALUTech CTA+tags, WSC isolates, Rapyd repair-or-defer adversarial,
+  pc U+FFFD/malformed, Suunto subtitle/cocoon, Samsung X-embed ± URL,
+  Garmin table ± fallback) + adversarial cleaner-bypass gates + TheMarker
+  guard + state-digest guard. Wired into ci.yml.
+- 9 existing pins updated for isolates (test_techfeedil test_12/test_20;
+  rtl_source_tag title/excerpt/mixed/pc; multisource trailing PDI+RLM pin
+  and RLI/PDI removed from forbidden list; content_bounds/walla caption
+  counts mark-insensitive).
+- Full matrix 253 green; compileall, 15 workflow YAMLs parse, bash -n,
+  `git diff --check`, `git diff --exit-code -- state/` all pass.
 
-- **Editorial CTA links** (`features.inline_cta_links`, Tech only, no
-  hardcoded URLs): lexicon-matched anchors inside body <p> only,
-  validated http/https source destination, rendered as a real clickable
-  <a> anchored by the link TEXT (filtering can never re-point it); jina
-  [text](url) equivalents; dangling "הנה פרטי המשרה" with no recovered
-  link is REMOVED by tail integrity; materially incomplete → defer.
-- **Verifier editorial boundary**: SOURCE_EXCLUDES["theverifier"]
-  structural ancestry + hard `_truncate_body_at_heading` stop (direct
-  route); promo/related phrases (מחברים אתכם לטכנולוגיה, המקור
-  המקצועי…, פורסמו לאחרונה, …) became jina END MARKERS (the production
-  route) — stop text AND image capture, so slogan/related card/related
-  thumbnail never parse.
-- **Ordered media/caption model**: `_finalize` REMAPS every image/
-  heading anchor through a raw→final surviving-prefix map at every
-  filtering stage (was: clamp → shift bug); captions stay attached to
-  their exact figure; detached "תמונה:" caption paragraphs dropped;
-  trailing orphan headings (leaked card titles) dropped.
-- **Cocoon visual RTL**: force-RTL tenants render summary paragraphs as
-  `aside` blocks with RLM directly on text (Telegraph resolves nested
-  p>em unreliably for mixed direction; italics traded for correct RTL);
-  guard classifies aside=cocoon (drop-block policy bypass-proven);
-  TheMarker keeps p>em (pinned).
-- **Observability**: bounded body-free `DIAG CONTENT-BOUNDS` line
-  (ordered counts, last-3 kinds + 40-char prefixes, dropped
-  CTA/detached-caption/trailing-heading counts).
+## Operational notes
 
-## Test matrix (all green locally, all in ci.yml)
-
-185 message-format checks + unittest 21+17+50+42+13+15+13+12+11+11+17 +
-NEW `tests/test_techfeedil_content_bounds.py` (10); compileall, workflow
-YAML, `bash -n`, `git diff --check`, state-clean gate. One aside-shape
-pin updated deliberately in rtl_source_tag.
-
-## Post-merge (owner)
-
-1. **Keep Poll & Post — Tech Feed IL DISABLED until PR #84 merges**;
-   Source Health may stay enabled. Re-enable the poll after merge.
-2. Watch the next poll: Geektime-style CTAs clickable; Verifier pages
-   end at the editorial boundary; Cocoon renders as a right-oriented
-   aside block.
-3. Pending owner-run page-doctor repairs (egress-capable machine):
-   the two new pages (Geektime מרעננים…, Verifier יוצרת ChatGPT…), the
-   Apple-Watch page, and the earlier Android/Kimi/Verifier pages —
-   commands in docs/techfeedil-attribution-health.md.
-4. TGspot live 415 curl-matrix diagnosis still pending (PR #83 doc).
-
-## Standing rules (unchanged)
-
-Work only in funzi7/paywall-bot (+ this memory repo). Never write the
-owner's personal name. Commits as funzi7
-(207505227+funzi7@users.noreply.github.com). Never print secrets. No
-Backfill; no publishing during development; never mutate tracked
-`state/` files (CI enforces). Verify PRs via API with full 40-char
-SHAs. gh CLI unavailable — GitHub MCP tools. `_activate` test isolation.
-
-## Earlier history
-
-PRs #72, #77, #78, #79, #80, #81, #82, #83 — all merged (see
-handoffs/CONTEXT.md §8–§11h for the full trail).
+- **Poll policy discrepancy**: task requires `Poll & Post — Tech Feed IL`
+  disabled until #85 merges, but the workflow is ACTIVE and ran hourly
+  through 2026-07-21T17:21Z (state commits prove posts). No MCP tool can
+  disable a workflow — owner must disable manually.
+- Session hazard: the cloud env was RESET TWICE mid-task, wiping
+  uncommitted work; everything was re-applied and pushed early this time.
+  Lesson: commit+push a checkpoint as soon as product code compiles.
+- Geektime canonical source tag remains `גיקטיים` (established since #80,
+  pinned by tests); the live_render suite asserts via `source_tag_for` so
+  it is mapping-agnostic.
