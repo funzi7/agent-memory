@@ -1,72 +1,77 @@
-# paywall-bot — latest Claude Code session (2026-07-21)
+# paywall-bot — PR #85 stabilization handoff (2026-07-21)
 
-## Task: PR #85 — live-render content integrity (post-#84 regressions)
+## Git and pull request
 
-- **Branch**: `fix/techfeedil-live-render-content-integrity` from origin/main
-  `b237428` (contains #84 merge `c36334e`). PR #85 (non-draft → main, NOT
-  merged): https://github.com/funzi7/paywall-bot/pull/85
-- **HEAD**: `f8eac002d004a638ad50212c85bd5736e7e4c0f8` (local = remote = PR
-  head, verified via API). Two commits: product code `f08f5fc`, tests+docs
-  `f8eac00`.
+- Repository: `funzi7/paywall-bot`.
+- PR: #85, https://github.com/funzi7/paywall-bot/pull/85 (open, non-draft,
+  targets `main`; not merged).
+- Branch: `fix/techfeedil-live-render-content-integrity`.
+- Starting local/remote/PR head:
+  `4c7d6b67b5ab2bc51d3625d23064d3bcea509c8a`.
+- Final local/remote/PR head and main stabilization commit:
+  `40daabce1e3249b3a430774f9ae3ba07f9271854`.
+- Commit: `Stabilize ordered social and section rendering`.
 
-## What changed (evidence: poll run 29845436185, direct-HTML route)
+## Root cause
 
-- **RTL (A)**: RLM+RLI…PDI+RLM renderer-owned isolates on every TG text line
-  (title also inside the bold entity, flash 🔸 line too) and every Telegraph
-  block for force-RTL tenants. Trusted marks = {LRM, RLM, RLI, PDI}; shared
-  `_DIRECTION_MARKS_STRIP` translate table keeps `_final_tree_sections` /
-  caption counters / `_final_tree_violations` mark-insensitive. TheMarker
-  unchanged (no marks).
-- **Message gate (B)**: `article_parser.validate_channel_message` (vendor
-  label / `replacement_character:N` / `unsupported_script:U+XXXX`) runs on
-  the EXACT outgoing message in `_post_article` (strict-gate tenants);
-  findings → MSG-VALIDATE log + no send (defer).
-- **Social embeds (D)**: `features.social_embed_handling` (techfeedil).
-  Status URLs from DOM `a[href]`/`blockquote[cite]` + Jina markdown;
-  `_finalize` replaces the tweet-dump run (seeds: pic.twitter.com/status
-  URL; neighbors: meta/mostly-latin) with ONE embed dict; `_build_nodes`
-  renders blockquote + `לצפייה בפוסט המקורי ב-X` anchor; publish_article
-  re-validates embed text. No URL → dump omitted.
-- **CTA (E)**: `_extract_inline_cta_links` covers headings/buttons/adjacent
-  anchors; lexicon + לפרטים נוספים והרשמה / לפרטים והרשמה / להרשמה לתוכנית;
-  heading nodes render recovered anchors via
-  `_paragraph_children_with_links`; inline_links filter accepts heading
-  texts as anchors. **KEY BUG FOUND**: main.py's two publish call sites
-  never passed `inline_links` — #84 extracted links but production never
-  rendered them. Both now pass `inline_links` + `social_embeds`.
-- **Sections (F)**: techfeedil `prepare_html` converts `<table>` rows to
-  `• key: val | val` bullet paragraphs (before excludes); `_finalize`
-  section-integrity pass keeps a heading only if its own section has
-  paragraphs/images/embeds (footer never counts; CTA-with-link counts;
-  orphan CTA heading dropped). The old blanket tail-heading drop was
-  REMOVED (subsumed — it was killing tail-anchored CTA headings).
-- **Tags (G)**: `build_article_message` re-resolves `source_tag_for` and
-  enforces it last/once; tags.py `_apple_context_ok` (product token or ≥3
-  standalone Hebrew אפל) gates the Apple company tag.
+PR #85 split editorial content into paragraphs, headings, inline images,
+social embeds and CTA links, then relied on `after_paragraph_index` and
+renderer type precedence to join them again. That anchor cannot distinguish
+two unlike nodes between the same paragraphs, so heading→embed and
+embed→heading collapsed to the same position and section ownership became an
+accidental `<`/`<=` decision. Social recovery also had classifier and
+association paths that could accept attribution-looking prefixes, independently
+filtered candidate lists, or status URLs that were not structurally owned by
+the same post.
 
-## Tests / verification
+## Structural solution
 
-- NEW `tests/test_techfeedil_live_render.py` (21) — 7 sanitized fixtures
-  (ALUTech CTA+tags, WSC isolates, Rapyd repair-or-defer adversarial,
-  pc U+FFFD/malformed, Suunto subtitle/cocoon, Samsung X-embed ± URL,
-  Garmin table ± fallback) + adversarial cleaner-bypass gates + TheMarker
-  guard + state-digest guard. Wired into ci.yml.
-- 9 existing pins updated for isolates (test_techfeedil test_12/test_20;
-  rtl_source_tag title/excerpt/mixed/pc; multisource trailing PDI+RLM pin
-  and RLI/PDI removed from forbidden list; content_bounds/walla caption
-  counts mark-insensitive).
-- Full matrix 253 green; compileall, 15 workflow YAMLs parse, bash -n,
-  `git diff --check`, `git diff --exit-code -- state/` all pass.
+- Direct HTML assigns each editorial element a stable positive source ordinal
+  after tenant structural conversion and before parallel extraction. Jina
+  first splits compact mixed blocks into logical source nodes, then assigns
+  compatible monotonic ordinals. Headings, images/videos, social embeds and
+  CTA owners/destinations preserve those ordinals through filtering,
+  deduplication, paragraph-anchor remapping, finalization and Telegraph
+  boundary cleaning.
+- Telegraph merges non-paragraph nodes by paragraph gap plus source order;
+  ambiguous ownerless cross-type same-anchor input fails closed rather than
+  falling back to hard-coded type order.
+- A heading owns only editorial nodes after its ordinal and before the next
+  heading. Earlier same-anchor media cannot keep a later heading, consecutive
+  headings cannot share following content, and footer/navigation/promo/source
+  attribution never count. Converted tables/lists and an exactly owned valid
+  CTA remain valid section content.
+- CTA destinations carry exact owner ordinal, fingerprint and anchor. Orphan
+  CTA headings are removed; an unrelated later citation cannot supply a
+  destination.
+- Direct and Jina social recovery construct atomic per-post records. Local
+  marker/footer boundaries, canonical post identity and unique structural
+  ownership prevent missing, rejected, duplicate or conflicting posts from
+  shifting another post's URL. Surrounding Hebrew and English prose remains.
+- Tweet account metadata uses a complete normalized full match and exact
+  display-name/handle identity for both dashed and undashed forms. Date,
+  status, pic-marker and source-footer classifiers likewise require their
+  complete intended shapes. Direct and Jina source footer recognition now use
+  the same terminal-visible-URL or sole-linked-label structure.
 
-## Operational notes
+## Verification
 
-- **Poll policy discrepancy**: task requires `Poll & Post — Tech Feed IL`
-  disabled until #85 merges, but the workflow is ACTIVE and ran hourly
-  through 2026-07-21T17:21Z (state commits prove posts). No MCP tool can
-  disable a workflow — owner must disable manually.
-- Session hazard: the cloud env was RESET TWICE mid-task, wiping
-  uncommitted work; everything was re-applied and pushed early this time.
-  Lesson: commit+push a checkpoint as soon as product code compiles.
-- Geektime canonical source tag remains `גיקטיים` (established since #80,
-  pinned by tests); the live_render suite asserts via `source_tag_for` so
-  it is mapping-agnostic.
+- Focused `tests.test_techfeedil_ordered_content`: 48/48 green, with exact
+  parsed and Telegraph order plus one-to-one post text/status ownership on
+  direct HTML and Jina routes.
+- All Tech Feed IL suites: 263/263 green.
+- Complete repository discovery: 313/313 green.
+- Explicit TheMarker regressions (`tests.test_message_format` and
+  `tests.test_source_health`): 50/50 green; established TheMarker behavior is
+  unchanged.
+- `python -m compileall -q .` passed; all 15 tracked workflow YAML files parsed;
+  `bash -n` passed for both tracked shell scripts; `git diff --check` and both
+  unstaged/staged `state/` diff guards passed.
+
+## Remaining blockers and safety
+
+- Remaining implementation blockers: none. PR #85 remains unmerged for normal
+  review automation and owner review.
+- No tracked runtime file under `state/` was modified, staged or committed.
+  No real Telegram message, Telegraph page, page-doctor run, backfill or
+  repair of an existing page occurred.
