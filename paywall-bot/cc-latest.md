@@ -1,78 +1,73 @@
 # paywall-bot — latest Claude Code session state
 
-Updated: 2026-07-21 (UTC), source-health resilience round
+Updated: 2026-07-21 (UTC), content-boundaries round
 
 ## What just happened
 
-PR #82 merged (main `cf1a6b6`). The daily health run surfaced discovery/
-health-accuracy issues, fixed in **PR #83 (open, do not merge without
-review)**: branch `fix/techfeedil-source-health-tgspot-fallback` from
-`cf1a6b6`, head `25a325450fc17d80df154678ca1b48bbbd494fe3`, non-draft,
+PR #83 merged (main `173fad1`). The 11:47Z poll (run 29827479955,
+checkout `1234ebbd9` = #83 merge, contains #82) produced two content
+incidents, fixed in **PR #84 (open, do not merge without review)**:
+branch `fix/techfeedil-content-boundaries-links-media-order` from
+`173fad1`, head `99489bba9833d41d416327e1a86badb2255f8cf3`, non-draft,
 1 commit, 10 files, no `state/` files.
-https://github.com/funzi7/paywall-bot/pull/83
+https://github.com/funzi7/paywall-bot/pull/84
 
-Scope was discovery/health only: no page repairs, no page-doctor, no
-backfill, no Telegram posts, no state mutation.
+## Proven chronology (no false regression claims)
 
-## Incidents + fixes
+Both pages are POST-#82 (run checkout contains the recursive guard).
+The Verifier 80141 published via JINA (direct 403) with cocoon=0 and
+foreign=0 — the guard passed, so the screenshot's "Cocoon AI Summary"
+is pixels inside the leaked related/promo IMAGE, not a text node; #82
+was NOT bypassed. Geektime item was direct HTML; its CTA anchor was
+flattened by text-only extraction.
 
-- **TGspot RSS 415** (unexpected content type, no items →
-  no_representative_item): first-party-only `fallback_discovery` chain on
-  tgspot-main, shared by production `_try_feed` and health `probe_feed`:
-  canonical `/feed/` (advertised on TGspot's own RSS page) → official
-  website listing (html_category + strict article_url_pattern) →
-  official Telegram channel preview `t.me/s/tgspotcoil` as URL-REFERENCE
-  fallback only (direct tgspot.co.il links, per-message timestamps, no
-  post text/media/Telegram attribution, per-poll cap 6, cross-path+state
-  dedup, own `::telegram_preview` feed_id → independent first-sight
-  baseline, normal defer/24h-max-age, fail-safe parsing, no Telethon).
-  415 never suppressed — success requires parseable first-party items.
-  Live re-diagnosis egress-blocked; evidence + owner curl matrix in
-  docs/techfeedil-attribution-health.md.
-- **Effective-vs-primary health**: probe details primary_status/reason +
-  fallback_attempted/name/status/reason + effective_status +
-  fallback_chain; history tracks effective_last_success_at (fallback
-  success counts — "Last success: n/a" impossible while fallback serves)
-  and primary_last_success_at. Degraded keeps items → representative
-  extraction candidate survives primary-RSS failure.
-- **Alerts**: urgent only on EFFECTIVE failure after threshold; ONE
-  fingerprint-deduped healthy→degraded transition notice (silent repeats
-  while fallback healthy; stays in digest); recovery notice on effective
-  recovery; manual runs never increment scheduled counters.
-- **Quiet sources**: freshness fresh/idle/stale; idle (≥24h default)
-  stays healthy; only per-feed silence_sla_hours degrades
-  (stale_feed_beyond_silence_sla + feed_lagging_website:<n> from one
-  bounded website probe); valid stale feed never `failed`. Two old
-  stale→failed pins updated deliberately (test_source_health, wave2).
-- **Digest**: coherent clauses — "direct discovery blocked by Radware;
-  Jina discovery succeeded" / "direct extraction HTTP 403; Jina
-  extraction succeeded" / "primary feed HTTP 415; the official Telegram
-  channel preview succeeded". Root cause of the contradictory
-  "(Jina fallback failed)": missing jina_extraction_succeeded pattern +
-  unconditional suffix keyed on a detail extraction never sets. Fixed +
-  pinned.
-- **Future scope documented only**: generic Telegram ingestion layer
-  (official channels reference, flash channels reposted with
-  attribution, >500-char posts → Telegraph, no flash minimum,
-  anti-flood/baseline/dedup) — NOT implemented.
+## Fixes in PR #84
+
+- **Editorial CTA links** (`features.inline_cta_links`, Tech only, no
+  hardcoded URLs): lexicon-matched anchors inside body <p> only,
+  validated http/https source destination, rendered as a real clickable
+  <a> anchored by the link TEXT (filtering can never re-point it); jina
+  [text](url) equivalents; dangling "הנה פרטי המשרה" with no recovered
+  link is REMOVED by tail integrity; materially incomplete → defer.
+- **Verifier editorial boundary**: SOURCE_EXCLUDES["theverifier"]
+  structural ancestry + hard `_truncate_body_at_heading` stop (direct
+  route); promo/related phrases (מחברים אתכם לטכנולוגיה, המקור
+  המקצועי…, פורסמו לאחרונה, …) became jina END MARKERS (the production
+  route) — stop text AND image capture, so slogan/related card/related
+  thumbnail never parse.
+- **Ordered media/caption model**: `_finalize` REMAPS every image/
+  heading anchor through a raw→final surviving-prefix map at every
+  filtering stage (was: clamp → shift bug); captions stay attached to
+  their exact figure; detached "תמונה:" caption paragraphs dropped;
+  trailing orphan headings (leaked card titles) dropped.
+- **Cocoon visual RTL**: force-RTL tenants render summary paragraphs as
+  `aside` blocks with RLM directly on text (Telegraph resolves nested
+  p>em unreliably for mixed direction; italics traded for correct RTL);
+  guard classifies aside=cocoon (drop-block policy bypass-proven);
+  TheMarker keeps p>em (pinned).
+- **Observability**: bounded body-free `DIAG CONTENT-BOUNDS` line
+  (ordered counts, last-3 kinds + 40-char prefixes, dropped
+  CTA/detached-caption/trailing-heading counts).
 
 ## Test matrix (all green locally, all in ci.yml)
 
-185 message-format checks + unittest 21+17+50+42+13+15+13+12+11+11 +
-NEW `tests/test_techfeedil_tgspot_health.py` (17); compileall, workflow
-YAML, `bash -n`, `git diff --check`, state-clean gate.
+185 message-format checks + unittest 21+17+50+42+13+15+13+12+11+11+17 +
+NEW `tests/test_techfeedil_content_bounds.py` (10); compileall, workflow
+YAML, `bash -n`, `git diff --check`, state-clean gate. One aside-shape
+pin updated deliberately in rtl_source_tag.
 
 ## Post-merge (owner)
 
-1. Merge PR #83 through review; watch the next daily health run: TGspot
-   should read degraded-with-fallback (or healthy via /feed/), digest
-   lines coherent, Gadgety idle-not-broken.
-2. Complete the live TGspot 415 header-matrix diagnosis from an
-   egress-capable machine (curl commands in the doc) and, if `/feed/`
-   proves canonical, consider swapping the primary URL.
-3. Still pending owner-run page-doctor repairs: Apple-Watch page (from
-   #82 round) + earlier Android/Kimi/Verifier pages.
-4. Poll & Post — Tech Feed IL: re-enable if it was disabled for #82.
+1. **Keep Poll & Post — Tech Feed IL DISABLED until PR #84 merges**;
+   Source Health may stay enabled. Re-enable the poll after merge.
+2. Watch the next poll: Geektime-style CTAs clickable; Verifier pages
+   end at the editorial boundary; Cocoon renders as a right-oriented
+   aside block.
+3. Pending owner-run page-doctor repairs (egress-capable machine):
+   the two new pages (Geektime מרעננים…, Verifier יוצרת ChatGPT…), the
+   Apple-Watch page, and the earlier Android/Kimi/Verifier pages —
+   commands in docs/techfeedil-attribution-health.md.
+4. TGspot live 415 curl-matrix diagnosis still pending (PR #83 doc).
 
 ## Standing rules (unchanged)
 
@@ -85,5 +80,5 @@ SHAs. gh CLI unavailable — GitHub MCP tools. `_activate` test isolation.
 
 ## Earlier history
 
-PRs #72, #77, #78, #79, #80, #81, #82 — all merged (see
-handoffs/CONTEXT.md §8–§11g for the full trail).
+PRs #72, #77, #78, #79, #80, #81, #82, #83 — all merged (see
+handoffs/CONTEXT.md §8–§11h for the full trail).
