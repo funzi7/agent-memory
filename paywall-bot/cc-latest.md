@@ -1,4 +1,4 @@
-# paywall-bot — PR #85 stabilization handoff (2026-07-21)
+# paywall-bot — PR #85 Jina social-classification handoff (2026-07-22)
 
 ## Git and pull request
 
@@ -7,60 +7,59 @@
   targets `main`; not merged).
 - Branch: `fix/techfeedil-live-render-content-integrity`.
 - Starting local/remote/PR head:
-  `4c7d6b67b5ab2bc51d3625d23064d3bcea509c8a`.
-- Final local/remote/PR head and main stabilization commit:
   `40daabce1e3249b3a430774f9ae3ba07f9271854`.
-- Commit: `Stabilize ordered social and section rendering`.
+- Final local/remote/PR head and main follow-up commit:
+  `f5346fde17c29a1b4b7d0ac5d891f3ea4590ac0e`.
+- Commit: `Require complete Jina social embed classification`.
 
 ## Root cause
 
-PR #85 split editorial content into paragraphs, headings, inline images,
-social embeds and CTA links, then relied on `after_paragraph_index` and
-renderer type precedence to join them again. That anchor cannot distinguish
-two unlike nodes between the same paragraphs, so heading→embed and
-embed→heading collapsed to the same position and section ownership became an
-accidental `<`/`<=` decision. Social recovery also had classifier and
-association paths that could accept attribution-looking prefixes, independently
-filtered candidate lists, or status URLs that were not structurally owned by
-the same post.
+The ordered-content stabilization at `40daabce` left one Jina lifecycle flaw:
+`_extract_jina_social_groups` added every marker-bearing block to `consumed`
+during discovery, before it had proved valid tweet text, one unambiguous local
+status identity, safe footer ownership and a clean structural boundary. A
+plain editorial sentence mentioning `pic.twitter.com` could therefore vanish
+without producing an embed. The nearby pre-splitter could also isolate content
+on marker presence before complete classification, while duplicate visible/
+link-target marker representations and punctuation-only boundary fragments
+could distort candidate counts or masquerade as tweet text.
 
 ## Structural solution
 
-- Direct HTML assigns each editorial element a stable positive source ordinal
-  after tenant structural conversion and before parallel extraction. Jina
-  first splits compact mixed blocks into logical source nodes, then assigns
-  compatible monotonic ordinals. Headings, images/videos, social embeds and
-  CTA owners/destinations preserve those ordinals through filtering,
-  deduplication, paragraph-anchor remapping, finalization and Telegraph
-  boundary cleaning.
-- Telegraph merges non-paragraph nodes by paragraph gap plus source order;
-  ambiguous ownerless cross-type same-anchor input fails closed rather than
-  falling back to hard-coded type order.
-- A heading owns only editorial nodes after its ordinal and before the next
-  heading. Earlier same-anchor media cannot keep a later heading, consecutive
-  headings cannot share following content, and footer/navigation/promo/source
-  attribution never count. Converted tables/lists and an exactly owned valid
-  CTA remain valid section content.
-- CTA destinations carry exact owner ordinal, fingerprint and anchor. Orphan
-  CTA headings are removed; an unrelated later citation cannot supply a
-  destination.
-- Direct and Jina social recovery construct atomic per-post records. Local
-  marker/footer boundaries, canonical post identity and unique structural
-  ownership prevent missing, rejected, duplicate or conflicting posts from
-  shifting another post's URL. Surrounding Hebrew and English prose remains.
-- Tweet account metadata uses a complete normalized full match and exact
-  display-name/handle identity for both dashed and undashed forms. Date,
-  status, pic-marker and source-footer classifiers likewise require their
-  complete intended shapes. Direct and Jina source footer recognition now use
-  the same terminal-visible-URL or sole-linked-label structure.
+- Jina now builds provisional atomic records without changing `consumed`.
+  Reconciliation first requires a payload-bearing tweet fragment, exactly one
+  canonical status identity from contiguous strict footer blocks, exclusive
+  footer ownership, clean validation and a fully claimable marker block. Only
+  confirmed groups populate the consumed-block set.
+- Incomplete, ambiguous, unsupported or conflicting candidates return their
+  marker/status-bearing source blocks to the normal editorial pipeline. Only
+  complete detached account/date metadata may be suppressed when it is
+  structurally attached and safe. Ordinary prose, headings, images, lists,
+  tables, CTA links, code and thematic breaks are hard ownership boundaries.
+- The source pre-splitter is conservative and reversible: it isolates only a
+  locally complete social span and preserves editorial prefixes, bridges and
+  suffixes. It has no global status pool, parallel-list index or arbitrary
+  footer lookahead cap.
+- A visible `pic.twitter.com` marker duplicated in its own Markdown link target
+  counts as one logical representation; a hidden target alone is not embed
+  evidence, and conflicting representations fail closed. Empty or
+  punctuation-only fragments cannot become posts, while Hebrew, English and
+  emoji payloads remain valid subject to the existing contamination gate.
+- Direct HTML received the symmetric structural guard: an ordinary blockquote
+  with a pic reference is not a social dump without a known embed container or
+  strict locally owned status/footer evidence.
+- The stable positive `source_order` design from `40daabce` remains intact, so
+  confirmed Jina groups retain exact heading/media ownership and Telegraph
+  render order through finalization.
 
 ## Verification
 
-- Focused `tests.test_techfeedil_ordered_content`: 48/48 green, with exact
-  parsed and Telegraph order plus one-to-one post text/status ownership on
-  direct HTML and Jina routes.
-- All Tech Feed IL suites: 263/263 green.
-- Complete repository discovery: 313/313 green.
+- Focused `tests.test_techfeedil_ordered_content`: 69/69 green; focused
+  `tests.test_techfeedil_live_render`: 33/33 green. Assertions cover exact
+  paragraph survival, one-to-one post text/status ownership, source ordinals,
+  heading ownership and final Telegraph order.
+- All Tech Feed IL suites: 284/284 green.
+- Complete repository discovery: 334/334 green.
 - Explicit TheMarker regressions (`tests.test_message_format` and
   `tests.test_source_health`): 50/50 green; established TheMarker behavior is
   unchanged.
@@ -73,5 +72,5 @@ the same post.
 - Remaining implementation blockers: none. PR #85 remains unmerged for normal
   review automation and owner review.
 - No tracked runtime file under `state/` was modified, staged or committed.
-  No real Telegram message, Telegraph page, page-doctor run, backfill or
-  repair of an existing page occurred.
+  No real Telegram message or Telegraph page was published or changed; no
+  page-doctor run, backfill or repair of an existing page occurred.
