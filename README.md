@@ -20,6 +20,8 @@ agent-memory/
 │   ├── gotchas.md             ← lessons learned, traps
 │   ├── roadmap.md             ← batches done + planned
 │   └── glossary.md            ← TRF-specific terms
+├── telegram-topic-uploader/
+│   └── cc-latest.md            ← latest implementation handoff
 ├── opt/                       ← OptionsProfitTracker (future)
 ├── hydrome/                   ← HydroMe (future)
 ├── ratesnow/                  ← RatesNow (future)
