@@ -4,201 +4,209 @@
 
 | Field | Value |
 | --- | --- |
-| Task | D3B1 — explicit user-initiated background batch upload on Android 14+, on the D3A per-item path |
+| Task | D3B1.1 — hotfix for the real-device UIDT first-run scheduling rejection ("system did not accept the background upload") |
 | Application repository | `/root/work/telegram-topic-uploader` |
 | Branch | `main` |
 | Tracking branch | `origin/main` |
-| Starting application HEAD | `4c28a755a63593f9402d7d968adeaa4add18eaf0` (D3A.1) |
-| Version | code 9 -> 10, name `0.4.1-d3a1` -> `0.5.0-d3b1` |
-| Room schema | **6 -> 7.** Two tables, `MIGRATION_6_7`, purely additive, no backfill |
-| Application commit | `feat: D3B1 explicit user-initiated background batch upload` |
-| Deployment | None |
+| Starting application HEAD | `fac6f8806834bb664d312c45c943975008ea5299` (D3B1) |
+| Version | code 10 -> 11, name `0.5.0-d3b1` -> `0.5.1-d3b1.1` |
+| Room schema | **stays 7.** No schema change — the new batch status is stored as unrestricted text |
+| Deployment | None. Not installed or run on any device or emulator in this session |
 
 No production token, Telegram identifier, bot username/ID, chat ID, thread ID, group title, forum
-topic name, private link, binding command, file name, content URI, document ID, path, or hash of real
-user media was requested, used, or recorded anywhere, including this file.
+topic name, private link, binding command, file name, content URI, document ID, path, or media hash
+was requested, used, or recorded anywhere, including this file.
 
-## New user-reported D3A.1 device evidence — read this first
+## Real D3B1 device failure (user-reported, not observed by any agent)
 
-USER-REPORTED (not observed or performed by any agent):
+- D3B1 was installed and launched on the user's Android device.
+- Two eligible test videos were present in Queue.
+- The user explicitly tapped **Upload queue** and confirmed the action.
+- The app showed the sanitized message that **the system did not accept the background upload**.
+- **No video was sent** by that batch attempt.
+- **No source-file mutation** was reported.
+- Notification-permission state was **not explicitly reported**.
+- Stop/resume and background progress were **not reached or tested**.
 
-- D3A.1 was installed and executed on the device;
-- the user ran a scan of the existing configured directory;
-- the active queue count decreased after the scan;
-- the dashboard showed exactly **three** source-missing records;
-- **three is the actual number of source videos that had been removed** from the directory;
-- no false source-missing record was reported;
-- no Telegram request or file mutation was reported during that reconciliation scan.
+## Diagnosis — a permission/window-focus scheduling race
 
-Do NOT claim the queue reached zero — the user did not report an exact final count. The corrected real
-source-missing count is **three** (the earlier D3A run's "four stale" was a different, earlier
-observation; this D3A.1 device run reported three removed videos → three source-missing records). Only
-that the count decreased and three records appeared as source missing.
+A JobScheduler user-initiated data transfer (UIDT) job's `schedule()` returns `RESULT_FAILURE` when the
+app is not considered to hold a visible, focused window at the exact scheduling moment. The old D3B1 UI
+made that failure likely:
 
-## What D3B1 implements
+- `BatchUploadControl` launched the POST_NOTIFICATIONS request on **every** API 33+ confirmation, even
+  when permission was already granted;
+- it called the schedule flow **directly from inside the Activity-Result permission callback** — i.e.
+  while the system permission dialog was still dismissing and the app window had not regained focus;
+- the gate relied on `AppVisibilityTracker.isVisible`, which counts **started** Activities and does not
+  prove **resumed window focus**.
 
-**One explicit action → one frozen snapshot.** `BatchRepository.createSnapshot` (in
-`RoomBatchRepository`) reads the currently eligible queue rows via the existing
-`UploadJobDao.findClaimCandidates` order (due time, then createdAt, then id) in one transaction and
-freezes their job IDs, that order, and their already verified `hashedSizeBytes` into
-`upload_batch_items`. It claims nothing, spends no attempt, opens no stream. A row queued after the
-freeze is not in the snapshot; there is no code path that adds an item to an existing session.
+So scheduling raced the dialog dismissal and the platform rejected it. RESULT_FAILURE alone does not
+expose one exact platform cause; the app treated every rejection as terminal `SCHEDULING_FAILED`.
 
-**Schema 7 (`MIGRATION_6_7`).** Two new tables and their indices, nothing else touched:
-- `upload_batch_sessions(id, status, schedulerType, platformJobId, createdAt, startedAt, updatedAt,
-  finishedAt, stopAfterCurrentRequestedAt, totalItemCount, totalEstimatedBytes, activeSlot)`.
-  **Unique index on `activeSlot`** = the one-active-batch invariant in Room (active session holds the
-  single `ACTIVE_SLOT=1`; terminal session holds NULL; SQLite treats NULLs as distinct). Plus a
-  `status` index.
-- `upload_batch_items(id, sessionId, uploadJobId, ordinal, expectedBytes, state, startedAt,
-  finishedAt, outcome)`. Indices `(sessionId, ordinal)`, **unique `(sessionId, uploadJobId)`** (one
-  job at most once per batch), `(uploadJobId)`. FK to `upload_jobs` is **NO_ACTION** (no cascade of
-  audit history); FK to sessions is CASCADE (inert — sessions are never deleted).
-- No private field in either table. Purely additive; schemas 1-6 byte-for-byte unchanged; no backfill;
-  no destructive fallback; schema 7 exported/committed.
+## What D3B1.1 implements
 
-**The gate (`BatchUploadCoordinator`, implements `BatchUploadLauncher`).** `startBatch()` refuses
-before creating anything unless: API 34+ (`BatchPlatformGate.supportsBackgroundBatch`), notification
-permission granted, app visible, no active batch, no single-item upload (`ActiveUploadProbe`, extracted
-interface implemented by `MediaUploadCoordinator`). On `Created`, it schedules; on schedule failure it
-calls `markSchedulingFailed` (terminal) and touches no upload job.
+**Permission/window-focus flow (the race fix).**
+- Already-granted (or API < 33): the permission dialog is **not** re-launched. Confirm arms one
+  transient in-memory pending action, scheduled only when the app is proven RESUMED with a focused
+  window.
+- Not granted: request permission; the Activity-Result callback only **forwards the grant/deny fact**
+  — it never freezes a snapshot or schedules. Denied -> `NotificationPermissionRequired`, no batch.
+  Granted -> arm exactly one transient pending action, wait for the window to regain focus, then invoke
+  `startBatch` exactly once; the pending action is cleared whatever the result.
+- `AppVisibilityTracker` now also tracks RESUMED count + window focus (focus fed from
+  `MainActivity.onWindowFocusChanged`), exposing `isResumedAndFocused` behind a new domain interface
+  `AppWindowState`. `AndroidBatchPlatformGate.isAppVisible()` now checks `isResumedAndFocused`.
+- The focus rising-edge is delivered by a Compose `ViewTreeObserver.OnWindowFocusChangeListener` in
+  `TelegramTopicUploaderApp` calling `MainViewModel.onWindowFocusRegained()`, which consumes the pending
+  action once. The pending flag lives only in the ViewModel (never Room): process death before focus
+  recovery freezes no snapshot and sends nothing; arming is idempotent and consumption single-shot, so
+  rotation/recomposition cannot duplicate the start.
 
-**Scheduler (`UidtBatchScheduler`).** API 34+ JobScheduler UIDT job: `setUserInitiated(true)`,
-`setRequiredNetwork(NET_CAPABILITY_INTERNET)`, `setEstimatedNetworkBytes(NETWORK_BYTES_UNKNOWN,
-uploadBytes)`, one non-exported `BatchUploadJobService` via ComponentName, one extra
-(`EXTRA_SESSION_ID`). Fixed `BATCH_JOB_ID`. Below 34 `schedule()` returns false.
+**Typed scheduler diagnostics.** `BatchScheduler.schedule()` returns a sanitized `BatchScheduleResult`
+(`Accepted`, `PermissionUnavailable`, `ServiceUnavailable`, `AppNotEligibleNow`, `SystemRejected`,
+`InvalidRequest`, `SecurityRejected`) instead of a Boolean. `UidtBatchScheduler` now checks
+`JobScheduler.canRunUserInitiatedJobs()` on API 34+ (false -> PermissionUnavailable), verifies the
+declared JobService component resolves via PackageManager before scheduling (unresolved / null service
+-> ServiceUnavailable), distinguishes a thrown SecurityException (-> SecurityRejected) and
+IllegalArgumentException (-> InvalidRequest) from a plain RESULT_FAILURE (-> AppNotEligibleNow), and
+maps an unexpected non-success code -> SystemRejected. The mapping is a pure, off-device-testable
+function `classifyScheduleOutcome(componentResolvable, canRun, RawScheduleOutcome, success, failure)`.
+It persists/logs no exception text, platform text, package internals, session ID, media data, or
+identifier, does not loop schedule, and acknowledges RESULT_FAILURE cannot pin one exact cause. The
+JobInfo build is otherwise unchanged (setUserInitiated(true), required INTERNET, estimated bytes, one
+fixed non-exported `BatchUploadJobService` ComponentName built once, one opaque session-ID extra, fixed
+`BATCH_JOB_ID`).
 
-**JobService (`BatchUploadJobService`, `@AndroidEntryPoint`, `@RequiresApi(34)`).** Reads the session
-ID from `params.extras`, calls `setNotification(...JOB_END_NOTIFICATION_POLICY_DETACH)` before work,
-runs the runner off the main thread in a service scope, calls `jobFinished` exactly once
-(`reschedule=false` for paused/terminal, `true` only for an internal FAILED). `onStopJob` cancels the
-scope and returns whether a transient reschedule is appropriate; overwrites no durable outcome.
-Manifest: `exported=false`, `permission=BIND_JOB_SERVICE`, `tools:targetApi="34"`.
+**Recoverable scheduling rejection.** A snapshot rejected **before** any JobService execution now moves
+to a new persisted status `SCHEDULE_RETRY_REQUIRED` — an **active/recoverable** state (`isActive`
+true), not terminal. It retains the frozen snapshot and the active-slot ownership and claims/mutates no
+upload job. The Queue batch card exposes:
+- **Try background upload again** (`retryScheduling`): reschedules the same session and same frozen
+  items; the fixed platform job id means repeated taps cannot submit two platform jobs; no newly queued
+  row joins; on acceptance -> SCHEDULED (`markScheduled` now also accepts a SCHEDULE_RETRY_REQUIRED
+  session).
+- **Cancel unstarted batch** (`cancelUnstartedBatch`): available only before a JobService ever starts
+  (DAO guard `startedAt IS NULL`, statuses CREATED/SCHEDULE_RETRY_REQUIRED/SCHEDULED); makes the session
+  terminal `CANCELLED`, clears activeSlot, keeps audit rows, touches no upload job/reservation/media/
+  Telegram state.
 
-**Runner (`DefaultBatchUploadRunner`).** Depends on `UploadLauncher` (interface), `QueueExecutionRepository`,
-`BatchRepository`. Walks the snapshot one item at a time via `uploadLauncher.uploadNow(jobId)` — the
-exact D3A path, no second transport, and the single-flight AtomicBoolean guard means never two media
-requests. Per item: re-read stop state; if set, pause; reconcile abandoned claims; `inspectJob` reads
-the JOB's durable evidence; classify:
-- telegramConfirmed → CONFIRMED/ALREADY_CONFIRMED (no send)
-- SOURCE_MISSING → SKIPPED/SOURCE_MISSING; RESULT_UNKNOWN → SKIPPED/RESULT_UNKNOWN; other terminal →
-  SKIPPED/TERMINAL_SKIPPED (no send)
-- QUEUED & attempts exhausted → FAILED; not due → DEFERRED/RETRY_NOT_DUE; still claimed → DEFERRED/BUSY;
-  else → send.
-Maps `uploadNow` result → item outcome (Confirmed→CONFIRMED; RetryScheduled→DEFERRED; PermanentlyFailed→
-FAILED; ResultUnknown→SKIPPED; Busy→DEFERRED; Failed→DEFERRED/OUTCOME_UNRECORDED; PreflightRefused→
-mapped). Final: COMPLETED if all CONFIRMED; PAUSED if stop + pending remain; else COMPLETED_WITH_ISSUES.
-The JOB decides, never the batch item: a RUNNING item after crash is re-classified from job evidence
-(abandoned pre-dispatch retries; abandoned post-dispatch is RESULT_UNKNOWN, never re-sent). Settled
-items never revisited → repeated JobService starts idempotent.
+The legacy `SCHEDULING_FAILED` enum value is kept **only** so a device's old failed session still reads
+as terminal and never blocks a new snapshot; no new session moves there (coordinator now calls
+`markScheduleRetryRequired`, not `markSchedulingFailed`).
 
-**Stop/resume.** Stop records `stopAfterCurrentRequestedAt`; checked at top of each item so the
-in-flight item finishes and no next starts → PAUSED (keeps active slot). Resume (`markResumed`, single
-guarded statement clears stop + sets SCHEDULED) reschedules the same snapshot, adds no new job, resends
-nothing terminal. Immediate multipart cancellation deferred to D3B2.
+**Precise sanitized messages.** The single generic scheduling-failure string was replaced by
+per-category messages (permission not available; application window not ready — return to the app and
+try again; background-transfer service unavailable; Android rejected the request — use Try again;
+invalid local scheduling request; security permission unavailable) plus a cancelled-batch message.
+EN/HE parity; no raw exception text, JobScheduler internals, or private value in any string.
 
-**Notification (`BatchUploadNotifications`).** Private low-importance channel (NotificationChannelCompat),
-NotificationCompat notification showing only position/total/completed/byte-progress/status. Body tap →
-MainActivity `ACTION_OPEN_QUEUE`; action → `ACTION_STOP_AFTER_CURRENT` (opens app + records stop —
-MainActivity reads intent action, passes to `TelegramTopicUploaderApp(initialBatchAction)`). No file
-name/dir/dest/URI/token/chat/thread/hash. Throttled setNotification (status-change always, else ≥800ms).
+## Files touched
 
-**Permissions.** Added `RUN_USER_INITIATED_JOBS` + `POST_NOTIFICATIONS` only. `AndroidBatchPlatformGate`
-checks POST_NOTIFICATIONS via ContextCompat on API 33+ (true below). `AppVisibilityTracker`
-(registered in Application onCreate via `registerActivityLifecycleCallbacks`) counts started activities
-for visibility. Screen requests POST_NOTIFICATIONS via `rememberLauncherForActivityResult` on confirm.
-
-**UI (`QueueScreen`).** `Upload queue` button shown only API 34+ (`backgroundBatchSupported`) with
-eligible rows, no single upload, no active batch. Confirmation dialog shows count + total size (LTR) +
-frozen/new-items/no-deletion text. During a batch: `BatchStatusCard` (completed/total, stop/resume);
-per-row Upload now + corrections disabled (`controlsLocked = uploadActive || batchActive`). API 23-33
-shows a concise `queue_batch_platform_note`. New UiNotices for all batch outcomes.
-
-## Files added/changed
-
-Added: `domain/batch/{BatchModels,BatchRepository,BatchUploadPorts,BatchUploadCoordinator,
-DefaultBatchUploadRunner}.kt`, `data/repository/RoomBatchRepository.kt`, `platform/{BatchJobContract,
-UidtBatchScheduler,AppVisibilityTracker,AndroidBatchPlatformGate,BatchUploadNotifications,
-BatchUploadJobService}.kt`. Entities +2, Daos +`UploadBatchDao`, AppDatabase v7, `MIGRATION_6_7`.
-`MediaUploadCoordinator` implements new `ActiveUploadProbe` + `isUploadActive()`. ViewModel/App/Screens/
-MainActivity/Application/AppModule/manifest/build.gradle/strings(×2) updated.
+Domain: `BatchModels.kt` (+SCHEDULE_RETRY_REQUIRED, +CANCELLED; `isActive` includes retry-required),
+`BatchUploadPorts.kt` (`BatchScheduleResult`, `RawScheduleOutcome`, `classifyScheduleOutcome`,
+`AppWindowState`; `BatchScheduler.schedule` returns the typed result; `BatchStartResult.ScheduleRejected`
+replaces `SchedulingFailed`; launcher gains `retryScheduling` + `cancelUnstartedBatch`),
+`BatchRepository.kt` (+`markScheduleRetryRequired`, +`cancelUnstartedBatch`),
+`BatchUploadCoordinator.kt` (recoverable scheduleCreated; retry; cancel; typed resume).
+Data: `Daos.kt` UploadBatchDao (+`markScheduleRetryRequired`, +`cancelUnstarted`; `markScheduled` guard
+now CREATED or SCHEDULE_RETRY_REQUIRED), `RoomBatchRepository.kt` (impl).
+Platform: `UidtBatchScheduler.kt` (typed result, canRunUserInitiatedJobs, component resolution,
+sanitized exceptions, single ComponentName), `AppVisibilityTracker.kt` (resumed+focus, AppWindowState),
+`AndroidBatchPlatformGate.kt` (isResumedAndFocused).
+UI/DI: `MainActivity.kt` (inject tracker, onWindowFocusChanged), `MainViewModel.kt` (pending gate,
+confirmBatchUpload/onNotificationPermissionResult/onWindowFocusRegained/retryBatchScheduling/
+cancelUnstartedBatch, new UiNotices, typed notice mapping), `Screens.kt` (BatchUploadControl permission
+logic, BatchStatusCard retry/cancel, status labels), `TelegramTopicUploaderApp.kt` (focus listener,
+QueueScreen wiring, notices), `AppModule.kt` (bind AppWindowState). `strings.xml` (+ EN/HE), version.
 
 ## Tests and exact results
 
-Full JVM suite: **600 across 51 classes, 0 failures/errors/skipped** (D3A.1 had 556/47). New (44/4):
-`RoomBatchRepositoryTest`(7), `DefaultBatchUploadRunnerTest`(13, real repo + real runner, fakes only
-`UploadLauncher`), `BatchUploadCoordinatorTest`(13), `D3B1SurfaceTest`(11).
-
-Six surface guards **rewritten (not deleted)** to the bounded surface (3 permissions, 1 non-exported
-JobService, 0 receivers, no WorkManager/foreground/wakelock/boot): `D3ASurfaceTest`,
-`D2B2BSurfaceTest`, `D2B2ASurfaceTest`, `D2B1SurfaceTest`, `D3A1SurfaceTest`, `D1SecuritySurfaceTest`.
-`MainViewModelTest` gained a fake `BatchUploadLauncher`. JobScheduler prohibition scoped to each
-milestone's own sources (which stay scheduler-free).
+Full JVM suite: **625 tests, 0 failures** after re-running the one pre-existing flaky test
+(`TelegramMediaUploadGatewayTest > a connection lost before the body completes...`, MockWebServer
+timing — passes in isolation; D3B1 baseline was 600). New/updated:
+- `BatchScheduleResultMapperTest` (8): pure typed mapping — canRunUserInitiatedJobs=false ->
+  PermissionUnavailable, unresolved -> ServiceUnavailable, SecurityException/IllegalArgumentException
+  sanitized, RESULT_FAILURE -> recoverable AppNotEligibleNow, RESULT_SUCCESS -> Accepted, unexpected ->
+  SystemRejected.
+- `BatchUploadCoordinatorTest`: rejection retains snapshot recoverably (markScheduleRetryRequired, no
+  upload-job touch); retry reschedules same snapshot -> SCHEDULED; rejected retry stays retry-required;
+  retry with nothing/running reports correctly; cancel-unstarted delegates.
+- `RoomBatchRepositoryTest`: retry-required keeps the slot; retry -> SCHEDULED without a new snapshot;
+  cancel-unstarted clears the slot terminally and leaves the upload job QUEUED; a started (RUNNING)
+  session cannot be cancelled as unstarted.
+- `MainViewModelTest`: already-granted+focused schedules once; permission grant while unfocused
+  schedules nothing until focus returns, then exactly once; denial creates no snapshot + asks for
+  permission; repeated confirms/focus regains do not duplicate; a fresh ViewModel after "process death"
+  starts nothing on focus; retry/cancel delegate.
+- `D3B1SurfaceTest`: launcher method set updated to include `retryScheduling` + `cancelUnstartedBatch`.
 
 | Check | Result |
 | --- | --- |
-| `--offline testDebugUnitTest` | 600, 0 failures |
-| `--offline lint` | 0 issues |
+| `--offline testDebugUnitTest` | 625, 0 failures (flaky gateway test re-run passes) |
+| `--offline lint` | 0 issues (fixed an InlinedApi warning by using an early-return SDK guard) |
 | `--offline assembleDebug` / `assembleDebugAndroidTest` | passed |
-| Instrumentation | 93/11 compiled (was 89/10): +2 `MIGRATION_6_7` cases, +`D3B1PersistenceTest`(2); none executed — no device |
-| Room schema | 7 exported/committed; 1-6 unchanged |
-| `git diff --check` | passed |
-| AAPT2 badging | vc 10, `0.5.0-d3b1`, min 23, target 37; INTERNET+RUN_USER_INITIATED_JOBS+POST_NOTIFICATIONS+AndroidX injected; cleartext false; backup false |
-| apksigner | v2, cert `74e78654…` |
-| DEX | `setUserInitiated`×1; `sendVideo`/`sendDocument`×1; no androidx.work/WorkManager/openOutputStream/broad storage; `deleteDocument`/`renameDocument`/`moveDocument`/`createDocument`×1 (framework); WAKE_LOCK/FOREGROUND_SERVICE only as NotificationCompat symbols (`EXTRA_WAKE_LOCK_ID`, `FLAG_FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_TYPE_*`) |
-| Localization | EN/HE parity, 309 each (+35) |
-
-## Environment notes (still current, plus new)
-
-- `GRADLE_USER_HOME=/root/.gradle ./gradlew --offline …`. `aapt2` at `/opt/android-sdk/aapt2-wrapper/aapt2`;
-  `apksigner` in `/opt/android-sdk/build-tools/37.0.0`. Debug keystore cert `74e78654…`.
-- `TelegramMediaUploadGatewayTest > a connection lost before the body completes...` is **flaky**
-  (MockWebServer timing); passes on the full run — re-run if it fails once.
-- **Surface tests grep prose:** ScanCoordinator KDoc contains the bare words `WorkManager`, `WAKE_LOCK`,
-  `RECEIVE_BOOT_COMPLETED`, `foreground-service`. Use usage-shaped/full-token markers
-  (`WorkManager.getInstance`, `android.permission.WAKE_LOCK`) or scope greps. The manifest **comment**
-  must also avoid bare permission tokens (I reworded it to "foreground-service, wake-lock, or
-  boot-completed").
-- **`JobInfo.NETWORK_BYTES_UNKNOWN` is an Int** — `.toLong()` before `setEstimatedNetworkBytes(long,long)`.
-- **`AtomicInteger.updateAndGet` needs API 24** (min 23) → lint NewApi. Use synchronized Int.
-- **`FLAG_IMMUTABLE` guard on min 23** trips ObsoleteSdkInt (M==23). Just OR it unconditionally.
-- **API-34 JobService in manifest** trips NewApi → add `xmlns:tools` + `tools:targetApi="34"` on the
-  `<service>`.
-- A non-suspend lambda type can't call suspend repo methods — make fake-launcher `result` a
-  `suspend (String)->UploadNowResult` when a test triggers stop mid-item.
-- The runner depends on `UploadLauncher` (interface), not concrete `MediaUploadCoordinator`, so it is
-  fakeable; the gate depends on `ActiveUploadProbe` (interface) for the same reason.
+| Instrumentation | **compiled, not run** (no device). Only unit tests changed; androidTest APK byte-identical to D3B1 |
+| Room schema | stays **7**; no schema JSON changed; 1-7 committed |
+| `git diff --check` | clean |
 
 ## Artifacts (debug development signing only)
 
-- Main APK: `app/build/outputs/apk/debug/app-debug.apk`, 14,428,922 bytes,
-  SHA-256 `8beeefd846b6f7d0205acea037e89a6bd7a831ac27679b40335356f5e457cc80`.
-- Instrumentation APK: `app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk`,
-  1,566,099 bytes, SHA-256 `495cab881dd67457c488f0c46c4adef970af31724e538bad514c99d3f27c28e5`.
-- Package `com.funzi7.telegramtopicuploader`; versionCode 10; versionName `0.5.0-d3b1`; minSdk 23;
-  compile/target SDK 37; debug cert SHA-256 `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`.
+- Main APK: `app/build/outputs/apk/debug/app-debug.apk`, 14,312,025 bytes,
+  SHA-256 `a19be6cb3a7bd17b6c54129631efd3b90e9eb939d90d3f522b26cea19616a414`.
+- Instrumentation APK: `app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk`, 1,566,099
+  bytes, SHA-256 `495cab881dd67457c488f0c46c4adef970af31724e538bad514c99d3f27c28e5` (unchanged from D3B1).
+- Package `com.funzi7.telegramtopicuploader`; versionCode 11; versionName `0.5.1-d3b1.1`; minSdk 23;
+  compile/target SDK 37; cleartext false; backup false; permissions INTERNET +
+  RUN_USER_INITIATED_JOBS + POST_NOTIFICATIONS (+ AndroidX-injected dynamic-receiver perm); one
+  non-exported `BatchUploadJobService` with `BIND_JOB_SERVICE`; debug cert SHA-256
+  `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`.
+- DEX (via `strings`; `dexdump` crashes in this sandbox): `setUserInitiated`, `canRunUserInitiatedJobs`,
+  `getServiceInfo` present; no `androidx/work`/`WorkManager`; `startForegroundService` only as a
+  ContextCompat/NotificationCompat framework symbol, not our code.
 
 ## Untested device behaviour
 
-The D3B1 APK has **never** been installed, updated over D3A.1, launched, or run. No background batch,
-no UIDT job, no notification, no stop/resume, and no Room 6 -> 7 migration has run on a device, and
-neither have the earlier migrations or device checklists. No real SAF provider, video, or hash; no
-Telegram traffic; no media mutation.
+The D3B1.1 APK has **never** been installed, updated over D3B1, launched, or run. No background batch,
+UIDT job, notification, real window-focus/permission-dialog timing, stop/resume, cancel-unstarted, or
+Room migration has run on a device. No real SAF provider, video, or hash; no Telegram traffic; no media
+mutation — every test byte was a synthetic in-memory array.
+
+## Env notes (still current)
+
+- `GRADLE_USER_HOME=/root/.gradle ./gradlew --offline …`; `aapt2` at
+  `/opt/android-sdk/aapt2-wrapper/aapt2`; `apksigner` in `/opt/android-sdk/build-tools/37.0.0`.
+- **`dexdump` crashes (Illegal instruction) in this sandbox** — use `strings` over extracted
+  `classes*.dex` for DEX marker checks.
+- `PackageManager.getServiceInfo(ComponentName, Int)` is deprecated on API 33+; the API-34-only path
+  uses `ComponentInfoFlags.of(0L)`.
+- Referencing `Manifest.permission.POST_NOTIFICATIONS` under a `||` short-circuit trips lint
+  `InlinedApi`; an **early-return** `if (SDK < TIRAMISU) return true` guard silences it (same shape as
+  `AndroidBatchPlatformGate`).
+- Adding an **eager forever `StateFlow.collect`** in a ViewModel leaks in `runTest`; the focus
+  rising-edge is instead pushed via `onWindowFocusRegained()` from the Compose focus listener.
+
+## Corrected future routing decision (roadmap, NOT implemented here)
+
+1. **Multi-topic binding session:** one session and nonce; the copied command already includes
+   `@validated_bot_username`; collect candidates from several topics without returning to the app;
+   review, locally name, and commit all candidates together.
+2. **Scalable routing:** Instagram/TikTok/Downloads folders identify **provenance only** (no per-account
+   mappings required); add **bulk thumbnail routing as the deterministic baseline**; later add optional
+   content-based destination suggestions using available caption/link metadata, sampled frames, OCR and
+   speech evidence; high-confidence automatic routing stays **opt-in**; uncertain items stay in Review.
 
 ## Remaining D3B work (not started)
 
-- **D3B2 immediate cancellation** of the in-flight multipart request, mapped onto the
-  request-body-complete distinction (replaces the deliberately gentle stop-after-current).
+- **D3B2 immediate cancellation** of the in-flight multipart request (replaces stop-after-current).
 - Result-unknown reconciliation that never re-sends without evidence.
-- Explicit, evidence-based resolution of an unowned/ambiguous legacy reservation (D3A.1 blocker).
-- **Safe-deletion stage**: provider-aware keep/delete/quarantine with process-death recovery, gated on
-  a confirmed positive Telegram message ID.
-- Notification stop action currently opens the app to record the stop; a truly background action is a
-  later refinement. A paused batch keeps the active slot (no discard action yet).
+- Evidence-based resolution of an unowned/ambiguous legacy reservation (D3A.1 blocker).
+- Safe-deletion stage gated on a confirmed positive Telegram message ID.
+- A truly background notification stop action (currently opens the app to record the stop).
 
 ## Deployment declaration
 
-Nothing was deployed, distributed, installed, or run on a device or emulator in the D3B1 session. No
+Nothing was deployed, distributed, installed, or run on a device or emulator in the D3B1.1 session. No
 real Telegram request of any kind was made, no forum topic was created/renamed/closed/deleted, and no
 media was uploaded, moved, renamed, copied, downloaded, quarantined, or deleted — every byte in every
 test came from a synthetic in-memory array.
