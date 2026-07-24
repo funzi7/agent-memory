@@ -4,279 +4,349 @@
 
 | Field | Value |
 | --- | --- |
-| Task | D3B2 — immediate cancellation of every active external-media operation, batch pause after the current transfer, staged repair progress with a real percentage, exact sanitized repair-refusal reasons, always-visible media size and duration, and the Telegram topic ID on the multi-topic review form |
+| Task | D4A — manual source profiles for the three watched folders, a Review thumbnail grid, global selection across filters, select-all-current-filter and clear-all-global, atomic bulk routing of a selection to one topic, in-app video preview, and removal of the duplicate visible progress indicators |
 | Application repository | `/root/work/telegram-topic-uploader` |
 | Branch | `main` |
 | Tracking branch | `origin/main` |
-| Starting application HEAD | `42bef7f51a1d1743cf9663313f8f5464c68d4f6f` (D3B1.5) |
-| Version | code 17 -> 18, name `0.6.0-d3b1.5` -> `0.6.1-d3b2` |
-| Room schema | **8, unchanged.** No migration, no new column/table/index, no `9.json` |
+| Starting application HEAD | `7d01454` (D3B2) |
+| Committed application HEAD | `ec59744` — D4A, pushed to `origin/main` |
+| Version | code 18 -> 19, name `0.6.1-d3b2` -> `0.7.0-d4a` |
+| Room schema | **8 -> 9.** One additive column, `MIGRATION_8_9`, `9.json` exported |
 | Deployment | None. Not installed or run on any device or emulator in this session |
+| Session history | The first D4A session was **interrupted** (Termux closed) after implementing and validating, but **before any commit**. A second session recovered the dirty worktree, completed three remaining gaps, and committed. |
 
 No production token, Telegram identifier, bot username/ID, chat ID, thread ID, group title, forum
 topic name, private link, binding command, nonce, file name, content URI, document ID, path, or media
 hash was requested, used, or recorded anywhere, including this file.
 
-## New user-reported D3B1.5 hardware evidence (not observed by any agent)
+## Recovery from the interrupted first session
+
+Recorded because it explains the shape of the commit, not because anything was lost.
+
+**What existed before the interruption.** Both repositories were on their original HEADs
+(`7d01454` / `407c185`), zero ahead and zero behind, with **no commit of any kind**. All D4A work sat
+uncommitted: 36 modified files, 11 untracked new files (including `9.json`, `MediaThumbnailSource.kt`,
+`TransferIndicatorPolicy.kt`, `ReviewGridPolicy.kt`, `ReviewGridScreen.kt`, `ReviewPreview.kt`,
+`ReviewBulkRouteDialogs.kt`, four test suites, and the device checklist), plus a fully rewritten
+`cc-latest.md`. The version bump and the 8 -> 9 migration were already applied — exactly once each.
+
+**What was recovered.** Everything. Nothing was reset, cleaned, restored, stashed, or rebuilt from the
+base; the second session read every changed file, re-ran the full suite to establish that the recovered
+state was genuinely green (1025 tests, 0 failures — matching what the first session had recorded), and
+continued in place.
+
+**What was still missing, and was completed afterwards.** Three gaps against the user's final
+decisions:
+
+1. **The duplicate pre-check was counts-only.** It did not show each duplicate's thumbnail and display
+   name and offered no way to drop one or all of them. Now it lists every blocked item with its frame,
+   its local name, and the "same media is already queued for the selected topic" sentence, with a
+   per-item **Remove** and a **Remove all of these from the selection** for the duplicates. Removing
+   re-reads the plan instead of patching it; removing the last item closes the confirmation. Nothing on
+   that path writes.
+2. **The profile chip filtered the grid only,** leaving the non-routable section unfiltered. Both halves
+   now go through the same `underFilter` call.
+3. **Two routing engines still existed.** Removing the per-card dropdown had left `resolveManualRoute`,
+   `ManualRouteRequest`, and `ManualRouteResult` behind — a second engine whose duplicate refusal
+   *wrote* (media marked `DUPLICATE`, review reason rewritten). All of it was removed, along with the
+   dead `MainViewModel.resolveReviewItem` and four now-unreachable notices and their strings in both
+   locales. The suites that pinned its guarantees were **ported onto the surviving path, not deleted**:
+   `ManualReviewResolutionTest`, two `QueueCorrectionTest` cases, and the `D2B1PersistenceTest` /
+   `D2B2APersistenceTest` instrumentation cases. One behaviour changed on purpose: a refused duplicate
+   is no longer marked, because that was a partial write.
+
+## New user-reported D3B2 hardware evidence (not observed by any agent)
 
 Recorded exactly as reported, and nothing beyond it:
 
-- D3B1.5 was installed and run on the user's Android device.
-- Completed/History contains **five** confirmed video rows.
-- Those rows do not expose enough always-visible media information for the user to identify which
-  Telegram post is the old blank 0:00 post.
-- The user asked for at least a readable duration and size on every video row.
-- The user tapped **Repair Telegram video presentation** on **all five** rows.
-- **Four** taps produced a generic "cannot repair" result.
-- The exact refusal causes were **not shown**.
-- The exact result of the **fifth** repair was **not reported**. Do not invent it.
-- All corresponding source videos still exist in the configured folder.
-- The multi-topic binding flow **worked** on hardware: several topics collected in one session,
-  **Connect all** succeeded, and a test message succeeded after binding.
-- The review form showed only neutral ordinals, so the user could not tell which candidate was which
-  Telegram topic.
-- The user chose to expose `message_thread_id` as the topic identifier in that form.
-- **No claim was made** about source-file mutation, duplicate Telegram repair posts, or the final
-  visual state of any repaired post.
-- The fixed drawer Menu position was **not** mentioned in that report, so it is **still not**
-  user-validated. It stays on the D3B2 checklist.
+- D3B2 was installed and run on the user's Android device.
+- The user tested through **step 3** of the D3B2 device checklist.
+- The repair flow **works on hardware**: the previously blank 0:00 Telegram posts were converted into
+  real, playable video **inside the same Telegram messages**.
+- Repair progress **with percentages** was visible.
+- **Two visible progress indicators appeared at the same time** during that operation.
+- The user considers that duplicate-indicator issue **non-critical for now** and wants it folded into
+  the next substantial milestone rather than shipped as a standalone build.
+- The remaining D3B2 checks will be exercised **gradually during ongoing usage** rather than blocking
+  forward progress.
+- The user wants to move on to manual source profiles and bulk Review routing.
 
-### Unproven hypothesis about the four generic refusals
+Nothing is recorded about the other D3B2 checklist steps — cancellation, batch pause, the exact
+refusal reasons for the four rows that previously said only "cannot repair", or the fixed drawer Menu
+position. **They remain user-unvalidated.** Do not infer them from "the repair worked".
 
-The four identical refusals are **consistent with** the single external-media slot being held while
-the first repair ran: D3B1.5's arbiter refuses a repair while another operation holds the slot, and
-its view model collapsed that refusal into the same `REPAIR_NOT_ELIGIBLE` message as every
-content-based one. It is **equally consistent** with a source or codec check failing on those four
-files.
+This also retires the old D3B1.5 hypothesis: the four generic refusals were never diagnosed, because
+the user has not yet re-run that step. Do not record a root cause.
 
-**Do not record this as the confirmed root cause.** Nothing observed distinguishes them — which is
-exactly the defect D3B2 fixes. It becomes knowable only when the user reports the exact reasons from
-hardware.
+### Root cause of the duplicate indicators (found by reading code, not by observing)
 
-## The user's four explicit decisions (final; do not reopen)
+`UploadJobCard` drew `MediaTransferIndicator` for any live transfer owned by its row, and
+`RepairRowSection` — rendered *inside that same card* — drew `MediaTransferIndicator` again for the
+`InFlight` repair state. One repair, two bars advancing in lockstep. The Queue had the identical
+shape: `BatchStatusCard` drew the current batch item and the row that item belonged to drew it again.
 
-1. **Repair progress**: stages **plus** a real upload percentage.
-2. **Multi-topic identification**: `Topic <ordinal> · ID <message_thread_id>`, and **no** bot
-   acknowledgement message posted into any Telegram topic.
-3. **Cancellation scope**: single foreground upload, in-place repair, **and** the current item of a
-   background batch.
-4. **After the current transfer is cancelled**: pause every remaining item; never continue
-   automatically; require an explicit **Resume**.
+## The user's decisions (final; do not reopen)
 
-No further open user-facing ambiguity was found, so no blocking question was raised. Two engineering
-choices that shape what the user sees were stated as assumptions rather than left implicit: binary
-byte units with one decimal (the spec delegated "a stable documented rounding rule"), and returning a
-cancelled batch item to *un-started* rather than settling it (which follows directly from decision 4 —
-settling it would make Resume skip the very item the user cancelled).
+Supplied **with** the task and treated as final:
 
-## Cancellation architecture, and the body-completion boundary
+1. Source profile assignment is **manual only** — the app must not auto-detect it.
+2. Review surface is a **thumbnail grid**.
+3. **Select all** applies only to the currently filtered view; **Clear selection** clears the full
+   global selection set.
+4. **Thumbnail tap toggles selection only.**
+5. **Preview opens from a separate explicit control** on the card.
+6. **Selection persists across filters**; a mixed selection from several profiles routes to one topic
+   in one action.
+7. Preview must be **in-app**, never an external Android viewer.
+8. The duplicate progress bars are **not** a standalone hotfix — fold them into this milestone.
 
-`domain/execution/ActiveMediaTransferController` (new, `@Singleton`) describes the **single** live
-media operation: kind (`SINGLE_UPLOAD` / `BATCH_ITEM` / `REPAIR`), the opaque upload-job ID, a
-cancellation-requested flag, the transport handle, the phase, and real sent/total bytes. Exactly seven
-fields, none capable of carrying a token, URI, path, name, Telegram identifier, or hash — asserted by
-both a unit test and a surface test.
+Answered through the **stop-and-ask gate** (work stopped before any file was edited):
 
-**It is not a second lock.** `ExternalMediaOperationArbiter` remains the one exclusivity authority;
-the controller only describes whoever won that slot, and refuses a second registration rather than
-overwriting one. Every mutation is guarded on the registration still being current, so a late update
-from an abandoned operation cannot repaint a newer one.
+9. **A duplicate inside a bulk commit** → **pre-check before Confirm**. Single-item routing already
+   treats "these exact bytes are already reserved for that topic" as a *non-error*, which collides
+   head-on with "abort the whole bulk commit". So after a topic is chosen the whole selection is
+   checked against it, and **Confirm stays disabled** until nothing is already-queued or ineligible.
+10. **Non-routable Review rows** → their own **section below the grid**, keeping their existing
+    per-item action. (Dropping them would make rescan/reauthorize unreachable.)
+11. **Unprofiled folders** → a **fifth "Not set yet" chip**, items also under All, plus a banner.
+12. **The per-card destination dropdown** → **removed**. One routing path, one confirmation, one
+    commit.
 
-**Cancellation reaches the request.** `MediaTransferCancellation` is handed to the gateway per call;
-the gateway does `cancellation.attach { call.cancel() }` the moment the call exists (and the
-controller pulls it *immediately* if the user already asked — the real race is tapping while the
-request is still being built), the streaming body checks the flag on every 64 KB chunk, and the
-handle is detached on settlement so a later cancel cannot reach a finished call.
+## Manual source profiles
 
-**What it means is still decided by evidence.** `CompletionTrackingRequestBody` is untouched:
+`SourceProfile` = `UNSPECIFIED | INSTAGRAM | TIKTOK | DOWNLOADS_X` on `SourceDirectory`, written only
+by `DirectoryRepository.setSourceProfile`, reachable only from the folder chooser the user taps.
 
-| Situation | Outcome |
+**There is no detection path of any kind** — no display-name matching, no tree-URI inspection, no MIME
+or filename heuristic. `D4ASurfaceTest` asserts no `detectProfile`/`inferProfile`/`guessProfile`
+identifier exists in production source. The reasoning is worth keeping: with three folders the user
+already knows which is which, and a heuristic that got one wrong would silently attach a meaning they
+never expressed to everything that folder ever produced.
+
+`UNSPECIFIED` is migrated-into but **never offered**: `SELECTABLE_SOURCE_PROFILES` in `Screens.kt`
+lists only the three, and the surface test checks that. The UI names it *Not set yet*, gives it its
+own Review chip, and shows a banner pointing at Folders.
+
+The profile is **organizational only** — it routes nothing, maps to no account, suggests no topic, and
+nothing in the scan/queue/dispatch/batch/repair paths reads it.
+
+## Schema decision: 8 -> 9, one additive column
+
+```sql
+ALTER TABLE source_directories ADD COLUMN sourceProfile TEXT NOT NULL DEFAULT 'UNSPECIFIED'
+```
+
+That is the entire migration. A machine diff of `8.json` vs `9.json`: 14 tables in both, one added
+column in `source_directories`, zero removed columns anywhere. No table carrying Telegram evidence,
+reservations, or repair history is touched. Destructive fallback stays forbidden.
+`migration8To9AddsOneUnspecifiedProfileColumnAndPreservesEveryRecord` asserts every earlier record
+survives and that a migrated folder reads `UNSPECIFIED` rather than a guessed name.
+
+## Review grid, selection, and partitioning
+
+`domain/review/ReviewGridPolicy.kt` holds it all as **pure functions** over opaque job IDs (no Room,
+no Compose, no Android), which is what makes every rule directly testable. `ReviewRow` **moved** from
+`ui/MainViewModel.kt` into this file.
+
+| Action | Scope |
 | --- | --- |
-| Exact confirmation before settlement | Confirmed — the cancellation loses |
-| Body provably incomplete | Safely retryable |
-| Complete body, no trustworthy answer | `RESULT_UNKNOWN`, forever |
-| Cancelled after the complete-body boundary | `RESULT_UNKNOWN` unless success already proven |
+| Thumbnail tap | one item; selects/deselects only — never opens, never routes |
+| **Select all shown** | the active chip's visible **routable** items, **additive** |
+| **Clear selection** | the **entire** global set, including chip-hidden items |
+| Changing a chip | nothing — selection is global by design |
 
-Nothing settles twice; nothing resends automatically; pressing Cancel never makes an uncertain result
-certain.
+The asymmetry is deliberate and is the safe direction: nothing can be stranded selected-but-unreachable.
+Non-routable items are never added by Select all, because no destination could accept them.
 
-**A cancellation is not a failure.** New guarded DAO statement `recordDispatchCancelled` shares every
-guard with `recordDispatchRetryable` and differs in one way: `nextAttemptAt = NULL` instead of a
-future time. The DAO's retryable statement enforces `:nextAttemptAt > :now` — that is *why* a separate
-statement exists, and a null attempt time is the same "claimable now" state a never-attempted row has.
-The attempt count is **not** rolled back, so cancelling repeatedly cannot buy unlimited attempts.
+`MainViewModel` prunes the selection against live Review data on every emission (`ReviewSelection
+.retainExisting`), so a routed/retired/rescanned item cannot leave its ID behind and inflate the count;
+the same pass closes a preview whose item has left Review.
 
-**Cancel current and pause** (replaces `requestStopAfterCurrent` outright, in the launcher, the batch
-card, and the notification action): record the durable request **first**, cancel the live request
-second — a process death between the two still leaves a session that starts nothing. Only the upload
-job the snapshot says is `RUNNING` is cancelled. The runner re-reads the request both *before*
-starting an item and *after* one settles; the second read is what makes a cancellation during the
-**last** item pause rather than fall out of the loop as a completion. A cancelled item goes back to
-`PENDING` via `retainItemForResume` (guarded so only an un-settled item may move), and because items
-walk in ordinal order it is the first thing Resume attempts.
+`ReviewGridPartition` splits on `ReviewAction`: only `ASSIGN_DESTINATION` becomes a grid card;
+rescan / reauthorize / result-unknown keep their card and single action below the grid. The active chip
+runs `underFilter` over **both** halves — filtering only the grid would hide a folder's routable items
+while still showing its stuck ones, which says two things about one folder at once.
 
-`BatchJobContract.ACTION_STOP_AFTER_CURRENT` → `ACTION_CANCEL_CURRENT_AND_PAUSE`, same immutable
-`PendingIntent` deep link into `MainActivity`. **No receiver was added** — a broadcast receiver would
-have been a new exported component for no capability the deep link lacks.
+## Bulk routing: judged first, then written, or not written at all
 
-## Exact refusal UI
+`ReviewResolutionRepository` now exposes exactly `observeReviewItems`, `previewBulkRoute` (read-only
+plan) and `resolveBulkRoute` (atomic commit). **This broke `D2B1SurfaceTest`'s exact `declaredMethods`
+set assertion** — expected, updated.
 
-`RepairRefusal` now has **21** values: `REPAIR_NOT_REPEATABLE` was split into `ALREADY_REPAIRED`,
-`REPAIR_PERMANENTLY_FAILED`, and `REPAIR_RESULT_UNKNOWN`. `RepairEligibilityPolicy` and the durable
-`createAttempt` transaction both report them apart, so the last line of defence gives the same
-sentence the policy would.
+**The single-item engine is gone, not merely unreachable.** `resolveManualRoute`, `ManualRouteRequest`,
+`ManualRouteResult`, `recordAlreadyReserved`, `MainViewModel.resolveReviewItem`, four `UiNotice` values,
+and four strings per locale were removed. Keeping the transaction would have kept a second confirmation
+semantics: its duplicate refusal **wrote** (media -> `DUPLICATE`, review reason rewritten), which is the
+partial write the all-or-nothing decision forbids. Its suites were ported onto `resolveBulkRoute`
+(`ManualReviewResolutionTest`, two `QueueCorrectionTest` cases, `D2B1PersistenceTest`,
+`D2B2APersistenceTest`), with the result mapping: `Queued` -> `Routed`, `AlreadyQueued` ->
+`Aborted(1, 0)`, `HashUnavailable`/`NotResolvable`/`JobNotFound` -> `Aborted(0, 1)`,
+`DestinationNotReady` and `Failed` unchanged in meaning.
 
-`UiNotice.REPAIR_NOT_ELIGIBLE` and `REPAIR_BUSY` are **gone**. `MainViewModel` exposes
-`repairRefusals: StateFlow<Map<String, RepairRefusal>>` (retained for the process lifetime, so the
-reason outlives the snackbar and can be compared with the next row's) plus a separate
-`repairRefusalNotice` channel, because a repair refusal carries a *value* and `UiNotice` does not.
-`RepairNowResult.Busy` maps to `OPERATION_IN_PROGRESS` so both code paths give one sentence.
+The ordering is the safety property: `resolveBulkRouteLocked` judges the **whole** selection first,
+against the same snapshot the writes happen in, and starts writing only once every item comes back
+routable. So the ordinary abort case **never writes at all** rather than writing and rolling back. The
+`ReservationFailedException` rollback remains for the one thing judging cannot rule out — a write that
+fails against a constraint anyway.
 
-`RepairRowPresentation` (pure) turns live transfer + durable attempt + last refusal into one row
-state. Precedence: a live transfer on this row beats everything; a refusal the user just received
-beats the durable history; only then does the attempt speak.
+Two non-obvious guarantees:
 
-A pre-dispatch refusal creates **no** attempt row, so nothing can later be misread as an unknown edit.
+- **Batch-local hash set.** Two selected items with byte-identical content would *both* pass a
+  per-item check (neither reservation exists yet) and the second write would collide mid-transaction.
+  The second is reported already-queued **before** any write — the same answer the user would get if
+  the first had been routed a moment earlier. Covered by
+  `two selected items with identical bytes cannot both be routed to one topic`.
+- **The write loop re-reads** every row it writes rather than trusting the judging pass, so a row that
+  changed between the two loops aborts instead of being written from a stale read.
 
-## Staged progress
+`BulkRoutePlan.isCommittable` = destination ready **and** ≥1 routable **and** zero already-queued
+**and** zero ineligible. That single predicate *is* decision 9.
 
-`MediaTransferPhase`: CHECKING_ELIGIBILITY → VERIFYING_SOURCE → HASHING_SOURCE → ANALYZING_VIDEO →
-PREPARING_REQUEST → UPLOADING → WAITING_FOR_CONFIRMATION, plus CANCELLING. Local phases are
-indeterminate on screen (no truthful denominator; time-based progress would be an undetectable lie).
-`UPLOADING` reports an integer 0–100 from real sent bytes over the verified multipart total, clamped
-both ends. `WAITING_FOR_CONFIRMATION` reports **no** percentage — a complete body is not an accepted
-message. The repair coordinator announces each local stage and follows each with a cancellation check
-(`sourceRefusal` split into `documentRefusal` + `hashRefusal` for exactly this). Other rows' repair
-buttons are `enabled = !otherOperationRunning` with an inline
-*"Another media operation is currently running."*
+**The pre-check is a list, not a number.** `BulkRouteConfirmDialog` resolves each blocked job ID against
+the live Review rows and draws its frame and its local display name, with the "same media is already
+queued for the selected topic" sentence, a per-item **Remove**, and **Remove all of these from the
+selection** for the duplicates. `removeFromBulkSelection` / `removeDuplicatesFromBulkSelection` mutate
+the selection and then **re-read** the plan (`recheckBulkRoute`) rather than patching the one on screen
+— a patched plan answers a question about a selection that no longer exists. Removing the last item
+clears the plan and reports `REVIEW_BULK_NOTHING_SELECTED`. Neither removal writes anything.
 
-## Always-visible media identification
+Routing prepares only: `QUEUED` + `RoutingMethod.MANUAL`, no file read for sending, moved, renamed, or
+deleted, no Telegram call, no upload start.
 
-`domain/media/MediaSummaryFormat` (pure). **Rounding rule, stated once:** binary units (1 KB = 1024
-B); whole bytes below 1024; one decimal above, rounded half-up; promote to the next unit rather than
-ever rendering "1024.0 KB". Durations `M:SS` under an hour, `H:MM:SS` at or above, truncated not
-rounded up; **null in means null out**, so an unknown duration is named explicitly and never becomes
-the `0:00` that is exactly what a blank card looks like.
+## In-app preview and thumbnails — no new dependency
 
-Size and length are on every Queue/Completed/History card *before* **Show details**; raw bytes, raw
-milliseconds, and attempts stay under Details. Numerals forced LTR, unit words not. No URI, path,
-hash, chat/message/thread ID on History.
+**Nothing player-shaped is in the offline Gradle cache** (no media3, no ExoPlayer, no Coil/Glide), and
+the build is `--offline`. So both use platform APIs, which is also the better answer:
 
-## Topic ID review
+- Preview: `android.widget.VideoView` in an `AndroidView`, with custom Compose play/pause + `Slider`
+  seek and a 250 ms position poll (the platform player has no position callback).
+- Thumbnails: `MediaMetadataRetriever.getFrameAtTime(0, OPTION_CLOSEST_SYNC)` on `Dispatchers.IO` into
+  a bounded in-memory `LruCache`; **never** written to disk. Every failure returns null → placeholder.
+  Catches `Throwable` deliberately (`setDataSource` throws RuntimeException families; a big frame can
+  throw `OutOfMemoryError`).
 
-`MultiTopicReview` shows `R.string.telegram_multi_topic_identity` = `Topic %1$d · ID %2$d` from
-`candidate.ordinal` and `candidate.messageThreadId`, wrapped in `LayoutDirection.Ltr`, plus a one-line
-explanation naming the number as the Telegram topic ID in both locales. Chat ID still hidden; no bot
-acknowledgement; command format and its single parser unchanged; ordinals stable; already-bound and
-removed candidates still show their ID.
+**The preview is an overlay in the Review window, not a `Dialog` and not a second activity.** Two
+reasons, both load-bearing:
 
-`D3B15SurfaceTest`'s old "the review form shows no identifier" test was **rewritten**, not weakened:
-it now asserts the thread ID *is* shown, that it is LTR, that both locales explain it, and that the
-chat ID, chat title, nonce, update ID, sender, and command are still absent.
+- `FLAG_SECURE` is a **window** flag. A dialog window would **not** inherit the activity's, silently
+  dropping the protection. `VideoView` additionally calls `setSecure(true)` because the activity flag
+  does not cover a `SurfaceView`'s own buffer either.
+- The Review composition underneath is never torn down, so selection, chip, and scroll position are
+  exactly preserved.
 
-## Schema decision
+No `ACTION_VIEW`, `ACTION_SEND`, `createChooser`, `FileProvider`, `grantUriPermission`, or
+`startActivity` anywhere in production source — the surface test asserts each absence.
 
-**Room stays at 8, deliberately.** Every durable fact was already expressible: the cancel request is
-the existing nullable `stopAfterCurrentRequestedAt` (now recording a stronger action in the same
-field — the runner reads it for the same reason either way), the pause is the existing `PAUSED`
-status, and a safely retryable current item is the existing `PENDING` state. A ninth version would
-have added a column saying one of those things twice, and two fields that can disagree are worse than
-one that cannot.
+`MediaThumbnailSource` is injected into **`MainActivity`**, not the ViewModel, so `MainViewModel` keeps
+its JVM-testable surface free of `ImageBitmap`.
+
+## Duplicate progress indicator fix
+
+`domain/execution/TransferIndicatorPolicy` maps each `ActiveMediaOperationKind` to exactly one
+`TransferIndicatorSlot`:
+
+| Kind | Slot | Why |
+| --- | --- | --- |
+| `REPAIR` | `REPAIR_SECTION` | It already carries the repair status line and **Cancel now** |
+| `BATCH_ITEM` | `BATCH_CARD` if visible, else `ROW` | The card already names "n of m"; falling to NONE would hide a live transfer |
+| `SINGLE_UPLOAD` | `ROW` | The row the user tapped **Upload now** on |
+
+All three call sites in `Screens.kt` ask `drawsIn(...)` first; `UploadJobCard` gained a
+`batchCardVisible` parameter supplied by `QueueScreen` as `batchStatus != null`.
+`TransferIndicatorPolicyTest` asserts that for **every** kind, under **both** batch-card conditions,
+**exactly one** surface draws. D3B2's staging, percentages, and **Waiting for Telegram confirmation**
+are untouched.
 
 ## Tests and exact results
 
-| Check | Result |
-| --- | --- |
-| `--offline testDebugUnitTest` | **973 tests / 77 classes, 0 failures, 0 errors, 0 skipped** (D3B1.5: 878/73) |
-| `--offline lint` | **0 issues** |
-| `--offline assembleDebug` / `assembleDebugAndroidTest` | passed |
-| Instrumentation | compiles, **not run** (no device attached) |
-| Room schema | **8**, unchanged; `1.json`–`8.json` only |
-| `git diff --check` | clean |
+```
+GRADLE_USER_HOME=/root/.gradle ./gradlew --offline testDebugUnitTest      # 1031 tests / 81 classes, 0 failures
+GRADLE_USER_HOME=/root/.gradle ./gradlew --offline lint                   # 0 issues
+GRADLE_USER_HOME=/root/.gradle ./gradlew --offline assembleDebug          # success
+GRADLE_USER_HOME=/root/.gradle ./gradlew --offline assembleDebugAndroidTest  # success (compiled only)
+git diff --check                                                          # clean
+```
 
-New suites: `ActiveMediaTransferControllerTest` (one operation at a time; correct owner may cancel;
-wrong/stale owner may not; repeated cancel pulls the handle once; a cancel arriving before the call
-exists is not lost; a detached handle is never pulled; the handle clears only on terminal settlement;
-a settled operation cannot repaint a newer one; percentage real and bounded 0–100; no field can carry
-a secret), `MediaSummaryFormatTest` (every unit boundary, the 1024.0-promotion, half-up rounding,
-`M:SS`/`H:MM:SS`, truncation, unknown ≠ 0:00), `RepairRowPresentationTest` (precedence, four distinct
-settled states, percentage only while uploading, cancelling stops offering the control),
-`D3B2SurfaceTest` (blast radius).
+(The recovered pre-interruption state measured 1025 / 0 on the same command; the three completed gaps
+added six tests.)
 
-Extended: `MediaUploadCoordinatorTest` (+8: cancel before body → retryable with **null**
-`nextAttemptAt`; cancel after body → unknown; confirmation wins the race; foreign job cancels nothing;
-repeated cancel starts nothing else; state cleared on settlement; batch-item kind; last byte →
-WAITING), `MediaRepairCoordinatorTest` (+6: pre-dispatch cancel sends nothing and creates **no**
-attempt row; incomplete → RETRY_AVAILABLE; complete → RESULT_UNKNOWN and unrepeatable; same-message
-success wins; foreign cancel; truthful stage order), `DefaultBatchUploadRunnerTest` (+7: retained
-un-started; Resume attempts it first; unknown never retried; confirmed never resent; cancel during the
-last item still pauses; paused survives a fresh run; snapshot reports PAUSED), `MainViewModelTest`
-(+7), and **both gateway suites** with MockWebServer tests that cancel a *real* in-flight request and
-assert the body never completed.
+New: `ReviewGridPolicyTest`, `TransferIndicatorPolicyTest`, `BulkReviewRoutingTest`,
+`D4ASurfaceTest`. Extended: `MainViewModelTest` (selection / filters / preview / bulk routing /
+duplicate removal), `LocalizationResourcesTest` (plural key parity + `other` fallback),
+`AppDatabaseMigrationTest` (8→9). Ported, not deleted: `ManualReviewResolutionTest`, two
+`QueueCorrectionTest` cases, `D2B1PersistenceTest`, `D2B2APersistenceTest`.
 
-Historical surface tests updated **truthfully, not weakened**: `D2B2BSurfaceTest` (new port method),
-`D3ASurfaceTest` (new launcher methods; the gateway's default parameter adds a synthetic
-`upload$default`), `D3B1SurfaceTest` (`uploadBatchItemNow`, `cancelCurrentAndPause`, renamed strings),
-`D3B15SurfaceTest` (version 18, `RepairRowSection`, rewritten review-form test).
+**One lint issue appeared and was fixed:** `ModifierParameter` on the shared `ReviewThumbnail`, whose
+`modifier` defaulted to `Modifier.fillMaxWidth()`. It now defaults to `Modifier` and the grid passes the
+width at the call site. Lint is back to 0.
 
-**Known flake, still current:** the `DISCONNECT_DURING_REQUEST_BODY` gateway tests can fail when
-`testDebugUnitTest` runs concurrently with `lint` on this machine. One failed once under load in this
-session and passed on a clean re-run. **Run them sequentially**, never concurrently.
+**Four earlier surface tests pinned facts this milestone deliberately moved** and were updated with a
+comment naming what moved them: `D2B1SurfaceTest` (port member set), `D3ASurfaceTest` (schema 8→9),
+`D3B15SurfaceTest` (version literal; `MIGRATION_7_8` is no longer the *last* entry in `ALL`, so the
+assertion now checks membership not position), `D3B2SurfaceTest` (version, schema, and `sourceProfile`
+dropped from its forbidden-marker list — it was future work then, not unsafe).
+
+**One flaky test to know about:** `TelegramMediaRepairGatewayTest > a D3B2 cancellation ends the live
+edit and can never produce a duplicate post` failed once under full-suite load and passed in isolation
+and on every subsequent full run. It uses `SocketPolicy.NO_RESPONSE` with an 8 MB body, so it is
+timing-sensitive. Nothing in the transport layer was touched this milestone.
 
 ## APK identity (debug development signing only)
 
-- Main APK `app/build/outputs/apk/debug/app-debug.apk`: **14,627,574 bytes**, SHA-256
-  `725f7155e5617e76e18c2afe4983d8d5f8bf4db59508ac66b5f0781d5958dc71`.
-- Instrumentation APK: 1,581,941 bytes, SHA-256
-  `d21f8bb86dedb3ca5807b4e8f8cd0b20195c3a8aa708c68f50193d62b689c0b5` (byte-identical to D3B1.5's —
-  correct, since only main sources changed and the test APK carries only test classes).
-- Package `com.funzi7.telegramtopicuploader`; versionCode 18; versionName `0.6.1-d3b2`; minSdk 23;
-  compile/target SDK 37; cleartext false; backup false.
-- Permissions unchanged: INTERNET, ACCESS_NETWORK_STATE, RUN_USER_INITIATED_JOBS, POST_NOTIFICATIONS
-  (+ AndroidX `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`). One exported activity; one non-exported
-  `BatchUploadJobService`; **no** application receiver or provider of our own.
-- Debug cert SHA-256 `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4` — matches
-  expected, so it updates over the installed `0.6.0-d3b1.5` in place.
+| Field | Value |
+| --- | --- |
+| Package | `com.funzi7.telegramtopicuploader` |
+| Version | code 19, name `0.7.0-d4a` |
+| minSdk / targetSdk / compileSdk | 23 / 37 / 37 |
+| Permissions | `INTERNET`, `ACCESS_NETWORK_STATE`, `RUN_USER_INITIATED_JOBS`, `POST_NOTIFICATIONS` — **unchanged** |
+| Components | 1 exported launcher activity, 1 non-exported `BatchUploadJobService` (`BIND_JOB_SERVICE`) — **unchanged** |
+| Path | `app/build/outputs/apk/debug/app-debug.apk` |
+| Size | 15,443,253 bytes |
+| SHA-256 | `eab5fef68bd128ac15b843a3ccbdd9e3d51a3e9f73984c4845e8a75020016637` |
+| Signer | `CN=Android Debug, O=Android, C=US`, RSA 2048, cert SHA-256 `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4` |
+| Schemes | v1 JAR ✓, v2 ✓ (v3/v3.1/v4 not used) |
+
+Signer unchanged, so it installs **over** D3B2 without an uninstall.
 
 ## Agent-observed vs user-reported
 
-**Agent-observed (this session):** compilation, the full JVM suite, lint, both APK assemblies, the
-merged manifest, the signer certificate, the schema export, and every source-shape assertion.
-**User-reported (not observed):** everything in the hardware-evidence section above. **Nothing else is
-claimed.**
+**Agent-observed:** every test result, lint result, both assemblies, the schema diff, the APK identity
+above, the duplicate-indicator root cause (read from source), and the recovered repository state
+described at the top of this file.
+
+**User-reported only:** everything in the hardware-evidence section. No agent saw the device, the
+Telegram posts, the repair, or the two progress bars.
 
 ## Device-untested boundaries
 
-The D3B2 APK has **never** been installed, launched, or run. Specifically unproven: that a
-cancellation terminates a transfer promptly over a real mobile network; that a cancelled upload's
-source file is unchanged afterwards; that a paused batch's notification renders the paused state; that
-Resume attempts the cancelled item first; that a repair's percentage advances smoothly; that the exact
-reason now shown for a previously generic row is the *correct* one; and the carried-forward D3B1.4.2
-fixed Menu position, which has still never been reported either way.
+Nothing in D4A ran on a device or emulator. Specifically unverified on hardware: the grid's appearance
+and column count on a real phone, thumbnail decoding across real codecs, `VideoView` playback and
+seeking against real SAF documents, the 8→9 migration on a real installed database, whether exactly one
+progress indicator now appears during a real repair, and the duplicate pre-check's blocked-item list and
+its Remove controls against a real duplicate. The ported instrumentation suites **compile but were not
+run** — no device was attached — so their new expectations are unverified on hardware.
 
 ## Next device action (ask for exactly this)
 
-`docs/D3B2_DEVICE_CHECKLIST.md`. Install over D3B1.5 without uninstalling; confirm readable size and
-length on every Completed row; run one repair and watch its stages and percentage; confirm every other
-repair action is disabled with the busy explanation; confirm the same post is edited and no second
-post appears; **report the exact refusal reason** for a row that previously said only "cannot repair";
-cancel a fresh single upload early and report whether it came back retryable or result-unknown; run a
-two-item batch, **Cancel current and pause**, confirm the pause and that no second item started, then
-Resume; start a fresh multi-topic session and confirm `Topic N · ID <number>`; and finally confirm the
-Menu position on a Dashboard drill-down. Do **not** ask for token setup, source-missing
-reconciliation, queue retirement, Dashboard counts, ordinary compatible upload, or a full multi-topic
-commit.
+`docs/D4A_DEVICE_CHECKLIST.md`: install over D3B2 without uninstalling; set all three folder profiles
+by hand; confirm the grid shows thumbnail / size / length / profile; tap thumbnails to select;
+preview one item in-app and return with the selection intact; switch chips and confirm the selection
+survives; select-all on one chip; clear-all; route a mixed selection to one topic; confirm they all
+leave Review for the Queue with no upload started and no new Telegram post; confirm a repair or upload
+shows **exactly one** progress indicator. Step **12a** is optional and only reachable if the
+confirmation actually reports a blocked item — the checklist explains how to bring that about with two
+byte-identical test copies.
 
-## Roadmap after D3B2
+Do **not** ask for a retest of token setup, background scheduling, multi-topic binding, source-missing
+reconciliation, queue retirement, or old History card formatting.
 
-1. **Source profiles for Instagram / TikTok / Downloads** — derive a profile from durable local
-   evidence only (the scanned folder, the provider's file naming), offer it as a *suggestion* on
-   Review, never as automatic routing, never with per-account mappings.
-2. **Bulk thumbnail routing** — apply one reviewed decision to a group sharing a proved source
-   profile, in one transaction, with **Connect all**'s all-or-nothing semantics.
-3. **Only after those are proved on hardware:** optional content-based destination suggestions from
-   available caption/link metadata, sampled frames, OCR, and speech evidence; high-confidence
-   automatic routing stays opt-in and uncertain items stay in Review.
+## Roadmap after D4A
+
+1. **Optional content-based topic suggestions** — from available caption/link metadata, sampled
+   frames, OCR, and speech evidence. Offered as a *suggestion* on Review, never as automatic routing.
+2. **Only after that is proved on hardware:** high-confidence automatic routing, strictly opt-in, with
+   uncertain items still landing in Review.
+3. **Explicitly not on the roadmap: per-account mapping.** The user has ruled it out.
 4. Still open from before: result-unknown reconciliation that never re-sends without evidence
    (including a *manual* repair-retry design); evidence-based resolution of an unowned/ambiguous
    legacy reservation (D3A.1); safe deletion gated on a confirmed positive message ID.
@@ -284,49 +354,63 @@ commit.
 ## Process rules the user set
 
 - **Do not ship a single-hotfix build on its own**; fold it into the next substantive milestone. (The
-  user deliberately did not install the standalone D3B1.4.2 APK for this reason.)
+  user did not install the standalone D3B1.4.2 APK, and explicitly asked for the duplicate-indicator
+  fix to be folded into D4A rather than shipped alone.)
 - **Mandatory stop-and-ask UX gate**: never silently choose among materially different user-facing
-  behaviours. D3B2's four decisions arrived *with* the task and were treated as final; no further open
-  ambiguity was found, so no blocking question was raised, and the two delegated engineering choices
-  were stated explicitly instead.
+  behaviours. Inspect the implementation *first*, then ask one grouped question with numbered options,
+  short practical consequences, and **no preselected default**, and stop until answered. D4A raised
+  four; all four were answered before any file was edited.
 - Do not introduce another binding command alias or syntax without asking first.
 
 ## Env notes (still current)
 
 - `GRADLE_USER_HOME=/root/.gradle ./gradlew --offline …`; `aapt2` at
   `/opt/android-sdk/aapt2-wrapper/aapt2`.
-- **`apksigner` is not reliably present in this sandbox** and a `find /` for it times out. Read the
-  signing certificate straight out of the APK instead: `zipfile` → `META-INF/CERT.RSA` →
-  `openssl pkcs7 -inform DER -print_certs` → `openssl x509 -noout -fingerprint -sha256`.
+- **Correction to an earlier note:** `apksigner` **is** present, at
+  `/opt/android-sdk/build-tools/36.0.0/apksigner`. A bare `find /` for it times out — look in
+  `/opt/android-sdk/build-tools/*/` directly. `apksigner verify --print-certs -v` gives the DN, the
+  cert SHA-256, the key algorithm/size, and which signature schemes verified, in one call.
 - **`dexdump` crashes (Illegal instruction)** — use `strings` over extracted `classes*.dex`.
 - Merged manifest at
-  `app/build/intermediates/merged_manifests/debug/processDebugManifest/AndroidManifest.xml` (note the
-  plural `merged_manifests`; the singular path also exists for `processDebugMainManifest`).
+  `app/build/intermediates/merged_manifest/debug/processDebugMainManifest/AndroidManifest.xml` (also a
+  plural `merged_manifests/debug/processDebugManifest/` path).
+- **The offline Gradle cache has no media3, ExoPlayer, Coil, Glide, or Picasso.** Anything media-shaped
+  must use platform APIs (`VideoView`, `MediaMetadataRetriever`, `MediaPlayer`).
 - **A source-shape guard must strip comments** (`codeOf()`), or documenting why a mechanism was
   rejected fails the guard that rejects it. Equally: do not weaken a guard by rewording prose.
 - A blanket `.delete()` ban over `src/main/java` hits `AndroidKeystoreSecretStore`'s own atomic file.
   Exclude that one file by name rather than dropping the guard.
-- `UploadJobDao.recordDispatchRetryable` enforces `:nextAttemptAt > :now`, so "retry immediately"
-  needs its own statement (`recordDispatchCancelled`) rather than passing `now`.
+- `UploadJobDao.recordDispatchRetryable` enforces `:nextAttemptAt > :now`, so "retry immediately" needs
+  its own statement (`recordDispatchCancelled`).
 - Adding a default parameter to an `interface` method adds a synthetic `name$default` to
-  `declaredMethods`, which breaks exact-set reflection assertions in surface tests.
+  `declaredMethods`, breaking exact-set reflection assertions in surface tests.
 - Adding a `TelegramFailureCode` value breaks three exhaustive `when`s: `UploadFailureClassifier`,
   `TelegramSetupService.toConnectionStatus`, `TelegramSetupUiPolicy.testFailureLabel` (+ its test).
-- Keep the *current* `versionCode`/`versionName` literal in the **newest** milestone's surface test
-  only; older ones assert stable package identity instead. D3B15SurfaceTest still pins the version, so
-  it must be updated on every bump.
+- **The version literal is pinned in two surface tests**, `D3B15SurfaceTest` *and* `D3B2SurfaceTest`
+  (now also `D4ASurfaceTest`). Every bump must update all of them.
 - Lint's `UnusedResources` **will** fail the 0-issue bar when a UI rewrite orphans strings — delete
-  them from **both** locales to keep exact key parity (`LocalizationResourcesTest` compares key sets).
-- No Robolectric/mockito: prove UI rules by extracting them into pure objects (`MediaSummaryFormat`,
-  `RepairRowPresentation`, `BindCommand`, `RepairEligibilityPolicy`, `TopBarLeadingCluster`,
-  `DashboardDrillDown`) plus source-shape assertions, and Room behaviour in compiled-only androidTest.
+  them from **both** locales (`LocalizationResourcesTest` compares key sets exactly).
+- **An apostrophe in an English string resource must be escaped** (`\\'`) or `mergeDebugResources`
+  fails with "Invalid unicode escape sequence". Beware Python heredocs eating the backslash.
+- **`%1$d` followed by a word trips lint's `PluralsCandidate`.** Use `<plurals>`. For Hebrew use
+  `one`/`two`/`other` only — `many` trips `UnusedQuantity` because current CLDR retired it.
+  `LocalizationResourcesTest` now checks plural key parity and the `other` fallback separately.
+- `CompositionLocalProvider` is in `androidx.compose.runtime`, **not** `androidx.compose.ui`.
+- Lint's `UseKtx` wants `String.toUri()` (`androidx.core.net.toUri`) over `Uri.parse(…)`.
+- To mix full-width headers with grid cells in one `LazyVerticalGrid`, use
+  `item(span = { GridItemSpan(maxLineSpan) })`.
+- No Robolectric/mockito: prove UI rules by extracting them into pure objects (`ReviewSelection`,
+  `ReviewGridPartition`, `TransferIndicatorPolicy`, `MediaSummaryFormat`, `RepairRowPresentation`,
+  `BindCommand`, `RepairEligibilityPolicy`, `TopBarLeadingCluster`, `DashboardDrillDown`) plus
+  source-shape assertions, and Room behaviour in compiled-only androidTest.
 - Early `return` from a `@Composable` is legal but avoid it; guard with `if (state !is …)` instead.
+- Kotlin property initializers run in declaration order: a `StateFlow` whose `onEach` touches a
+  `MutableStateFlow` must be declared **after** it.
 
 ## Deployment declaration
 
-Nothing was deployed, installed, or run on a device or emulator in the D3B2 session. **No real
-Telegram request of any kind was made** — no `editMessageMedia`, no `sendVideo`, no `getUpdates`, no
-send. No forum topic was created, renamed, closed, or deleted; no binding was written against a real
-group; and no media was uploaded, moved, renamed, copied, downloaded, quarantined, or deleted. The
-existing Telegram posts are untouched and are never repaired, resent, or removed without an explicit,
-confirmed, per-row user action.
+Nothing was deployed, installed, or run on a device or emulator in the D4A session. **No real Telegram
+request of any kind was made** — no `editMessageMedia`, no `sendVideo`, no `getUpdates`, no send. No
+forum topic was created, renamed, closed, or deleted; no binding was written against a real group; and
+no media was uploaded, moved, renamed, copied, downloaded, quarantined, or deleted. No media file was
+opened for writing on any path; preview and thumbnail decoding open documents **read-only**.
