@@ -4,163 +4,164 @@
 
 | Field | Value |
 | --- | --- |
-| Task | D3B1.2 — add the `ACCESS_NETWORK_STATE` permission Android requires of a job that declares a required network, and preflight it locally |
+| Task | D3B1.3 — prove Telegram video compatibility before `sendVideo`; send duration/dimensions/thumbnail; drop unconditional `supports_streaming`; add read-only batch outcome details |
 | Application repository | `/root/work/telegram-topic-uploader` |
 | Branch | `main` |
 | Tracking branch | `origin/main` |
-| Starting application HEAD | `3645597f2a2359e7962e4573b847976ac6dfee37` (D3B1.1) |
-| Version | code 11 -> 12, name `0.5.1-d3b1.1` -> `0.5.2-d3b1.2` |
-| Room schema | **stays 7.** No schema change, no migration, no schema file touched |
+| Starting application HEAD | `c2d6ebf11f382c106da40978c042915f7ad9c2ed` (D3B1.2) |
+| Version | code 12 -> 13, name `0.5.2-d3b1.2` -> `0.5.3-d3b1.3` |
+| Room schema | **stays 7.** DAO queries added only; no entity, index, migration, or schema JSON changed |
 | Deployment | None. Not installed or run on any device or emulator in this session |
 
 No production token, Telegram identifier, bot username/ID, chat ID, thread ID, group title, forum
 topic name, private link, binding command, file name, content URI, document ID, path, or media hash
 was requested, used, or recorded anywhere, including this file.
 
-## New user-reported device evidence (D3B1.1 on hardware; not observed by any agent)
+## New user-reported device evidence (D3B1.2 on hardware; not observed by any agent)
 
-- D3B1.1 was installed and launched on the user's Android device.
-- The existing background batch was still available.
-- The user tapped the background-upload action.
-- The app displayed the exact sanitized category equivalent to **"background-upload security permission
-  is unavailable"**.
-- **No video was sent.**
-- **No source-file mutation** was reported.
-- The two original queued test videos **do not need to be recreated or rescanned**.
-- Background execution, notification progress, and lock-screen continuation were **not reached**.
+- D3B1.2 was installed and run on the user's Android device.
+- The existing frozen batch was retried.
+- The application reported that the background upload started.
+- Two media posts appeared in the intended Telegram forum topic.
+- Both appeared as **blank white video cards showing duration 0:00**.
+- The Telegram cards displayed **non-zero file sizes**.
+- The batch notification reported that the run **completed with issues**.
+- The user did **not** report whether downloading and opening either card played successfully.
+- The exact durable job or batch-item outcomes were not reported.
+- Source-file mutation was not explicitly checked in this report.
+- No duplicate automatic resend was reported.
 
-## Corrected diagnosis
+## Root cause (MIME-only sendVideo)
 
-The displayed message is the `BatchScheduleResult.SecurityRejected` string, which is reachable from
-exactly one place: a `SecurityException` thrown by `JobScheduler.schedule`. So the build reached the
-platform and the platform threw — it did **not** return `RESULT_FAILURE`, and the D3B1.1 window-focus
-gate did not stop it.
+`UploadTransferPolicy` treated a `video/mp4` MIME type as sufficient evidence for `SEND_VIDEO`, and the
+gateway then sent `supports_streaming=true` with **no** duration, width, height, or thumbnail. MP4 is
+only a container: it proves nothing about the codec, a readable duration, valid dimensions, rotation, or
+whether a cover can be produced. A mislabelled or modern-codec `.mp4` sent that way is exactly a blank
+0:00 card even though Telegram accepted the bytes.
 
-Official Android contract: a `JobInfo` built with `setRequiredNetwork(...)` or
-`setRequiredNetworkType(...)` may only be scheduled by an app that declares
-`android.permission.ACCESS_NETWORK_STATE`; from Android 14 `JobScheduler.schedule` throws
-`SecurityException` otherwise. The app targets 37, builds the batch JobInfo with
-`setRequiredNetwork(NetworkRequest)`, declared `INTERNET` + `RUN_USER_INITIATED_JOBS` +
-`POST_NOTIFICATIONS`, and did **not** declare `ACCESS_NETWORK_STATE`.
+## What D3B1.3 implements
 
-**Record correction:** the D3B1.1 permission-dialog/window-focus race was a *real* code defect and its
-fix stays intact and in force — it was simply not the blocker the device was hitting. No media was sent
-or changed during either rejected attempt.
+**Read-only compatibility probe.** New domain port `TelegramVideoCompatibilityProbe` and Android impl
+`AndroidTelegramVideoCompatibilityProbe` (`data/upload/`) over `MediaExtractor` +
+`MediaMetadataRetriever`. Inspects the current SAF document immediately before claim/dispatch, after the
+existing size and modification-time checks in `MediaUploadCoordinator.mediaRefusal`. Opens the document
+in mode `"r"` only; never opens an output stream, writes, copies, remuxes, transcodes, re-tags, retains
+a full-resolution frame, caches, or persists. Returns only a bounded sanitized `TelegramVideoCompatibility`
+(video-track present, normalized codec *category* — never the raw string, duration, w/h, rotation,
+inline-safe flag, optional bounded JPEG thumbnail, sanitized reason). Every failure fails closed to
+"send as document". Below API 27 it refuses to decode a frame larger than 3840×2160; from 27+ it uses
+`getScaledFrameAtTime`.
 
-## What D3B1.2 implements
+**Conservative inline policy (pure `TelegramVideoCompatibilityPolicy`).** `SEND_VIDEO` only when: MPEG-4
+container + real video track + H.264/AVC (`video/avc`) codec + positive representable duration + positive
+bounded dimensions + understood rotation (0/90/180/270, dims transposed for a quarter turn) + producible
+bounded JPEG thumbnail. Everything else (HEVC/AV1/VP9/VP8/MPEG-4-Part-2/unknown, no track, no
+duration/dims, bad rotation, no thumbnail) ⇒ `SEND_DOCUMENT`, byte-for-byte, safe original name and
+resolved MIME — a fallback, **never** a refusal. Duration rule: round to nearest second, never down to
+zero (200 ms ⇒ 1 s).
 
-**Manifest.** Adds exactly `<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />`
-(once). The four intentional permissions are now INTERNET, ACCESS_NETWORK_STATE,
-RUN_USER_INITIATED_JOBS, POST_NOTIFICATIONS. It is a **normal install-time** permission — granted on
-install/update, no user approval, never passed to `ActivityResultContracts.RequestPermission`, no
-rationale, no Settings escalation. Everything else kept: non-exported `BatchUploadJobService` +
-`BIND_JOB_SERVICE`, `setUserInitiated(true)`, `setRequiredNetwork(...)`, focused-window gate, typed
-results, `SCHEDULE_RETRY_REQUIRED`, Try-again / Cancel-unstarted, same frozen snapshot, same sequential
-D3A path.
+**Policy/coordinator wiring.** `UploadTransferPolicy.selectMethod` replaced by `classifyContainer(...)
+: ResolvedContainer?` (resolved MIME + `isMpeg4Candidate`). `MediaUploadCoordinator` gains the probe as
+a constructor dependency, resolves the transfer via `resolveTransfer(...)` (probe only for an MP4
+candidate — a non-candidate is never opened), and threads `VideoUploadMetadata` (duration/w/h/thumbnail)
+into `MediaUploadRequest.video`.
 
-**Preflight + preconditions.** `UidtBatchScheduler.holdsNetworkStatePermission()` uses
-`ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_NETWORK_STATE) ==
-PackageManager.PERMISSION_GRANTED`. New pure `SchedulePreconditions(networkStatePermissionGranted,
-componentResolvable, canRunUserInitiatedJobs)` with `mayAttempt = all three`. `jobScheduler.schedule(...)`
-(the single call site) runs only when `mayAttempt`; otherwise the new `RawScheduleOutcome.NotAttempted`
-is produced and the platform is never called. `classifyScheduleOutcome(preconditions, outcome, success,
-failure)` now takes the precondition object; the network-state check is first, then component, then
-run-state, then the raw outcome. New sanitized enum value
-`BatchScheduleResult.NetworkStatePermissionUnavailable`; `SecurityRejected` kept as the fallback for
-any other `SecurityException`.
+**Gateway.** `TelegramMediaUploadApiGateway` sends `duration`/`width`/`height` and an attached in-memory
+JPEG thumbnail (`attach://cover_thumb`, `image/jpeg`) for a `SEND_VIDEO`, and none for a `SEND_DOCUMENT`.
+`supports_streaming` **removed entirely** (this build proves no fast-start suitability). A `SEND_VIDEO`
+with no proved metadata is refused locally (`INVALID_LOCAL_INPUT`) before any byte. Response parsing now
+reads `result.video` (positive duration + positive w/h) / `result.document` and requires the shape to
+match the method, on top of the unchanged ok/positive-message-id/exact-chat/exact-thread checks; an
+unexpected/unusable shape stays `RESULT_UNKNOWN` (`UNUSABLE_RESULT`) and is never auto-resent. The
+whole-multipart completion tracking still wraps the complete body including the thumbnail part.
 
-**Message.** New `UiNotice.BATCH_SCHEDULE_NETWORK_STATE_UNAVAILABLE` ->
-`batch_notice_schedule_network_state_unavailable`, EN/HE parity: "This version doesn't currently hold
-the network-state permission Android requires for background transfer. Update or reinstall the
-application. Nothing was sent." Deliberately **not** the notification-permission message; no platform
-constant or exception text in either locale.
+**Batch details.** `BatchOutcomeSummary`/`BatchOutcomeItem`/`BatchOutcomeDetails` (`domain/batch/`);
+`UploadBatchDao.observeMostRecentSession()` + `observeItemDetails()` (joins media display name only);
+`RoomBatchRepository.observeMostRecentDetails()`; `BatchUploadLauncher.recentBatchDetails` ->
+`MainViewModel.batchDetails` -> a read-only `BatchDetailsCard` in `Screens.kt` showing exact sanitized
+counts (confirmed, already confirmed, result unknown, deferred, failed, source missing, media
+unavailable, skipped/not-queued, total) + optional per-item rows with the local display name only. Card
+text explains that "Completed with issues" means at least one item was not durably confirmed, **not**
+that Telegram received nothing, and offers no resend. Finalization rule unchanged: COMPLETED only when
+every item is durably CONFIRMED.
 
-**Files touched.** `app/src/main/AndroidManifest.xml`; `domain/batch/BatchUploadPorts.kt`
-(`NetworkStatePermissionUnavailable`, `RawScheduleOutcome.NotAttempted`, `SchedulePreconditions`,
-`classifyScheduleOutcome` signature); `platform/UidtBatchScheduler.kt` (preflight + gate);
-`ui/MainViewModel.kt` (notice + mapping); `ui/TelegramTopicUploaderApp.kt` (notice -> string);
-`res/values{,-iw}/strings.xml`; `app/build.gradle.kts` (version). Tests: new
-`security/D3B12SurfaceTest.kt`; extended `BatchScheduleResultMapperTest`, `BatchUploadCoordinatorTest`,
-`MainViewModelTest`; permission assertions updated in `D1SecuritySurfaceTest`, `D2B1SurfaceTest`,
-`D2B2ASurfaceTest`, `D2B2BSurfaceTest`, `D3ASurfaceTest`, `D3A1SurfaceTest`, `D3B1SurfaceTest`. Docs:
-README, TODO, ARCHITECTURE, PROJECT_STATE, RELEASE_REVIEW, SECURITY, D3B1_DEVICE_CHECKLIST.
+**Existing two posts.** Never automatically resent, replaced, deleted, or edited; reservations not
+released; RESULT_UNKNOWN not promoted to CONFIRMED from a screenshot; no `deleteMessage` added.
+
+## Files touched
+
+New: `domain/upload/VideoCompatibility.kt`, `data/upload/AndroidTelegramVideoCompatibilityProbe.kt`,
+`domain/batch/BatchOutcomeSummary.kt`; tests `TelegramVideoCompatibilityPolicyTest`,
+`BatchOutcomeSummaryTest`, `security/D3B13SurfaceTest`. Modified: `UploadTransferPolicy`,
+`MediaUploadPorts` (+`VideoUploadMetadata`), `MediaUploadCoordinator`, `TelegramMediaUploadApiGateway`,
+`BatchRepository`/`RoomBatchRepository`, `BatchUploadPorts`/`BatchUploadCoordinator`, `Daos` (+
+`BatchItemDetailRow`), `di/AppModule` (probe binding), `ui/MainViewModel`, `ui/Screens`,
+`ui/TelegramTopicUploaderApp`, `res/values{,-iw}/strings.xml`, `app/build.gradle.kts`. Tests updated:
+`UploadTransferPolicyTest`, `MediaUploadCoordinatorTest` (+ FakeCompatibilityProbe),
+`TelegramMediaUploadGatewayTest`, `MainViewModelTest`, `BatchTestFakes`, `BatchUploadCoordinatorTest`,
+`D2AScanSurfaceTest` (scoped to scan sources), `D3B1SurfaceTest` (launcher member set +
+`getRecentBatchDetails`). Docs: README, TODO, ARCHITECTURE, PROJECT_STATE, RELEASE_REVIEW, SECURITY,
+D3B1_DEVICE_CHECKLIST.
 
 ## Tests and exact results
 
-Full JVM suite: **641 tests across 53 classes, 0 failures, 0 errors, 0 skipped** (D3B1.1 baseline: 625
-across 52). No re-run needed — the previously flaky MockWebServer gateway test passed first time.
-
-- `D3B12SurfaceTest` (new, 7): source manifest declares ACCESS_NETWORK_STATE exactly once and nothing
-  unrelated, no duplicate, no `uses-permission-sdk-23`; every merged/packaged manifest the build
-  produces carries the four intentional permissions and no unrelated one (AndroidX's injected
-  dynamic-receiver permission is the only allowance); exactly one `ActivityResultContracts.RequestPermission`
-  and only POST_NOTIFICATIONS is ever `.launch(...)`ed, no rationale/Settings escalation, and
-  `Manifest.permission.ACCESS_NETWORK_STATE` is referenced in exactly one file; `jobScheduler.schedule(`
-  appears exactly once and only behind `if (preconditions.mayAttempt)`; the category maps to its own
-  notice while PermissionUnavailable keeps its own; EN/HE parity with no platform constant in the text;
-  no WorkManager/foreground service/wake lock/boot receiver/`openOutputStream` added.
-- `BatchScheduleResultMapperTest` (extended): missing declaration -> `mayAttempt` false and
-  `NetworkStatePermissionUnavailable`, reported before every other cause, never PermissionUnavailable
-  and never SecurityRejected; held declaration proceeds to the existing checks; SecurityException still
-  -> SecurityRejected; RESULT_SUCCESS still Accepted.
-- `BatchUploadCoordinatorTest` (extended): a network-state rejection keeps the snapshot recoverable
-  (`markScheduleRetryRequired`) and touches no upload job; a session rejected before the fix retries the
-  same frozen snapshot with no new snapshot created; repeated retries submit exactly one platform job.
-- `MainViewModelTest` (extended): all seven non-accepted `BatchScheduleResult` categories map to seven
-  distinct notices, asserted exhaustively over the enum.
-- Seven surface tests converted from "count of `<uses-permission` == 3" to exact-set assertions on the
-  four permission **names** (not substring checks).
-
 | Check | Result |
 | --- | --- |
-| `--offline testDebugUnitTest` | 641 / 53 classes, 0 failures, 0 errors, 0 skipped |
-| `--offline lint` | **0 issues** (`lint-results-debug.xml` has an empty `<issues>` element) |
+| `--offline testDebugUnitTest` | **676 tests / 56 classes, 0 failures, 0 errors, 0 skipped** (D3B1.2: 641/53) |
+| `--offline lint` | **0 issues** (empty `<issues>`) |
 | `--offline assembleDebug` / `assembleDebugAndroidTest` | passed |
-| Instrumentation | 93 tests / 11 classes **compile, not run** (no device); androidTest APK byte-identical |
-| Room schema | stays **7**; no schema JSON changed; 1–7 committed |
+| Instrumentation | compiles, **not run** (no device); androidTest APK byte-identical |
+| Room schema | stays **7**; no schema JSON changed |
 | `git diff --check` | clean |
+
+Key new tests: policy fail-closed rules (H.264 safe; HEVC/AV1/VP9/VP8/MPEG4P2/unknown ⇒ document; no
+track; zero/missing duration; zero/missing/oversized dims; 90/270 swaps dims; 180 keeps; bad rotation
+fails closed; null rotation upright; no/oversized thumbnail fails closed; duration rounding incl. never
+0); gateway request fields (video has duration/w/h + attached JPEG thumbnail; document has none; no
+`supports_streaming`; metadata-free SEND_VIDEO refused locally); response evidence (valid video shape
+confirms; zero duration / missing dims ⇒ RESULT_UNKNOWN; SEND_DOCUMENT requires document shape;
+SEND_VIDEO with only a document ⇒ RESULT_UNKNOWN); coordinator (proved candidate ⇒ SEND_VIDEO with
+metadata; non-candidate never probed; unvouched candidate ⇒ document, still Confirmed); batch summary
+exact counts sum to total; D3B13 surface (probe read-only, no supports_streaming field, thumbnail
+limits, no new background mechanism/permission/receiver/deleteMessage, EN/HE parity).
 
 ## APK identity (debug development signing only)
 
-- Main APK `app/build/outputs/apk/debug/app-debug.apk`: **14,312,872 bytes**, SHA-256
-  `912311540bb2964eadbd21bb6725ef5b3086e95078e22f8e9c52704a94f36b79`.
+- Main APK `app/build/outputs/apk/debug/app-debug.apk`: **14,353,410 bytes**, SHA-256
+  `e9bce7c08219f7fc5963fc361044dd4f03dcb3a690c80946d1e08174a86c120c`.
 - Instrumentation APK: 1,566,099 bytes, SHA-256
-  `495cab881dd67457c488f0c46c4adef970af31724e538bad514c99d3f27c28e5` (unchanged since D3B1).
-- Package `com.funzi7.telegramtopicuploader`; versionCode 12; versionName `0.5.2-d3b1.2`; minSdk 23;
+  `495cab881dd67457c488f0c46c4adef970af31724e538bad514c99d3f27c28e5` (unchanged).
+- Package `com.funzi7.telegramtopicuploader`; versionCode 13; versionName `0.5.3-d3b1.3`; minSdk 23;
   compile/target SDK 37; cleartext false; backup false.
 - AAPT2 permissions: INTERNET, ACCESS_NETWORK_STATE, RUN_USER_INITIATED_JOBS, POST_NOTIFICATIONS (+
-  AndroidX `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`). One non-exported
-  `platform.BatchUploadJobService` with `BIND_JOB_SERVICE`; no receiver of ours.
-- Debug cert SHA-256 `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4` (v1+v2 verify)
-  — matches the expected value and every earlier build, so it updates over D3B1.1 in place.
-- DEX (`strings` over extracted `classes*.dex`): `ACCESS_NETWORK_STATE` once, `setUserInitiated` once,
-  `canRunUserInitiatedJobs` present; no `androidx/work`, no `WorkManager`, no `openOutputStream`.
-- Replaced D3B1.1 APK: 14,312,025 bytes, SHA-256
-  `a19be6cb3a7bd17b6c54129631efd3b90e9eb939d90d3f522b26cea19616a414`.
+  AndroidX `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`). One non-exported `platform.BatchUploadJobService`
+  with `BIND_JOB_SERVICE`; no receiver.
+- Debug cert SHA-256 `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4` — matches the
+  expected value and every earlier build, so it updates over D3B1.2 in place.
 
 ## Untested device boundary
 
-The D3B1.2 APK has **never** been installed, updated over D3B1.1, launched, or run. **Whether Android
-now accepts the schedule call is unproven** — that is exactly what the device run exists to determine.
-No background batch, UIDT job, notification, lock-screen continuation, stop/resume, cancel-unstarted,
-or Room migration has run on hardware. No real SAF provider, video, or hash; no Telegram traffic; no
-media mutation — every test byte was a synthetic in-memory array.
+The D3B1.3 APK has **never** been installed, updated over D3B1.2, launched, or run. **Whether Telegram
+now shows a real duration and thumbnail for a compatible video, and a normal document rather than a
+blank 0:00 card for an incompatible one, is unproven** — that is exactly what the device run exists to
+determine. No real SAF provider, video, or hash; no Telegram traffic; no media mutation — every test
+byte was a synthetic in-memory array. The two existing posts are never automatically resent.
 
 ## Next device action (ask for exactly this, nothing more)
 
-1. Install D3B1.2 over D3B1.1 **without uninstalling**.
-2. Open Queue.
-3. Use **Try background upload again** on the existing frozen batch.
-4. Confirm the batch is accepted.
-5. Background or lock the device.
-6. Confirm both videos upload exactly once.
-7. Confirm both source files remain unchanged.
+1. Install `0.5.3-d3b1.3` over D3B1.2 **without uninstalling**.
+2. Do **not** retry the two existing posts.
+3. Add **one** fresh, non-personal video from the same download source.
+4. Scan and upload it through **Upload queue**.
+5. If compatible, confirm Telegram shows a **real duration and thumbnail**.
+6. If not compatible, confirm it appears as a **normal document**, not a blank 0:00 video.
+7. Open **batch details** and confirm the exact sanitized outcome.
+8. Confirm the **source file is unchanged**.
 
-Do **not** ask for another scan or replacement files unless the original rows are no longer present.
-No permission dialog should appear for the network-state permission; if the app still reports it is not
-held, the install is malformed and needs a reinstall.
+Do not ask the user to retest bot setup, binding, source-missing reconciliation, permissions, or the two
+existing posts.
 
-**After D3B1.2 passes on the device, multi-topic binding in one session is the next product feature.**
+**After D3B1.3 device validation, multi-topic binding in one session remains the next product feature.**
 
 ## Env notes (still current)
 
@@ -168,24 +169,11 @@ held, the install is malformed and needs a reinstall.
   `/opt/android-sdk/aapt2-wrapper/aapt2`; `apksigner` in `/opt/android-sdk/build-tools/37.0.0`.
 - **`dexdump` crashes (Illegal instruction) in this sandbox** — use `strings` over extracted
   `classes*.dex` for DEX marker checks.
-- The merged manifest is produced by `processDebugMainManifest`, which resource processing (and hence
-  unit-test compilation) already depends on, so a merged-manifest assertion works inside
-  `testDebugUnitTest` without a prior `assembleDebug`.
-- Referencing a permission constant under a `||` short-circuit can trip lint `InlinedApi`; an
-  early-return SDK guard silences it. `ACCESS_NETWORK_STATE` needs no SDK guard (API 1).
-- Unit tests cannot instantiate `UidtBatchScheduler` (no Robolectric/mockito in this project), so the
-  preflight is proved through the pure `SchedulePreconditions`/`classifyScheduleOutcome` plus a
-  source-shape guard on the single `schedule(` call site.
-
-## Corrected future routing decision (roadmap, NOT implemented here)
-
-1. **Multi-topic binding session:** one session and nonce; the copied command already includes
-   `@validated_bot_username`; collect candidates from several topics without returning to the app;
-   review, locally name, and commit all candidates together.
-2. **Scalable routing:** Instagram/TikTok/Downloads folders identify **provenance only** (no per-account
-   mappings required); add **bulk thumbnail routing as the deterministic baseline**; later add optional
-   content-based destination suggestions using available caption/link metadata, sampled frames, OCR and
-   speech evidence; high-confidence automatic routing stays **opt-in**; uncertain items stay in Review.
+- `Bitmap.createScaledBitmap` trips lint `UseKtx`; use `androidx.core.graphics.scale` instead to keep
+  lint at 0 issues.
+- `flatMapLatest` needs `@OptIn(ExperimentalCoroutinesApi::class)` in coroutines 1.11.
+- Unit tests cannot instantiate the Android probe (no Robolectric/mockito); its read-only posture is
+  proved via the pure `TelegramVideoCompatibilityPolicy` plus a source-shape guard in `D3B13SurfaceTest`.
 
 ## Remaining D3B work (not started)
 
@@ -193,11 +181,14 @@ held, the install is malformed and needs a reinstall.
 - Result-unknown reconciliation that never re-sends without evidence.
 - Evidence-based resolution of an unowned/ambiguous legacy reservation (D3A.1 blocker).
 - Safe-deletion stage gated on a confirmed positive Telegram message ID.
-- A truly background notification stop action (currently opens the app to record the stop).
+- A truly background notification stop action.
+- Optional future conversion stage (unsupported media → H.264/AAC) — explicitly **not** part of D3B1.3;
+  this task does not transcode.
 
 ## Deployment declaration
 
-Nothing was deployed, distributed, installed, or run on a device or emulator in the D3B1.2 session. No
+Nothing was deployed, distributed, installed, or run on a device or emulator in the D3B1.3 session. No
 real Telegram request of any kind was made, no forum topic was created/renamed/closed/deleted, and no
 media was uploaded, moved, renamed, copied, downloaded, quarantined, or deleted — every byte in every
-test came from a synthetic in-memory array.
+test came from a synthetic in-memory array. The two existing Telegram posts are never automatically
+resent.
