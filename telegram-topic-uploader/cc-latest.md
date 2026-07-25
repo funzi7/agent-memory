@@ -4,222 +4,225 @@
 
 | Field | Value |
 | --- | --- |
-| Task | D4B — remove folder-to-topic routing from the product, keep source profiles organizational only, autoplay Preview and release it cleanly on close, add destination selection with Add to queue and Send now inside Preview, and delete a source file only after an exact positive Telegram confirmation |
+| Task | D4C — a fourth manually assigned source profile (9GAG), the original file name on every upload, the 9GAG file name as the Telegram caption, a visible Back control plus a left-to-right timeline and tap-to-toggle in Preview, thumbnails on Queue and History rows, one automatic scan per fresh app session, newest/oldest ordering in Review, and deletion wording that says *permanently* |
 | Application repository | `/root/work/telegram-topic-uploader` |
 | Branch | `main` |
 | Tracking branch | `origin/main` |
-| Starting application HEAD | `ec59744` (D4A) |
-| Version | code 19 -> 20, name `0.7.0-d4a` -> `0.8.0-d4b` |
-| Room schema | **9 -> 10.** One additive column, one new table, one legacy cleanup; `MIGRATION_9_10`, `10.json` exported |
+| Starting application HEAD | `011f90f` (D4B) |
+| Version | code 20 -> 21, name `0.8.0-d4b` -> `0.9.0-d4c` |
+| Room schema | **10, unchanged.** Nothing durable was needed — see the schema section |
 | Deployment | None. Not installed or run on any device or emulator in this session |
 
 No production token, Telegram identifier, bot username/ID, chat ID, thread ID, group title, forum
 topic name, private link, binding command, nonce, file name, content URI, document ID, path, folder
 name, destination name, or media hash was requested, used, or recorded anywhere, including this file.
 
-## New user-reported D4A hardware evidence (not observed by any agent)
+## New user-reported D4B hardware evidence (not observed by any agent)
 
 Recorded exactly as reported, and nothing beyond it:
 
-- D4A was installed and run on the Android device.
-- The folder UI shows source-profile assignment.
-- The legacy one-destination folder mapping is **still visible**.
-- The user clarified that Instagram, TikTok and Downloads/X media may **all** go to **any**
-  destination. The source profile must therefore remain organizational only.
-- In Preview, pressing Back closes the visible overlay but playback **continues audibly for roughly
-  one additional second**.
-- Preview **does not begin playback automatically**.
-- The user wants destination selection and **Add to queue** / **Send now** inside Preview.
-- The user has **intentionally not started uploading the large media backlog**, because safe deletion
-  after a confirmed upload was not implemented yet.
-- The user **cannot reasonably compare a large folder manually against Telegram** to identify which
-  files were uploaded.
-- The user selected a **per-folder** delete-after-confirmation toggle, **off by default**.
-- The user selected **bounded automatic deletion retries plus a manual retry action**.
+- D4B was installed on the Android device.
+- The device flow broadly worked.
+- A disposable uploaded source file disappeared after the Telegram upload was confirmed.
+- The user looked for the file in the Android recycle bin and did not find it.
+- Preview needs a visible Back control.
+- The player timeline direction is wrong for the desired interaction in Hebrew and must be LTR.
+- Tapping the video itself does not currently provide the desired play/pause toggle.
+- Queue needs thumbnails in addition to the existing name and details.
+- The user wants an automatic scan once per fresh app opening/session, but not on every brief return.
+- The user wants a newest/oldest sort control, defaulting to newest first.
+- The user added a fourth real source folder for 9GAG.
+- 9GAG filenames may contain the title/description that should remain visible in Telegram.
 
-**Nothing is user-reported about D4A bulk-routing success, real thumbnail codec coverage, duplicate
-pre-check behaviour, or the single-progress-indicator fix. Do not mark them validated.**
+**Agent-confirmed by code inspection, not by the device:** the app uses direct document deletion
+through the provider, not Trash. The file was never in a bin, which is exactly why the user could not
+find it there. **The wording was wrong; the mechanism was not.**
 
-## The user's decisions (final; do not reopen)
+**Do not claim that retry deletion, batch deletion, blocked deletion states, the duplicate pre-check,
+or any other D4B checklist path was validated on hardware.** They remain user-unvalidated.
 
-Twenty were supplied **with** the task: profile is organizational only; a folder has no fixed
-destination; the legacy folder-to-destination control is removed; existing folder mappings stop
-affecting new scans; queued/uploading/completed jobs keep their destinations; Preview autoplays;
-thumbnail tap stays selection-only; Preview is a separate explicit action; Back/Close stop playback
-before the overlay disappears; Preview offers a destination and then both actions; Add to queue uses
-the atomic engine with one item and starts no upload; Send now uses that same routing path then the
-existing foreground upload engine and stays open until settlement; deletion is per-folder, OFF by
-default for every existing and new folder, never retroactive, permitted only after a positive message
-ID + durable timestamp + committed transaction; never after refusal/failure/cancellation/retryable/
-RESULT_UNKNOWN/contradictory evidence; a deletion failure keeps the upload confirmed and never
-re-uploads; bounded automatic retries plus a manual retry; History shows the deletion state; Preview
-closes and returns to Review after either action.
+## Decisions answered through the stop-and-ask UX gate
 
-Answered through the **stop-and-ask UX gate** (work stopped before any file was edited):
+The task supplied its own final decisions (launch scan once per process, setting ON by default,
+newest-first default, caption = filename minus final extension, LTR timeline inside RTL Preview, tap
+toggles playback, deletion is permanent). Three things were genuinely unresolved, so work stopped
+before any file was edited:
 
-1. **Back during an active Send now transfer** -> **Back closes Preview and the upload continues.**
-   Progress, Cancel now and the outcome move to the Queue row. The two rejected options were holding
-   the user on the screen for a large video, and discarding an almost finished upload on a stray Back.
-2. **When a changed folder delete toggle becomes fixed for an already-queued job** -> **frozen when
-   routed, re-synced while still merely queued.** A job that has begun dispatching, carries Telegram
-   evidence, or has completed keeps what it was routed under.
+1. **What a repair does to a caption.** `editMessageMedia` replaces the caption *along with* the
+   media, so the existing caption-free repair would have **deleted** the caption a 9GAG upload
+   arrived with. -> **Resubmit the same computed caption.** Recomputed by the same pure policy from
+   the same stored display name and profile, so it can only ever be the identical text or null.
+   Rejected: leaving repair caption-free (silent loss); refusing repair for captioned items (a blank
+   0:00 9GAG card could never be fixed).
+2. **Where the automatic-scan toggle lives.** -> **Settings screen**, not Directories.
+3. **Do History rows get thumbnails too?** Queue and History share one card. -> **Both.**
 
-## What was removed, not hidden
+## The pieces worth re-reading
 
-`SourceDirectory.topicDestinationId`, `ScanFinalizeRequest.folderDestinationId`,
-`DirectoryRepository.setTopicDestination`, `SourceDirectoryDao.setTopicDestination`,
-`DirectoryRow.destination` / `.readiness`, `Screens.DestinationSelector`, `readinessLabel`, and six
-`destination_state_*` strings plus five destination-mapping strings **in both locales**.
+### `domain/upload/TelegramCaptionPolicy` — the whole caption feature
 
-The DB column `source_directories.topicDestinationId` **survives**, nullable and documented as
-legacy. Dropping a column from SQLite means rebuilding the table and copying every configured folder;
-a column nobody reads is the smaller risk. It is cleared by `MIGRATION_9_10` **and** by
-`DirectoryRepository.clearLegacyFolderDestinations()` on every startup reconciliation.
+Pure, ~80 lines, one rule: profile must be `NINE_GAG`, strip **only** the final extension, trim the
+ends, blank -> null, bound to 1 024 UTF-16 units without splitting a surrogate pair. `.hidden` and
+`.mp4` are both *names* (leading dot is not a separator), `a.b.c.mp4` -> `a.b.c`, `"    .mp4"` ->
+null. `D4CSurfaceTest` bans `split(`, `replace(`, `filterNot`, `isDigit`, `Regex(` **inside the policy
+file** and bans generator/rewriter/translator/title-caser/model markers across all of production.
 
-`RoutingMethod.FOLDER` survives in exactly two places and neither creates one: the routing engine's
-own branch (nothing feeds it) and the History label a pre-D4B job needs. `D4BSurfaceTest` pins that.
+Sent with **no `parse_mode`** — that is a safety property, not a style choice: a name containing `*`,
+`_`, `[` or `\` would otherwise be parsed as markup and mangled or rejected.
 
-The scan still calls the one routing engine with `folderDestinationId = null`, so "a human must
-decide" stays the engine's conclusion rather than an assertion the scan makes alone. `reserveAndQueue`
-survives as an unreachable-but-correct branch, in the same style as the existing
-`AiProposalNeedsReview` branch.
+### The repair caption needed a JSON escaper
 
-## Deletion design (the part worth re-reading)
+`editMessageMedia` takes the caption *inside* the `InputMediaVideo` JSON, which the repair gateway
+hand-builds. So `appendJsonString` was added: the two mandatory escapes, five short forms, every
+remaining C0 control, and U+2028/U+2029. Nothing is dropped — anything unwritable becomes `\uXXXX` —
+so two captions cannot collapse into one. A guard asserts the value is **never interpolated**.
 
-- `domain/deletion/SourceDeletionGate` — **pure** function over `DeletionGateFacts`. No Room, no
-  Android, no clock, no provider. `D4BSurfaceTest` asserts that purity by marker.
-- `SourceDeletionCoordinator` — runs the gate, re-proves the document, calls the deleter once,
-  records one durable outcome. Asks `ExternalMediaOperationArbiter` whether anything is reading the
-  file; **does not** take the slot itself (the sweep runs *after* the upload releases it).
-- `data/deletion/AndroidDocumentDeleter` — the **only** production file that can delete. Tree URI +
-  recorded document ID. No name, path, `File`, listing, or bulk op.
-- `source_deletion_tasks` — **unique index on `mediaItemId`**, so one source deletes once however many
-  destinations confirmed it. `insertIfAbsent` is `OnConflictStrategy.IGNORE`.
-- `markAttemptStarted` is a **compare-and-set on the task's own attempt counter**, both so two sweeps
-  cannot take one task and so the D2B2B guard "only one statement increments attemptCount" stays
-  byte-exact (it counts `attemptCount = attemptCount + 1` occurrences in `Daos.kt`; the deletion
-  statement computes from the bound parameter instead, and even the KDoc had to avoid the literal).
-- `upload_jobs.sourceDeletePolicy` is a **new column, not `deleteAfter`**: `deleteAfter` is a
-  quarantine deadline and part of `hasResolvedEvidence()`, so overloading it would make a deletion
-  decision look like Telegram evidence.
-- The deletion task is created **inside `recordConfirmedOutcome`'s transaction**, best-effort: a
-  bookkeeping failure must never abort a confirmation. A task existing at all is therefore the proof
-  that the confirmation committed, which is what `confirmationCommitted = true` encodes.
-- Re-proof before deleting = identity, then size + mtime, then a **full SHA-256 re-read**. Always,
-  not only when metadata looks odd. The operation is irreversible.
-- `WAITING_FOR_OTHER_JOBS` is **not an attempt** and does not spend the retry budget.
-- Retry budget = 4, clamped doubling backoff from 60 s to 30 min. Manual retry re-arms and
-  revalidates. Neither can contact Telegram or start an upload.
-- Sweep call sites, and there are only four: after a confirmed foreground upload, after a confirmed
-  batch item (same call — a batch item goes through `MediaUploadCoordinator`), startup
-  reconciliation, and Dashboard pull-to-refresh. No scheduler, worker, alarm, or observer.
+### `LaunchScanSession` is process-scoped, and that is the entire design
 
-## Preview
+`ProcessLaunchScanSession` = one singleton `AtomicBoolean`, `compareAndSet(false, true)`. An
+`onResume` hook would have scanned on every return from Telegram, every closed file picker, every
+rotation. Only the process ending resets it, which is exactly what the user means by "opening the
+app". A guard bans `onResume`, `DefaultLifecycleObserver`, and `ProcessLifecycleOwner` from
+production. Coalescing is free: it calls the same `ScanLauncher.startScanForAllEnabled()` a manual
+scan uses, and `ScanCoordinator` already refuses a second run per directory (`ALREADY_RUNNING`).
 
-`_previewPinnedRow` in `MainViewModel` is the non-obvious piece. Routing moves the item out of Review
-*before* the upload starts, and D4A's rule closes a preview whose row disappeared — so Send now would
-have slammed the overlay shut on its own progress. The pin lives exactly as long as the action, so
-the ordinary rule is untouched.
+Called from `MainViewModel.init` **after** the reconciliation block, in its own `try/catch`, so a
+failed launch scan gets its own sentence and never blocks the app opening. A guard proves the launch
+path cannot reach `uploadLauncher`, `batchLauncher`, or `deletionLauncher`.
 
-`TransferIndicatorPolicy` gained `PREVIEW_SHEET` and a `previewVisible` input. `slotFor` is exhaustive
-over kind × batchCardVisible × previewVisible, and the test asserts exactly one drawing surface for
-every combination.
+### One construction site for an upload request
 
-One shared `stopPlayback` closure is used by `BackHandler`, the Close button, and
-`DisposableEffect(onDispose)`; it clears listeners, calls `VideoView.stopPlayback()` (releases the
-`MediaPlayer` **and** the surface, unlike `pause()`), nulls the reference, and abandons audio focus.
-Autoplay hangs off `setOnPreparedListener`, never off composition.
+`MediaUploadRequest` is built in exactly **one** place (`MediaUploadCoordinator.transfer`), and
+`D4CSurfaceTest` counts `request = MediaUploadRequest(` == 1. That is what makes "every upload path
+keeps the file's name and gets its caption" a single fact rather than three implementations. Preview
+**Send now**, a Queue row, and a batch item are three callers of the same coordinator.
 
-## Schema decision: 9 -> 10
+### Preview: three lambdas replaced three behaviours
 
-```sql
-ALTER TABLE upload_jobs ADD COLUMN sourceDeletePolicy TEXT NOT NULL DEFAULT 'KEEP';
-CREATE TABLE source_deletion_tasks (...);           -- + 3 indices, unique on mediaItemId
-UPDATE source_directories SET topicDestinationId = NULL;
-```
+- `exitPreview` — one policy, three call sites (visible Back, `BackHandler`, Close). Guard asserts
+  `onClick = exitPreview` appears exactly twice and `BackHandler { exitPreview() }` once.
+- `togglePlayback` — one decision, two surfaces (button + video tap), so the label can never
+  contradict what a tap just did. No-op until `prepared`; after completion it is the same `start()`.
+- Exactly **one** `LocalLayoutDirection provides LayoutDirection.Ltr` in the file (guard counts it),
+  wrapping only the `Slider` + its two `SpaceBetween` time labels. Guard also bans
+  `durationMs - positionMs`, `reversed()`, `1f - ` — reversing values would break a11y semantics.
+- The tap handler is on the `Box` holding the `AndroidView` and nothing else; every control is a
+  sibling further down the `Column`, so nothing bubbles. Guard counts `.clickable(` == 1.
 
-`'KEEP'` is the only honest default: those uploads were confirmed before the policy existed. The new
-table starts empty, so nothing historical acquires deletion work. No job destination, Telegram
-evidence, reservation, or media row is touched; no folder is opted in; destructive fallback stays
-forbidden.
+### Ordering: honest provenance, not a creation date
+
+`ReviewSourceTimestamp.resolve(sourceLastModifiedAt, discoveredAt)` returns a `ReviewTimestamp`
+carrying an **enum provenance**. Preferred = `media_items.documentLastModifiedAt` (already persisted
+from `COLUMN_LAST_MODIFIED`, already populated by every scan). Fallback = `discoveredAt`, and the
+screen prints `review_sort_discovery_fallback` when any visible row uses it. There is **no** extracted
+container creation time and none was added — `MediaMetadataRetriever.METADATA_KEY_DATE` was
+deliberately not used, because a guessed date presented as a fact is worse than an honest fallback.
+Guard bans `creationTime`, `createdDate`, `dateTaken`, `mediaCreatedAt` from production.
+
+Tie-break is the opaque job ID, **ascending in both directions** (guard counts `thenBy { it.item
+.jobId }` == 2): a bulk download stamps many files with the same millisecond and a grid that
+reshuffles under a finger mid-selection is worse than any ordering choice.
+
+Sort is applied to the routable grid **and** the attention cards — one screen, one order.
+
+## Schema decision: 10, unchanged
+
+Checked rather than assumed:
+
+- ordering reads two columns that already existed and were already populated (`documentLastModifiedAt`,
+  `discoveredAt`); projecting them through `ReviewItemRow`/`ReviewItem` is not a schema change;
+- `source_directories.sourceProfile` is `TEXT` mapped by name, unknown -> `UNSPECIFIED`, so a new enum
+  value is **data**;
+- the one preference is a boolean in `SharedPreferences` — Room here holds *evidence*, and a toggle
+  is not evidence;
+- Queue/History thumbnails read `media_items.contentUri` through the existing join.
+
+`version = 10`, no `MIGRATION_10_11`, no `11.json`, destructive fallback still forbidden. Guards pin
+all of that.
 
 ## Tests and exact results
 
 ```
-GRADLE_USER_HOME=/root/.gradle ./gradlew --offline testDebugUnitTest      # 1109 tests / 84 classes, 0 failures
-GRADLE_USER_HOME=/root/.gradle ./gradlew --offline lint                   # No issues found
+GRADLE_USER_HOME=/root/.gradle ./gradlew --offline testDebugUnitTest      # 1199 tests / 86 classes, 0 failures
+GRADLE_USER_HOME=/root/.gradle ./gradlew --offline lint                   # No errors or warnings
 GRADLE_USER_HOME=/root/.gradle ./gradlew --offline assembleDebug          # success
 GRADLE_USER_HOME=/root/.gradle ./gradlew --offline assembleDebugAndroidTest  # success (compiled only)
 git diff --check                                                          # clean
 ```
 
-New: `SourceDeletionGateTest`, `SourceDeletionCoordinatorTest`, `D4BSurfaceTest`, plus test fakes
-`FakeSourceDeletionRepository`, `FakeDocumentDeleter`, `FakeSourceDeletionLauncher`,
-`FakeSourceDeletionTaskDao`. Extended: `MainViewModelTest`, `QueueExecutionTest`,
-`BulkReviewRoutingTest`, `RoomDirectoryRepositoryTest`, `MediaUploadCoordinatorTest`,
-`TransferIndicatorPolicyTest`, `AppDatabaseMigrationTest` (9 -> 10).
+New: `TelegramCaptionPolicyTest`, `D4CSurfaceTest`. Extended: `UploadTransferPolicyTest`,
+`ReviewGridPolicyTest`, `MainViewModelTest`, `TelegramMediaUploadGatewayTest`,
+`TelegramMediaRepairGatewayTest`, `FakeScanDaos`.
 
-**Rewritten, not deleted**, because their subject moved: the folder-routing regions of
-`RoomScanRepositoryTest`, `DirectoryScanPipelineTest`, `QueueCorrectionTest`, and
-`SourceMissingReconciliationTest`. They now assert a scan reaches Review and reserves nothing, and
-that the duplicate guard fires at the routing step.
+**Re-scoped, not deleted**, because their subject genuinely moved:
 
-`SourceDeletionCoordinatorTest` uses the **production** `StreamingMediaHasher` over `FakeDocumentTree`
-on purpose: the re-proof is the last line of defence and stubbing it would test everything except the
-thing that decides whether these are the bytes Telegram took.
+- `D3B15SurfaceTest`'s `assertFalse(gateway.contains("\"caption\""))`. Keeping it would have forced
+  the repair to *delete* captions. Replaced by: the class may write only the caller's value, only via
+  `appendJsonString`, never interpolated; `parse_mode` and `supports_streaming` still banned.
+- `D3B2SurfaceTest`'s "History shows no `contentUri`". The card needs one for the thumbnail, so it now
+  proves the URI reaches the decoder and nothing else, is never in a `Text`, and appears exactly twice.
+- `D4ASurfaceTest`'s exact profile-enum list: four values -> five, in order.
+
+**One known flake, pre-existing:** `TelegramMediaRepairGatewayTest > a body that did not finish is
+incomplete, so a retry is safe` failed once in this session and passed on rerun and on every other
+run. It is a MockWebServer `DISCONNECT_DURING_REQUEST_BODY` timing test; the caption is null on that
+path so the request bytes are byte-identical to D4B's. Not a D4C regression, but worth knowing before
+someone chases it.
 
 ## APK identity (debug development signing only)
 
 | Field | Value |
 | --- | --- |
 | Package | `com.funzi7.telegramtopicuploader` |
-| Version | code 20, name `0.8.0-d4b` |
+| Version | code 21, name `0.9.0-d4c` |
 | minSdk / targetSdk / compileSdk | 23 / 37 / 37 |
 | Permissions | `INTERNET`, `ACCESS_NETWORK_STATE`, `RUN_USER_INITIATED_JOBS`, `POST_NOTIFICATIONS` — **unchanged** |
-| Application components | 1 exported launcher activity, 1 non-exported `BatchUploadJobService` (`BIND_JOB_SERVICE`) — **unchanged** |
+| Application components | 1 exported launcher activity, 1 non-exported `BatchUploadJobService` — **unchanged** |
 | Path | `app/build/outputs/apk/debug/app-debug.apk` |
-| Size | 14,826,111 bytes |
-| SHA-256 | `ae06ce4c4a7b4f83516e9a6104fc22837c128f97c3ab2665e4d6eb05fafd5eb8` |
+| Size | 14,868,560 bytes |
+| SHA-256 | `bc7ebeac23f0a9d8c2df6aaa6153b1e2742ad2471d99ae380c3d7e087cd40e31` |
 | Signer | `CN=Android Debug, O=Android, C=US`, RSA 2048, cert SHA-256 `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4` |
 | Schemes | v1 JAR ✓, v2 ✓ (v3/v3.1/v4 not used) |
 
-Signer unchanged, so it installs **over** D4A without an uninstall.
+Signer unchanged, so it installs **over** D4B without an uninstall. Schema unchanged, so no migration
+runs on the existing database.
 
 ## Agent-observed vs user-reported
 
-**Agent-observed:** every test result, the lint result, both assemblies, the schema export, the merged
-manifest, and the APK identity above.
+**Agent-observed:** every test result, the lint result, both assemblies, the merged manifest, the APK
+identity above, and the code inspection confirming direct provider deletion rather than Trash.
 
 **User-reported only:** everything in the hardware-evidence section. No agent saw the device, the
-folder screen, the Preview audio, or the backlog.
+missing file, the recycle bin, or the Hebrew Preview.
 
 ## Device-untested boundaries
 
-Nothing in D4B ran on a device or emulator. Specifically unverified on hardware: that Preview
-autoplays and that Back silences it instantly; that Add to queue and Send now work from the overlay
-against a real topic; the 9 -> 10 migration on a real installed database; and — most importantly —
-**that a real source document is deleted, once, only after Telegram confirms it. The deletion path has
-never touched a real file.** Instrumentation suites compile but were not run; no device was attached.
+Nothing in D4C ran on a device or emulator. Specifically unverified on hardware: that a 9GAG upload
+arrives with its original file name **and** its caption; that a presentation repair preserves that
+caption; that the launch scan fires exactly once per real app opening and not on a resume; that
+Preview's visible Back, LTR timeline, and tap-to-toggle behave as intended in a Hebrew RTL UI; and
+that Queue and History thumbnails decode across the user's real codecs. Instrumentation suites compile
+but were not run; no device was attached.
 
-The D4A behaviours the device never exercised remain unvalidated: bulk routing against a real topic,
-thumbnail decoding across real codecs, the duplicate pre-check's blocked-item list, and the
-single-progress-indicator fix.
+Everything left unvalidated after D4B stays unvalidated.
 
 ## Next device action (ask for exactly this)
 
-`docs/D4B_DEVICE_CHECKLIST.md`. Its steps 7–9 are the gate: **do not upload the backlog until a single
-disposable test video has been confirmed and its source deleted, with nothing else in the folder
-touched.** Do not ask for token setup, multi-topic binding, Dashboard counts, source-missing
-reconciliation, old repair validation, or a full D4A selection retest.
+`docs/D4C_DEVICE_CHECKLIST.md`. **Steps 3 and 9 are the gate: do not upload the backlog until the
+launch-scan behaviour and the 9GAG caption have both been confirmed on one disposable file.** Do not
+ask for token setup, multi-topic binding, Dashboard counts, old repair checks, or a full D4A
+regression run.
 
-## Roadmap after D4B
+## Roadmap after D4C
 
-1. Whatever the device reports about deletion, in particular any retry state seen in the wild.
-2. Optional content-based topic *suggestions* on Review (never automatic routing).
-3. Only after that is proved on hardware: high-confidence automatic routing, strictly opt-in, with
+1. Whatever the device reports about the caption, the launch scan, and the Hebrew Preview.
+2. Still owed from D4B: real-world evidence about deletion retries, batch deletion, and blocked
+   deletion states.
+3. Optional content-based topic *suggestions* on Review (never automatic routing).
+4. Only after that is proved on hardware: high-confidence automatic routing, strictly opt-in, with
    uncertain items still landing in Review.
-4. **Explicitly not on the roadmap: per-account mapping.** The user has ruled it out.
-5. Still open from before: result-unknown reconciliation that never re-sends without evidence
+5. **Explicitly not on the roadmap: per-account mapping.** The user has ruled it out.
+6. Still open from before: result-unknown reconciliation that never re-sends without evidence
    (including a *manual* repair-retry design), and evidence-based resolution of an unowned or
    ambiguous legacy reservation (D3A.1).
 
@@ -228,61 +231,63 @@ reconciliation, old repair validation, or a full D4A selection retest.
 - **Do not ship a single-hotfix build on its own**; fold it into the next substantive milestone.
 - **Mandatory stop-and-ask UX gate**: inspect the implementation *first*, then ask one grouped
   question with numbered options, short practical consequences, and **no preselected default**, and
-  stop until answered. D4B raised two; both were answered before any file was edited.
+  stop until answered. D4B raised two; D4C raised three. All were answered before any file was edited.
 - Do not introduce another binding command alias or syntax without asking first.
 
 ## Env notes (still current)
 
 - `GRADLE_USER_HOME=/root/.gradle ./gradlew --offline …`; `aapt2` at
   `/opt/android-sdk/aapt2-wrapper/aapt2`.
-- `apksigner` is at `/opt/android-sdk/build-tools/36.0.0/apksigner`. `verify --print-certs -v` gives
-  DN, cert SHA-256, key algorithm/size, and which schemes verified, in one call.
-- **`lint` takes ~10 minutes.** Run it in the background and do other work meanwhile.
+- `apksigner` at `/opt/android-sdk/build-tools/36.0.0/apksigner`; `verify --print-certs -v` gives DN,
+  cert SHA-256, key algorithm/size, and which schemes verified, in one call.
+- **`lint` takes ~2–10 minutes.** Run it in the background and do other work meanwhile. The HTML
+  report's plain-text body says "No errors or warnings"; the SARIF report is the easiest thing to
+  parse (`results` array empty == clean).
 - **`dexdump` crashes (Illegal instruction)** — use `strings` over extracted `classes*.dex`.
 - Merged manifest at
   `app/build/intermediates/merged_manifest/debug/processDebugMainManifest/AndroidManifest.xml`. It
   legitimately contains debug-only components from `ui-tooling`, `ui-test-manifest`, `androidx
-  .startup`, `room`, and `profileinstaller`; the *application's own* manifest is still one activity
-  and one service.
-- **The offline Gradle cache has no media3, ExoPlayer, Coil, Glide, or Picasso.** Anything
-  media-shaped must use platform APIs (`VideoView`, `MediaPlayer`, `MediaMetadataRetriever`,
-  `AudioManager`).
-- **Room's SQL parser rejects a correlated subquery in a projection** ("no viable alternative at
-  input 'upload_jobs AS others'"). Split it into a second `@Query` and compose in the repository —
-  which reads better anyway.
-- **A source-shape guard must strip comments** (`codeOf()`), *and* the guards that do not strip them
-  (D2B2B's attempt-count counter) mean a KDoc containing the banned literal will fail the build.
-- **Blanket "no file may be deleted" guards** now live in `D2B1`, `D2B2A`, `D2B2B`, `D3A`, `D3B2` and
-  `D4A` surface tests. D4B narrowed each **by file name** (`AndroidDocumentDeleter.kt`) rather than by
-  dropping a marker. Keep it that way: the guards still prove nothing else can touch media.
-- **The version literal is pinned in four surface tests now**: `D3B15`, `D3B2`, `D4A`, `D4B`. Every
-  bump must update all of them.
-- **A migration guard bounded by `substringBefore("val ALL: Array<Migration>")` breaks** the moment a
-  later migration is added — it swallows the new one. Bound at the *next* migration name instead.
-  `D4A` and `D3B15` both needed this.
-- **`preview_choose_destination` collides with the banned marker `review_choose_destination`** by
-  substring. Watch out for string keys that contain a removed key as a suffix.
-- Lint's `UnusedResources` **will** fail the 0-issue bar when a UI removal orphans strings — delete
-  them from **both** locales (`LocalizationResourcesTest` compares key sets exactly).
+  .startup`, `room`, and `profileinstaller`; the *application's own* manifest is one activity and one
+  service.
+- **The offline Gradle cache has no media3, ExoPlayer, Coil, Glide, Picasso — and no DataStore.**
+  Anything media-shaped uses platform APIs (`VideoView`, `MediaPlayer`, `MediaMetadataRetriever`,
+  `AudioManager`); the one durable preference uses `SharedPreferences`.
+- **`SharedPreferences.commit()` trips lint's `ApplySharedPref` and `UseKtx`.** Both are suppressed
+  with `@SuppressLint("ApplySharedPref", "UseKtx")` and a documented reason: the UI reports which way
+  the toggle went, and `apply()` and the KTX `edit` extension both return nothing.
+- **Room's SQL parser rejects a correlated subquery in a projection.** Split it into a second `@Query`
+  and compose in the repository.
+- **A source-shape guard must strip comments** (`codeOf()`), *and* several guards do **not** strip
+  them. A KDoc containing a banned literal fails the build — D4C hit this by writing
+  `DocumentsContract.deleteDocument` in a UI comment; the four blanket "no deletion" guards tripped
+  instantly. Say "the one sanctioned deleter" instead of naming the API.
+- **Blanket "no file may be deleted" guards** live in `D2B1`, `D2B2A`, `D2B2B`, `D3A`, `D3B2` and
+  `D4A` surface tests, each narrowed **by file name** (`AndroidDocumentDeleter.kt`).
+- **The version literal is pinned in FIVE surface tests now**: `D3B15`, `D3B2`, `D4A`, `D4B`, `D4C`.
+  Every bump must update all of them.
+- **Lint's `UnusedResources` will fail the 0-issue bar** when a string is added but never referenced,
+  or orphaned by a UI change. D4C removed `preview_position` (replaced by two separate end labels) and
+  had to delete a string it added but did not use. Delete from **both** locales —
+  `LocalizationResourcesTest` compares key sets exactly.
 - **An apostrophe in an English string resource must be escaped** (`\\'`) or `mergeDebugResources`
-  fails. `\\u2014` for an em dash works and avoids the issue entirely.
-- **`%1$d` followed by a word trips lint's `PluralsCandidate`.** Use `<plurals>`. For Hebrew use
+  fails. `\\u2014` for an em dash avoids the issue entirely.
+- **`%1$d` followed by a word trips lint's `PluralsCandidate`.** Use `<plurals>`; Hebrew uses
   `one`/`two`/`other` only.
-- Adding a default parameter to an `interface` method adds a synthetic `name$default` to
-  `declaredMethods`, breaking exact-set reflection assertions in surface tests.
-- No Robolectric/mockito: prove UI rules by extracting them into pure objects (`SourceDeletionGate`,
-  `TransferIndicatorPolicy`, `ReviewSelection`, `ReviewGridPartition`, `MediaSummaryFormat`, …) plus
+- **The `Edit` tool writes literal characters where Kotlin source needs `\\uXXXX` escapes.** Patch
+  those lines with a small Python script instead.
+- No Robolectric/mockito: prove UI rules by extracting them into pure objects (`TelegramCaptionPolicy`,
+  `ReviewGridSort`, `ReviewSourceTimestamp`, `SourceDeletionGate`, `TransferIndicatorPolicy`, …) plus
   source-shape assertions, and Room behaviour in compiled-only androidTest.
-- Kotlin property initializers run in declaration order: a `StateFlow` whose `combine`/`onEach`
-  touches a `MutableStateFlow` must be declared **after** it.
+- Kotlin property initializers run in declaration order: a `StateFlow` whose `combine`/`onEach`/
+  `stateIn` touches another property must be declared **after** it.
 - In `runTest`, a `stateIn(WhileSubscribed)` flow has no value until something collects it **and**
-  `advanceUntilIdle()` has run. A ViewModel action that reads `.value` will silently no-op otherwise.
+  `advanceUntilIdle()` has run.
 
 ## Deployment declaration
 
-Nothing was deployed, installed, or run on a device or emulator in the D4B session. **No real Telegram
-request of any kind was made** — no `sendVideo`, no `editMessageMedia`, no `getUpdates`, no send. No
-forum topic was created, renamed, closed, or deleted; no binding was written against a real group.
-**No media file was uploaded, moved, renamed, copied, downloaded, quarantined, or deleted**, and no
-real document was opened for writing on any path. The deletion code added in this milestone has never
-run against real user storage.
+Nothing was deployed, installed, or run on a device or emulator in the D4C session. **No real Telegram
+request of any kind was made** — no `sendVideo`, no `sendDocument`, no `editMessageMedia`, no
+`getUpdates`, no send. No forum topic was created, renamed, closed, or deleted; no binding was written
+against a real group. **No media file was uploaded, moved, renamed, copied, downloaded, quarantined, or
+deleted**, and no real document was opened for writing on any path. No real file name was read,
+recorded, or used as a test fixture: every name in the test suite is synthetic.
