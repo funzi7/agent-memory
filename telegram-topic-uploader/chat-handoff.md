@@ -70,8 +70,38 @@ item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
 
-**D6A2** — three regressions reported from ordinary device use. **Two of them had already been
-"fixed" in D6A**, with code that passed its own tests and changed nothing on the device.
+**D6A3** — four workstreams opened by the **first successful hardware pairing**.
+
+> **Remote pairing works end to end on the real device.** Paired, Connected, and authenticated
+> status, destinations, sources, review and history all returned data. Device counts: total 4,
+> **active 1**, revoked 3. **Do not rework pairing** without an objective regression.
+
+| Workstream | What it was |
+| --- | --- |
+| **A. Destination UX** | The form asked a person to retype a chat ID and a topic ID the app already held. Now a dropdown of connected topics, by name; **no identifier field anywhere**. Server does create-or-reuse on `(chat_id, thread_id)`. |
+| **B. 9GAG** | Answered **403 twice** from the deployed VPS while reporting **Ready**. Now setup-required with an optional server-side cookie; **Ready means prerequisites are satisfied**. |
+| **C. Deletion** | **Failed again on hardware.** Ten named stages, the production path calls them, plus one further exact attempt on the same document URI. **Not claimed fixed.** |
+| **D. Deployment** | One command, `./scripts/deploy-production`. `rsync --delete` removes files a newer release deleted — the silent defect in copy-and-unpack. |
+
+| Field | Value |
+| --- | --- |
+| App version | code 28, `0.13.3-d6a3` |
+| App HEAD | `309ae0d3723cc056bda3432f84c8b0d08a0e25f9` |
+| Server HEAD | `befe5040d2d0177c7cedf23feaad3d1397166e31` |
+| Room schema | **12 — unchanged.** |
+| App unit tests | 1727, 0 failures. Lint clean. |
+| Server tests | 369, 0 failures. `ruff` and `mypy` clean. |
+| Install | **`cp app/build/outputs/apk/debug/app-debug.apk /sdcard/Download/`** — over the existing app, **never uninstall, never clear data** |
+| Hardware-proven | **Pairing, and authenticated requests. That is all.** |
+| Hardware-failed | **Permanent deletion**, now under two different fixes |
+| Never checked | D6A2's Preview ownership and album settlement; everything in D6A3 |
+
+**Before remote pairing on a fresh setup:** deploy the server
+(`./scripts/deploy-production`), then `sudo remote-sources-ctl revoke-all-devices --confirm` if
+orphan device records exist, then one fresh pairing code used immediately.
+
+Previous: **D6A2** — three regressions reported from ordinary device use. **Two of them had already
+been "fixed" in D6A**, with code that passed its own tests and changed nothing on the device.
 
 | Reported | What was actually wrong |
 | --- | --- |
@@ -81,7 +111,7 @@ item, confirmation, ignore marker and deletion tombstone.
 
 | Field | Value |
 | --- | --- |
-| App version | code 27, `0.13.2-d6a2` — **supersedes D6A1; 26 need not be installed first** |
+| App version | code 27, `0.13.2-d6a2` — **superseded by D6A3** |
 | Room schema | **12 — unchanged.** No migration runs. |
 | App unit tests | 1704, 0 failures. Lint clean. |
 | App permissions | unchanged from D5C. **No camera** — pairing is typed, not QR. |
@@ -185,6 +215,8 @@ connector most likely to need maintenance**, since that payload is front-end dat
 
 **Unvalidated on hardware:**
 
+- **All of D6A3** — the destination selector, the 9GAG classification, the deletion diagnosis and
+  the deployment command.
 - **All of D6A2** — including all three fixes. **Two of its three defects were reported fixed in D6A
   and confirmed on hardware zero times.**
 - **All of D6A1** — including the fix itself.
@@ -212,6 +244,13 @@ repair checks unless something visibly breaks.
   and `RESULT_UNKNOWN` is never retried — on either side.
 - **Deletion is of one exact document**, by granted tree plus recorded document ID, after re-proving
   identity, size and a fresh full SHA-256. No name matching, no listing, no recursion, no bulk form.
+- **D6A3: a classification correct at the level it was written can be useless at the level somebody
+  has to act on.** "The server could not use this source" and "nothing was deleted, the file is
+  still there" were both true and both unactionable.
+- **D6A3: never ask for something the application already knows.** A chat ID and a thread ID the app
+  connected itself must never be retyped by a person.
+- **D6A3: "declares no credential" is not "works right now."** Ready means the prerequisites are
+  actually satisfied, answered from what this host has observed.
 - **D6A2: an asynchronous result may act only on the operation and the item that own it.** It never
   navigates against whichever screen happens to be visible. Enforced by addressing — actions are
   keyed by job ID — rather than by a check somebody has to remember.
@@ -257,10 +296,10 @@ repair checks unless something visibly breaks.
 
 ## 11. Roadmap
 
-1. **Device-validate D6A2**, `docs/D6A2_DEVICE_CHECKLIST.md`, **in order**. Priority: deletion
-   truthfulness on every surface checked in the system file manager; files the app wrongly claimed to
-   delete coming back; preview ownership; album rows gone and staying gone across a restart.
-   **Section 2 deletes real files** — disposable copies in a disposable folder only.
+1. **Device-validate D6A3**, `docs/D6A3_DEVICE_CHECKLIST.md`, **in order**. Priority: **§3 the
+   deletion — and specifically the SECOND sentence of its message, verbatim**, which names the
+   provider behaviour; then §1 the new source form, §2 the 9GAG classification, §4 the two unproven
+   D6A2 fixes. **§3 deletes real files** — disposable copies in a disposable folder only.
 2. **D6A1's first real check** is §4 of that same checklist: the **bot token survives install-over**,
    and **disconnecting Remote sources does not destroy it**.
 3. Remote pairing, which still needs the server steps first: deploy the server commit, then

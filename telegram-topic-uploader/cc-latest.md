@@ -3,207 +3,187 @@
 > **`chat-handoff.md`, beside this file, is the canonical cross-chat bootstrap.** A brand-new
 > managing conversation reads that first and this second. **Every future milestone must update
 > both**, and from D6A also `/root/work/agent-memory/telegram-remote-sources/cc-latest.md`.
+>
+> **When the user supplies SHAs, read agent-memory before responding**, verify each against
+> `origin/main`, and only then answer. A supplied SHA is a claim to verify, never a fact to repeat.
 
 ## Task and repository state
 
 | Field | Value |
 | --- | --- |
-| Task | **D6A2** — three regressions reported from ordinary device use; **two had already been "fixed" in D6A** |
+| Task | **D6A3** — four workstreams opened by the **first successful hardware pairing** |
 | Application repository | `/root/work/telegram-topic-uploader` |
-| Server repository | `/root/work/telegram-remote-sources` — **not modified this milestone** |
-| Branch | `main`, tracking `origin/main` |
-| Starting application HEAD | `2a0f74e` (D6A1) |
-| **Final application HEAD** | **`3cdfdd8be1749884cc2a424af525e47d7564ade4`** (`3cdfdd8`) |
-| Server HEAD | `31d2edf088387dd262c617457dc5fce3e660739d` — **unchanged** |
-| Version | code 26 → **27**, name `0.13.1-d6a1` → **`0.13.2-d6a2`** |
+| Server repository | `/root/work/telegram-remote-sources` — **changed this milestone** |
+| Starting application HEAD | `3cdfdd8` (D6A2) |
+| **Final application HEAD** | **`309ae0d3723cc056bda3432f84c8b0d08a0e25f9`** (`309ae0d`) |
+| Starting server HEAD | `31d2edf` (D6A1) |
+| **Final server HEAD** | **`befe5040d2d0177c7cedf23feaad3d1397166e31`** (`befe504`) |
+| Version | code 27 → **28**, name `0.13.2-d6a2` → **`0.13.3-d6a3`** |
 | Room schema | **12 → 12. Unchanged.** No migration runs. |
-| Deployment | **Nothing.** No VPS, no production credential, no device, no emulator, no pairing, no Telegram request, no real file deleted. |
+| Deployment | **Nothing.** No VPS access, no production credential, no device, no pairing, no Telegram request, no real file deleted. |
 
-No production token, Telegram identifier, chat ID, thread ID, topic name, private link, VPS address,
-Tailscale hostname, pairing code, device token, file name, content URI, document ID, path, folder
-name, destination name or media hash was requested, used or recorded anywhere, including this file.
+No production token, Telegram identifier, chat ID, thread ID, private link, VPS address, Tailscale
+hostname, SSH host, pairing code, device token, cookie, account name, file name, content URI or
+media hash was requested, used or recorded anywhere, including this file.
 
-## The three regressions, and why D6A did not fix two of them
+## Live evidence — the first hardware success
 
-This is the part worth reading. **Each failed for a structurally different reason**, and only one is
-the kind that more tests of the same shape would have caught.
+**Remote pairing works end to end on the physical device.** Paired, Connected, and authenticated
+system-status, destinations, sources, review and history requests all returned data. Device counts:
+total 4, **active 1**, revoked 3 — one live device, the three D6A1 orphans correctly revoked.
+Destination creation over the API worked.
 
-### 1. A completing upload closed a *different* item's Preview — newly reported
+**Do not change or rework pairing** without an objective regression.
 
-Sequence: Preview A → **Send now** → back to Review → open Preview B → A finishes → **B closes**.
+Also established, all authoritative over any earlier claim:
 
-Root cause: `ui/MainViewModel.kt`, `runPreviewAction` called `closeReviewPreview()` unconditionally
-after `uploadNow(jobId)` returned. The coroutine is in `viewModelScope` and outlives the overlay.
+- the manual chat/thread entry in the remote source form is **unacceptable product UX**;
+- **9GAG validation from the deployed VPS returned 403 twice.** The validate call itself returned
+  success and encoded the failure in its body, which is the contract working;
+- **D6A2's permanent-deletion fix failed on hardware.** The app said nothing was deleted and the
+  file was still on the device, and it really was;
+- **D6A2's Preview-ownership and album-settlement fixes are still unverified on hardware.**
 
-The identity needed to prevent it **already existed** — `PreviewActionState.jobId`, since D4B — and
-nothing read it, because the action lived in **one nullable slot**. A single slot cannot express
-"this belongs to A", so every consumer was wrong at once: B drew A's stage line and A's **Cancel
-now**, a cancel in B stopped A, A's `finally` cleared B's pinned row, and
-`if (_previewAction.value != null) return` stopped B starting its own action at all.
+## A — destination selector (Android + one server API change)
 
-Fix: `_previewActions` / `_previewPinnedRows` are **maps keyed by job ID**. Completion goes through
-`closePreviewOwnedBy(jobId)`, guarded by `_reviewPreviewJobId.value == jobId`. `cancelPreviewSend`
-takes the owner. The overlay independently derives `ownAction` / `ownTransfer` from its own row —
-deliberate duplication, because a future call site is how this returns.
+Form now has **שם המקור** (source name) and **יעד בטלגרם** (a dropdown over locally connected topics,
+by name). **No chat field, no thread field anywhere in the flow.** The manual form, its handler and
+its six strings were **deleted**, not hidden.
 
-**Deliberately NOT changed:** `ExternalMediaOperationArbiter` still admits one media operation at a
-time. The user's gate answer asked for B to be "fully usable"; B owns its own action and gets its own
-truthful answer, but if the transfer slot is busy B is refused rather than run concurrently. That
-slot stops a manual deletion removing a file an album is mid-read of. Widening it is separate work.
+`ConnectedTopicSource` — read-only `fun interface`, implemented by `RoomConnectedTopicSource` using
+the **same** `DestinationReadiness` rule every local surface uses. No parallel topic store.
+`RemoteViewModel.addSourceForConnectedTopic` creates-or-reuses the destination from the topic's own
+record, then creates the source mapped to the answer. A failed destination step creates no source.
 
-### 2. Permanent deletion still did not work
+**Create-or-reuse had to be the server's job**, and this is the key insight: the endpoint
+deliberately never returns `chat_id`/`thread_id`, so the app cannot detect a duplicate. The server
+keys on `(chat_id, thread_id)` — already the unique constraint — returns the existing row untouched
+including its label, and every mapped source keeps working.
 
-**The gate answer pinned this precisely.** The device showed *"The deletion could not be confirmed,
-so it is not recorded as deleted. The file may still be there."* → `DELETION_UNVERIFIED` → the
-absence check returned `Unknown`.
+## B — 9GAG 403 (server)
 
-Root cause: after a genuine deletion the document URI addresses nothing, and providers say so in **at
-least five ways** — empty cursor, **null cursor** (`DocumentsProvider.query` returns null on exactly
-one path: its `queryDocument` threw `FileNotFoundException`), `FileNotFoundException`,
-`IllegalArgumentException`, and **`SecurityException`** from the tree check refusing a child it can no
-longer resolve. D6A's `existsAt` classified the null cursor and the `SecurityException` as `Unknown`.
-So D6A converted a false success into a false failure.
+Two defects. `classify_http_status` calls 401/403 `AUTHENTICATION_EXPIRED`, wrong when no session was
+ever configured. And `setup_required = requires_credentials and not configured` meant 9GAG (requires
+none) reported **Ready** while being refused.
 
-Fix: split **what the provider said** (`DocumentProbeSignal`) from **what it means**
-(`domain/deletion/DocumentAbsencePolicy`, a pure function — every combination assertable without a
-device). Rules: open descriptor = presence and outranks every cursor (D6A's original defect stays
-fixed); any probe proving the identity unresolvable = absence; uncontradicted row = presence; else
-unknown. The **write grant** disambiguates `SecurityException` — held grant means the tree no longer
-contains it; withdrawn grant is `AccessLost` → `PermissionRevoked`, never a claimed deletion.
+Fixed from evidence: no session → `SETUP_REQUIRED`; session configured → `AUTHENTICATION_EXPIRED`.
+New `AdapterCapabilities.optional_credentials`; `_setup_required` also fires when an optional-credential
+connector's last recorded signal was setup-shaped. **Ready now means prerequisites are satisfied.**
 
-**Second half — false tombstones.** `ManualSourceDeletionCoordinator.attempt` short-circuits on any
-terminal row and `SourceDeletionPolicy` reports `AlreadyDeleted`, so a pre-D6A wrong tombstone
-**withdrew the delete control and made a fresh tap return "deleted" without reaching the provider** —
-file on the device, invisible in the app, unreachable. Per the gate answer,
-`repairClaimedDeletions()` runs at startup and on refresh and withdraws false tombstones **only on
-positive presence** (the stricter `standalone` reading). Deletes nothing, reads no content,
-idempotent.
+Optional `NINEGAG_COOKIES` + `remote-sources-configure ninegag-cookies <path>`, exactly the X
+precedent. Browser-compatible headers. **No challenge solving, no proxy rotation, no retry loop.**
+One sanitized log line per refused validation: connector, classification, reason.
 
-### 3. Settled album shells stayed in the Upload Queue
+**Not verified live.** Nothing has succeeded from the deployed host since the 403.
 
-**The bluntest one.** `AlbumReconciliationPolicy` was written in D6A, was correct, had a passing test
-file, and `grep -rn AlbumReconciliation app/src/main` returned **only its own definition and one doc
-comment**. Nothing called it. The Queue filtered on the shell's own state
-(`albums.filter { it.state != AlbumState.CONFIRMED }`), so a `NOT_SENT` shell survived over confirmed
-members. Nothing durable recorded a shell as finished, so any in-memory answer would have died on
-restart.
+## C — permanent deletion still failed on hardware
 
-A second defect sat *inside* the projection: `shellIsRetirable = summary.isFullySettled`, whose
-`unresolved` counted `rejected` and `blockedByLimit`. Both terminal → a fully-settled album was never
-retirable.
+**The message decodes to `PROVIDER_CLAIMED_SUCCESS_BUT_PRESENT` → `NotActuallyDeleted`**, which
+requires the absence proof to have found the document **still readable** after the provider claimed
+success. So the gate passed, the identity re-proof passed, the provider was asked, and it lied.
 
-Fix: `keepsShellActive` = only `PENDING`, `FAILED_BEFORE_DISPATCH`, `RESULT_UNKNOWN`.
-`shellIsRetirable = members.none { it.keepsShellActive }`. **`AlbumState.RETIRED`** makes it durable
-(new value on an existing `TEXT` column — **no migration**). `AlbumSettlementRepair` runs at startup
-and on refresh, writes **one column on one album row and never a member**. Queue asks
-`state.occupiesQueue`. Per the gate answer, terminally failed members stay as their own rows with
-their own reason and become correctable once their shell retires.
+**Why D6A/D6A2 could not have fixed this:** both were about *interpretation*, and the interpretation
+was right. No further classification work would have changed the outcome.
 
-## The rule this milestone leaves behind
+What D6A3 does — and it deliberately does not claim a fix:
 
-**A policy with a green test file is not a shipped behaviour until something in `src/main` calls it
-and something durable records what it decided.**
+- `DocumentDeletionStage`, **ten stages** covering every case the milestone lists, each with its own
+  sentence in both locales, appended to the notice the user already sees;
+- `deleteWithReport` returns the stage with the result, and the **production** manual path calls it;
+- **one further exact attempt**: `ContentResolver.delete` on the *same document URI* — some providers
+  implement `delete` where `deleteDocument` is a no-op. Same tree, same document, no name search, no
+  listing, no recursion; its result is proved;
+- the write grant is checked **before** the provider is asked;
+- the stage is **not persisted** — schema 12 stands rather than migrating for a diagnostic sentence.
 
-D6A1's rule still applies too: a test that only exercises the enumerated value that already worked
-proves nothing about the one just added.
+**Next hardware run: ask for the SECOND sentence of the deletion message verbatim.** That names the
+provider behaviour and is the whole point of this build.
 
-`D6A2SurfaceTest` asserts **reachability** for all three fixes — the guarded close is the only
-completion path, the deleter delegates to the shared policy, and `AlbumReconciliationPolicy` is
-invoked from production and its result written durably.
+## D — one-command deployment (server)
+
+`./scripts/deploy-production [--dry-run]`. Refuses on wrong repo, wrong branch, dirty tracked tree,
+`HEAD != origin/main`, missing release files, or a host not already carrying this deployment. Backs
+up + verifies the DB, ships `git archive` of committed HEAD (**no `.git`, no credential**), promotes
+with `rsync --delete` — **that is what the old copy-and-unpack could not do** — excludes host-only
+state by name, runs `90-deploy.sh`, verifies CLI + loopback health + application port not on a
+non-loopback address + Tailscale + containers. Restarts the previous release on failure.
+
+`RELEASE_COMMIT` marker + `remote-sources-ctl version` (validates it is a hex SHA before printing).
+Config in git-ignored `deploy/production.env`: `RS_DEPLOY_HOST`, `RS_DEPLOY_KEY`, `RS_DEPLOY_PATH`.
+**Never printed.** Never automatic.
 
 ## Tests and exact results
 
 ```
-GRADLE_USER_HOME=/root/.gradle ./gradlew --offline testDebugUnitTest         # 1704 tests, 0 failures
+GRADLE_USER_HOME=/root/.gradle ./gradlew --offline testDebugUnitTest         # 1727, 0 failures
 GRADLE_USER_HOME=/root/.gradle ./gradlew --offline lintDebug                 # No issues found
 GRADLE_USER_HOME=/root/.gradle ./gradlew --offline assembleDebug             # success
 GRADLE_USER_HOME=/root/.gradle ./gradlew --offline assembleDebugAndroidTest  # success (compiled only)
-git diff --check                                                             # clean
+# server, via .venv/bin (uv is NOT installed):
+ruff format --check src tests; ruff check src tests; mypy; pytest            # 369, 0 failures
 ```
 
-1638 → **1704**, 66 added. New files:
+1704 → **1727** Android (23 added); 351 → **369** server (18 for deployment). New Android files:
+`D6A3SurfaceTest`, `ConnectedTopicSourceCreationTest`, `RemoteTestStubs` (shared remote fakes).
 
-- `domain/deletion/DocumentAbsencePolicyTest.kt` — every provider answer combination, both readings.
-- `domain/deletion/DeletionTombstoneRepairTest.kt` — revive on presence, keep on absence, leave
-  unproven alone, never delete, idempotent. Tree reader and hasher **throw on every member**.
-- `domain/album/AlbumSettlementRepairTest.kt` — scenarios A–H including legacy rows, restart and
-  double-run.
-- `ui/PreviewOperationOwnershipTest.kt` — the ownership rules stated directly.
-- `security/D6A2SurfaceTest.kt` — reachability guards.
-- `MainViewModelTest` gained the deterministic end-to-end sequence plus outcome variants and a
-  startup-repairs-run-once test.
-
-**Re-scoped, not deleted:**
-
-- version literal in **nine** surface tests, 26 → 27, name to `0.13.2-d6a2`;
-- `DeletionTruthfulnessTest`'s deleter-contract guard re-scoped to `DocumentAbsenceVerdict`, **plus
-  two new assertions** (withdrawn grant → `PermissionRevoked`; verdict comes from the shared policy).
-
-**One guard fired correctly and was NOT weakened.** The "media mutation is unreachable" tests grep
-production sources for the removal API by name; a new doc comment in `DocumentAbsencePolicy`
-mentioned it. **The comment was reworded**, exactly as in D6A.
+**Re-scoped, not deleted:** version literal in **ten** surface tests 27 → 28;
+`DeletionTruthfulnessTest`/`D5ASurfaceTest`/`D6A2SurfaceTest` deleter guards re-scoped to
+`deleteWithReport` **plus** a new assertion that no second unreported deletion call site exists; two
+coordinator tests now assert the stage as well as the outcome. One 9GAG test's 403 expectation
+changed — that is the behaviour change itself, and three new tests pin both sides.
 
 ## APK identity (debug development signing only)
 
 | Field | Value |
 | --- | --- |
-| Package | `com.funzi7.telegramtopicuploader` — unchanged |
-| Version | code 27, name `0.13.2-d6a2` |
+| Version | code 28, `0.13.3-d6a3` |
 | Path | `app/build/outputs/apk/debug/app-debug.apk` |
-| Size | 16,531,957 bytes |
-| SHA-256 | `6be3f1915beca26c7a4f89d6c031a110e5b2e29c18b73bb41f762b1f014590a2` |
-| Signer cert SHA-256 | `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4` — **unchanged from D6A1** |
+| Size | 16,654,105 bytes |
+| SHA-256 | `832cdd2796315849a8e30f3c682253a7ccacb9665df3807c1d82c850545c8e61` |
+| Signer cert SHA-256 | `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4` — **unchanged** |
 
-**Install over the existing app. Do not uninstall, do not clear data.** **D6A2 supersedes D6A1** —
-versionCode 26 does **not** need to be installed first.
+**Install over the existing app. Do not uninstall, do not clear data.**
 
 ## Hardware evidence, exactly as it stands
 
-**Nothing in D6A, D6A1 or D6A2 has been verified on hardware.**
+**Proven:** remote pairing, and authenticated requests to the private server. That is all.
 
-- Two of D6A2's three defects were reported fixed in **D6A** and confirmed on hardware **zero** times.
-- **D6A1 is unverified**, including the bot token surviving install-over and a remote disconnect not
-  destroying it.
-- **No D6A remote end-to-end test has passed.** Pairing has never completed on a device, so nothing
-  past pairing has ever run.
-- Still the only passed checks, unchanged since D5A: checks 1, 2 and 3.
-- Unvalidated: all of D6A2, D6A1, D6A, D5C, D5B, every D5A check beyond 1–3, everything after D4B/D4C.
+**Failed on hardware:** permanent deletion, now under **two** different fixes (D6A2 and, until
+proven otherwise, still open in D6A3).
+
+**Never checked:** D6A2's Preview ownership and album settlement; everything in D6A3; every D5A check
+beyond 1–3; all of D5B and D5C; everything after D4B/D4C.
 
 ## Next device action (ask for exactly this)
 
-`docs/D6A2_DEVICE_CHECKLIST.md`, in order. Priority: **2b** (deletion truthfulness on every surface,
-checked in the system file manager), **2a** (files the app wrongly claimed to delete coming back),
-**1** (preview ownership), **3** (album rows gone and staying gone across a restart).
+`docs/D6A3_DEVICE_CHECKLIST.md`, in order. Priority: **§3 deletion** — and specifically the **second
+sentence** of the message, verbatim, whatever it says; then §1 the new source form; §2 the 9GAG
+classification; §4 the two unproven D6A2 fixes.
 
-Section 2 **deletes real files** — insist on disposable copies in a disposable folder and on checking
-the file manager rather than believing the application.
+§3 **deletes real files** — insist on disposable copies in a disposable folder and on checking the
+system file manager rather than believing the application.
 
-§4 is D6A1's first real check: **the bot token survives install-over**, and **disconnecting Remote
-sources does not destroy it**.
-
-Remote pairing still needs the server steps first: deploy the server commit (unchanged this
-milestone), `sudo remote-sources-ctl revoke-all-devices --confirm`, then one fresh code.
+Server first: `./scripts/deploy-production`, then `sudo remote-sources-ctl version`, then
+`sudo remote-sources-ctl devices` (expect **active: 1** — the pairing survives).
 
 ## Env notes (still current)
 
-- `GRADLE_USER_HOME=/root/.gradle ./gradlew --offline …`; `aapt2` at `/opt/android-sdk/aapt2-wrapper/aapt2`.
-- `keytool -printcert -jarfile <apk>` reads the signing certificate; `apksigner` at
-  `/opt/android-sdk/build-tools/36.0.0/apksigner`.
+- `GRADLE_USER_HOME=/root/.gradle ./gradlew --offline …`; `keytool -printcert -jarfile <apk>`.
 - **`lintDebug` takes ~3–4 minutes.**
+- **`uv` is not installed.** Use the server repo's `.venv/bin/{ruff,mypy,pytest}`.
 - **`kotlin.test` is not on the unit-test classpath.** Use `org.junit.Assert`.
 - **minSdk 23 means no `java.time`**; no desugaring artefact in the offline cache.
-- Offline Gradle cache has no media3, ExoPlayer, Coil, Glide, Picasso, DataStore or `exifinterface`.
-- **`UnusedResources`, `PluralsCandidate` and `NewApi` fail the zero-issue bar.** Add/delete strings
-  in **both** locales (`values`, `values-iw`) — `LocalizationResourcesTest` compares key sets exactly.
+- **`UnusedResources`, `PluralsCandidate`, `NewApi` fail the zero-issue bar.** Removing a UI form
+  means removing its strings from **both** locales — `LocalizationResourcesTest` compares key sets.
+- **Annotations must stay adjacent to their function.** Inserting a helper between `@StringRes` /
+  `@Composable` and its target is a lint failure or a compile error.
 - **A doc comment can trip a source-level guard.** Reword the comment, never exempt the guard.
-- **Surface tests pin the version literal** — nine of them at D6A2. Bumping the version means
-  updating every one; that is the established pattern, not a weakened assertion.
-- **`@StringRes` and other annotations must stay adjacent to their function.** Inserting a helper
-  between an annotation and its target produces a `SupportAnnotationUsage` lint failure.
-- **Known flake, pre-existing:** `TelegramMediaRepairGatewayTest` (MockWebServer timing) fails
-  occasionally on a full run and passes in isolation. Seen again at D6A2 on a different method of the
-  same class. Not a real failure; re-run the class alone to confirm.
-- **Writing `' '` into Kotlin through a file-writing tool can land a raw NUL byte**, which makes
-  `grep` treat the file as binary and print nothing. If a grep over a file you just wrote returns
-  nothing it should have matched, check for NUL bytes first.
-- **`uv` is not installed.** The server repo's `.venv/bin/{ruff,mypy,pytest}` are the same toolchain.
+- **Surface tests pin the version literal** — ten of them at D6A3.
+- **Known flake, pre-existing:** `TelegramMediaRepairGatewayTest` and `TelegramMediaUploadGatewayTest`
+  (MockWebServer timing) fail occasionally under parallel Gradle tasks and pass on a clean re-run.
+  The transport layer had **zero diff** in D6A3. Re-run before treating one as real.
+- **Ruff's S603/S607 fire on `subprocess` in tests.** The deploy tests carry a per-file ignore with a
+  stated reason.
+- **Writing `' '` into Kotlin through a file-writing tool can land a raw NUL byte**, which makes
+  `grep` treat the file as binary. If a grep over a file you just wrote returns nothing it should
+  have matched, check for NUL bytes first.

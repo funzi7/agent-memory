@@ -21,7 +21,8 @@ hash — and nothing added to it ever may.
 | First commit | D6A (`308b4c0`). The repository was genuinely empty before it. |
 | Head after D6A1 | `31d2edf088387dd262c617457dc5fce3e660739d` (`31d2edf`) |
 | Head after D6A2 | **unchanged — `31d2edf`.** D6A2 was three Android-local regressions. |
-| Matching app head | `3cdfdd8be1749884cc2a424af525e47d7564ade4` (`3cdfdd8`), versionCode 27, `0.13.2-d6a2` |
+| Head after D6A3 | **`befe5040d2d0177c7cedf23feaad3d1397166e31`** (`befe504`) |
+| Matching app head | `309ae0d3723cc056bda3432f84c8b0d08a0e25f9` (`309ae0d`), versionCode 28, `0.13.3-d6a3` |
 | Host | A DigitalOcean droplet, Ubuntu 24.04.4, amd64, 1 vCPU, ~2 GiB RAM, ~48 GB disk |
 | Deploy path on host | `/opt/remote-sources` |
 | State path on host | `/var/lib/remote-sources` |
@@ -253,11 +254,79 @@ The Android app to install is now **versionCode 27 / `0.13.2-d6a2`**, which supe
 **Nothing below has moved.** The orphan-device cleanup and the pairing order are still exactly as
 D6A1 left them, and remote pairing has still never completed on a device.
 
+## D6A3 — the first hardware pairing, and three server changes
+
+**Pairing works end to end on the physical device.** Paired, Connected, and authenticated
+system-status, destinations, sources, review and history all returned data. Device counts: total 4,
+**active 1**, revoked 3. Destination creation over the API worked. **Do not rework pairing.**
+
+### 1. Destinations are created *or reused*
+
+`POST /destinations` keys on `(chat_id, thread_id)` — already the table's unique constraint — and
+returns the existing row untouched, label included.
+
+**Why the server had to be the one to do this:** the endpoint deliberately never returns `chat_id`
+or `thread_id`, so the Android app cannot recognise a topic it already registered and therefore
+cannot avoid duplicating it. That rule stays; reuse moved here instead. Every source already mapped
+to a destination keeps working. The response shape is unchanged and still identifier-free.
+
+The Android form now offers locally connected Telegram topics **by name**, with no chat or thread
+field anywhere — which is what makes the same topic legitimately arrive again for a second source.
+
+### 2. 9GAG's 403 — Ready now means the prerequisites are satisfied
+
+**The deployed host was answered 403 twice.** Two defects behind that:
+
+* `classify_http_status` calls 401/403 `AUTHENTICATION_EXPIRED`. Correct when a session existed;
+  precisely wrong when none was ever configured, because it sends an operator to renew a credential
+  that does not exist.
+* `setup_required = requires_credentials and not configured`, so 9GAG — which requires none —
+  reported **Ready** while being refused in production.
+
+Now: no session → `SETUP_REQUIRED`; session configured → `AUTHENTICATION_EXPIRED`.
+`AdapterCapabilities.optional_credentials` marks a connector that accepts a credential without
+requiring one, and `_setup_required` also fires when such a connector's last recorded platform
+signal was setup-shaped. **"Declares no credential" and "works from this host right now" are
+different claims**, and only the first had ever been tested.
+
+Optional `NINEGAG_COOKIES` + `remote-sources-configure ninegag-cookies <path>` — the X precedent
+exactly: a path not a value, encrypted at rest, decrypted for one check, never returned by any
+endpoint, **never sent to Android**. Browser-compatible headers only; **no challenge solving, no
+proxy rotation, no retry-until-allowed**. One sanitized line per refused validation: connector,
+classification, reason — no URL, account, cookie, body or header.
+
+**Still not verified live.** Nothing has succeeded from the deployed host since the 403.
+
+### 3. One-command deployment
+
+`./scripts/deploy-production [--dry-run]`, from the development checkout, never from the host.
+
+Refuses on: wrong repository, not `main`, dirty tracked tree, `HEAD != origin/main`, missing release
+files, or a host that does not already carry this deployment. Then backs up **and verifies** the
+database, ships `git archive` of the committed HEAD (**no `.git`, no GitHub credential** — the host
+deliberately has neither), stages under `.releases/`, and promotes with `rsync --delete`.
+
+**That last part is the defect in the old procedure:** unpacking an archive over the running tree
+leaves behind every file a newer release deleted, and produces no error. Host-only state is excluded
+by name — environment file, secrets, database, backups, staging, Tailscale, SSH — which is what
+makes those exclusions load-bearing now that `--delete` is in play.
+
+Then `90-deploy.sh` unchanged, and verifies the operator CLI, loopback health, that the application
+port is **not** on a non-loopback address, Tailscale backend state and container status. On failure
+it restarts the previous release and says the backup is intact.
+
+`RELEASE_COMMIT` marker + `remote-sources-ctl version`, which validates the marker is a 40-character
+hex SHA before printing. Config in git-ignored `deploy/production.env`. **Never automatic.**
+
+369 tests, 0 failures. **No device record, pairing, destination, source or runtime state is touched
+by any of this, and nothing was deployed.**
+
 ## Next action
 
 **`docs/D6A_LIVE_CHECKLIST.md` §8 has the exact order. It changed, and the order is the point:**
 
-1. Deploy this commit if the host is behind it — the only change is the two operator commands.
+1. **Deploy with the one command:** `./scripts/deploy-production` from the development checkout,
+   then `sudo remote-sources-ctl version` to confirm the deployed commit.
 2. `sudo remote-sources-ctl devices` — note the count.
 3. `sudo remote-sources-ctl revoke-all-devices --confirm` — clear the orphans, **once**.
 4. Install the D6A1 APK **over** the Android app. No uninstall, no data clear.
