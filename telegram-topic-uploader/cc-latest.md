@@ -8,198 +8,202 @@
 
 | Field | Value |
 | --- | --- |
-| Task | **D6A1** — a production-blocking hotfix: D6A remote pairing was impossible on any real device |
+| Task | **D6A2** — three regressions reported from ordinary device use; **two had already been "fixed" in D6A** |
 | Application repository | `/root/work/telegram-topic-uploader` |
-| Server repository | `/root/work/telegram-remote-sources` |
+| Server repository | `/root/work/telegram-remote-sources` — **not modified this milestone** |
 | Branch | `main`, tracking `origin/main` |
-| Starting application HEAD | `d209e64` (D6A) |
-| Starting server HEAD | `308b4c0` (D6A) |
-| **Final application HEAD** | **`2a0f74e80cb68c20a955b422517110c30fb038f3`** (`2a0f74e`) |
-| **Final server HEAD** | **`31d2edf088387dd262c617457dc5fce3e660739d`** (`31d2edf`) |
-| Version | code 25 → **26**, name `0.13.0-d6a` → **`0.13.1-d6a1`** |
+| Starting application HEAD | `2a0f74e` (D6A1) |
+| **Final application HEAD** | **`3cdfdd8be1749884cc2a424af525e47d7564ade4`** (`3cdfdd8`) |
+| Server HEAD | `31d2edf088387dd262c617457dc5fce3e660739d` — **unchanged** |
+| Version | code 26 → **27**, name `0.13.1-d6a1` → **`0.13.2-d6a2`** |
 | Room schema | **12 → 12. Unchanged.** No migration runs. |
-| Deployment | **Nothing.** No VPS access, no production credential, no device, no emulator, no pairing, no Telegram request. |
+| Deployment | **Nothing.** No VPS, no production credential, no device, no emulator, no pairing, no Telegram request, no real file deleted. |
 
-No production token, Telegram identifier, chat ID, thread ID, group title, topic name, private link,
-VPS address, Tailscale hostname, tailnet name, pairing code, device token, platform credential, file
-name, content URI, document ID, path, folder name, destination name or media hash was requested,
-used or recorded anywhere, including this file. No raw production log was copied.
+No production token, Telegram identifier, chat ID, thread ID, topic name, private link, VPS address,
+Tailscale hostname, pairing code, device token, file name, content URI, document ID, path, folder
+name, destination name or media hash was requested, used or recorded anywhere, including this file.
 
-## What the first real pairing attempt established — sanitised
+## The three regressions, and why D6A did not fix two of them
 
-This is the whole reason D6A1 exists, and most of it was good news.
+This is the part worth reading. **Each failed for a structurally different reason**, and only one is
+the kind that more tests of the same shape would have caught.
 
-- The private HTTPS endpoint answered the phone. **Tailscale Serve works.**
-- `POST /api/v1/pairing/exchange` returned **success**. The server minted a device token.
-- The application then displayed its fail-closed sentence: *the device credential could not be
-  stored safely, so pairing was not retained.* **That was true, not a bug in the message.**
-- Re-using the already-consumed code afterwards was **refused**. That is the design working.
-- Several further fresh attempts reached the server successfully and failed at local storage the
-  same way, each leaving an active server-side device record whose plaintext nobody holds.
+### 1. A completing upload closed a *different* item's Preview — newly reported
 
-## Root cause — exact, and there were three
+Sequence: Preview A → **Send now** → back to Review → open Preview B → A finishes → **B closes**.
 
-**Two** gates, not one, and both named the bot token specifically:
+Root cause: `ui/MainViewModel.kt`, `runPreviewAction` called `closeReviewPreview()` unconditionally
+after `uploadNow(jobId)` returned. The coroutine is in `viewModelScope` and outlives the overlay.
 
-1. `security/SecretEnvelope.kt`, `SecretEnvelopePolicy.isSupportedReference` — returned true only for
-   `SecretReferences.BOT_TOKEN`. **This one fires first**, so `SecretStore.put` for the remote token
-   returned `InvalidReference` before storage was ever consulted. The task brief named only gate 2;
-   this one is the primary.
-2. `security/AndroidKeystoreSecretStore.kt`, `AndroidNoBackupSecretPayloadStorage.fileFor` — had a
-   file only for `BOT_TOKEN` and returned `null` otherwise.
+The identity needed to prevent it **already existed** — `PreviewActionState.jobId`, since D4B — and
+nothing read it, because the action lived in **one nullable slot**. A single slot cannot express
+"this belongs to A", so every consumer was wrong at once: B drew A's stage line and A's **Cancel
+now**, a cancel in B stopped A, A's `finally` cleared B's pinned row, and
+`if (_previewAction.value != null) return` stopped B starting its own action at all.
 
-D6A declared `SecretReferences.REMOTE_DEVICE_TOKEN` and wired `KeystoreRemoteDeviceTokenStore` to
-it, and extended neither layer beneath. **No amount of re-pairing, clearing data or reinstalling the
-same APK could ever have worked.**
+Fix: `_previewActions` / `_previewPinnedRows` are **maps keyed by job ID**. Completion goes through
+`closePreviewOwnedBy(jobId)`, guarded by `_reviewPreviewJobId.value == jobId`. `cancelPreviewSend`
+takes the owner. The overlay independently derives `ownAction` / `ownTransfer` from its own row —
+deliberate duplication, because a future call site is how this returns.
 
-**The third defect, found while fixing those, was the dangerous one.**
-`AndroidKeystoreSecretCrypto` used **one** Keystore alias for every reference, and
-`EnvelopeSecretStore.removeBlocking` deletes the key on removal. Merely making the device token
-storable would have meant a remote **disconnect** destroyed the key the **Telegram bot token** was
-encrypted under — an intact envelope nothing could ever open, no error at the time, no recovery.
+**Deliberately NOT changed:** `ExternalMediaOperationArbiter` still admits one media operation at a
+time. The user's gate answer asked for B to be "fully usable"; B owns its own action and gets its own
+truthful answer, but if the transfer slot is busy B is refused rather than run concurrently. That
+slot stops a manual deletion removing a file an album is mid-read of. Widening it is separate work.
 
-## The fix
+### 2. Permanent deletion still did not work
 
-**Per-reference files.** Constant `SecretReference -> file name` map. Bot token keeps
-`telegram_bot_token.envelope` exactly; remote token gets `remote_device_token.envelope`. Distinctness
-asserted in `init`; nothing derived from input; undeclared references still `null` and fail closed.
+**The gate answer pinned this precisely.** The device showed *"The deletion could not be confirmed,
+so it is not recorded as deleted. The file may still be there."* → `DELETION_UNVERIFIED` → the
+absence check returned `Unknown`.
 
-**Per-reference keys — this required a redesign, not an allowlist entry.** `SecretCrypto` now takes
-the reference on `encrypt`, `decrypt` and `removeKey`, so a shared key is not expressible. Constant
-`SecretReference -> alias` map. Bot token keeps `…bot_token.envelope_key.v1` exactly; remote token
-gets `…remote_device_token.envelope_key.v1`.
+Root cause: after a genuine deletion the document URI addresses nothing, and providers say so in **at
+least five ways** — empty cursor, **null cursor** (`DocumentsProvider.query` returns null on exactly
+one path: its `queryDocument` threw `FileNotFoundException`), `FileNotFoundException`,
+`IllegalArgumentException`, and **`SecurityException`** from the tree check refusing a child it can no
+longer resolve. D6A's `existsAt` classified the null cursor and the `SecurityException` as `Unknown`.
+So D6A converted a false success into a false failure.
 
-**Compatibility was the design constraint.** The bot token's file name and alias are byte-for-byte
-what they were, because a real device already holds an envelope encrypted under that alias. A
-prettier scheme (`secret_<ref>.envelope`, an alias template) would have orphaned it. Two tests pin
-both constants.
+Fix: split **what the provider said** (`DocumentProbeSignal`) from **what it means**
+(`domain/deletion/DocumentAbsencePolicy`, a pure function — every combination assertable without a
+device). Rules: open descriptor = presence and outranks every cursor (D6A's original defect stays
+fixed); any probe proving the identity unresolvable = absence; uncontradicted row = presence; else
+unknown. The **write grant** disambiguates `SecurityException` — held grant means the tree no longer
+contains it; withdrawn grant is `AccessLost` → `PermissionRevoked`, never a claimed deletion.
 
-**The reference gate** now asks `SecretReferences.fromPersistentValue`, so a reference cannot be
-declared without being storable.
+**Second half — false tombstones.** `ManualSourceDeletionCoordinator.attempt` short-circuits on any
+terminal row and `SourceDeletionPolicy` reports `AlreadyDeleted`, so a pre-D6A wrong tombstone
+**withdrew the delete control and made a fresh tap return "deleted" without reaching the provider** —
+file on the device, invisible in the app, unreachable. Per the gate answer,
+`repairClaimedDeletions()` runs at startup and on refresh and withdraws false tombstones **only on
+positive presence** (the stricter `standalone` reading). Deletes nothing, reads no content,
+idempotent.
 
-**Pairing is a local transaction.** `RemoteViewModel.pair` → `completePairing`. A successful exchange
-is not a pairing; both local writes must succeed. `settings.setBaseUrl`'s result is no longer
-discarded. Either failure: remove partial state (`tokens.clear()` if the address write fails), send
-**one** best-effort authenticated revoke with the token just issued, keep the existing fail-closed
-sentence, **never** repeat the exchange.
+### 3. Settled album shells stayed in the Upload Queue
 
-**Token ownership during rollback.** `SecretStore.put` consumes and clears its input, so the rollback
-takes **one** copy *before* the store gets the original, never assigns it to a field, and clears it
-in a `finally` on every path including cancellation. `RemoteServerGateway.revokeIssuedToken` consumes
-the array it is handed and clears it twice.
+**The bluntest one.** `AlbumReconciliationPolicy` was written in D6A, was correct, had a passing test
+file, and `grep -rn AlbumReconciliation app/src/main` returned **only its own definition and one doc
+comment**. Nothing called it. The Queue filtered on the shell's own state
+(`albums.filter { it.state != AlbumState.CONFIRMED }`), so a `NOT_SENT` shell survived over confirmed
+members. Nothing durable recorded a shell as finished, so any in-memory answer would have died on
+restart.
 
-**No new server route.** The rollback reuses authenticated `POST /api/v1/device/revoke`, token in the
-`Authorization` header only, redirects off.
+A second defect sat *inside* the projection: `shellIsRetirable = summary.isFullySettled`, whose
+`unresolved` counted `rejected` and `blockedByLimit`. Both terminal → a fully-settled album was never
+retirable.
 
-## Why the suite did not catch it — the lesson worth keeping
+Fix: `keepsShellActive` = only `PENDING`, `FAILED_BEFORE_DISPATCH`, `RESULT_UNKNOWN`.
+`shellIsRetirable = members.none { it.keepsShellActive }`. **`AlbumState.RETIRED`** makes it durable
+(new value on an existing `TEXT` column — **no migration**). `AlbumSettlementRepair` runs at startup
+and on refresh, writes **one column on one album row and never a member**. Queue asks
+`state.occupiesQueue`. Per the gate answer, terminally failed members stay as their own rows with
+their own reason and become correctable once their shell retires.
 
-**Every secret-store test used `SecretReferences.BOT_TOKEN`.** `SecretEnvelopeStoreTest` opens with
-`private val reference = SecretReferences.BOT_TOKEN` and never uses another; the instrumentation test
-did the same. A defect that made the milestone's headline feature impossible on every device shipped
-with a completely green suite.
+## The rule this milestone leaves behind
 
-**A test that only ever exercises the enumerated value that already worked proves nothing about the
-one just added.**
+**A policy with a green test file is not a shipped behaviour until something in `src/main` calls it
+and something durable records what it decided.**
+
+D6A1's rule still applies too: a test that only exercises the enumerated value that already worked
+proves nothing about the one just added.
+
+`D6A2SurfaceTest` asserts **reachability** for all three fixes — the guarded close is the only
+completion path, the deleter delegates to the shared policy, and `AlbumReconciliationPolicy` is
+invoked from production and its result written durably.
 
 ## Tests and exact results
 
 ```
-GRADLE_USER_HOME=/root/.gradle ./gradlew --offline testDebugUnitTest         # 1638 tests, 0 failures
+GRADLE_USER_HOME=/root/.gradle ./gradlew --offline testDebugUnitTest         # 1704 tests, 0 failures
 GRADLE_USER_HOME=/root/.gradle ./gradlew --offline lintDebug                 # No issues found
 GRADLE_USER_HOME=/root/.gradle ./gradlew --offline assembleDebug             # success
 GRADLE_USER_HOME=/root/.gradle ./gradlew --offline assembleDebugAndroidTest  # success (compiled only)
 git diff --check                                                             # clean
 ```
 
-1601 → **1638**, 37 added. New files:
+1638 → **1704**, 66 added. New files:
 
-- `security/SecretReferenceIsolationTest.kt` — both references round-trip; coexistence; cross-write,
-  cross-remove, cross-corrupt and replay isolation **in both directions**; undeclared refused.
-- `ui/RemotePairingTransactionTest.kt` — happy path; token-store failure; address-store failure after
-  the token stored; rollback attempted **exactly once**; partial state removed; rollback failure
-  fail-closed; arrays cleared; **no second exchange**; ordinary refusals still refusals; only `401`
-  invalidates pairing.
-- `security/D6A1SurfaceTest.kt` — no layer between `SecretReferences` and the disk may name one
-  reference again; bot-token file name and alias pinned; no plaintext fallback.
-- `androidTest/.../AndroidKeystoreSecretStoreTest.kt` gained six isolation tests against the **real**
-  Keystore — **compiled, not run**, no device attached.
+- `domain/deletion/DocumentAbsencePolicyTest.kt` — every provider answer combination, both readings.
+- `domain/deletion/DeletionTombstoneRepairTest.kt` — revive on presence, keep on absence, leave
+  unproven alone, never delete, idempotent. Tree reader and hasher **throw on every member**.
+- `domain/album/AlbumSettlementRepairTest.kt` — scenarios A–H including legacy rows, restart and
+  double-run.
+- `ui/PreviewOperationOwnershipTest.kt` — the ownership rules stated directly.
+- `security/D6A2SurfaceTest.kt` — reachability guards.
+- `MainViewModelTest` gained the deterministic end-to-end sequence plus outcome variants and a
+  startup-repairs-run-once test.
 
-**Re-scoped, not deleted** — the pattern since D4C:
+**Re-scoped, not deleted:**
 
-- version literal in **eight** surface tests, 25 → 26, and the name to `0.13.1-d6a1`;
-- `SecretEnvelopeStoreTest`'s `JceSecretCrypto` became per-reference, **matching** the production
-  contract rather than being loosened to accept it.
+- version literal in **nine** surface tests, 26 → 27, name to `0.13.2-d6a2`;
+- `DeletionTruthfulnessTest`'s deleter-contract guard re-scoped to `DocumentAbsenceVerdict`, **plus
+  two new assertions** (withdrawn grant → `PermissionRevoked`; verdict comes from the shared policy).
 
-**No security assertion was weakened.** Every fail-closed rule the store had still holds.
+**One guard fired correctly and was NOT weakened.** The "media mutation is unreachable" tests grep
+production sources for the removal API by name; a new doc comment in `DocumentAbsencePolicy`
+mentioned it. **The comment was reworded**, exactly as in D6A.
 
 ## APK identity (debug development signing only)
 
 | Field | Value |
 | --- | --- |
 | Package | `com.funzi7.telegramtopicuploader` — unchanged |
-| Version | code 26, name `0.13.1-d6a1` |
-| minSdk / targetSdk / compileSdk | 23 / 37 / 37 |
-| Permissions | `INTERNET`, `ACCESS_NETWORK_STATE`, `RUN_USER_INITIATED_JOBS`, `POST_NOTIFICATIONS` — **unchanged. No camera.** |
+| Version | code 27, name `0.13.2-d6a2` |
 | Path | `app/build/outputs/apk/debug/app-debug.apk` |
-| Size | 15,714,515 bytes |
-| SHA-256 | `27e046d3d8faea267d899b93a18b49259604132b17f3f5e7948eca7686392730` |
-| Signer cert SHA-256 | `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4` — **unchanged from D6A** |
+| Size | 16,531,957 bytes |
+| SHA-256 | `6be3f1915beca26c7a4f89d6c031a110e5b2e29c18b73bb41f762b1f014590a2` |
+| Signer cert SHA-256 | `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4` — **unchanged from D6A1** |
 
-**Install over the existing app. Do not uninstall, do not clear data.** The bot token's envelope was
-deliberately left in place so it survives the upgrade — and step A3 of the checklist is the check.
+**Install over the existing app. Do not uninstall, do not clear data.** **D6A2 supersedes D6A1** —
+versionCode 26 does **not** need to be installed first.
 
 ## Hardware evidence, exactly as it stands
 
-**No D6A remote end-to-end test has passed. Not one.** Pairing has never completed on a device, so
-nothing past pairing — sources, review, send, history, disconnect — has ever run.
+**Nothing in D6A, D6A1 or D6A2 has been verified on hardware.**
 
-D6A1 removes the reason pairing failed. It **does not** demonstrate that anything past pairing works,
-and D6A1 itself is unverified on hardware.
-
-Still FAILED on hardware and untouched by D6A1: manual permanent deletion reporting success while the
-file remained; the 42-item send whose status did not match Telegram; selection actions unreachable
-without scrolling. All three were fixed in code at D6A and none re-verified.
-
-Still the only passed checks, unchanged since D5A: checks 1, 2 and 3.
-
-Unvalidated: **all of D6A, all of D5C, all of D5B**, every D5A check beyond 1–3, everything after
-D4B and D4C.
+- Two of D6A2's three defects were reported fixed in **D6A** and confirmed on hardware **zero** times.
+- **D6A1 is unverified**, including the bot token surviving install-over and a remote disconnect not
+  destroying it.
+- **No D6A remote end-to-end test has passed.** Pairing has never completed on a device, so nothing
+  past pairing has ever run.
+- Still the only passed checks, unchanged since D5A: checks 1, 2 and 3.
+- Unvalidated: all of D6A2, D6A1, D6A, D5C, D5B, every D5A check beyond 1–3, everything after D4B/D4C.
 
 ## Next device action (ask for exactly this)
 
-`docs/D6A1_DEVICE_CHECKLIST.md`, **in order** — the order is the point:
+`docs/D6A2_DEVICE_CHECKLIST.md`, in order. Priority: **2b** (deletion truthfulness on every surface,
+checked in the system file manager), **2a** (files the app wrongly claimed to delete coming back),
+**1** (preview ownership), **3** (album rows gone and staying gone across a restart).
 
-1. server: `remote-sources-ctl devices`, then `revoke-all-devices --confirm`, then `devices` again
-   (expect `active: 0`);
-2. install the APK **over** the app — no uninstall, no data clear;
-3. **check the Telegram bot is still configured before anything else** (A3);
-4. mint one code, pair immediately, confirm **Connected** and `active: 1`;
-5. **disconnect, then check the bot token is still configured** (A6) — the shared-key defect's test;
-6. only then Part B, which has never run.
+Section 2 **deletes real files** — insist on disposable copies in a disposable folder and on checking
+the file manager rather than believing the application.
 
-Then `docs/D6A_DEVICE_CHECKLIST.md` **Part A** — the three regressions. It needs no server and is
-still the highest-value thing to run. **A1 deletes real files**: insist on disposable copies in a
-disposable folder and on checking the file manager rather than believing the application.
+§4 is D6A1's first real check: **the bot token survives install-over**, and **disconnecting Remote
+sources does not destroy it**.
 
-**Do not re-run the D5A, D5B or D5C checklists.**
+Remote pairing still needs the server steps first: deploy the server commit (unchanged this
+milestone), `sudo remote-sources-ctl revoke-all-devices --confirm`, then one fresh code.
 
 ## Env notes (still current)
 
 - `GRADLE_USER_HOME=/root/.gradle ./gradlew --offline …`; `aapt2` at `/opt/android-sdk/aapt2-wrapper/aapt2`.
-- `apksigner` at `/opt/android-sdk/build-tools/36.0.0/apksigner`; `keytool -printcert -jarfile` also
-  reads the APK's certificate.
-- **`lint` takes ~3 minutes.** Run it in the background.
+- `keytool -printcert -jarfile <apk>` reads the signing certificate; `apksigner` at
+  `/opt/android-sdk/build-tools/36.0.0/apksigner`.
+- **`lintDebug` takes ~3–4 minutes.**
 - **`kotlin.test` is not on the unit-test classpath.** Use `org.junit.Assert`.
 - **minSdk 23 means no `java.time`**; no desugaring artefact in the offline cache.
-- The offline Gradle cache has no media3, ExoPlayer, Coil, Glide, Picasso, DataStore or
-  `androidx.exifinterface`.
-- **`UnusedResources`, `PluralsCandidate` and `NewApi` all fail the zero-issue bar.** Delete strings
-  from **both** locales — `LocalizationResourcesTest` compares key sets exactly.
-- **A doc comment can trip a source-level guard.** Reword the comment, do not exempt the guard.
-- **Surface tests pin the version literal.** Eight of them did at D6A1. Bumping the version means
+- Offline Gradle cache has no media3, ExoPlayer, Coil, Glide, Picasso, DataStore or `exifinterface`.
+- **`UnusedResources`, `PluralsCandidate` and `NewApi` fail the zero-issue bar.** Add/delete strings
+  in **both** locales (`values`, `values-iw`) — `LocalizationResourcesTest` compares key sets exactly.
+- **A doc comment can trip a source-level guard.** Reword the comment, never exempt the guard.
+- **Surface tests pin the version literal** — nine of them at D6A2. Bumping the version means
   updating every one; that is the established pattern, not a weakened assertion.
-- **Writing `' '` into a Kotlin source through a file-writing tool can land a raw NUL byte**,
-  which makes `grep` treat the file as binary and silently print nothing. If a grep over a file you
-  just wrote returns nothing it should have matched, check for NUL bytes first.
-- **`uv` is not installed in this environment.** The server repo's `.venv/bin/{ruff,mypy,pytest}` are
-  the same toolchain `uv run` would use.
+- **`@StringRes` and other annotations must stay adjacent to their function.** Inserting a helper
+  between an annotation and its target produces a `SupportAnnotationUsage` lint failure.
+- **Known flake, pre-existing:** `TelegramMediaRepairGatewayTest` (MockWebServer timing) fails
+  occasionally on a full run and passes in isolation. Seen again at D6A2 on a different method of the
+  same class. Not a real failure; re-run the class alone to confirm.
+- **Writing `' '` into Kotlin through a file-writing tool can land a raw NUL byte**, which makes
+  `grep` treat the file as binary and print nothing. If a grep over a file you just wrote returns
+  nothing it should have matched, check for NUL bytes first.
+- **`uv` is not installed.** The server repo's `.venv/bin/{ruff,mypy,pytest}` are the same toolchain.

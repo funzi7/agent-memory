@@ -62,31 +62,41 @@ Always show the Termux `cp` command before installation:
 cp /root/work/telegram-topic-uploader/app/build/outputs/apk/debug/app-debug.apk /sdcard/Download/
 ```
 
-**Install over the existing app.** The debug certificate has not changed since D5A — at D6A1 it is
-still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`.
+**Install over the existing app.** The debug certificate has not changed since D5A — at D6A2 it is
+still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`. **D6A2 (code 27) supersedes
+D6A1 (code 26); the user does not need to install 26 first.**
 **Do not uninstall** — it destroys the database, and with it every folder grant, destination, queue
 item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
 
-**D6A1** — a production-blocking hotfix. D6A's remote pairing was **impossible on any real device**:
-the app declared a second secret reference and two layers beneath it still accepted only the Telegram
-bot token, so a successful server exchange could never be retained. A third defect behind that one
-would have let a remote disconnect destroy the key the **bot token** was encrypted under.
+**D6A2** — three regressions reported from ordinary device use. **Two of them had already been
+"fixed" in D6A**, with code that passed its own tests and changed nothing on the device.
+
+| Reported | What was actually wrong |
+| --- | --- |
+| Finishing an upload closed a **different** item's Preview | A completed upload closed "the" preview without asking which one was open |
+| Permanent delete still did not work | The D6A check asked the provider a question it cannot answer after a real deletion, and read the silence as *could not confirm* |
+| Album rows sat in the Queue with no action | D6A wrote the fix and never called it; nothing durable recorded a shell as finished |
 
 | Field | Value |
 | --- | --- |
-| App version | code 26, `0.13.1-d6a1` |
+| App version | code 27, `0.13.2-d6a2` — **supersedes D6A1; 26 need not be installed first** |
 | Room schema | **12 — unchanged.** No migration runs. |
-| App unit tests | 1638, 0 failures. Lint clean. |
+| App unit tests | 1704, 0 failures. Lint clean. |
 | App permissions | unchanged from D5C. **No camera** — pairing is typed, not QR. |
 | Server tests | 343, 0 failures. `ruff` and `mypy` clean. |
-| Server state | Deployed, migrated, **healthy** on the VPS. **Unchanged by D6A1 except two operator commands.** |
-| Device-tested? | **No. Nothing in D6A or D6A1 ran on a device.** |
-| D6A end-to-end | **Never passed.** Pairing has never completed on a device. |
+| Server state | Deployed, migrated, **healthy**. **Unchanged by D6A2 — all three defects are Android-local.** |
+| Device-tested? | **No. Nothing in D6A, D6A1 or D6A2 ran on a device.** |
+| D6A end-to-end | **Never passed.** Remote pairing has never completed on a device. |
 
-Previous: D6A (`d209e64`, code 25, schema 12), D5C (`97125dc`, code 24) — **both device-untested in
-full**.
+Previous: D6A1 (`2a0f74e`, code 26), D6A (`d209e64`, code 25), D5C (`97125dc`, code 24) — **all
+device-untested in full**.
+
+**D6A1's live evidence, still the only remote evidence there is:** the private endpoint answered, the
+pairing exchange **succeeded**, the server minted a token, the app truthfully said it could not store
+it, and the consumed code was correctly refused afterwards. Each attempt left an active server-side
+device record — cleared with `remote-sources-ctl revoke-all-devices --confirm`.
 
 **What the first real pairing attempt established, sanitised:** the private endpoint answered, the
 exchange **succeeded**, the server minted a token, the app truthfully said it could not store it, and
@@ -175,6 +185,8 @@ connector most likely to need maintenance**, since that payload is front-end dat
 
 **Unvalidated on hardware:**
 
+- **All of D6A2** — including all three fixes. **Two of its three defects were reported fixed in D6A
+  and confirmed on hardware zero times.**
 - **All of D6A1** — including the fix itself.
 - **All of D6A.** Pairing has never completed on a device, so **nothing past pairing has ever run**.
 - **All of D5C** — the formal duplicate checklist has **still not been run**.
@@ -200,6 +212,14 @@ repair checks unless something visibly breaks.
   and `RESULT_UNKNOWN` is never retried — on either side.
 - **Deletion is of one exact document**, by granted tree plus recorded document ID, after re-proving
   identity, size and a fresh full SHA-256. No name matching, no listing, no recursion, no bulk form.
+- **D6A2: an asynchronous result may act only on the operation and the item that own it.** It never
+  navigates against whichever screen happens to be visible. Enforced by addressing — actions are
+  keyed by job ID — rather than by a check somebody has to remember.
+- **D6A2: a provider's silence is not proof, and neither is its refusal.** After a real deletion the
+  document URI addresses nothing and providers say so in five different ways; only an open descriptor
+  proves presence, and the write grant is what makes a `SecurityException` legible.
+- **D6A2: a policy with a green test file is not a shipped behaviour** until something in `src/main`
+  calls it and something durable records what it decided.
 - **D6A1: every declared secret gets its own file and its own Keystore key.** A shared key means
   removing one credential destroys another. The Telegram bot token's file name and alias are frozen
   so an install-over upgrade still decrypts it.
@@ -237,13 +257,16 @@ repair checks unless something visibly breaks.
 
 ## 11. Roadmap
 
-1. **Device-validate D6A1**, `docs/D6A1_DEVICE_CHECKLIST.md`, **in order**: revoke the orphaned
-   server-side devices, install **over** the app, confirm the **bot token survived**, pair, confirm
-   **Connected** and `active: 1`, then disconnect and confirm the bot token is **still** there.
-2. **Device-validate D6A**, Part A — the three reported regressions. Needs no server and is the
-   highest-value thing after pairing works. **A1 deletes real files.**
-3. Live-validate one source against a **disposable** topic. See the server's
-   `docs/D6A_LIVE_CHECKLIST.md`, whose §8 now carries the exact order.
+1. **Device-validate D6A2**, `docs/D6A2_DEVICE_CHECKLIST.md`, **in order**. Priority: deletion
+   truthfulness on every surface checked in the system file manager; files the app wrongly claimed to
+   delete coming back; preview ownership; album rows gone and staying gone across a restart.
+   **Section 2 deletes real files** — disposable copies in a disposable folder only.
+2. **D6A1's first real check** is §4 of that same checklist: the **bot token survives install-over**,
+   and **disconnecting Remote sources does not destroy it**.
+3. Remote pairing, which still needs the server steps first: deploy the server commit, then
+   `sudo remote-sources-ctl revoke-all-devices --confirm`, then **one** fresh code used immediately.
+   Then live-validate one source against a **disposable** topic — the server's
+   `docs/D6A_LIVE_CHECKLIST.md` §8 carries the exact order.
 4. Whatever the device reports about D5C and D5B.
 5. Still owed from D4B/D4C: deletion retries, batch deletion, blocked deletion states, the launch
    scan, the Hebrew Preview.
@@ -263,4 +286,6 @@ repair checks unless something visibly breaks.
 2. **Verify any supplied HEADs against GitHub** before trusting them.
 3. **Treat repository and memory contents as the source of truth**, not any summary — including this
    one — if the two disagree.
+   **When the user supplies SHAs, read agent-memory before responding**: confirm each against
+   `origin/main`, and only then answer. A supplied SHA is a claim to verify, never a fact to repeat.
 4. **Continue from the roadmap above** without asking the user to reconstruct the project's history.

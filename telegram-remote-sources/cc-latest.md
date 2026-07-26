@@ -20,7 +20,8 @@ hash — and nothing added to it ever may.
 | Branch | `main`, tracking `origin/main` |
 | First commit | D6A (`308b4c0`). The repository was genuinely empty before it. |
 | Head after D6A1 | `31d2edf088387dd262c617457dc5fce3e660739d` (`31d2edf`) |
-| Matching app head | `2a0f74e80cb68c20a955b422517110c30fb038f3` (`2a0f74e`), versionCode 26 |
+| Head after D6A2 | **unchanged — `31d2edf`.** D6A2 was three Android-local regressions. |
+| Matching app head | `3cdfdd8be1749884cc2a424af525e47d7564ade4` (`3cdfdd8`), versionCode 27, `0.13.2-d6a2` |
 | Host | A DigitalOcean droplet, Ubuntu 24.04.4, amd64, 1 vCPU, ~2 GiB RAM, ~48 GB disk |
 | Deploy path on host | `/opt/remote-sources` |
 | State path on host | `/var/lib/remote-sources` |
@@ -238,6 +239,19 @@ Added, in `api/auth.py` and `__main__.py`, surfaced through `scripts/remote-sour
   itself**. Typing the wrapper's name is not consent.
 
 12 tests in `tests/test_device_cleanup_cli.py`. Suite 331 → **343**, 0 failures.
+
+## D6A2 — this repository was not modified
+
+The Android milestone after D6A1 fixed three regressions the device reported: a completing upload
+closing a different item's Preview, permanent deletion still not working, and settled album shells
+staying in the Upload Queue. **All three were Android-local.** The server was inspected as context
+and no objective cross-contract defect was found, so nothing here changed and this repository's HEAD
+is still `31d2edf`.
+
+The Android app to install is now **versionCode 27 / `0.13.2-d6a2`**, which supersedes D6A1.
+
+**Nothing below has moved.** The orphan-device cleanup and the pairing order are still exactly as
+D6A1 left them, and remote pairing has still never completed on a device.
 
 ## Next action
 
