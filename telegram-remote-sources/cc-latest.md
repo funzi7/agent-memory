@@ -18,7 +18,9 @@ hash — and nothing added to it ever may.
 | Repository | `https://github.com/funzi7/telegram-remote-sources` (private) |
 | Local path | `/root/work/telegram-remote-sources` |
 | Branch | `main`, tracking `origin/main` |
-| First commit | D6A. The repository was genuinely empty before it. |
+| First commit | D6A (`308b4c0`). The repository was genuinely empty before it. |
+| Head after D6A1 | `31d2edf088387dd262c617457dc5fce3e660739d` (`31d2edf`) |
+| Matching app head | `2a0f74e80cb68c20a955b422517110c30fb038f3` (`2a0f74e`), versionCode 26 |
 | Host | A DigitalOcean droplet, Ubuntu 24.04.4, amd64, 1 vCPU, ~2 GiB RAM, ~48 GB disk |
 | Deploy path on host | `/opt/remote-sources` |
 | State path on host | `/var/lib/remote-sources` |
@@ -185,8 +187,11 @@ Synthetic fixtures only. **No test touches a live platform, Telegram or the netw
 
 - Every credential. `remote-sources-configure telegram | reddit | x-cookies` has not been run.
   **Claude did not request, read or handle any production credential, and must not.**
-- Pairing the phone.
+- Pairing the phone. **Attempted at D6A: the exchange succeeded here and the phone could not keep
+  the token. Blocked until the D6A1 APK is installed and the orphaned devices are revoked.**
 - Any live platform or Telegram request. **Nothing has been sent to Telegram from this server.**
+- **Any authenticated request from a phone. Not one has ever arrived**, because pairing has never
+  completed on a device.
 
 ## Connector status, honestly
 
@@ -201,11 +206,54 @@ Synthetic fixtures only. **No test touches a live platform, Telegram or the netw
 **Do not describe any connector as end-to-end validated.** Mocked tests prove the parsing and the
 classification. They prove nothing about the live platforms.
 
+## D6A1 — what the first live pairing attempt proved, and the one command it added
+
+Sanitised, and no raw log was copied.
+
+**This server behaved correctly at every step.** The private Tailscale HTTPS endpoint answered the
+phone, `POST /api/v1/pairing/exchange` returned **success** and minted a device token, and re-using
+the consumed code afterwards was **refused** — the single-use rule working, not a second fault.
+
+The failure was entirely on the Android side: its secure-storage layer accepted only the Telegram
+bot-token reference and refused the remote device token, so every successful exchange was discarded
+by the phone. Fixed in the app at D6A1 (`0.13.1-d6a1`, versionCode 26). **No server code needed to
+change for that**, and no API change was made — the app's pairing rollback reuses the existing
+authenticated `POST /api/v1/device/revoke`.
+
+### The one thing the server did need
+
+Each successful-but-discarded exchange left an **active device record whose plaintext nobody holds**.
+This server keeps only `sha256(token)` by design, so it cannot tell those from working devices and
+cannot hand the plaintext back. The only honest remedy is to revoke everything and pair again.
+
+Added, in `api/auth.py` and `__main__.py`, surfaced through `scripts/remote-sources-ctl`:
+
+- `remote-sources devices` → `{"devices_total": n, "active": n, "revoked": n}`. **Counts only** — no
+  token, no token hash, no device id, no label, no address, no timestamp, no raw row.
+- `remote-sources revoke-all-devices --confirm` → refuses without the flag (exit 2, nothing
+  changed), **revokes rather than deletes** so `revoked_at` keeps the audit trail, commits once so a
+  failure changes nothing, is idempotent, prints counts only, exits non-zero with a **fixed** message
+  on failure (an exception's text can carry a path or a row).
+- The `ctl` wrapper forwards `--confirm` from the operator's own command line and **never supplies it
+  itself**. Typing the wrapper's name is not consent.
+
+12 tests in `tests/test_device_cleanup_cli.py`. Suite 331 → **343**, 0 failures.
+
 ## Next action
 
-`docs/D6A_LIVE_CHECKLIST.md`, in its stated order: authorise Tailscale, run `70-serve.sh`, configure
-credentials, pair the phone, then add **one** source pointed at a **disposable** topic with initial
-import **Last 5**.
+**`docs/D6A_LIVE_CHECKLIST.md` §8 has the exact order. It changed, and the order is the point:**
+
+1. Deploy this commit if the host is behind it — the only change is the two operator commands.
+2. `sudo remote-sources-ctl devices` — note the count.
+3. `sudo remote-sources-ctl revoke-all-devices --confirm` — clear the orphans, **once**.
+4. Install the D6A1 APK **over** the Android app. No uninstall, no data clear.
+5. `sudo remote-sources-ctl pair` — one code, used immediately, ten-minute life.
+6. Confirm the app says **Connected** (one authenticated request succeeding — which has never
+   happened) and `remote-sources-ctl devices` shows `"active": 1`.
+7. Only then: **one** source pointed at a **disposable** topic with initial import **Last 5**.
+
+Steps 1–3 of the original checklist — Tailscale authorisation, `70-serve.sh`, credentials — are
+already done, proven by the exchange having reached this server.
 
 ## Gotchas for the next session
 
@@ -219,3 +267,8 @@ import **Last 5**.
 - Reservations are keyed on `(destination, sha256, byte_size)` — the **natural** key, not the row id.
   A gallery may legitimately contain the same image twice, and inserting by row id crashed a
   confirmation that had already happened.
+- **`uv` is not installed in the dev environment**, whatever the docs say to run. `.venv/bin/ruff`,
+  `.venv/bin/mypy` and `.venv/bin/pytest` are the same toolchain `uv run` would invoke.
+- **Issue-once is a property, not a gap.** Because only the hash is stored, a device record whose
+  token the phone never kept is indistinguishable from a working one. That is the price of never
+  being able to leak a token from a database copy, and `revoke-all-devices` is the whole remedy.

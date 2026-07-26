@@ -62,26 +62,37 @@ Always show the Termux `cp` command before installation:
 cp /root/work/telegram-topic-uploader/app/build/outputs/apk/debug/app-debug.apk /sdcard/Download/
 ```
 
-**Install over the existing app.** The debug certificate has not changed since D5A.
+**Install over the existing app.** The debug certificate has not changed since D5A — at D6A1 it is
+still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`.
 **Do not uninstall** — it destroys the database, and with it every folder grant, destination, queue
 item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
 
-**D6A** — Remote Sources against a new private server, plus three defects the user reported from
-ordinary device use.
+**D6A1** — a production-blocking hotfix. D6A's remote pairing was **impossible on any real device**:
+the app declared a second secret reference and two layers beneath it still accepted only the Telegram
+bot token, so a successful server exchange could never be retained. A third defect behind that one
+would have let a remote disconnect destroy the key the **bot token** was encrypted under.
 
 | Field | Value |
 | --- | --- |
-| App version | code 25, `0.13.0-d6a` |
+| App version | code 26, `0.13.1-d6a1` |
 | Room schema | **12 — unchanged.** No migration runs. |
-| App unit tests | 1601, 0 failures. Lint clean. |
+| App unit tests | 1638, 0 failures. Lint clean. |
 | App permissions | unchanged from D5C. **No camera** — pairing is typed, not QR. |
-| Server tests | 331, 0 failures. `ruff` and `mypy` clean. |
-| Server state | Deployed, migrated, **healthy** on the VPS |
-| Device-tested? | **No. Nothing in D6A ran on a device.** |
+| Server tests | 343, 0 failures. `ruff` and `mypy` clean. |
+| Server state | Deployed, migrated, **healthy** on the VPS. **Unchanged by D6A1 except two operator commands.** |
+| Device-tested? | **No. Nothing in D6A or D6A1 ran on a device.** |
+| D6A end-to-end | **Never passed.** Pairing has never completed on a device. |
 
-Previous: D5C (`97125dc`, code 24, schema 12) — **also device-untested in full**.
+Previous: D6A (`d209e64`, code 25, schema 12), D5C (`97125dc`, code 24) — **both device-untested in
+full**.
+
+**What the first real pairing attempt established, sanitised:** the private endpoint answered, the
+exchange **succeeded**, the server minted a token, the app truthfully said it could not store it, and
+the consumed code was correctly refused afterwards. Each attempt left an active server-side device
+record whose plaintext nobody holds — cleared with the new
+`remote-sources-ctl revoke-all-devices --confirm`.
 
 ## 5. Deployed VPS state — no private values
 
@@ -164,7 +175,8 @@ connector most likely to need maintenance**, since that payload is front-end dat
 
 **Unvalidated on hardware:**
 
-- **All of D6A.**
+- **All of D6A1** — including the fix itself.
+- **All of D6A.** Pairing has never completed on a device, so **nothing past pairing has ever run**.
 - **All of D5C** — the formal duplicate checklist has **still not been run**.
 - **All of D5B.**
 - Every D5A check beyond 1–3; everything left after D4B and D4C.
@@ -188,6 +200,12 @@ repair checks unless something visibly breaks.
   and `RESULT_UNKNOWN` is never retried — on either side.
 - **Deletion is of one exact document**, by granted tree plus recorded document ID, after re-proving
   identity, size and a fresh full SHA-256. No name matching, no listing, no recursion, no bulk form.
+- **D6A1: every declared secret gets its own file and its own Keystore key.** A shared key means
+  removing one credential destroys another. The Telegram bot token's file name and alias are frozen
+  so an install-over upgrade still decrypts it.
+- **D6A1: a successful pairing exchange is not a pairing.** The device is paired only when the token
+  and the address are both stored; either failure rolls back locally and revokes the issued token on
+  the server, once, and never repeats the exchange.
 - **D6A: a provider's `true` is a claim, not proof.** The exact document is re-checked after the
   claim, and only a proven absence is recorded as a deletion.
 - **Back is a verb, not a destination.** Preview first, otherwise pop one entry, otherwise leave
@@ -219,21 +237,25 @@ repair checks unless something visibly breaks.
 
 ## 11. Roadmap
 
-1. **Device-validate D6A**, Part A first — the three reported regressions. **A1 deletes real files.**
-2. **Authorise Tailscale**, configure credentials, pair the phone, then live-validate one source
-   against a **disposable** topic. See the server's `docs/D6A_LIVE_CHECKLIST.md`.
-3. Whatever the device reports about D5C and D5B.
-4. Still owed from D4B/D4C: deletion retries, batch deletion, blocked deletion states, the launch
+1. **Device-validate D6A1**, `docs/D6A1_DEVICE_CHECKLIST.md`, **in order**: revoke the orphaned
+   server-side devices, install **over** the app, confirm the **bot token survived**, pair, confirm
+   **Connected** and `active: 1`, then disconnect and confirm the bot token is **still** there.
+2. **Device-validate D6A**, Part A — the three reported regressions. Needs no server and is the
+   highest-value thing after pairing works. **A1 deletes real files.**
+3. Live-validate one source against a **disposable** topic. See the server's
+   `docs/D6A_LIVE_CHECKLIST.md`, whose §8 now carries the exact order.
+4. Whatever the device reports about D5C and D5B.
+5. Still owed from D4B/D4C: deletion retries, batch deletion, blocked deletion states, the launch
    scan, the Hebrew Preview.
-5. **Instagram** (gallery-dl + cookies, Instaloader fallback) and **TikTok** (gallery-dl + yt-dlp +
+6. **Instagram** (gallery-dl + cookies, Instaloader fallback) and **TikTok** (gallery-dl + yt-dlp +
    a **self-hosted** cobalt). Both are prepared boundaries that currently report unsupported.
    **Stories and expiring content** stay a separate opt-in schedule and are deferred with them.
-6. A manual-resolution affordance for a remote `RESULT_UNKNOWN`. Recorded correctly and never
+7. A manual-resolution affordance for a remote `RESULT_UNKNOWN`. Recorded correctly and never
    retried, but resolving one is currently "look at the topic and decide".
-7. Optional content-based topic *suggestions* on Review — never automatic routing.
-8. Result-unknown reconciliation that never re-sends without evidence, and evidence-based resolution
+8. Optional content-based topic *suggestions* on Review — never automatic routing.
+9. Result-unknown reconciliation that never re-sends without evidence, and evidence-based resolution
    of an unowned or ambiguous legacy reservation (D3A.1).
-9. **Explicitly not on the roadmap:** per-account mapping of local folders.
+10. **Explicitly not on the roadmap:** per-account mapping of local folders.
 
 ## 12. New-chat startup procedure
 
