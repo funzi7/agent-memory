@@ -27,6 +27,7 @@ hash — and nothing added to it ever may.
 | Head after D6A6 | `a985e2da51c7681efbb6c036e3b96e4d31920f26` (`a985e2d`) — deployed |
 | Head after D6A6a | `7564912c24c121c2c021887e8a5621b91f8d5df4` (`7564912`) — deployed and verified |
 | **Head after D6A7** | **`b307b0882177738cf9e5dadf1a8eb14b62b40706`** (`b307b08`) — **deployed and verified** |
+| Head after D6A7a | **unchanged — `b307b08`.** See the D6A7a note below. |
 | Host | A DigitalOcean droplet, Ubuntu 24.04.4, amd64, 1 vCPU, ~2 GiB RAM, ~48 GB disk |
 | Deploy path on host | `/opt/remote-sources` |
 | State path on host | `/var/lib/remote-sources` |
@@ -794,3 +795,35 @@ send, and a successful deployment is not evidence that one would.
 - **Issue-once is a property, not a gap.** Because only the hash is stored, a device record whose
   token the phone never kept is indistinguishable from a working one. That is the price of never
   being able to leak a token from a database copy, and `revoke-all-devices` is the whole remedy.
+
+---
+
+## D6A7a — no server change, and the tracing that proves it
+
+**D6A7a is an Android-only corrective milestone**, opened on a hardware addendum received after
+D6A7 had already been committed. It repaired four device-reported defects and **this repository was
+not modified, not deployed and not accessed**. The head above is unchanged.
+
+The addendum permitted a server change only if objective tracing proved the local Telegram upload
+API contract was involved. It traced to four causes, none of which touches this server or any remote
+connector:
+
+1. **A confirmed upload reappeared in Review.** `RoomScanRepository.upsertReviewJob` reuses a
+   placeholder found by `topicDestinationId IS NULL AND status = 'AWAITING_ROUTING'`, which a
+   confirmed job never matches, so a rescan inserted a second placeholder for media Telegram already
+   held. Purely local scan/routing state.
+2. **Its permanent deletion never reached the Android document provider.** That placeholder made
+   `countOtherSourceDependentJobs` non-zero, so `SourceDeletionGate` refused before
+   `markAttemptStarted`. Purely local SAF/deletion state; **no Telegram request is made on that path
+   at all, by design.**
+3. **Upload queue could be a silent no-op.** `armPendingBatchStart` did not re-attempt an
+   already-armed start and a window-focus deferral said nothing. Purely an Android JobScheduler /
+   view-model concern.
+4. **Cancelling a batch could freeze the queue.** `requestStopAfterCurrent` had no status guard, so
+   a scheduled-but-never-run session absorbed a flag only the runner could clear. Purely local batch
+   session state.
+
+**Nothing remote was exercised.** No production credential was requested or handled, no live source
+was checked, no `/api/v1` route was called, and no deployment or rollback was run. The Instagram
+validation answer that D6A7 left open remains open and is still the next live evidence this
+repository owes.

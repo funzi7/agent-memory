@@ -11,18 +11,110 @@
 
 | Field | Value |
 | --- | --- |
-| Task | **D6A7** — media shared *into* the app, and an addendum: a source refusal that declared the whole server unreachable. Follows **D6A6a** |
-| **Final application HEAD** | **`5e7e688e8470360369388ec03718fc0ec8fdfbe9`** (`5e7e688`) |
-| **Final server HEAD** | **`b307b0882177738cf9e5dadf1a8eb14b62b40706`** (`b307b08`) — **deployed and verified** |
-| Version | code 32 → **33**, name `0.13.7-d6a6a` → **`0.13.8-d6a7`** |
-| Room schema | **13 — unchanged by D6A7.** No migration; an imported file is an ordinary media row. |
-| Gate | **1979 Android unit tests, 0 failures. Lint: no issues.** Server: **722 passed, 4 skipped**. |
-| APK | Built from the committed HEAD, copied byte-identically, **not installed**. Signer `74e78654…` unchanged, so the upgrade path is intact. |
-| Hardware | **Nothing in D6A7 is hardware-verified.** `docs/D6A7_DEVICE_CHECKLIST.md` lists every line; all are *not attempted*. |
+| Task | **D6A7a** — a corrective milestone opened on a hardware addendum received *after* D6A7 was committed. Follows **D6A7** |
+| **Final application HEAD** | **`b0910eeba9f0f20cb04d98934fb30885d5befcab`** (`b0910ee`) — pushed to `origin/main` |
+| **Final server HEAD** | **`b307b0882177738cf9e5dadf1a8eb14b62b40706`** (`b307b08`) — **unchanged by D6A7a.** No server change was required: tracing proved the local Telegram upload API contract is not involved |
+| Version | code 33 → **34**, name `0.13.8-d6a7` → **`0.13.9-d6a7a`** |
+| Room schema | **13 — unchanged.** No migration. Every change is a predicate, a guard, a branch or a derived projection field |
+| Gate | **2027 Android unit tests, 0 failures. Lint clean.** `assembleDebug`, `assembleDebugAndroidTest`, `git diff --check` clean |
+| APK | `app-debug.apk`, 16,062,922 bytes, SHA-256 `5ed20c277916734dcd2e9ee171420a1274a43d26d9797047b5c2a7ee569d1f55`; instrumentation APK 1,585,292 bytes, SHA-256 `32adb621eed04a240b8e4e76fb407a6bd368573052e30e13e4180ff9a6f2bc9f`. Copied to Downloads as `TelegramTopicUploader-0.13.9-d6a7a.apk`. **Not installed.** Signer unchanged, so the upgrade path is intact |
+| Hardware | **Nothing in D6A7a is hardware-verified.** `docs/D6A7A_DEVICE_CHECKLIST.md` lists every line; all are *not attempted*. Backlog rows 59–64 |
 
 No production token, Meta credential, Telegram identifier, chat ID, thread ID, private link, VPS
 address, Tailscale hostname, SSH host, pairing code, device token, cookie value, account name, file
 name, content URI or media hash is recorded anywhere in this file.
+
+## D6A7a — a confirmed upload that came back, a deletion that stopped at the gate, and a queue that froze
+
+**Four device reports in one session, and they are two causal chains rather than four bugs.** D6A7
+had already been committed when they arrived, so this is a corrective milestone.
+
+### Chain one — one stray row caused both A-defects
+
+A confirmed upload still appeared in Review; pressing Upload produced the already-uploaded dialog;
+choosing its permanent deletion did nothing to the file.
+
+**Root cause of the Review row.** Every scan re-hashes and re-finalizes **every** document it
+enumerates, including one whose confirmed source is still on disk. `finalizeLocked` reaches
+`RoutingDecision.ManualReview` — the only answer a scan can get since D4B — and `upsertReviewJob`
+looks for a placeholder to reuse with `findUnresolvedForMedia`, whose predicate is
+`topicDestinationId IS NULL AND status = 'AWAITING_ROUTING'`. A confirmed job matches neither, so
+nothing is found and a **second, brand-new `AWAITING_ROUTING` job** is inserted for media Telegram
+already holds. It classifies as `WAITING_FOR_ROUTING`, so Review shows it as a new candidate.
+
+**Root cause of the deletion, and the exact stage it stopped at.** That same placeholder made
+`countOtherSourceDependentJobs` return 1, so `SourceDeletionGate.evaluate` answered
+`Wait(WAITING_FOR_OTHER_JOBS)` and returned **before `markAttemptStarted`**. The Android document
+provider was never called at all. This is the same one-line disagreement D6A5 repaired for the
+*manual* path: `SourceDependencyPolicy` says a preparation needs the bytes only once it has named a
+destination, and this SQL still counted every non-terminal row.
+
+**Fixes.** `countPositivelyConfirmedForMedia` (strictly positive message ID **and** durable
+timestamp) is consulted before either branch of `finalizeLocked` can write a placeholder, including
+the hash-failure branch; a confirmed item returns the new `ScanFinalizeResult.AlreadyConfirmed`,
+keeps its observed metadata, and is not pushed to `NEEDS_REVIEW`. The guard SQL now encodes
+`SourceDependencyPolicy`. `retireUnresolvedForConfirmedMedia` retires already-existing placeholders
+inside `reconcileDurableState`, at launch and on pull-to-refresh, touching only a row with no
+destination, no evidence, no attempt, no claim, no dispatch and no completion.
+
+**And a confirmed item keeps a home.** The folder page's Confirmed section now offers *Delete the
+file from this device*, through `deleteConfirmedLocalSource` — the same use case, not a parallel
+one — authorized by the job carrying the positive message ID with the destination frozen onto that
+same row. A refusal names its stage (`confirmedDeleteStageLabel`) and reason
+(`confirmedDeleteReasonLabel`) instead of one sentence covering three situations; a
+`RETRY_AVAILABLE` outcome is reported as a retry, never as a success.
+
+### Chain two — the queue could freeze with no action left
+
+**Why the start could be silent.** `armPendingBatchStart` returned immediately when a start was
+already armed — without re-attempting and without a word — and `tryConsumePendingBatchStart`
+returned just as quietly when the window was not resumed and focused. A focus event that never
+arrived left the flag set and killed the button for the life of the process. The window check itself
+is necessary and kept (a UIDT job is only accepted while the app holds a focused window); what
+changed is that a deferral is announced and a repeat press retries.
+
+**Why cancellation stuck.** `requestStopAfterCurrent` had no status guard, so cancelling a session
+the platform had accepted but never executed recorded a flag only the runner or a resume could
+clear — and the runner was never going to run. `BatchStatusCard` then matched none of its branches
+and rendered **no control at all**, while the retained active slot hides the Upload-queue button.
+That is the reported dead end exactly.
+
+**Fixes.** `startedAt` is written only by the runner, from inside the JobService, so a null value is
+durable evidence that nothing was acquired or sent. `cancelCurrentAndPause` withdraws such a session
+outright — slot released, item states preserved, **no `RESULT_UNKNOWN`, no Telegram request**. The
+boolean became `BatchCancelResult` (cancelled-and-paused / unstarted-cancelled / already-stopped /
+nothing-active / failed), because `false` used to be announced as *"there is no paused upload to
+resume"*. The card's branch set is now total and always leaves one control or one sentence.
+
+**Recovery for rows already stranded as `UPLOADING`.** `reconcileExpiredClaims` was reachable only
+from a single upload, a batch run or an album send — all of which a stranded row disables, because
+it is ineligible for Upload now and drops the eligible count that draws the Upload-queue button. It
+now also runs inside `reconcileDurableState`. Rules unchanged and evidence-based: no request-start
+evidence → back to queued without spending an attempt; dispatch evidence → `RESULT_UNKNOWN`, never
+resent; confirmation → confirmed. A `RESULT_UNKNOWN` row stays unretirable by design.
+
+### What did **not** change
+
+Room schema. The single statement that writes `UPLOADING` (`markDispatchStarted`, which also stamps
+`dispatchAttemptId` and `dispatchStartedAt`). Snapshot creation still touches no upload job. No
+confirmation is ever rewritten, no reservation released, no upload-job row deleted, and the database
+is never recreated or cleared. No server code.
+
+### New tests
+
+`ConfirmedSourceDeletionTest` (13) and `D6A7aSurfaceTest` (11), plus additions to
+`RoomScanRepositoryTest`, `StateRepairTest`, `RoomBatchRepositoryTest`, `BatchUploadCoordinatorTest`,
+`MainViewModelTest` and `D5ASurfaceTest`. Three pre-existing tests changed **because the behaviour
+they pinned was the defect**: the folder page's Confirmed branch is no longer a do-nothing branch, a
+`Retried` deletion is no longer announced as a success, and a stop request can no longer be recorded
+on a session that never started.
+
+### Next device action (ask for exactly this)
+
+Install `TelegramTopicUploader-0.13.9-d6a7a.apk` **over** the existing app — do not uninstall, do not
+clear data — and run `docs/D6A7A_DEVICE_CHECKLIST.md`. The two lines that matter most are: a
+confirmed file is absent from Review after a rescan while still shown under Confirmed on the folder
+page; and its local copy actually disappears from the **Android file manager** after the delete.
 
 ## D6A7 — a source's refusal is not the server's silence
 

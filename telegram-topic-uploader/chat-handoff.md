@@ -62,12 +62,12 @@ Always show the Termux `cp` command before installation:
 cp /root/work/telegram-topic-uploader/app/build/outputs/apk/debug/app-debug.apk /sdcard/Download/
 ```
 
-**Install over the existing app.** The debug certificate has not changed since D5A — at D6A7 it is
-still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`. **D6A7 (code 33,
-`0.13.8-d6a7`) supersedes every earlier build; no intermediate version needs installing first.**
+**Install over the existing app.** The debug certificate has not changed since D5A — at D6A7a it is
+still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`. **D6A7a (code 34,
+`0.13.9-d6a7a`) supersedes every earlier build; no intermediate version needs installing first.**
 
 **D6A6 moved the Room schema 12 → 13** — one new table for the Instagram publishing queue, nothing
-else touched, the first schema move since D5C. **Neither D6A6a nor D6A7 moves it again.** If you are coming
+else touched, the first schema move since D5C. **Neither D6A6a, D6A7 nor D6A7a moves it again.** If you are coming
 from code 30 or earlier the migration still runs on this install: check Directories, Review, the
 Queue and History afterwards, because anything missing is a migration defect, not a cosmetic one.
 Since D6A5 the **Settings screen states the installed version**, read from the package itself —
@@ -78,8 +78,60 @@ item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
 
-**D6A7** — the share button the platform actually provides, and a source refusal that claimed to be
-an outage.
+**D6A7a** — a corrective milestone opened on a hardware addendum that arrived *after* D6A7 was
+committed. Four device reports, two causal chains.
+
+### Chain one — one stray row caused both A-defects
+
+A confirmed upload still appeared in Review; pressing Upload produced the already-uploaded dialog;
+choosing its permanent deletion left the file in place.
+
+Every scan re-hashes and re-finalizes **every** document it enumerates, including one whose
+confirmed source is still on disk. `upsertReviewJob` looks for a placeholder to reuse by
+`topicDestinationId IS NULL AND status = 'AWAITING_ROUTING'` — which a confirmed job never matches —
+so it found nothing and inserted a **second, brand-new placeholder** for media Telegram already
+held. That row is what put an already-sent file back in Review.
+
+> **And it is the same row that blocked the deletion.** It made
+> `countOtherSourceDependentJobs` non-zero, so `SourceDeletionGate` answered
+> `WAITING_FOR_OTHER_JOBS` and returned **before `markAttemptStarted`**. The Android document
+> provider was never called at all. This is the identical one-line disagreement D6A5 repaired for
+> the *manual* deletion path, left behind on the post-confirmation one.
+
+The scan now asks `countPositivelyConfirmedForMedia` before either branch can write a placeholder;
+the guard SQL encodes `SourceDependencyPolicy`; and `retireUnresolvedForConfirmedMedia` retires
+already-existing placeholders inside `reconcileDurableState`, at launch and on pull-to-refresh.
+Because a confirmed file now correctly stays out of Review, the folder page's **Confirmed** section
+gains *Delete the file from this device* — the same D4B use case, authorized by the job carrying the
+confirmation — and a refusal names its stage and its sanitized reason.
+
+### Chain two — the queue could freeze with no action left
+
+`armPendingBatchStart` returned without re-attempting when a start was already armed, and the
+consume returned silently when the window was not focused, so a missed focus event killed **Upload
+queue** for the life of the process. `requestStopAfterCurrent` had no status guard, so cancelling a
+batch the platform had accepted but never executed recorded a flag only the runner could clear;
+`BatchStatusCard` then matched no branch and rendered **no control at all**, while the retained
+active slot hid the start button.
+
+A deferral is announced and a repeat press retries. Cancelling a batch that has not begun executing
+withdraws it outright — slot released, item states preserved, **no `RESULT_UNKNOWN`, no Telegram
+request**. The card's branch set is total. And the abandoned-claim reconciliation, previously
+reachable only from an upload, a batch or an album start — every one of which a stranded row
+disables — now runs inside `reconcileDurableState`, so a row left `UPLOADING` returns to queued when
+no request had started and to `RESULT_UNKNOWN` when one may have, and is never silently resent.
+
+| Field | Value |
+| --- | --- |
+| App version | code 34, `0.13.9-d6a7a` |
+| App HEAD | `b0910eeba9f0f20cb04d98934fb30885d5befcab` |
+| Server HEAD | `b307b0882177738cf9e5dadf1a8eb14b62b40706` — **unchanged; no server change was required** |
+| Room schema | **13 — unchanged.** No migration. |
+| App unit tests | **2027, 0 failures. Lint clean.** |
+| APK | `TelegramTopicUploader-0.13.9-d6a7a.apk`, **not installed** |
+| Device-unverified | **Everything in D6A7a.** See `docs/D6A7A_DEVICE_CHECKLIST.md`; all lines are *not attempted*. Backlog rows 59–64 |
+
+## 4a. Previous milestone: D6A7 — the share button, and a refusal that claimed to be an outage
 
 ### The addendum, which is the larger half
 
@@ -466,25 +518,32 @@ the table is the whole of it.
 ## 11. Roadmap
 
 **The authoritative, itemised backlog is the table in
-`/root/work/telegram-topic-uploader/TODO.md`** — 58 rows, each with an owner, a state and the
+`/root/work/telegram-topic-uploader/TODO.md`** — 64 rows, each with an owner, a state and the
 evidence required to close it. This list is the ordering; that table is the record.
 
-1. **Device-validate D6A7 §B first — the connection defect.** Validate any source the server
+1. **Device-validate D6A7a first — `docs/D6A7A_DEVICE_CHECKLIST.md`.** It repairs four defects the
+   handset found, and rows 59–63 stay `device-unverified` until it is run. The two lines that matter
+   most: a confirmed file is **absent from Review** after a rescan while still shown under Confirmed
+   on the folder page (§B), and its local copy actually disappears from the **Android file manager**
+   after the delete (§C). §D and §E are the queue: **Upload queue** must always answer, and
+   cancelling a batch that never started must release it and leave every item queued. §F is the
+   recovery path for anything already stranded as uploading on that handset.
+2. **Then D6A7 §B — the connection defect.** Validate any source the server
    refuses, **while watching the global connection card**: it must not move, and the message must
    end with the server's own code in brackets. **Write that code down.** Then Retry, and confirm
    nothing changes, because nothing had gone wrong.
-2. **Then D6A7 §C — validate an Instagram source.** This is the first honest Instagram validation
+3. **Then D6A7 §C — validate an Instagram source.** This is the first honest Instagram validation
    this deployment has ever been able to answer; every previous one hit the 500. Whatever it says,
    record the exact code. **Do not export cookies** unless it says the session is missing or
    rejected — it was neither.
-3. **Then the rest of `docs/D6A7_DEVICE_CHECKLIST.md`**, then D6A6a's one check: the 9GAG row must
+4. **Then the rest of `docs/D6A7_DEVICE_CHECKLIST.md`**, then D6A6a's one check: the 9GAG row must
    say *human-verification challenge*, not *rate limit*, and keep saying it after a refresh and a
    restart. Row 58.
-4. **Then the rest of `docs/D6A6_DEVICE_CHECKLIST.md`.** §3 the source-type and feed-mode choosers,
+5. **Then the rest of `docs/D6A6_DEVICE_CHECKLIST.md`.** §3 the source-type and feed-mode choosers,
    §4 the Ignore-race reasons, §5 the Instagram publishing queue — where **step 23** (the file
    survives "remove from publishing") is the one that matters most. If installing from code 30 or
    earlier, §2 the migration check comes before all of it.
-5. **Finish device-validating D6A5**: confirmed-versus-queued, the Failed row's removal, the Review
+6. **Finish device-validating D6A5**: confirmed-versus-queued, the Failed row's removal, the Review
    row's Do not upload, Preview from a folder, orphan reservations, the five-platform list.
 6. **9GAG live discovery is blocked by the platform** — both source types are challenged from this
    host with a correct session. There is nothing to fix in the connector; it needs a session or a
