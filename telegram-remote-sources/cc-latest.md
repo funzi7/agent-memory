@@ -25,8 +25,8 @@ hash — and nothing added to it ever may.
 | Head after D6A4 | `ffab60766b070b974594c41da6363b5bc7d3dd01` (`ffab607`) — never deployed; superseded |
 | Head after D6A5 | `cb0174765306f429225b299845d6f11456dc666d` (`cb01747`) — deployed |
 | Head after D6A6 | `a985e2da51c7681efbb6c036e3b96e4d31920f26` (`a985e2d`) — deployed |
-| **Head after D6A6a** | **`7564912c24c121c2c021887e8a5621b91f8d5df4`** (`7564912`) — **deployed and verified** |
-| Matching app head | `fe275766bb6e207a56e970f4e89059545afac256` (`fe27576`), versionCode 32, `0.13.7-d6a6a` |
+| Head after D6A6a | `7564912c24c121c2c021887e8a5621b91f8d5df4` (`7564912`) — deployed and verified |
+| **Head after D6A7** | **`b307b0882177738cf9e5dadf1a8eb14b62b40706`** (`b307b08`) — **deployed and verified** |
 | Host | A DigitalOcean droplet, Ubuntu 24.04.4, amd64, 1 vCPU, ~2 GiB RAM, ~48 GB disk |
 | Deploy path on host | `/opt/remote-sources` |
 | State path on host | `/var/lib/remote-sources` |
@@ -665,20 +665,86 @@ equals `origin/main`, and the persisted `challenge` signal survived the deployme
 Both 9GAG source types reach this connector and report the challenge correctly. That confirms the
 D6A6 cookie fix end to end from the phone. **Discovery remains refused by 9GAG on every deep path.**
 
+## D6A7 — a cookie jar this server could not reach, reported to the phone as a broken session
+
+**The device evidence.** Instagram Remote Source validation displayed the Hebrew equivalent of
+*"The server refused the request"*, and the phone's global state then said the server could not be
+reached. Neither sentence was true.
+
+**The root cause, from this server's own log, before anything was changed:**
+
+```
+PermissionError: [Errno 13] Permission denied: '<runtime dir>/instagram-cookies.txt'
+```
+
+`compose.yaml` declared the runtime tmpfs under **`volumes:` in long form**, which accepts only
+`size` and `mode`. Docker therefore mounted it **root-owned, mode 0700**, while the service runs as
+`10001:10001`. The application could not so much as `stat` a file in its own runtime directory.
+`Runtime._cookie_file` had a guard for exactly this — and the probe sat **outside** it, so the
+exception left the composition root, passed through the route, and became a generic **500**.
+
+### Three wrongs from one mount option
+
+1. **Every path-based connector was broken in production** — X, Instagram and TikTok, on every
+   call. 9GAG was unaffected and kept answering normally, because its cookies are a **header read
+   into memory** and never become a file. That asymmetry is why the fault looked Instagram-shaped.
+2. **The platform list reported those three Ready.** `credentials_configured()` reads the encrypted
+   envelope, and nothing asked whether the jar could actually be produced.
+3. **The phone was told something indistinguishable from "your session is broken."** The obvious
+   action — export the cookies again — was work, was sensitive, and would have changed nothing. The
+   envelope was present and intact throughout.
+
+### What changed
+
+| Change | Why |
+| --- | --- |
+| `compose.yaml` mounts `/run/remote-sources` through the **short-form `tmpfs:` list** with `uid`/`gid` | It is the only form that can carry ownership. Verified against the deployment host with a disposable container **before** the file was edited. |
+| `Runtime._cookie_material` is **total** | Three states, no exception escapes. The probe is now inside the guard. |
+| `CredentialMaterialState` — `NOT_APPLICABLE` / `ABSENT` / `READY` / `UNREADABLE` | `ABSENT` and `UNREADABLE` call for **opposite actions**. Collapsing them is what sends somebody to re-export a session that is already correct. |
+| `AdapterContext.credential_material_unreadable` | Both faults arrive inside an adapter as `None`. The distinction is carried rather than guessed. |
+| Each adapter names its own two — `instagram_session_absent` / `instagram_session_unreadable`, and the same for X and TikTok | One vocabulary per connector, no generic sentence. |
+| Each adapter's own path probe is total as well | It was the **second** place the exception escaped. |
+| `POST /sources/validate` answers `setup_required` / `credential_material_unreadable` | A structured **200**, never a 500. |
+| `_setup_required` gained a third way in | A connector whose material this server cannot read must not read as Ready. |
+
+### Verified on the deployed host, 2026-07-27
+
+- ✅ Runtime directory: `mode=700 owner=10001:10001`. It was `0:0`.
+- ✅ `instagram → configured=True material=ready`. **The jar materialised for the first time.** This
+      exact call raised `PermissionError` before the fix.
+- ✅ `x → absent`, `tiktok → absent` — genuinely not configured, correctly distinguished from
+      unreadable. `ninegag`/`reddit → not_applicable`: neither has a file-shaped credential.
+- ✅ Health 200, readiness 200 with every sub-check true, unauthenticated `/sources` 401.
+- ✅ Port 8099 **loopback-only**. Non-loopback listeners: `sshd`, `tailscaled`, and `systemd` on 22
+      and the local stub resolver.
+- ✅ Devices: 4 total, **1 active**, 3 revoked. Sources: 0.
+- ✅ 722 passed, 4 skipped. `ruff`, `ruff format`, `mypy` clean. `release-preflight`: 42 modules.
+
+### Still open
+
+- [ ] **The live Instagram validation answer is unknown.** The 500 hid whatever the real answer was.
+      The first honest validation from the phone is itself new evidence and must be recorded **with
+      its exact code**.
+- [ ] **Do not ask the user to export any cookies** until evidence shows the configured session is
+      itself missing or rejected. It was not, and asking was the wrong action the whole time.
+- [ ] 9GAG automatic discovery remains **platform-blocked** by the anti-bot challenge from D6A6a.
+
 ## Next action
 
 **Nothing on the server.** It is deployed, healthy, and running a commit that is reproducible from
-Git for the first time since the D6A3 outage.
+Git for the first time since the D6A3 outage. D6A7 (`b307b08`) is live and verified.
 
-1. Install the **D6A6a** APK (`0.13.7-d6a6a`, code 32) and confirm the 9GAG row in the platform list
-   reads *human-verification challenge* rather than *rate limit*. Android-side result; **it validates
-   nothing in this repository.** Already confirmed on 2026-07-27: the D6A6 install, and that both
-   9GAG source types reach this connector and report the challenge.
+1. Install the **D6A7** APK (`0.13.8-d6a7`, code 33) and **validate an Instagram source**. This is
+   the first honest Instagram validation this deployment has ever been capable of answering — every
+   previous one hit the 500. **Record the exact code the phone shows in brackets.** Whatever it is,
+   it is new evidence, and it is not a reason to export cookies unless it says the session itself is
+   missing or rejected.
 2. 9GAG: Validate from the app; expect a message naming the platform refusal rather than a generic
    one, and the platform list to show **needing setup** after a refresh, surviving a restart.
 3. Optional: configure a cookie export server-side and Validate again.
-4. Configure Instagram and TikTok sessions if those platforms are wanted; both correctly say
-   setup-required until then.
+4. Configure X and TikTok sessions if those platforms are wanted; both correctly report `absent`
+   until then. **Instagram is already configured and its material is now `ready`** — nothing about
+   that session needs touching.
 5. One source at a **disposable** topic, initial import **Last 5**; then one animated item, which
    should arrive as a looping animation.
 
@@ -690,6 +756,14 @@ send, and a successful deployment is not evidence that one would.
 ## Gotchas for the next session
 
 - **Docker is not available in the PRoot dev environment.** The image must be built on the VPS.
+- **A Compose long-form `tmpfs:` under `volumes:` accepts only `size` and `mode`.** It cannot carry
+  `uid`/`gid`, so a non-root service gets a directory it does not own and cannot read. Use the
+  short-form service-level `tmpfs:` list for anything a non-root process must write. This cost a
+  silent production outage of **three connectors at once**, invisible because the fourth kept
+  working — and it looked, from the phone, exactly like a broken credential.
+- **A read of the container's own runtime state is the cheapest real diagnosis available.** One
+  `docker exec` printing `stat -c %a %u:%g` on the runtime directory answered in seconds what the
+  sanitized API responses could not express at all. Reach for the log and the mount before the code.
 - **The health routes are `/api/v1/health` and `/api/v1/ready`.** The bare paths 404. Verifying a
   healthy service with the short paths looks exactly like an outage.
 - **Run an ad-hoc remote command through the deploy script's own SSH construction** — the key from
