@@ -11,16 +11,102 @@
 
 | Field | Value |
 | --- | --- |
-| Task | **D6A6a** — the persistent platform status contradicted its own validation. Follows **D6A6** (the Interest source type, the cookie root cause, local Instagram publishing) |
-| **Final application HEAD** | **`fe275766bb6e207a56e970f4e89059545afac256`** (`fe27576`) |
-| **Final server HEAD** | **`7564912c24c121c2c021887e8a5621b91f8d5df4`** (`7564912`) — **deployed** |
-| Version | code 31 → **32**, name `0.13.6-d6a6` → **`0.13.7-d6a6a`** |
-| Room schema | **13 — unchanged by D6A6a.** D6A6 moved it 12 → 13 with one additive table. |
-| Deployment | **Done and verified.** `a985e2d` is live; health, readiness, loopback-only exposure and the pairing all confirmed. |
+| Task | **D6A7** — media shared *into* the app, and an addendum: a source refusal that declared the whole server unreachable. Follows **D6A6a** |
+| **Final application HEAD** | **`5e7e688e8470360369388ec03718fc0ec8fdfbe9`** (`5e7e688`) |
+| **Final server HEAD** | **`b307b0882177738cf9e5dadf1a8eb14b62b40706`** (`b307b08`) — **deployed and verified** |
+| Version | code 32 → **33**, name `0.13.7-d6a6a` → **`0.13.8-d6a7`** |
+| Room schema | **13 — unchanged by D6A7.** No migration; an imported file is an ordinary media row. |
+| Gate | **1979 Android unit tests, 0 failures. Lint: no issues.** Server: **722 passed, 4 skipped**. |
+| APK | Built from the committed HEAD, copied byte-identically, **not installed**. Signer `74e78654…` unchanged, so the upgrade path is intact. |
+| Hardware | **Nothing in D6A7 is hardware-verified.** `docs/D6A7_DEVICE_CHECKLIST.md` lists every line; all are *not attempted*. |
 
 No production token, Meta credential, Telegram identifier, chat ID, thread ID, private link, VPS
 address, Tailscale hostname, SSH host, pairing code, device token, cookie value, account name, file
 name, content URI or media hash is recorded anywhere in this file.
+
+## D6A7 — a source's refusal is not the server's silence
+
+**The device report.** Validating an Instagram Remote Source displayed the Hebrew equivalent of
+*"The server refused the request"*. The global server state then changed from connected to *"Paired,
+but the server could not be reached."* Pressing **Retry** restored it immediately.
+
+**None of that was an outage.** A structured rejection is proof the server *was* reached — it had to
+be, to produce one.
+
+### Android root cause
+
+`RemoteViewModel.handleFailure` ended with `_connection.value = connectionFor(baseUrl, failure)` for
+**every** failure of every kind. So an answer from the server, carrying the server's own error code,
+over a connection that plainly worked, was recorded as proof of the opposite.
+
+What that costs is not cosmetic: a banner that cries outage during ordinary refusals is a banner
+nobody reads during a real one, and it sends somebody to debug a tunnel that was working.
+
+### The rule, and where it now lives
+
+**A request that was *answered* is proof of reachability, whatever the answer said. Only a request
+that never got an answer is evidence about reachability at all.**
+
+`domain/remote/RemoteConnectionEvidence.kt` — `RemoteConnectionReducer`, pure, no Android types, no
+clock, no coroutines, total over state × evidence. `connectionFor` is **gone**, and a source scan
+asserts it stays gone and that no screen or repository writes the connection state.
+
+| Situation | Global state | Test |
+| --- | --- | --- |
+| DNS / TCP / TLS / no route / timeout | **unreachable** | ✅ |
+| Device auth `401` | **pairing required** | ✅ |
+| Structured `4xx` from a source validation | **unchanged** — only the operation refuses | ✅ |
+| Server `5xx` | **reached**, its own distinct sentence, never unreachable | ✅ |
+| Platform challenge, rate limit, inaccessible source, malformed upstream, unsupported type | arrive as **successful** calls carrying an outcome; move nothing | ✅ |
+| Cancellation (user left the screen) | **unchanged** — a non-event | ✅ |
+| Retry after each of the above | ✅ | ✅ |
+
+### Four supporting changes
+
+- **`RemoteFailure.ServerError(status, code)`** splits a `5xx` from a considered refusal. They used
+  to be the same value, so an internal server error was indistinguishable from a deliberate "no".
+- **Retry is no longer a repair.** When an answered request finds the app believing the server is
+  gone, the truth is re-established from **one authoritative status call** — not invented from a
+  refusal, and not waiting for the user to press anything.
+- **The server's sanitized code is kept and shown**, in brackets after the sentence. It was parsed
+  and then discarded behind one generic message, which is exactly why the reported refusal could not
+  be identified from the phone and had to be recovered from the server's log.
+- **`ProvenConnection` is persisted** — address, server version, timestamp; nothing secret — and
+  restored on launch. A cold start with the tunnel down used to be indistinguishable from a phone
+  that had never been paired.
+
+### The Instagram refusal itself — diagnosed separately, and it was never a cookie problem
+
+Root cause was **on the server**: the runtime tmpfs was mounted root-owned while the service runs
+unprivileged, so every path-based connector — X, Instagram, TikTok — failed on every call with an
+uncaught `PermissionError` that became a 500. 9GAG was unaffected because its cookies are a header
+and never become a file. **Verified fixed on the deployed host: Instagram's material is now
+`ready`.** Full account in `agent-memory/telegram-remote-sources/cc-latest.md`.
+
+**Nobody was asked to export cookies, and nobody should be** until evidence shows the configured
+session is itself missing or rejected. It was not.
+
+### Also in D6A7
+
+- **Media shared into the app** becomes an ordinary Review item. A shared **link** is reported as a
+  link and never fetched — fetching it would be the scraping route 9GAG is refusing. **Not a
+  connector**, and never to be described as one.
+- **One Instagram move, two surfaces.** `InstagramQueueAvailabilityPolicy` gives one answer,
+  computed once, read by the Review card and by Preview. A refused move shows its reason.
+- **Fixed by its own failing test:** dropping the one already-queued item the bulk confirmation
+  warned about re-prepared through the *route-only* path and silently cleared the pending send.
+
+### Still open
+
+- [ ] **Nothing is hardware-verified.** See `docs/D6A7_DEVICE_CHECKLIST.md`.
+- [ ] **The live Instagram validation answer is unknown** — the 500 hid it. The first honest
+      validation is new evidence; record the **exact bracketed code**.
+- [ ] **`BulkSendDestination.Shared` and `.Divergent` are unreachable from Review.** An item with a
+      destination is not manually resolvable, so it is never selectable there. The two branches in
+      `ReviewGridScreen` cannot render today. **Next exact action:** either feed the policy from a
+      surface that can hold pointed items, or withdraw the branches and their strings.
+- [ ] **Official Meta publishing stays blocked on Meta authorization**, not completed.
+- [ ] **9GAG automatic discovery stays platform-blocked** by the D6A6a anti-bot challenge.
 
 ## D6A6a — the platform list contradicted its own validation
 
