@@ -23,8 +23,9 @@ hash — and nothing added to it ever may.
 | Head after D6A2 | **unchanged — `31d2edf`.** D6A2 was three Android-local regressions. |
 | Head after D6A3 | `befe5040d2d0177c7cedf23feaad3d1397166e31` (`befe504`) — **deployed, and it failed** |
 | Head after D6A4 | `ffab60766b070b974594c41da6363b5bc7d3dd01` (`ffab607`) — never deployed; superseded |
-| **Head after D6A5** | **`cb0174765306f429225b299845d6f11456dc666d`** (`cb01747`) — **deployed and verified** |
-| Matching app head | `4e36dcc7ef23266fce772910e319d141c6916ccc` (`4e36dcc`), versionCode 30, `0.13.5-d6a5` |
+| Head after D6A5 | `cb0174765306f429225b299845d6f11456dc666d` (`cb01747`) — deployed |
+| **Head after D6A6** | **`a985e2da51c7681efbb6c036e3b96e4d31920f26`** (`a985e2d`) — **deployed and verified** |
+| Matching app head | `a0720d7300cd66eb3f0d1aed2cc46868a646d3fe` (`a0720d7`), versionCode 31, `0.13.6-d6a6` |
 | Host | A DigitalOcean droplet, Ubuntu 24.04.4, amd64, 1 vCPU, ~2 GiB RAM, ~48 GB disk |
 | Deploy path on host | `/opt/remote-sources` |
 | State path on host | `/var/lib/remote-sources` |
@@ -210,7 +211,7 @@ rollback tests drive a **sandbox host** through an overridable SSH binary and ne
 
 | | Discovery | Extraction | Credentials | Live-tested |
 | --- | --- | --- | --- | --- |
-| 9GAG | **user profiles only** (`/u/<name>/posts`), payload shape verified against the live site | direct CDN URLs | optional server-side cookies | **refused live — 403**, classified `setup_required` |
+| 9GAG | **accounts and Interests** — two distinct source types | direct CDN URLs | optional cookies, **configured** | **refused live — anti-bot challenge on every deep path**, classified `challenge` |
 | Reddit | implemented | Reddit's own media URLs | **required** | **no** |
 | X | implemented | gallery-dl URLs | **required** | **no** |
 | Instagram | **implemented at D6A5** | gallery-dl, Instaloader fallback | **required** | **no** |
@@ -219,9 +220,10 @@ rollback tests drive a **sandbox host** through an overridable SSH binary and ne
 **Do not describe any connector as end-to-end validated.** Mocked tests prove the parsing and the
 classification. They prove nothing about the live platforms.
 
-**9GAG covers user profiles and nothing else.** A **9GAG Interest page** — `/interest/<slug>`,
-optionally with a feed mode such as `/hot` — is a **different source type**, is **not supported**,
-and is specified as **D6A6**. An Interest URL must never be normalised into a user profile.
+**9GAG has two source types since D6A6** — an account feed and an Interest feed — and neither is
+ever normalised into the other. Only `hot` and `fresh` exist as Interest feed modes, proved against
+the live site. **9GAG refuses this host on every deep path** even with a correctly configured
+session, which is classified `challenge` and is not something this project will work around.
 
 ## D6A1 — what the first live pairing attempt proved, and the one command it added
 
@@ -478,6 +480,11 @@ The only non-loopback listeners are `sshd` on 22 and `tailscaled` on its own Tai
 
 ### Two corrections worth carrying forward
 
+- **`git status` clean is not `release-preflight` clean.** The script reads `HEAD`, so a new module
+  that is staged but uncommitted still fails it — run it against `git write-tree` before the commit
+  exists, which is what the *test* does. It caught two new modules in D6A6, exactly as designed.
+- **One connector wanting a header string while four want a jar file is a trap.** D6A6's whole
+  root cause. Accept what the operator actually exports, and validate it at import time.
 - **The health routes are `/api/v1/health` and `/api/v1/ready`.** An earlier note in this file said
   `/health` and `/ready`; those return **404**. The deploy script has always probed the correct
   paths, so the error only bites someone verifying by hand — and it looks exactly like an outage.
@@ -486,10 +493,11 @@ The only non-loopback listeners are `sshd` on 22 and `tailscaled` on its own Tai
   invocation by hand and omitting the key both fails **and** prints the host address, which must
   never be recorded anywhere.
 
-## D6A6 — the 9GAG source is an Interest page, not a user profile
+## D6A6 — the requirement as it was recorded (now implemented; see the section below)
 
-**Reported from the device after D6A5. Nothing is implemented; this is the requirement, recorded
-before any code exists, and no production code was touched when it was written.**
+**Kept as written, because recording a requirement before any code exists is the practice this
+project wants to keep.** Everything in it is done — see *the cookie root cause, the Interest source
+type, and the publisher's safety half* below for what was actually found and built.
 
 The 9GAG source the user actually wants is a **9GAG Interest page**, public URL shape
 `/interest/<slug>`, optionally carrying a feed mode such as `/hot`. `adapters/ninegag.py` discovers
@@ -527,14 +535,98 @@ evidence that this works** — which is exactly the mistake the 9GAG readiness b
 Itemised in this repository's `TODO.md` and as rows 29–31 in
 `/root/work/telegram-topic-uploader/TODO.md`.
 
+## D6A6 — the cookie root cause, the Interest source type, and the publisher's safety half
+
+### 1. Why both 9GAG checks returned the same generic message
+
+`remote-sources-configure ninegag-cookies` stored the file's bytes verbatim, and `NineGagAdapter`
+injected them into an HTTP `Cookie` header. The operator supplied the ordinary thing — a **Netscape
+`cookies.txt`**, which is exactly what X, Instagram and TikTok want here because gallery-dl and
+yt-dlp consume a jar *file*. A jar is multi-line and tab-separated, so `httpx` raised
+`LocalProtocolError` **before a byte left the process**; the adapter caught it with genuine transport
+faults and reported `TEMPORARY_FAILURE`.
+
+**Stage reached: header construction.** DNS, TCP, TLS and HTTP were never attempted — which is why
+an Interest source and a profile source produced *identical* messages and looked like one bug.
+
+`adapters/cookies.py` reads both forms now, the CLI refuses an unusable file **at import time**, and
+unusable material is `SETUP_REQUIRED` rather than "unreachable". Two more corrections:
+
+- **`#HttpOnly_` is a domain annotation, not a comment.** Skipping those lines produced a header
+  that looked fine and authenticated nothing.
+- **A challenge page is a challenge whatever status carries it.** 9GAG serves its anti-bot page with
+  a 403; classified from the status alone it read as "configure a session", which is useless advice
+  to an operator who already had one. The body is inspected before the status now.
+
+**Live, from the deployed build:** session readable, site root 200, and both `/u/<name>/posts` and
+`/interest/<slug>` (`hot` and `fresh`) → `challenge / anti_bot_challenge`. **The defect is fixed and
+proven fixed; the platform still refuses this host.** No challenge solving, no proxy rotation, no
+retry-until-allowed — by design.
+
+### 2. 9GAG Interest
+
+`SourceType.NINEGAG_INTEREST`, distinct from the account type, with cross-type refusal **by name** in
+both directions. A bare word is ambiguous and is resolved only by the type the caller chose.
+
+**Feed modes proved against the live site:** `/hot` and `/fresh` answer with the page payload;
+`/trending`, `/top`, `/new` are 404. The bare path is the site default and is stored **explicitly**
+as `hot`. The Interest payload is the account payload with `interest` where `profile` would be —
+which is why validation checks for its *own* object; a request built for the wrong one would parse.
+
+**A defect found while writing it:** a trailing slash was enough to change a source's *kind*.
+`interest/` reduced to the bare word `interest`, no prefix matched, and it became an account named
+"interest" — silently. Reserved segments are refused by name now.
+
+**Conformance is keyed by source type, not platform.** A per-platform map would have run every
+property against the account feed and reported itself complete.
+
+### 3. `RESULT_UNKNOWN` resolution
+
+`POST /review/{id}/resolve-unknown`, two answers and neither is a resend. *Delivered* confirms the
+item without inventing a message ID — **the operation row keeps `RESULT_UNKNOWN`**, so the evidence
+trail still says exactly what Telegram told this server, which was nothing. *Not delivered* returns
+it to Review. Anything that is not `RESULT_UNKNOWN` is refused: a confirmed item has evidence and a
+failed one has a verdict, and a button may overwrite neither.
+
+### 4. The Instagram Publisher — vocabulary and safety rules only
+
+**Implemented:** 16 `InstagramPublishState` values, six `InstagramPublicationType` values,
+`InstagramAccountType`, three `instagram_publisher/*` secret refs, and
+`domain/instagram_publishing.py` — Story eligibility from **Meta's** account type rather than a local
+setting, the bounded missed-schedule grace period (a six-hour-late Story never goes out silently
+after an outage), carousel bounds, cancel and retry safety, and the classification that makes an
+undetermined publish `RESULT_UNKNOWN` rather than a retry. 23 tests; none can produce a published
+state, which is itself asserted.
+
+**Not implemented:** OAuth with Instagram Login, the container-workflow executor, server-side
+scheduling, and the Meta-readable temporary media delivery boundary.
+
+> **The reasoning, to preserve rather than re-litigate.** None can be exercised without the user's
+> Meta App and authorization. An OAuth flow and a publishing client that has never once run against
+> Meta is not something to deploy here on the strength of mocked tests — and the parts that are both
+> dangerous to get wrong and verifiable without an account are exactly the parts that were built.
+
+**Never request a Meta app secret or access token in chat.** Rows 43–54 of the application's
+`TODO.md` track the rest; 47–48 are blocked on the user.
+
+### Deployment
+
+`a985e2d` deployed and verified: exact commit reported, `/api/v1/health` and `/api/v1/ready` 200 over
+loopback, unauthenticated route 401, application port **loopback only** (the only non-loopback
+listeners are `sshd` and `tailscaled`), `devices` still **active: 1**, and both configured
+credentials — `telegram/bot_token` and `ninegag/cookies` — present. **No secret value was displayed.**
+
+**691 passed, 4 skipped.** `ruff format --check`, `ruff check`, `mypy` and the release preflight all
+clean.
+
 ## Next action
 
 **Nothing on the server.** It is deployed, healthy, and running a commit that is reproducible from
 Git for the first time since the D6A3 outage.
 
-1. ~~Install the D6A5 APK and confirm the Settings version.~~ **Done on 2026-07-27** — it read
-   `0.13.5-d6a5` / code 30, and **manual permanent deletion without upload then succeeded on the
-   device.** Both are Android-side results; **neither validates anything in this repository.**
+1. Install the **D6A6** APK (`0.13.6-d6a6`, code 31) and check Settings, then the 12 → 13 migration.
+   Android-side results; **neither validates anything in this repository.** The D6A5 install and the
+   manual-deletion fix were both confirmed on 2026-07-27.
 2. 9GAG: Validate from the app; expect a message naming the platform refusal rather than a generic
    one, and the platform list to show **needing setup** after a refresh, surviving a restart.
 3. Optional: configure a cookie export server-side and Validate again.
