@@ -21,8 +21,9 @@ hash — and nothing added to it ever may.
 | First commit | D6A (`308b4c0`). The repository was genuinely empty before it. |
 | Head after D6A1 | `31d2edf088387dd262c617457dc5fce3e660739d` (`31d2edf`) |
 | Head after D6A2 | **unchanged — `31d2edf`.** D6A2 was three Android-local regressions. |
-| Head after D6A3 | **`befe5040d2d0177c7cedf23feaad3d1397166e31`** (`befe504`) |
-| Matching app head | `309ae0d3723cc056bda3432f84c8b0d08a0e25f9` (`309ae0d`), versionCode 28, `0.13.3-d6a3` |
+| Head after D6A3 | `befe5040d2d0177c7cedf23feaad3d1397166e31` (`befe504`) — **deployed, and it failed** |
+| Head after D6A4 | **`ffab60766b070b974594c41da6363b5bc7d3dd01`** (`ffab607`) |
+| Matching app head | `55fbd5bb1b6fbee8fabc673c58f73930a826b970` (`55fbd5b`), versionCode 29, `0.13.4-d6a4` |
 | Host | A DigitalOcean droplet, Ubuntu 24.04.4, amd64, 1 vCPU, ~2 GiB RAM, ~48 GB disk |
 | Deploy path on host | `/opt/remote-sources` |
 | State path on host | `/var/lib/remote-sources` |
@@ -147,14 +148,19 @@ length bound, because they can quote the request URL — including the token tha
 
 ## Tests
 
+**`uv` is not installed here.** Use the checked-in virtualenv, which is the same toolchain:
+
 ```
-uv run ruff format --check src tests alembic   # 51 files already formatted
-uv run ruff check src tests alembic            # All checks passed
-uv run mypy                                    # no issues in 52 source files
-uv run pytest -q                               # 331 passed
+.venv/bin/ruff format --check src tests   # 59 files already formatted
+.venv/bin/ruff check src tests            # All checks passed
+.venv/bin/mypy                            # no issues in 59 source files
+.venv/bin/python -m pytest -q             # 443 passed, 1 skipped   (D6A4)
+bash -n scripts/deploy-production         # syntax
+scripts/release-preflight                 # refuses a release missing a first-party module
 ```
 
-Synthetic fixtures only. **No test touches a live platform, Telegram or the network.**
+Synthetic fixtures only. **No test touches a live platform, Telegram or the network.** The deploy and
+rollback tests drive a **sandbox host** through an overridable SSH binary and never leave the machine.
 
 ## Live state on the host
 
@@ -180,26 +186,28 @@ Synthetic fixtures only. **No test touches a live platform, Telegram or the netw
 
 **Blocked — needs a human:**
 
-- **Tailscale node authorisation.** `tailscale up` needs a browser signed in to the tailnet. Backend
-  state was `NeedsLogin` at the end of the session.
-- Everything downstream of it: `tailscale serve --bg`, reboot persistence, Funnel-off verification,
-  and the private HTTPS endpoint being reachable from the phone.
+- ~~**Tailscale node authorisation** and the private endpoint.~~ **Done by the user, and proven:**
+  the phone paired and authenticated requests arrive. Funnel is off and the application port is still
+  bound to loopback only.
+- Deploying `ffab607`. Until then the host is running a tree that **cannot be rebuilt from Git** —
+  the D6A3 release shipped without `remote_sources.secrets` and the package was copied there by hand.
+- The **rollback path** has never run against a real host.
 
 **Not done — needs the user:**
 
 - Every credential. `remote-sources-configure telegram | reddit | x-cookies` has not been run.
   **Claude did not request, read or handle any production credential, and must not.**
-- Pairing the phone. **Attempted at D6A: the exchange succeeded here and the phone could not keep
-  the token. Blocked until the D6A1 APK is installed and the orphaned devices are revoked.**
-- Any live platform or Telegram request. **Nothing has been sent to Telegram from this server.**
-- **Any authenticated request from a phone. Not one has ever arrived**, because pairing has never
-  completed on a device.
+- ~~Pairing the phone.~~ **Done, and it works.** Devices: total 4, **active 1**, revoked 3.
+  **Do not rework pairing** without an objective regression, and note that a deployment preserves it.
+- **Nothing has ever been sent to Telegram from this server.** No connector has completed a live
+  check → review → send. A live 9GAG check *was* attempted and was refused with 403 — which is the
+  only live platform evidence there is.
 
 ## Connector status, honestly
 
 | | Discovery | Extraction | Credentials | Live-tested |
 | --- | --- | --- | --- | --- |
-| 9GAG | implemented, payload shape verified against the live site | direct CDN URLs | none | **no** |
+| 9GAG | implemented, payload shape verified against the live site | direct CDN URLs | optional server-side cookies | **refused live — 403**, classified `setup_required` |
 | Reddit | implemented | Reddit's own media URLs | **required** | **no** |
 | X | implemented | gallery-dl URLs | **required** | **no** |
 | Instagram | prepared boundary, reports unsupported | — | — | n/a |
@@ -321,22 +329,138 @@ hex SHA before printing. Config in git-ignored `deploy/production.env`. **Never 
 369 tests, 0 failures. **No device record, pairing, destination, source or runtime state is touched
 by any of this, and nothing was deployed.**
 
+## D6A4 — the outage, and four server changes
+
+**The D6A3 deployment failed on the host.** It built, migrated, recreated the container, and then
+restart-looped:
+
+```
+ModuleNotFoundError: No module named 'remote_sources.secrets'
+```
+
+`.gitignore` line 29 was `secrets/`, unanchored, and matched `src/remote_sources/secrets/`. The
+package was **never tracked**: `git ls-files` returned nothing for it. `git archive` shipped a
+release without it, `COPY src ./src` built an image without it, and `rsync --delete` — the D6A3
+improvement — removed the copy the host already had.
+
+**Recovery required copying the package to the host by hand, plus a reboot.** The service is healthy
+and **the commit it is running cannot be rebuilt from Git**. Deploying `ffab607` is what closes that,
+and it is the first action of the next session.
+
+**Why 369 tests were green through all of it:** tests import the working tree, where the file exists
+— and the venv carries an **editable install pointing at the checkout**
+(`_editable_impl_remote_sources.pth`), so even a deliberately isolated import was satisfied by the
+very copy that was not going to ship. Any test about what a release *ships* must assert the loaded
+module's path, or it is worthless.
+
+### 1. Release integrity
+
+Rules anchored to the repository root — `/secrets/`, `/cookies/`. Runtime secret material lives in
+the host state directory, never here, so anchoring loses nothing. A blanket `!/src/**` negation was
+written and **rejected**: it un-ignores `__pycache__`. A guard test asserts both properties at once.
+
+`src/remote_sources/secrets/{__init__,store,cli}.py` are now tracked. **No key, no envelope, no
+ciphertext, no cookie and no environment file became tracked.**
+
+`tests/test_release_integrity.py` reads the **index** (`git write-tree`), not `HEAD`, so a gap fails
+*before* the commit; and `_assert_loaded_from_export` asserts the loaded module's path is inside the
+export, without which it passes on an empty archive.
+
+`scripts/release-preflight` walks the first-party import graph from the container's real entry points
+(`__main__.py`, `runtime.py`, `api/app.py`, `api/routes.py`, `secrets/cli.py`) and compares it to
+`git archive` members. **Run against the pre-fix HEAD it refuses and names the package.** The deploy
+script executes it directly — the shebang decides the interpreter, which matters for the test stubs.
+
+### 2. A rollback that restores
+
+The old failure path printed *"attempting to restart the previous release"* and ran
+`docker compose up -d` **against the already-promoted broken tree**. It restored no files, no marker
+and no database. A message describing a recovery that did not happen is worse than none, because the
+operator reading it stops looking.
+
+Now: verified database backup, snapshot the running release to `.releases/previous-<id>`, prove it
+restorable (compose file, deploy script, `src/remote_sources`), record the prior `RELEASE_COMMIT`,
+then promote. On any post-promotion failure — stop, restore tree, restore marker, restore the
+verified backup **when migrations may have run**, restart, wait for health, and only then print *the
+previous release is restored and healthy*. Otherwise `ROLLBACK FAILED` and the host's actual state.
+
+`RS_DEPLOY_SSH` overrides the SSH binary, so `tests/test_deploy_rollback.py` (13 tests) drives a
+sandbox host with stubbed `sudo`/`docker`/`rsync`/`curl`/`ss`/`tailscale`/CLI, injects a failure at
+each stage, and asserts **restored state on disk** rather than wording — including a rollback that
+itself fails and a backup that no longer verifies. `RS_DEPLOY_HEALTH_RETRIES`/`_INTERVAL` bound the
+health wait so the suite stays fast.
+
+### 3. A release marker the container can read
+
+`remote-sources-ctl version` returned `{"version":"0.1.0","deployed_commit":null}` on a correct
+release: it read `/opt/remote-sources/RELEASE_COMMIT`, a **host** path the container does not mount.
+
+`Settings.release_commit_file` (`RS_RELEASE_COMMIT_FILE`) defaults inside `data_dir`, which
+`compose.yaml` already bind-mounts — a **directory** mount, chosen deliberately: a missing single-file
+bind target makes Docker create a directory, which is a silent trap for whoever deploys next. A test
+asserts the default's parent is `data_dir` **and** that `compose.yaml` mounts it.
+
+`read_release_commit` does a bounded read and accepts **only** 40 lowercase hex characters.
+Directory, oversized, uppercase, trailing content, undecodable bytes → `None`. 20 tests. The
+deployment writes the marker to both locations and **fails and rolls back** if the running service
+does not report the promoted commit.
+
+### 4. Readiness learns from a validation
+
+The live 9GAG refusal was classified correctly — `connector=ninegag classification=setup_required
+reason=http_403`, returned in a 200 — and the platform list still said Ready. `PlatformHealth` was
+written only by the **scheduler**, which runs for source *rows*; validating a source that did not
+exist yet touched nothing durable.
+
+`validate_source` gained `session: SessionDep` and calls `_record_validation_signal`, which stores
+`last_signal`/`last_signal_at` for setup-shaped outcomes and clears a setup-shaped signal on success.
+**Platform, classification, timestamp — nothing else**; the table has no column that could hold a
+URL, an account, a cookie or a body. `blocked_until` and `strong_signal_count` are untouched: one
+person pressing Validate must not silence the scheduler, and one request getting through does not
+disprove a rate limit. 10 tests, including survival across a restart.
+
+### 5. Animated media
+
+`MediaKind.ANIMATION` in an existing `String(16)` column — **no migration**.
+
+* **9GAG:** `_ANIMATED_TYPES = {"Animated"}`; the `image460sv` MP4 rendition is preferred, with a
+  real `image/gif` asset as fallback.
+* **Reddit:** direct `.gif`, `.gifv` (**refused** with no MP4 — it is an HTML page), `image/gif`
+  gallery members (preferring the member's `mp4`), and `preview.reddit_video_preview.fallback_url`.
+* **Fetching:** `_DOCUMENT_CONTENT_TYPES` raises `MALFORMED_UPSTREAM / media_is_a_document`, so no URL
+  extension can stage a web page as media. `_DEFAULT_EXTENSION[ANIMATION] = ".mp4"`.
+* **Telegram:** `sendAnimation` for a single animation; inside an album it travels as `video`,
+  because `sendMediaGroup` has no animation type.
+* Identity is the post's, so two renditions cannot become two review items. 22 tests.
+
+**443 passed, 1 skipped.** `ruff format --check`, `ruff check`, `mypy` and `bash -n
+scripts/deploy-production` all clean. **Nothing was deployed; the production VPS was not accessed and
+no SSH connection was made.**
+
 ## Next action
 
-**`docs/D6A_LIVE_CHECKLIST.md` §8 has the exact order. It changed, and the order is the point:**
+**Deploy `ffab607`. It is the first reproducible release since the outage**, and the running host is
+carrying a hand-copied file until it lands.
 
-1. **Deploy with the one command:** `./scripts/deploy-production` from the development checkout,
-   then `sudo remote-sources-ctl version` to confirm the deployed commit.
-2. `sudo remote-sources-ctl devices` — note the count.
-3. `sudo remote-sources-ctl revoke-all-devices --confirm` — clear the orphans, **once**.
-4. Install the D6A1 APK **over** the Android app. No uninstall, no data clear.
-5. `sudo remote-sources-ctl pair` — one code, used immediately, ten-minute life.
-6. Confirm the app says **Connected** (one authenticated request succeeding — which has never
-   happened) and `remote-sources-ctl devices` shows `"active": 1`.
-7. Only then: **one** source pointed at a **disposable** topic with initial import **Last 5**.
+1. `./scripts/deploy-production --dry-run` — verifies and plans; changes nothing. Confirm the
+   **preflight** and the **snapshot** steps appear.
+2. `./scripts/deploy-production`.
+3. `sudo remote-sources-ctl version` — **a 40-character commit, never `null`.** `null` here now means
+   the deployment did not complete.
+4. `sudo remote-sources-ctl devices` — expect **`active: 1`**, unchanged. Pairing survives a
+   deployment and must not be reworked.
+5. Install the D6A4 APK **over** the Android app. No uninstall, no data clear.
+6. 9GAG: Validate from the app; expect a message that names the platform refusal rather than a
+   generic one, and the platform list to show **needing setup** after a refresh, surviving a restart.
+7. Optional: configure a cookie export server-side and Validate again — success returns it to Ready;
+   a continued refusal should now say the session was **not accepted**.
+8. One source at a **disposable** topic, initial import **Last 5**; then one animated item, which
+   should arrive as a looping animation.
 
-Steps 1–3 of the original checklist — Tailscale authorisation, `70-serve.sh`, credentials — are
-already done, proven by the exchange having reached this server.
+`docs/D6A_LIVE_CHECKLIST.md` carries the same order with the failure history attached.
+
+**Nothing past pairing has ever run end to end.** No connector has completed a live check → review →
+send.
 
 ## Gotchas for the next session
 
@@ -352,6 +476,18 @@ already done, proven by the exchange having reached this server.
   confirmation that had already happened.
 - **`uv` is not installed in the dev environment**, whatever the docs say to run. `.venv/bin/ruff`,
   `.venv/bin/mypy` and `.venv/bin/pytest` are the same toolchain `uv run` would invoke.
+- **`rsync` is not installed here either.** The deploy tests ship a Python `rsync` stub honouring
+  `--exclude` for both copy and delete.
+- **The venv's editable install points at the checkout.** Any test about what a release *ships*
+  must assert the loaded module's path, or the checkout answers the import and the test proves
+  nothing. This is exactly how the outage stayed invisible.
+- **`python3 -I` ignores `PYTHONPATH`.** Insert the path with `sys.path.insert` inside the `-c`
+  snippet.
+- **An unanchored `.gitignore` directory rule matches at every depth.** `secrets/` cost a
+  production outage. Anchor runtime-state rules to the root, and check `git check-ignore -v`
+  before assuming a source file is tracked.
+- **Ruff `E501` fires on embedded shell/Python stub programs** in the deploy and release tests;
+  both carry per-file ignores with stated reasons.
 - **Issue-once is a property, not a gap.** Because only the hash is stored, a device record whose
   token the phone never kept is indistinguishable from a working one. That is the price of never
   being able to leak a token from a database copy, and `revoke-all-devices` is the whole remedy.

@@ -63,14 +63,52 @@ cp /root/work/telegram-topic-uploader/app/build/outputs/apk/debug/app-debug.apk 
 ```
 
 **Install over the existing app.** The debug certificate has not changed since D5A — at D6A2 it is
-still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`. **D6A2 (code 27) supersedes
-D6A1 (code 26); the user does not need to install 26 first.**
+still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`. **D6A4 (code 29)
+supersedes every earlier build; no intermediate version needs installing first.**
 **Do not uninstall** — it destroys the database, and with it every folder grant, destination, queue
 item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
 
-**D6A3** — four workstreams opened by the **first successful hardware pairing**.
+**D6A4** — a hotfix milestone opened by a **production outage** and three device reports.
+
+> **The D6A3 destination selector works on hardware.** Pairing stayed connected, the chat and topic
+> identifier fields are gone, and choosing a topic by name is the flow. **Preserved untouched.**
+>
+> **The D6A3 server deployment failed.** It restart-looped on
+> `ModuleNotFoundError: No module named 'remote_sources.secrets'`. Recovery required **copying the
+> package to the host by hand** plus a reboot. Production is healthy and **the commit it is running
+> is not reproducible from Git** — deploying the D6A4 server commit is what closes that, and it is
+> the first thing to do.
+
+| Workstream | What it was |
+| --- | --- |
+| **1. Release integrity** | `.gitignore` carried an unanchored `secrets/` rule that also matched `src/remote_sources/secrets/`, so the package was **never tracked**; `git archive` shipped without it and `rsync --delete` removed the host's copy. Rules anchored to the root, package tracked, plus `scripts/release-preflight` and tests that read the **index** and assert the loaded module path is inside the export. |
+| **2. Real rollback** | The old one printed *"attempting to restart the previous release"* and ran `docker compose up -d` against the **already-promoted broken tree**. It now snapshots before promotion and restores tree, marker and verified database, or says `ROLLBACK FAILED`. Thirteen failure-injection tests. |
+| **3. Release marker** | `version` answered `deployed_commit: null` because it read a **host** path the container does not mount. Now inside the bind-mounted state directory; a deployment that does not report its promoted commit fails and rolls back. |
+| **4. 9GAG readiness** | Server classified the live refusal right — `setup_required`, `http_403` — and Android showed one generic sentence while the platform still said Ready. Every classification has its own sentence; validation now records a sanitized platform signal. |
+| **5. Deletion diagnostics** | D6A3's second sentence never appeared, because the paths that refuse **before the provider is asked** returned no stage. Three stages added, every refusal carries one. **The absence of the sentence is the finding: the provider was very likely never asked.** |
+| **6. Animated GIFs** | `MediaKind.ANIMATION`, 9GAG `Animated`, Reddit `.gif`/`.gifv`/gallery/preview, `sendAnimation`. A `.gifv` with no MP4 is **refused** — it is an HTML page. |
+
+| Field | Value |
+| --- | --- |
+| App version | code 29, `0.13.4-d6a4` |
+| App HEAD | `55fbd5bb1b6fbee8fabc673c58f73930a826b970` |
+| Server HEAD | `ffab60766b070b974594c41da6363b5bc7d3dd01` |
+| Room schema | **12 — unchanged.** No migration runs. |
+| App unit tests | 1748, 0 failures. Lint clean. |
+| Server tests | 443 passed, 1 skipped. `ruff` and `mypy` clean. |
+| Install | over the existing app, **never uninstall, never clear data** |
+| Hardware-proven | Pairing, authenticated requests, **and the D6A3 destination selector** |
+| Hardware-failed | **Permanent deletion**, now under three consecutive fixes |
+| Never checked | D6A2's Preview ownership and album settlement; the 9GAG classification; animated delivery; the new deployment and rollback |
+| Deployment | **Nothing.** The production VPS was not accessed and no SSH connection was made. |
+
+**Do this first:** deploy the D6A4 server commit, confirm `remote-sources-ctl version` prints a
+40-character commit rather than `null`, confirm `devices` still shows `active: 1`, then install the
+APK over the existing app. `docs/D6A4_DEVICE_CHECKLIST.md` carries the order.
+
+Previous: **D6A3** — four workstreams opened by the **first successful hardware pairing**.
 
 > **Remote pairing works end to end on the real device.** Paired, Connected, and authenticated
 > status, destinations, sources, review and history all returned data. Device counts: total 4,
@@ -85,7 +123,7 @@ item, confirmation, ignore marker and deletion tombstone.
 
 | Field | Value |
 | --- | --- |
-| App version | code 28, `0.13.3-d6a3` |
+| App version | code 28, `0.13.3-d6a3` — **superseded by D6A4** |
 | App HEAD | `309ae0d3723cc056bda3432f84c8b0d08a0e25f9` |
 | Server HEAD | `befe5040d2d0177c7cedf23feaad3d1397166e31` |
 | Room schema | **12 — unchanged.** |
@@ -95,6 +133,9 @@ item, confirmation, ignore marker and deletion tombstone.
 | Hardware-proven | **Pairing, and authenticated requests. That is all.** |
 | Hardware-failed | **Permanent deletion**, now under two different fixes |
 | Never checked | D6A2's Preview ownership and album settlement; everything in D6A3 |
+
+**D6A3's live result:** the destination selector **passed**; the deployment, the rollback, the
+release marker, the 9GAG display and the deletion all **failed**. See D6A4 above.
 
 **Before remote pairing on a fresh setup:** deploy the server
 (`./scripts/deploy-production`), then `sudo remote-sources-ctl revoke-all-devices --confirm` if
@@ -215,8 +256,10 @@ connector most likely to need maintenance**, since that payload is front-end dat
 
 **Unvalidated on hardware:**
 
-- **All of D6A3** — the destination selector, the 9GAG classification, the deletion diagnosis and
-  the deployment command.
+- **All of D6A4** — the release preflight, the real rollback, the release marker, the 9GAG
+  classification and readiness refresh, the reachable deletion stages, and animated delivery.
+- **D6A3 minus the destination selector**, which passed. The 9GAG classification, the deletion
+  diagnosis and the deployment command all failed live and were re-fixed in D6A4.
 - **All of D6A2** — including all three fixes. **Two of its three defects were reported fixed in D6A
   and confirmed on hardware zero times.**
 - **All of D6A1** — including the fix itself.
@@ -244,6 +287,16 @@ repair checks unless something visibly breaks.
   and `RESULT_UNKNOWN` is never retried — on either side.
 - **Deletion is of one exact document**, by granted tree plus recorded document ID, after re-proving
   identity, size and a fresh full SHA-256. No name matching, no listing, no recursion, no bulk form.
+- **D6A4: a test that reads the working tree cannot detect a file missing from the release.** Ask
+  Git what would ship, read the **index** rather than `HEAD`, and assert the loaded module came
+  from the export — an editable install will otherwise answer the import from the checkout.
+- **D6A4: a message that claims a recovery must have performed one.** A false rollback is worse
+  than no rollback, because the operator reading it stops looking.
+- **D6A4: a refusal must name the stage it reached.** Every path that refuses before the provider
+  is asked says so; a stage that defaults to null is a failure the user cannot act on.
+- **D6A4: an authenticated user pressing a button must not move the scheduler's backoff.** A
+  validation records a setup-shaped signal and clears one; it never clears a rate limit and never
+  writes `blocked_until` or the strong-signal count.
 - **D6A3: a classification correct at the level it was written can be useless at the level somebody
   has to act on.** "The server could not use this source" and "nothing was deleted, the file is
   still there" were both true and both unactionable.
@@ -283,7 +336,9 @@ repair checks unless something visibly breaks.
   the remaining *material* ambiguities, ask **one grouped question** with numbered options, short
   practical consequences and **no preselected default**, then stop. Edit nothing — no migration, no
   version bump, no commit, no deployment — before the answer. D4B raised two, D4C three, D5A four,
-  D5B one, D5C four, D6A four.
+  D5B one, D5C four, D6A four, D6A2 four. D6A1, D6A3 and D6A4 raised none: each arrived with the
+  evidence and the decisions already in the request, and inventing a question would have been
+  ceremony.
 - **Do not invent UX.**
 - **Bundle compatible changes into substantial milestones.** Never ship a single hotfix alone.
 - **Every requested item gets an explicit status in `TODO.md`** — completed, deliberately deferred
@@ -296,16 +351,17 @@ repair checks unless something visibly breaks.
 
 ## 11. Roadmap
 
-1. **Device-validate D6A3**, `docs/D6A3_DEVICE_CHECKLIST.md`, **in order**. Priority: **§3 the
-   deletion — and specifically the SECOND sentence of its message, verbatim**, which names the
-   provider behaviour; then §1 the new source form, §2 the 9GAG classification, §4 the two unproven
-   D6A2 fixes. **§3 deletes real files** — disposable copies in a disposable folder only.
-2. **D6A1's first real check** is §4 of that same checklist: the **bot token survives install-over**,
-   and **disconnecting Remote sources does not destroy it**.
-3. Remote pairing, which still needs the server steps first: deploy the server commit, then
-   `sudo remote-sources-ctl revoke-all-devices --confirm`, then **one** fresh code used immediately.
-   Then live-validate one source against a **disposable** topic — the server's
-   `docs/D6A_LIVE_CHECKLIST.md` §8 carries the exact order.
+1. **Deploy the D6A4 server commit first.** It is the first reproducible release since the outage;
+   the running host is carrying a hand-copied file. Then `remote-sources-ctl version` must print a
+   40-character commit, and `devices` must still show `active: 1`.
+2. **Device-validate D6A4**, `docs/D6A4_DEVICE_CHECKLIST.md`, **in order**. Priority: **§2 the
+   deletion — and specifically the SECOND sentence of its message, verbatim**, which now names the
+   stage the attempt reached; then §1 the 9GAG classification and the readiness refresh, §3 animated
+   delivery, §4 the D6A3 regressions. **§2 deletes real files** — disposable copies in a disposable
+   folder only.
+3. Live-validate one remote source against a **disposable** topic — the server's
+   `docs/D6A_LIVE_CHECKLIST.md` carries the exact order. Pairing already works and must not be
+   reworked; **nothing past pairing has ever run end to end.**
 4. Whatever the device reports about D5C and D5B.
 5. Still owed from D4B/D4C: deletion retries, batch deletion, blocked deletion states, the launch
    scan, the Hebrew Preview.
