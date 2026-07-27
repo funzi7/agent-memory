@@ -111,9 +111,29 @@ while it was being written. **The session was interrupted by a Termux kill and r
 **The D6A4 outage is closed.** The host is no longer running a hand-copied tree: it runs exactly
 `cb01747` and reports that commit itself.
 
-**Do this first:** install the APK over the existing app, **open Settings and confirm it reads
-`0.13.5-d6a5` / `30`**, then work `docs/D6A5_DEVICE_CHECKLIST.md` in order. Nothing needs doing on
-the VPS.
+**Installed and partly verified on 2026-07-27.** The APK went on over the existing app, Settings
+read `0.13.5-d6a5` / `30`, and **manual permanent deletion without upload succeeded on the device —
+the source disappeared from the app and from the Android file manager.** That is the defect this
+project has been chasing since D6A, and it is closed.
+
+**Do this next:** the rest of `docs/D6A5_DEVICE_CHECKLIST.md` — §3 confirmed-versus-queued, §6 the
+four new findings, §5 the five platforms. Nothing needs doing on the VPS.
+
+### Next milestone: D6A6 — the 9GAG source is an Interest page
+
+**Reported after D6A5 and not started.** The 9GAG source the user actually wants is a **9GAG
+Interest page**, public URL shape `/interest/<slug>`, optionally with a feed mode such as `/hot`.
+The connector supports **only** user-profile discovery (`/u/<username>/posts`).
+
+> **An Interest is not a profile and must never be normalised into one.** Silently rewriting a
+> pasted Interest URL into a user profile would produce a source that looks accepted and then
+> discovers the wrong feed, or nothing, with no way for the user to tell which.
+
+Owned by **Android + server**. Requirements are itemised in
+`/root/work/telegram-topic-uploader/TODO.md` (rows 29–31 and the D6A6 section) and in the server's
+own `TODO.md`. Two things to hold on to: **live verification is a separate item from
+implementation**, and the deployed host is **answered 403 by 9GAG without a configured session**, so
+cookies remain a prerequisite for any live Interest test.
 
 Previous: **D6A4** — a hotfix milestone opened by a **production outage** and three device reports.
 
@@ -179,7 +199,7 @@ run in their own SSH shell.
 
 | | Discovery | Credentials | Live-tested |
 | --- | --- | --- | --- |
-| **9GAG** | implemented; payload shape verified against the live site | optional server-side cookies | **refused live — 403**, classified `setup_required` |
+| **9GAG** | **user profiles only** (`/u/<name>/posts`); payload shape verified against the live site | optional server-side cookies | **refused live — 403**, classified `setup_required` |
 | **Reddit** | implemented (`u/…` and `r/…`) | **required** — anonymous is 403 | **no** |
 | **X** | implemented (gallery-dl + cookies) | **required** | **no** |
 | **Instagram** | **implemented at D6A5** (gallery-dl, Instaloader fallback) | **required** | **no** |
@@ -187,6 +207,11 @@ run in their own SSH shell.
 
 All five are selectable in the Android app since D6A5, each with its own state sentence. **Being
 selectable is not being live-tested**, and the two must never be conflated in a report.
+
+**9GAG covers user profiles and nothing else.** A **9GAG Interest page** — `/interest/<slug>`,
+optionally with a feed mode such as `/hot` — is a **different source type** and is **not supported**.
+It is specified as **D6A6** and is not started. An Interest URL must never be normalised into a user
+profile: a source that looks accepted and then discovers the wrong feed is worse than one refused.
 
 **Mocked tests prove parsing and classification. They prove nothing about the live platforms.** Never
 describe a connector as end-to-end validated on that basis.
@@ -206,11 +231,24 @@ connector most likely to need maintenance**, since that payload is front-end dat
 - **D6A5 reports, authoritative:** deletion **after** a Telegram-confirmed upload **works**, and
   manual external deletion followed by a complete scan **reconciles correctly**. Neither may be
   broadly rewritten; both are now explicit regression guards.
+- **D6A5 installed and confirmed (2026-07-27).** `0.13.5-d6a5` / versionCode **30** was installed
+  over the existing app and **the Settings version row was read on the device** — which is both the
+  proof of the install and the hardware verification of that row.
+- **MANUAL PERMANENT DELETION WITHOUT UPLOAD NOW WORKS ON HARDWARE (2026-07-27).** The deletion
+  succeeded and the source disappeared from **both the application and the Android file manager**.
+  **This closes the longest-running defect in the project** — reported at D6A, and fixed across
+  D6A, D6A2, D6A3, D6A4 and finally D6A5, where the cause turned out to be one line in
+  `SOURCE_DEPENDENT_STATUSES`.
+
+  > **It is a separate result from delete-after-confirmed-upload**, which was already
+  > hardware-verified independently and earlier. The two are different code paths with different
+  > evidence and **must never be merged into a single claim** — conflating them is how the working
+  > path nearly got rewritten to fix the broken one.
 
 **Reported by the user during ordinary use — currently FAILED on hardware:**
 
-- **Manual permanent deletion without upload.** Root-caused in D6A5 to one line in
-  `SOURCE_DEPENDENT_STATUSES`; **not re-verified on a device.**
+- ~~**Manual permanent deletion without upload.**~~ **FIXED AND HARDWARE-VERIFIED at D6A5.** Moved
+  to the confirmed list above.
 - **A confirmed upload described as "already queued"**, with an empty Upload Queue. Fixed in D6A5;
   **not re-verified.**
 - **A terminal Failed item with no removal action.** Fixed in D6A5; **not re-verified.**
@@ -230,7 +268,10 @@ connector most likely to need maintenance**, since that payload is front-end dat
 
 **Unvalidated on hardware:**
 
-- **All of D6A5.** **All of D6A4.** **All of D6A2**, including all three fixes. **All of D6A1.**
+- **D6A5 except the version row and the manual deletion**, both of which are now verified. Still
+  unverified: confirmed-versus-queued, the Failed row's removal, the Review row's Do not upload,
+  Preview from a folder, orphan reservations, and the five-platform list.
+- **All of D6A4.** **All of D6A2**, including all three fixes. **All of D6A1.**
 - **Everything past pairing in D6A** — no connector has completed a live check → review → send.
 - **All of D5C** — the duplicate checklist has **still not been run**. **All of D5B.**
 - Every D5A check beyond 1–3; everything left after D4B and D4C.
@@ -360,28 +401,32 @@ the table is the whole of it.
 `/root/work/telegram-topic-uploader/TODO.md`** — every reported item, its owner, its state and the
 evidence required to close it. This list is the ordering; that table is the record.
 
-1. **Device-validate D6A5**, `docs/D6A5_DEVICE_CHECKLIST.md`, **in order**. Confirm the Settings
-   version first — every other answer depends on which build produced it. Priority: **§1 the manual
-   deletion**, which **deletes real files** — disposable copies in a disposable folder only; then §3
-   confirmed-versus-queued; then §6 the four new findings; then §5 the five platforms.
-   **The server needs nothing** — `cb01747` is already deployed and healthy.
-2. Live-validate one remote source against a **disposable** topic — the server's
+1. **Finish device-validating D6A5.** ✅ The Settings version row and ✅ **§1 the manual deletion**
+   are both **done and passed**. Remaining, in order: §3 confirmed-versus-queued, §6 the four new
+   findings, §5 the five platforms. **The server needs nothing** — `cb01747` is deployed and healthy.
+2. **D6A6 — the 9GAG Interest source type.** Not started. An explicit Interest source type kept
+   **distinct** from the user profile, `/interest/<slug>` normalised and never coerced into a
+   profile, deliberate feed modes, ordered posts with stable IDs, bounded pagination, and cursor,
+   idempotency, animation and malformed-upstream behaviour all preserved. Android source-type
+   selection plus Hebrew and English help. Deterministic fixtures and conformance coverage.
+   **Live verification is a separate item and is blocked on 9GAG cookies on the host.**
+3. Live-validate one remote source against a **disposable** topic — the server's
    `docs/D6A_LIVE_CHECKLIST.md` carries the exact order. Pairing works and must not be reworked;
    **nothing past pairing has ever run end to end.**
-3. Credentials for Instagram and TikTok, then a live check for each. Both are implemented and both
+4. Credentials for Instagram and TikTok, then a live check for each. Both are implemented and both
    correctly report setup-required until a session exists on the server.
-4. Whatever the device reports about D6A4, D5C and D5B.
-5. Still owed from D4B/D4C: deletion retries, batch deletion, blocked deletion states, the launch
+5. Whatever the device reports about D6A4, D5C and D5B.
+6. Still owed from D4B/D4C: deletion retries, batch deletion, blocked deletion states, the launch
    scan, the Hebrew Preview.
-6. A manual-resolution affordance for a remote `RESULT_UNKNOWN`. Recorded correctly and never
+7. A manual-resolution affordance for a remote `RESULT_UNKNOWN`. Recorded correctly and never
    retried, but resolving one is currently "look at the topic and decide".
-7. Deferred from D6A5: the post-tap ignore refusal is still one generic sentence. The row explains
+8. Deferred from D6A5: the post-tap ignore refusal is still one generic sentence. The row explains
    pre-emptively, so this only shows after a race.
-8. **Stories and expiring content** stay a separate opt-in schedule, deferred.
-9. Optional content-based topic *suggestions* on Review — never automatic routing.
-10. Result-unknown reconciliation that never re-sends without evidence, and evidence-based
+9. **Stories and expiring content** stay a separate opt-in schedule, deferred.
+10. Optional content-based topic *suggestions* on Review — never automatic routing.
+11. Result-unknown reconciliation that never re-sends without evidence, and evidence-based
     resolution of an unowned or ambiguous legacy reservation (D3A.1).
-11. **Explicitly not on the roadmap:** per-account mapping of local folders.
+12. **Explicitly not on the roadmap:** per-account mapping of local folders.
 
 ## 12. New-chat startup procedure
 

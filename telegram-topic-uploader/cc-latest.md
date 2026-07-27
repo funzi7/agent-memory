@@ -26,6 +26,61 @@ No production token, Telegram identifier, chat ID, thread ID, private link, VPS 
 hostname, SSH host, pairing code, device token, cookie, account name, file name, content URI or
 media hash is recorded anywhere in this file.
 
+## Post-D6A5 hardware result — the oldest defect in this project is closed
+
+**Reported by the user on 2026-07-27, after D6A5 was installed.**
+
+- `0.13.5-d6a5` / versionCode **30** was installed over the existing app, and **the Settings version
+  row was read on the device.** That is simultaneously the proof the install took and the hardware
+  verification of the D6A5 About row.
+- **Manual permanent deletion without upload now SUCCEEDS on the physical device.** The source
+  disappeared from **both the application and the Android file manager** — checked outside the app,
+  which is the only evidence that counts for a deletion.
+
+**This closes the defect the project has been chasing since D6A.** It was "fixed" in D6A, again in
+D6A2, again in D6A3, diagnosed correctly in D6A4, and actually fixed in D6A5, where the cause was
+one line: `SOURCE_DEPENDENT_STATUSES` included `DISCOVERED`, `AWAITING_ROUTING` and `READY`, which
+is exactly what every un-uploaded item has, so the gate refused before the provider was asked.
+
+> **D6A4's diagnosis was right, and it is the lesson to keep.** The *absence* of the second sentence
+> was the finding. A refusal that cannot say which stage it reached is a refusal nobody can act on,
+> and adding the stage is what made the next session look at the gate instead of at the provider.
+
+**Keep these two apart.** Deletion **after a Telegram-confirmed upload** was already hardware-verified
+**separately and earlier**; it was never the broken path. It counts *other* jobs and excludes the one
+that licensed it. **They are different code paths with different evidence and must never be merged
+into one claim** — conflating them is how the working path nearly got rewritten to fix the broken one.
+
+Still unverified from D6A5: confirmed-versus-queued, the Failed row's removal, the Review row's
+**Do not upload**, Preview from a folder, orphan reservations, and the five-platform list.
+
+## Next milestone — D6A6: the 9GAG source is an Interest page, not a user profile
+
+**Reported after D6A5. Not started; no production code has been written for it.**
+
+The 9GAG source the user actually wants is a **9GAG Interest page**, public URL shape
+`/interest/<slug>`, optionally carrying a feed mode such as `/hot`. The connector supports **only**
+user-profile discovery (`/u/<username>/posts`).
+
+> **An Interest is not a profile, and the connector must never pretend otherwise.** Silently
+> rewriting a pasted Interest URL into a user profile would produce a source that looks accepted and
+> then discovers the wrong feed — or nothing — with no way for the user to tell which happened.
+
+Owned by **Android + server**. In short: an explicit Interest source type kept **distinct** from the
+profile type; only genuine `/interest/<slug>` identities accepted and normalised; feed modes
+supported **deliberately** rather than inherited; ordered posts with **stable post IDs** and
+**bounded pagination**; cursor, idempotency, animated-media and malformed-upstream behaviour all
+preserved; Android source-type selection with Hebrew and English help; deterministic fixtures and
+connector-conformance coverage.
+
+**Live verification is a separate backlog item from the implementation**, and it is **blocked**: the
+deployed host is answered **403 by 9GAG without a configured session**, so
+`remote-sources-configure ninegag-cookies <path>` remains a prerequisite. Implementation being
+complete will never, on its own, be evidence that this works.
+
+Itemised as rows **29, 30 and 31** plus a D6A6 section in
+`/root/work/telegram-topic-uploader/TODO.md`, and as a D6A6 section in the server's `TODO.md`.
+
 ## This session was interrupted and resumed — what survived
 
 The Termux process was killed mid-milestone. The recovery is worth recording, because the state it
@@ -243,10 +298,11 @@ not install it; the user performs only Android's package-install confirmation.
 ## Hardware evidence, exactly as it stands
 
 - **Proven:** pairing, authenticated requests, the D6A3 destination selector, deletion **after** a
-  confirmed upload, and external deletion followed by a scan.
-- **Failed on hardware, now under a fix that names its root cause:** manual permanent deletion
-  without upload; a confirmed item described as queued; a Failed row with no action; a Review row
-  with no action; Preview from a folder.
+  confirmed upload, external deletion followed by a scan, **the D6A5 Settings version row**, and
+  **manual permanent deletion without upload** — the last two confirmed on 2026-07-27.
+- **Failed on hardware, now under a fix that names its root cause and not yet re-checked:** a
+  confirmed item described as queued; a Failed row with no action; a Review row with no action;
+  Preview from a folder.
 - **Never checked:** everything in D6A5; everything in D6A4; D6A2's Preview ownership and album
   settlement; an end-to-end remote check → review → send, which has never completed.
 - **New this milestone and verified against production:** the deployment, the release marker, the
@@ -256,13 +312,12 @@ not install it; the user performs only Android's package-install confirmation.
 
 The server is already deployed and healthy; **nothing needs doing on the VPS.**
 
-1. Install `TelegramTopicUploader-0.13.5-d6a5.apk` from **Downloads**, over the existing app.
-2. **Open Settings first.** It must read `0.13.5-d6a5` and code `30`. If it does not, the install did
-   not take and no answer below is about this build.
-3. Work `docs/D6A5_DEVICE_CHECKLIST.md` in order. Priority: **§1 the manual deletion**, which
-   **deletes real files** — disposable copies in a disposable folder, checked in a system file
-   manager rather than believed from the app. Then §3 the confirmed-versus-queued dialog, then §6
-   the four new findings, then §5 the five platforms.
+1. ~~Install the APK and confirm the Settings version.~~ **Done — it read `0.13.5-d6a5` / `30`.**
+2. ~~§1 the manual deletion.~~ **Done, and it passed** — the file was gone from the Android file
+   manager as well as from the app.
+3. **Remaining, in this order:** §3 the confirmed-versus-queued dialog; §6 the four new findings
+   (Settings/About is already confirmed, so 21–23 remain); §5 the five platforms; §7 the D6A4
+   regressions.
 
 ## Env notes (still current)
 

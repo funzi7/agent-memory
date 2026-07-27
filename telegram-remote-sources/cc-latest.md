@@ -210,7 +210,7 @@ rollback tests drive a **sandbox host** through an overridable SSH binary and ne
 
 | | Discovery | Extraction | Credentials | Live-tested |
 | --- | --- | --- | --- | --- |
-| 9GAG | implemented, payload shape verified against the live site | direct CDN URLs | optional server-side cookies | **refused live — 403**, classified `setup_required` |
+| 9GAG | **user profiles only** (`/u/<name>/posts`), payload shape verified against the live site | direct CDN URLs | optional server-side cookies | **refused live — 403**, classified `setup_required` |
 | Reddit | implemented | Reddit's own media URLs | **required** | **no** |
 | X | implemented | gallery-dl URLs | **required** | **no** |
 | Instagram | **implemented at D6A5** | gallery-dl, Instaloader fallback | **required** | **no** |
@@ -218,6 +218,10 @@ rollback tests drive a **sandbox host** through an overridable SSH binary and ne
 
 **Do not describe any connector as end-to-end validated.** Mocked tests prove the parsing and the
 classification. They prove nothing about the live platforms.
+
+**9GAG covers user profiles and nothing else.** A **9GAG Interest page** — `/interest/<slug>`,
+optionally with a feed mode such as `/hot` — is a **different source type**, is **not supported**,
+and is specified as **D6A6**. An Interest URL must never be normalised into a user profile.
 
 ## D6A1 — what the first live pairing attempt proved, and the one command it added
 
@@ -482,13 +486,55 @@ The only non-loopback listeners are `sshd` on 22 and `tailscaled` on its own Tai
   invocation by hand and omitting the key both fails **and** prints the host address, which must
   never be recorded anywhere.
 
+## D6A6 — the 9GAG source is an Interest page, not a user profile
+
+**Reported from the device after D6A5. Nothing is implemented; this is the requirement, recorded
+before any code exists, and no production code was touched when it was written.**
+
+The 9GAG source the user actually wants is a **9GAG Interest page**, public URL shape
+`/interest/<slug>`, optionally carrying a feed mode such as `/hot`. `adapters/ninegag.py` discovers
+**only** `https://9gag.com/u/<username>/posts`.
+
+> **An Interest is not a profile, and this adapter must never pretend otherwise.** Quietly rewriting
+> a pasted Interest URL into a user profile would produce a source that looks accepted and then
+> discovers the wrong feed, or nothing, with no way for the user to tell which. There is already a
+> precedent for refusing that coercion: `domain.identity.normalise` refuses an Instagram story URL
+> **by name** rather than letting it become a profile. Do the same here.
+
+| Requirement | Owner |
+| --- | --- |
+| An **explicit Interest source type** in `AdapterCapabilities.source_types`, beside the profile type — two types, never one with a mode flag bolted on | Android + server |
+| Accept and normalise **only genuine `/interest/<slug>` identities**; anything else refused with a sanitized reason | Server |
+| **Never silently convert** an Interest URL into a profile, or a profile URL into an Interest. Refused by name, and a test asserts it | Android + server |
+| Support the applicable **feed modes deliberately** — enumerated and chosen, never inherited from whatever the page defaults to | Server |
+| **Ordered posts with stable post IDs.** Identity is the post's, so two renditions cannot become two Review items | Server |
+| **Bounded pagination**, with the ceilings the profile path already uses | Server |
+| **Cursor and idempotency unchanged** — `advances_cursor` stays defined as `is_success`; rediscovery still collides on `(source_id, canonical_post_id)` | Server |
+| **Malformed upstream stays safe** — an unreadable payload reports `MALFORMED_UPSTREAM` and stops, never rounded down to "nothing new" | Server |
+| **Animated media preserved** — `ANIMATION`, MP4 rendition preferred, real `image/gif` fallback | Server |
+| **Deterministic synthetic fixtures** shaped like the real payload; no test contacts 9GAG | Server |
+| **Connector-conformance coverage** — a harness in `tests/test_connector_conformance.py`, or the suite fails by design | Server |
+| Android **source-type selection** plus **Hebrew and English** help and identity hints | Android |
+
+**The identity stored must remain sanitized:** the slug and the chosen feed mode, and nothing else.
+No URL, no account, no cookie — the same rule every other source row follows.
+
+**Live verification is a separate item and is blocked.** The deployed host is answered **403 by 9GAG
+without a configured session**, so `remote-sources-configure ninegag-cookies <path>` remains a
+prerequisite for any live Interest check. **Implementation being complete is never, on its own,
+evidence that this works** — which is exactly the mistake the 9GAG readiness bug made at D6A3.
+
+Itemised in this repository's `TODO.md` and as rows 29–31 in
+`/root/work/telegram-topic-uploader/TODO.md`.
+
 ## Next action
 
 **Nothing on the server.** It is deployed, healthy, and running a commit that is reproducible from
 Git for the first time since the D6A3 outage.
 
-1. Install the D6A5 APK over the Android app, and confirm **Settings reads `0.13.5-d6a5` / code 30**
-   before recording any other answer.
+1. ~~Install the D6A5 APK and confirm the Settings version.~~ **Done on 2026-07-27** — it read
+   `0.13.5-d6a5` / code 30, and **manual permanent deletion without upload then succeeded on the
+   device.** Both are Android-side results; **neither validates anything in this repository.**
 2. 9GAG: Validate from the app; expect a message naming the platform refusal rather than a generic
    one, and the platform list to show **needing setup** after a refresh, surviving a restart.
 3. Optional: configure a cookie export server-side and Validate again.
