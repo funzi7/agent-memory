@@ -24,8 +24,9 @@ hash — and nothing added to it ever may.
 | Head after D6A3 | `befe5040d2d0177c7cedf23feaad3d1397166e31` (`befe504`) — **deployed, and it failed** |
 | Head after D6A4 | `ffab60766b070b974594c41da6363b5bc7d3dd01` (`ffab607`) — never deployed; superseded |
 | Head after D6A5 | `cb0174765306f429225b299845d6f11456dc666d` (`cb01747`) — deployed |
-| **Head after D6A6** | **`a985e2da51c7681efbb6c036e3b96e4d31920f26`** (`a985e2d`) — **deployed and verified** |
-| Matching app head | `a0720d7300cd66eb3f0d1aed2cc46868a646d3fe` (`a0720d7`), versionCode 31, `0.13.6-d6a6` |
+| Head after D6A6 | `a985e2da51c7681efbb6c036e3b96e4d31920f26` (`a985e2d`) — deployed |
+| **Head after D6A6a** | **`7564912c24c121c2c021887e8a5621b91f8d5df4`** (`7564912`) — **deployed and verified** |
+| Matching app head | `fe275766bb6e207a56e970f4e89059545afac256` (`fe27576`), versionCode 32, `0.13.7-d6a6a` |
 | Host | A DigitalOcean droplet, Ubuntu 24.04.4, amd64, 1 vCPU, ~2 GiB RAM, ~48 GB disk |
 | Deploy path on host | `/opt/remote-sources` |
 | State path on host | `/var/lib/remote-sources` |
@@ -483,6 +484,10 @@ The only non-loopback listeners are `sshd` on 22 and `tailscaled` on its own Tai
 - **`git status` clean is not `release-preflight` clean.** The script reads `HEAD`, so a new module
   that is staged but uncommitted still fails it — run it against `git write-tree` before the commit
   exists, which is what the *test* does. It caught two new modules in D6A6, exactly as designed.
+- **A scheduling bucket is not a sentence.** `CHALLENGE` and `RATE_LIMITED` share the backoff ladder
+  because both mean "stop asking for hours". They are not the same fact, and D6A6a is the milestone
+  where the app was rendering the bucket instead of the refusal. Whenever outcomes are grouped for
+  *timing* here, check nothing user-facing mirrors the grouping.
 - **One connector wanting a header string while four want a jar file is a trap.** D6A6's whole
   root cause. Accept what the operator actually exports, and validate it at import time.
 - **The health routes are `/api/v1/health` and `/api/v1/ready`.** An earlier note in this file said
@@ -619,14 +624,56 @@ credentials — `telegram/bot_token` and `ninegag/cookies` — present. **No sec
 **691 passed, 4 skipped.** `ruff format --check`, `ruff check`, `mypy` and the release preflight all
 clean.
 
+## D6A6a — the status that contradicted its own validation, and why this repository was not the cause
+
+**Reported from the device.** Check source returned `challenge` for both 9GAG source types while the
+Remote Sources platform list persistently said *rate limit*.
+
+**Traced here first, because the obvious suspicion pointed here.** Production held:
+
+```
+platform=ninegag  last_signal='challenge'  blocked_until=None  strong_signal_count=0
+```
+
+**No rate-limit signal existed anywhere to be stale**, and the scheduler had never run for 9GAG.
+The API serialized `challenge` and the app parsed it correctly. **The cause was one missing member in
+the Android readiness enum**, which folded `CHALLENGE` into `RATE_LIMITED`. Fixed there.
+
+### What this repository gained: the guard rail
+
+`CheckOutcome.CHALLENGE` and `CheckOutcome.RATE_LIMITED` **share the backoff ladder and nothing
+else.** Both are strong backoff signals — grouping them for *scheduling* is correct — and only one
+of them is setup-shaped, so only one can be cleared by configuring the server.
+
+| | `CHALLENGE` | `RATE_LIMITED` |
+| --- | --- | --- |
+| Strong backoff signal | yes | yes |
+| Setup-shaped (cleared by a successful validation) | **yes** | no |
+| Written by a validation | **yes** | no — a validation cannot create one |
+| Written by the scheduler | yes | yes |
+
+`tests/test_platform_signal_ordering.py` (11 tests) pins it: both writers stamp the current instant,
+so **a stale signal cannot overwrite a newer one by construction** rather than by a comparison
+somebody has to remember; a genuinely newer result wins in either direction; and a successful
+validation clears a challenge but never a rate limit. `docs/CONNECTORS.md` carries the same table.
+
+**No production code changed here.** `7564912` was deployed anyway so the running commit still
+equals `origin/main`, and the persisted `challenge` signal survived the deployment unchanged.
+
+### Live evidence, from the device
+
+Both 9GAG source types reach this connector and report the challenge correctly. That confirms the
+D6A6 cookie fix end to end from the phone. **Discovery remains refused by 9GAG on every deep path.**
+
 ## Next action
 
 **Nothing on the server.** It is deployed, healthy, and running a commit that is reproducible from
 Git for the first time since the D6A3 outage.
 
-1. Install the **D6A6** APK (`0.13.6-d6a6`, code 31) and check Settings, then the 12 → 13 migration.
-   Android-side results; **neither validates anything in this repository.** The D6A5 install and the
-   manual-deletion fix were both confirmed on 2026-07-27.
+1. Install the **D6A6a** APK (`0.13.7-d6a6a`, code 32) and confirm the 9GAG row in the platform list
+   reads *human-verification challenge* rather than *rate limit*. Android-side result; **it validates
+   nothing in this repository.** Already confirmed on 2026-07-27: the D6A6 install, and that both
+   9GAG source types reach this connector and report the challenge.
 2. 9GAG: Validate from the app; expect a message naming the platform refusal rather than a generic
    one, and the platform list to show **needing setup** after a refresh, surviving a restart.
 3. Optional: configure a cookie export server-side and Validate again.

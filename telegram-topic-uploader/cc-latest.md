@@ -11,16 +11,94 @@
 
 | Field | Value |
 | --- | --- |
-| Task | **D6A6** — the 9GAG Interest source type, the cookie root cause behind both failing checks, and local Instagram publishing |
-| **Final application HEAD** | **`a0720d7300cd66eb3f0d1aed2cc46868a646d3fe`** (`a0720d7`) |
-| **Final server HEAD** | **`a985e2da51c7681efbb6c036e3b96e4d31920f26`** (`a985e2d`) — **deployed** |
-| Version | code 30 → **31**, name `0.13.5-d6a5` → **`0.13.6-d6a6`** |
-| Room schema | **12 → 13.** One purely additive table. See below — this is the first schema move since D5C. |
+| Task | **D6A6a** — the persistent platform status contradicted its own validation. Follows **D6A6** (the Interest source type, the cookie root cause, local Instagram publishing) |
+| **Final application HEAD** | **`fe275766bb6e207a56e970f4e89059545afac256`** (`fe27576`) |
+| **Final server HEAD** | **`7564912c24c121c2c021887e8a5621b91f8d5df4`** (`7564912`) — **deployed** |
+| Version | code 31 → **32**, name `0.13.6-d6a6` → **`0.13.7-d6a6a`** |
+| Room schema | **13 — unchanged by D6A6a.** D6A6 moved it 12 → 13 with one additive table. |
 | Deployment | **Done and verified.** `a985e2d` is live; health, readiness, loopback-only exposure and the pairing all confirmed. |
 
 No production token, Meta credential, Telegram identifier, chat ID, thread ID, private link, VPS
 address, Tailscale hostname, SSH host, pairing code, device token, cookie value, account name, file
 name, content URI or media hash is recorded anywhere in this file.
+
+## D6A6a — the platform list contradicted its own validation
+
+**Reported from the device after installing `0.13.6-d6a6` / code 31.**
+
+### Hardware and live evidence, 2026-07-27 — what the device proved
+
+- **D6A6 is installed.** `0.13.6-d6a6` / code 31 confirmed in Settings.
+- **9GAG Interest** Check source displays the challenge sentence.
+- **9GAG profile** Check source displays the same classification.
+
+Together, and this is the first live proof of the D6A6 fix:
+
+1. the former generic *"the server could not reach the platform"* mapping is **gone**;
+2. **both** 9GAG source types reach the deployed connector;
+3. the **cookie material is usable**;
+4. both live paths are refused by the platform's **anti-bot challenge**;
+5. the Android challenge message **renders correctly**.
+
+**Live 9GAG discovery remains blocked by the platform.** That is unchanged and is not a code defect.
+
+### The contradiction, and the root cause
+
+The Remote Sources **platform list** persistently said *"Rate limit — the platform asks the server to
+slow down"*, contradicting every validation of the same platform.
+
+**The whole path was traced before anything was changed**, because the obvious suspicion — a stale
+signal outliving a newer one — would have pointed at the server:
+
+| Layer | What it actually held |
+| --- | --- |
+| Connector validation | `challenge / anti_bot_challenge` |
+| Persisted `PlatformHealth` (production) | `last_signal='challenge'`, `blocked_until=None`, `strong_signal_count=0` |
+| `PlatformStatus` serialization | `last_signal: "challenge"` |
+| Android parse | `RemoteBackoffReason.CHALLENGE` — correct |
+| **Android `readiness()`** | **`CHALLENGE \|\| RATE_LIMITED -> RATE_LIMITED`** ← the defect |
+
+> **No rate-limit signal existed anywhere to be stale.** `blocked_until` was null and the
+> strong-signal count was zero, and the scheduler had never run for 9GAG. Every server-side
+> hypothesis — a stale signal, a bucket contamination, an ordering hazard — was ruled out by
+> evidence rather than by argument.
+
+**Root cause: `RemotePlatformReadiness` had no `CHALLENGE` member.** The two signals share the
+server's **backoff ladder** — correct, both mean "stop asking for hours" — and the app mirrored that
+grouping into the sentence a person reads.
+
+> **A scheduling bucket is not a sentence.** This is D6A5's own rule — *known classifications never
+> collapse into one generic sentence* — failing in miniature, one enum member short. The test that
+> made it possible is the one that had to change: it asserted both signals produced `RATE_LIMITED`,
+> and the production code obliged.
+
+### The fix, and what did not need fixing
+
+- `RemotePlatformReadiness.CHALLENGE`, its own state with its own Hebrew and English sentence.
+- It joins the states permitting a new source: a challenge is a refusal the platform may stop
+  making, unlike a state an operator fixes on the server.
+- **A live backoff window no longer hides the reason for it** — a challenge with a blocked window
+  still reads as a challenge, because "wait" is not the reason.
+- **No server production change was required.** The ordering rules are now pinned by
+  `tests/test_platform_signal_ordering.py` (11 tests): both writers stamp the current instant, so a
+  stale signal cannot overwrite a newer one **by construction** rather than by a comparison somebody
+  has to remember; a genuinely newer result wins in either direction; and a successful validation
+  clears a challenge but never a rate limit.
+
+**Still device-unverified:** that the list now reads *human-verification challenge*. Backlog row 58.
+
+### Release
+
+| Field | Value |
+| --- | --- |
+| App HEAD | `fe275766bb6e207a56e970f4e89059545afac256` |
+| Server HEAD | `7564912c24c121c2c021887e8a5621b91f8d5df4` — **deployed and verified** |
+| Version | code 31 → **32**, `0.13.6-d6a6` → **`0.13.7-d6a6a`** |
+| Room schema | **13 — unchanged.** No migration runs. |
+| Android tests | **1919, 0 failures.** Lint clean. Both assembles succeed. |
+| Server tests | **702 passed, 4 skipped.** `ruff`, `mypy`, preflight clean. |
+| APK | `TelegramTopicUploader-0.13.7-d6a6a.apk`, 15,961,780 bytes, SHA-256 `217ac57a9c037deb89864623ea9fb3b68a36069dc247ae068d46149bbaa9b47a`, **byte-for-byte identical**, signer unchanged |
+| Production | `7564912…` deployed; health/ready 200, unauthenticated 401, **loopback-only**, `devices` still **active: 1**, and the persisted `challenge` signal survived the deployment unchanged |
 
 ## The D6A6 root cause — one format mismatch, two symptoms
 
@@ -382,35 +460,40 @@ moves 12 → 13 on this install; it adds one table and touches nothing else.
 
 ## Hardware evidence, exactly as it stands
 
-- **Proven:** pairing, authenticated requests, the D6A3 destination selector, deletion **after** a
-  confirmed upload, external deletion followed by a scan, the D6A5 Settings version row, and
-  **manual permanent deletion without upload** (2026-07-27).
-- **Verified against production, server-side:** the deployment, the release marker, loopback-only
-  exposure, the surviving pairing, and — new this milestone — that the 9GAG session material is read
-  correctly and that both 9GAG paths now return a **named platform refusal** rather than the generic
-  "unreachable".
-- **Blocked by the platform, not by this code:** live 9GAG discovery. Both `/u/<name>/posts` and
-  `/interest/<slug>` answer with an anti-bot challenge from this host.
-- **Never checked on a device:** everything in D6A6 — the source-type and feed-mode choosers, the
-  Ignore-race reasons, the whole Instagram publishing queue, and **the 12 → 13 migration**.
-  Also still unchecked: D6A5's confirmed-versus-queued dialog, the Failed row's removal, the Review
-  row's Do not upload, Preview from a folder, orphan reservations, the five-platform list; and
+- **Proven on hardware:** pairing, authenticated requests, the D6A3 destination selector, deletion
+  **after** a confirmed upload, external deletion followed by a scan, the D6A5 Settings version row,
+  **manual permanent deletion without upload**, **the D6A6 install**, and — new — **both 9GAG source
+  types reaching the deployed connector and rendering the challenge message**.
+- **Proven live (server + platform):** the 9GAG session material is read correctly; both 9GAG paths
+  return `challenge / anti_bot_challenge`; the deployment reports its exact commit; health and
+  readiness 200 over loopback; unauthenticated 401; loopback-only exposure; pairing preserved.
+- **Blocked by the platform, not by this code:** live 9GAG **discovery**. Both paths are challenged.
+- **Never checked on a device:** the D6A6a platform-list sentence (row 58); D6A6's source-type and
+  feed-mode choosers, the Ignore-race reasons, the whole Instagram publishing queue, and the
+  **12 → 13 migration**; D6A5's confirmed-versus-queued dialog, the Failed row's removal, the Review
+  row's Do not upload, Preview from a folder, orphan reservations, the five-platform list;
   everything in D6A4 and D6A2.
 - **Not implemented, so not verifiable:** automatic publishing through Meta's official API.
+
+**Keep these apart.** *Implemented* / *deployed* / *installed* / *hardware-verified* /
+*live-verified* / *successful discovery* are six different states, and 9GAG currently sits at
+"deployed, installed, hardware-verified that it reports a refusal correctly, and **not** discovering".
 
 ## Next device action (ask for exactly this)
 
 The server is deployed and healthy; **nothing needs doing on the VPS.**
 
-1. Install `TelegramTopicUploader-0.13.6-d6a6.apk` from **Downloads**, over the existing app.
-2. **Settings first** — it must read `0.13.6-d6a6` / `31`.
-3. **Then the migration check, before anything else:** open Directories, Review, Upload Queue and
-   History and confirm nothing was lost. Schema 12 → 13 runs on this install. Anything missing is a
-   migration defect and is worth stopping for.
-4. Work `docs/D6A6_DEVICE_CHECKLIST.md` in order. The 9GAG Interest check is expected to report a
-   **challenge**, and reporting that precisely is the fix — the sentence is the result.
-5. Step 20 is the one that matters most in the Instagram section: after **Remove from publishing**,
-   the file must still be in Android's My Files.
+1. Install `TelegramTopicUploader-0.13.7-d6a6a.apk` from **Downloads**, over the existing app.
+2. **Settings first** — `0.13.7-d6a6a` / `32`. **No migration runs**; the schema stayed at 13.
+3. **The one new check, §3a of the checklist:** open **Remote sources** and read the 9GAG row. It
+   must say *אתגר אימות אנושי* (human-verification challenge), **not** *הגבלת קצב* (rate limit).
+   Refresh, then force-close and reopen: the sentence must not change.
+4. Everything else in `docs/D6A6_DEVICE_CHECKLIST.md` that D6A6 left unverified — the source-type
+   and feed-mode choosers, the Ignore-race reasons, and the whole Instagram publishing section,
+   where **step 23** (the file survives "remove from publishing") is the one that matters.
+
+**Already verified on 2026-07-27 and not worth re-running:** the D6A6 install, and that both 9GAG
+source types reach the connector and report the challenge.
 
 ## Env notes (still current)
 
