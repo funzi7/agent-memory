@@ -22,8 +22,9 @@ hash — and nothing added to it ever may.
 | Head after D6A1 | `31d2edf088387dd262c617457dc5fce3e660739d` (`31d2edf`) |
 | Head after D6A2 | **unchanged — `31d2edf`.** D6A2 was three Android-local regressions. |
 | Head after D6A3 | `befe5040d2d0177c7cedf23feaad3d1397166e31` (`befe504`) — **deployed, and it failed** |
-| Head after D6A4 | **`ffab60766b070b974594c41da6363b5bc7d3dd01`** (`ffab607`) |
-| Matching app head | `55fbd5bb1b6fbee8fabc673c58f73930a826b970` (`55fbd5b`), versionCode 29, `0.13.4-d6a4` |
+| Head after D6A4 | `ffab60766b070b974594c41da6363b5bc7d3dd01` (`ffab607`) — never deployed; superseded |
+| **Head after D6A5** | **`cb0174765306f429225b299845d6f11456dc666d`** (`cb01747`) — **deployed and verified** |
+| Matching app head | `4e36dcc7ef23266fce772910e319d141c6916ccc` (`4e36dcc`), versionCode 30, `0.13.5-d6a5` |
 | Host | A DigitalOcean droplet, Ubuntu 24.04.4, amd64, 1 vCPU, ~2 GiB RAM, ~48 GB disk |
 | Deploy path on host | `/opt/remote-sources` |
 | State path on host | `/var/lib/remote-sources` |
@@ -151,10 +152,10 @@ length bound, because they can quote the request URL — including the token tha
 **`uv` is not installed here.** Use the checked-in virtualenv, which is the same toolchain:
 
 ```
-.venv/bin/ruff format --check src tests   # 59 files already formatted
+.venv/bin/ruff format --check src tests   # 67 files already formatted
 .venv/bin/ruff check src tests            # All checks passed
-.venv/bin/mypy                            # no issues in 59 source files
-.venv/bin/python -m pytest -q             # 443 passed, 1 skipped   (D6A4)
+.venv/bin/mypy                            # no issues in 67 source files
+.venv/bin/python -m pytest -q             # 594 passed, 2 skipped   (D6A5)
 bash -n scripts/deploy-production         # syntax
 scripts/release-preflight                 # refuses a release missing a first-party module
 ```
@@ -189,9 +190,11 @@ rollback tests drive a **sandbox host** through an overridable SSH binary and ne
 - ~~**Tailscale node authorisation** and the private endpoint.~~ **Done by the user, and proven:**
   the phone paired and authenticated requests arrive. Funnel is off and the application port is still
   bound to loopback only.
-- Deploying `ffab607`. Until then the host is running a tree that **cannot be rebuilt from Git** —
-  the D6A3 release shipped without `remote_sources.secrets` and the package was copied there by hand.
-- The **rollback path** has never run against a real host.
+- ~~Deploying a reproducible release.~~ **Done at D6A5, and it closed the D6A4 outage.** The host
+  runs exactly `cb01747` and reports that commit itself. It is no longer carrying a hand-copied file.
+- The **rollback path** has still never run against a real host — the D6A5 deployment succeeded, so
+  nothing triggered it. Its *preconditions* did run: the backup, the snapshot and the
+  prove-it-restorable step all executed before promotion.
 
 **Not done — needs the user:**
 
@@ -210,8 +213,8 @@ rollback tests drive a **sandbox host** through an overridable SSH binary and ne
 | 9GAG | implemented, payload shape verified against the live site | direct CDN URLs | optional server-side cookies | **refused live — 403**, classified `setup_required` |
 | Reddit | implemented | Reddit's own media URLs | **required** | **no** |
 | X | implemented | gallery-dl URLs | **required** | **no** |
-| Instagram | prepared boundary, reports unsupported | — | — | n/a |
-| TikTok | prepared boundary, reports unsupported | — | — | n/a |
+| Instagram | **implemented at D6A5** | gallery-dl, Instaloader fallback | **required** | **no** |
+| TikTok | **implemented at D6A5** | gallery-dl + yt-dlp | **required** | **no** |
 
 **Do not describe any connector as end-to-end validated.** Mocked tests prove the parsing and the
 classification. They prove nothing about the live platforms.
@@ -437,34 +440,75 @@ disprove a rate limit. 10 tests, including survival across a restart.
 scripts/deploy-production` all clean. **Nothing was deployed; the production VPS was not accessed and
 no SSH connection was made.**
 
+## D6A5 — Instagram, TikTok, a conformance suite, and the first verified deployment
+
+The server changes were committed and pushed **before** the session was interrupted, and were
+deliberately **not redone** on resumption. Nothing in the Android integration or in the four device
+findings required a further server change, so `cb01747` is both the D6A5 commit and the deployed one.
+
+- **Instagram** and **TikTok** connectors, which had been prepared boundaries reporting unsupported.
+  Both **require** credentials and correctly report `SETUP_REQUIRED` until a session is configured on
+  the server. Neither has ever been exercised against the live platform.
+- **A connector conformance suite** every adapter must pass, so a new connector cannot quietly skip
+  the classification and cursor rules the older ones follow.
+
+### The deployment, and exactly what it verified
+
+`./scripts/deploy-production --dry-run`, then `./scripts/deploy-production`, from the development
+checkout. The dry run printed the **preflight** and **snapshot** steps, which is what D6A4 asked for.
+
+| Check | Result |
+| --- | --- |
+| `remote-sources-ctl version` | **`cb0174765306f429225b299845d6f11456dc666d`** — a 40-character commit. **`null` is gone.** |
+| Deployed commit vs `origin/main` | identical |
+| Container | `remote-sources-api-1 Up (healthy)` |
+| `GET /api/v1/health` over loopback | **200** |
+| `GET /api/v1/ready` over loopback | **200** |
+| `GET /api/v1/sources` unauthenticated | **401** |
+| Application port on any non-loopback address | **none — 8099 does not appear** |
+| `remote-sources-ctl devices` | total 4, **active: 1**, revoked 3 — **the pairing survived the deployment** |
+
+The only non-loopback listeners are `sshd` on 22 and `tailscaled` on its own Tailscale addresses.
+
+**No credential was requested, read, handled or recorded, and nothing was sent to Telegram.**
+
+### Two corrections worth carrying forward
+
+- **The health routes are `/api/v1/health` and `/api/v1/ready`.** An earlier note in this file said
+  `/health` and `/ready`; those return **404**. The deploy script has always probed the correct
+  paths, so the error only bites someone verifying by hand — and it looks exactly like an outage.
+- **Reuse the deploy script's own `remote()` construction** when running an ad-hoc command:
+  `-o BatchMode=yes` plus `-i "$RS_DEPLOY_KEY"` from `deploy/production.env`. Rebuilding the SSH
+  invocation by hand and omitting the key both fails **and** prints the host address, which must
+  never be recorded anywhere.
+
 ## Next action
 
-**Deploy `ffab607`. It is the first reproducible release since the outage**, and the running host is
-carrying a hand-copied file until it lands.
+**Nothing on the server.** It is deployed, healthy, and running a commit that is reproducible from
+Git for the first time since the D6A3 outage.
 
-1. `./scripts/deploy-production --dry-run` — verifies and plans; changes nothing. Confirm the
-   **preflight** and the **snapshot** steps appear.
-2. `./scripts/deploy-production`.
-3. `sudo remote-sources-ctl version` — **a 40-character commit, never `null`.** `null` here now means
-   the deployment did not complete.
-4. `sudo remote-sources-ctl devices` — expect **`active: 1`**, unchanged. Pairing survives a
-   deployment and must not be reworked.
-5. Install the D6A4 APK **over** the Android app. No uninstall, no data clear.
-6. 9GAG: Validate from the app; expect a message that names the platform refusal rather than a
-   generic one, and the platform list to show **needing setup** after a refresh, surviving a restart.
-7. Optional: configure a cookie export server-side and Validate again — success returns it to Ready;
-   a continued refusal should now say the session was **not accepted**.
-8. One source at a **disposable** topic, initial import **Last 5**; then one animated item, which
+1. Install the D6A5 APK over the Android app, and confirm **Settings reads `0.13.5-d6a5` / code 30**
+   before recording any other answer.
+2. 9GAG: Validate from the app; expect a message naming the platform refusal rather than a generic
+   one, and the platform list to show **needing setup** after a refresh, surviving a restart.
+3. Optional: configure a cookie export server-side and Validate again.
+4. Configure Instagram and TikTok sessions if those platforms are wanted; both correctly say
+   setup-required until then.
+5. One source at a **disposable** topic, initial import **Last 5**; then one animated item, which
    should arrive as a looping animation.
 
 `docs/D6A_LIVE_CHECKLIST.md` carries the same order with the failure history attached.
 
 **Nothing past pairing has ever run end to end.** No connector has completed a live check → review →
-send.
+send, and a successful deployment is not evidence that one would.
 
 ## Gotchas for the next session
 
 - **Docker is not available in the PRoot dev environment.** The image must be built on the VPS.
+- **The health routes are `/api/v1/health` and `/api/v1/ready`.** The bare paths 404. Verifying a
+  healthy service with the short paths looks exactly like an outage.
+- **Run an ad-hoc remote command through the deploy script's own SSH construction** — the key from
+  `RS_DEPLOY_KEY` is required, and omitting it prints the host address in the error.
 - **A console script's shebang is an absolute path baked in at install time.** Building the venv at
   `/build` and copying it to `/app` produced entry points pointing at an interpreter that no longer
   existed; the builder now works at the runtime path. This cost one rebuild.

@@ -62,118 +62,75 @@ Always show the Termux `cp` command before installation:
 cp /root/work/telegram-topic-uploader/app/build/outputs/apk/debug/app-debug.apk /sdcard/Download/
 ```
 
-**Install over the existing app.** The debug certificate has not changed since D5A — at D6A2 it is
-still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`. **D6A4 (code 29)
-supersedes every earlier build; no intermediate version needs installing first.**
+**Install over the existing app.** The debug certificate has not changed since D5A — at D6A5 it is
+still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`. **D6A5 (code 30,
+`0.13.5-d6a5`) supersedes every earlier build; no intermediate version needs installing first.**
+Since D6A5 the **Settings screen states the installed version**, read from the package itself —
+check it before recording any device answer, because a checklist answered against the previous
+build reads identically to one answered against this one.
 **Do not uninstall** — it destroys the database, and with it every folder grant, destination, queue
 item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
 
-**D6A4** — a hotfix milestone opened by a **production outage** and three device reports.
+**D6A5** — opened by two device reports that point in opposite directions, and joined by four more
+while it was being written. **The session was interrupted by a Termux kill and resumed**; see
+`cc-latest.md` for what survived and what had been claimed but not done.
+
+> **Deletion after a Telegram-confirmed upload works on hardware, and so does external deletion
+> followed by a scan.** Neither was rewritten. The broken path was the *manual* one, and the reason
+> is why: the post-upload path counts **other** jobs and excludes the job that licensed it, while
+> the manual gate counted every job — including the `AWAITING_ROUTING` one that is what puts an item
+> in Review — and so refused before the provider was ever asked.
+
+| Workstream | What it was |
+| --- | --- |
+| **1. Confirmed is not queued** | `ALREADY_QUEUED` collapsed three unrelated facts into one verdict. Nine `DestinationRelationship` states, one pure policy, and the queued sentence reachable from exactly one of them. A confirmed item gets a dialog offering delete / keep / a different topic. |
+| **2. The manual deletion reaches the provider** | One line: `SOURCE_DEPENDENT_STATUSES` included the statuses every un-uploaded item has. `SourceDependencyPolicy` separates a preparation that committed to a destination from one that did not. **D6A4's diagnosis was right — the missing sentence was the evidence.** |
+| **3. Orphan reservations** | Released only when provably orphaned; never one owned by a live job, a confirmed upload, a `RESULT_UNKNOWN`, an album member or a batch operation. |
+| **4. Five platforms** | Reddit, X, 9GAG, Instagram, TikTok, each with its own state sentence. The server stays the authority. |
+| **5. The installed version, in Settings** | Read from `PackageManager`, never a literal. **`BuildConfig` was rejected on purpose**: it reports what the *source* compiled as, so it would name the new version while the phone runs the old APK — the exact confusion the row exists to end. |
+| **6. A failed item can be removed** | The mechanism existed; the row drew **nothing** when the strict rule refused. It now always draws the control, disabled with its reason when it must be, plus a dismissal that keeps the reservation. |
+| **7. A Review item can leave Review** | Review's *attention* card had one recovery action and no way out. It now offers **Do not upload**, or says why not. Reversible, and never called a deletion. |
+| **8. Preview from a folder** | The overlay was hosted by two routes and the folder page was not one of them. The folder route now hosts the **same** overlay, not a second player. |
+
+| Field | Value |
+| --- | --- |
+| App version | code 30, `0.13.5-d6a5` |
+| App HEAD | `4e36dcc7ef23266fce772910e319d141c6916ccc` |
+| Server HEAD | `cb0174765306f429225b299845d6f11456dc666d` |
+| Room schema | **12 — unchanged.** No migration runs. |
+| App unit tests | 1869, 0 failures. Lint clean. Both assembles succeed. |
+| Server tests | 594 passed, 2 skipped. `ruff` and `mypy` clean. |
+| Install | over the existing app, **never uninstall, never clear data** |
+| **Deployment** | **`cb01747` is deployed and healthy.** `version` reports the full 40-character commit — **never `null` again** — and `devices` still shows **active: 1**. |
+| APK | copied to Downloads as `TelegramTopicUploader-0.13.5-d6a5.apk`, **byte-for-byte identical** to the build output |
+| Hardware-proven | Pairing, authenticated requests, the D6A3 destination selector, deletion **after** a confirmed upload, external deletion + scan |
+| Never checked | **All of D6A5.** All of D6A4. D6A2's Preview ownership and album settlement. Any end-to-end remote send. |
+
+**The D6A4 outage is closed.** The host is no longer running a hand-copied tree: it runs exactly
+`cb01747` and reports that commit itself.
+
+**Do this first:** install the APK over the existing app, **open Settings and confirm it reads
+`0.13.5-d6a5` / `30`**, then work `docs/D6A5_DEVICE_CHECKLIST.md` in order. Nothing needs doing on
+the VPS.
+
+Previous: **D6A4** — a hotfix milestone opened by a **production outage** and three device reports.
 
 > **The D6A3 destination selector works on hardware.** Pairing stayed connected, the chat and topic
 > identifier fields are gone, and choosing a topic by name is the flow. **Preserved untouched.**
->
-> **The D6A3 server deployment failed.** It restart-looped on
-> `ModuleNotFoundError: No module named 'remote_sources.secrets'`. Recovery required **copying the
-> package to the host by hand** plus a reboot. Production is healthy and **the commit it is running
-> is not reproducible from Git** — deploying the D6A4 server commit is what closes that, and it is
-> the first thing to do.
 
 | Workstream | What it was |
 | --- | --- |
-| **1. Release integrity** | `.gitignore` carried an unanchored `secrets/` rule that also matched `src/remote_sources/secrets/`, so the package was **never tracked**; `git archive` shipped without it and `rsync --delete` removed the host's copy. Rules anchored to the root, package tracked, plus `scripts/release-preflight` and tests that read the **index** and assert the loaded module path is inside the export. |
-| **2. Real rollback** | The old one printed *"attempting to restart the previous release"* and ran `docker compose up -d` against the **already-promoted broken tree**. It now snapshots before promotion and restores tree, marker and verified database, or says `ROLLBACK FAILED`. Thirteen failure-injection tests. |
-| **3. Release marker** | `version` answered `deployed_commit: null` because it read a **host** path the container does not mount. Now inside the bind-mounted state directory; a deployment that does not report its promoted commit fails and rolls back. |
-| **4. 9GAG readiness** | Server classified the live refusal right — `setup_required`, `http_403` — and Android showed one generic sentence while the platform still said Ready. Every classification has its own sentence; validation now records a sanitized platform signal. |
-| **5. Deletion diagnostics** | D6A3's second sentence never appeared, because the paths that refuse **before the provider is asked** returned no stage. Three stages added, every refusal carries one. **The absence of the sentence is the finding: the provider was very likely never asked.** |
-| **6. Animated GIFs** | `MediaKind.ANIMATION`, 9GAG `Animated`, Reddit `.gif`/`.gifv`/gallery/preview, `sendAnimation`. A `.gifv` with no MP4 is **refused** — it is an HTML page. |
+| **1. Release integrity** | `.gitignore` carried an unanchored `secrets/` rule that also matched `src/remote_sources/secrets/`, so the package was **never tracked**; `git archive` shipped without it and `rsync --delete` removed the host's copy. Rules anchored to the root, package tracked, plus `scripts/release-preflight` and tests that read the **index**. |
+| **2. Real rollback** | The old one printed *"attempting to restart the previous release"* and ran `docker compose up -d` against the **already-promoted broken tree**. It now snapshots before promotion and restores tree, marker and verified database, or says `ROLLBACK FAILED`. |
+| **3. Release marker** | `version` answered `deployed_commit: null` because it read a **host** path the container does not mount. Now inside the bind-mounted state directory. **Verified fixed in production at D6A5.** |
+| **4. 9GAG readiness** | Every classification has its own sentence; validation records a sanitized platform signal. |
+| **5. Deletion diagnostics** | Three stages added, every refusal carries one. **The absence of the sentence was the finding** — and D6A5 proved it: the provider was never asked. |
+| **6. Animated GIFs** | `MediaKind.ANIMATION`, 9GAG `Animated`, Reddit `.gif`/`.gifv`/gallery/preview, `sendAnimation`. |
 
-| Field | Value |
-| --- | --- |
-| App version | code 29, `0.13.4-d6a4` |
-| App HEAD | `55fbd5bb1b6fbee8fabc673c58f73930a826b970` |
-| Server HEAD | `ffab60766b070b974594c41da6363b5bc7d3dd01` |
-| Room schema | **12 — unchanged.** No migration runs. |
-| App unit tests | 1748, 0 failures. Lint clean. |
-| Server tests | 443 passed, 1 skipped. `ruff` and `mypy` clean. |
-| Install | over the existing app, **never uninstall, never clear data** |
-| Hardware-proven | Pairing, authenticated requests, **and the D6A3 destination selector** |
-| Hardware-failed | **Permanent deletion**, now under three consecutive fixes |
-| Never checked | D6A2's Preview ownership and album settlement; the 9GAG classification; animated delivery; the new deployment and rollback |
-| Deployment | **Nothing.** The production VPS was not accessed and no SSH connection was made. |
-
-**Do this first:** deploy the D6A4 server commit, confirm `remote-sources-ctl version` prints a
-40-character commit rather than `null`, confirm `devices` still shows `active: 1`, then install the
-APK over the existing app. `docs/D6A4_DEVICE_CHECKLIST.md` carries the order.
-
-Previous: **D6A3** — four workstreams opened by the **first successful hardware pairing**.
-
-> **Remote pairing works end to end on the real device.** Paired, Connected, and authenticated
-> status, destinations, sources, review and history all returned data. Device counts: total 4,
-> **active 1**, revoked 3. **Do not rework pairing** without an objective regression.
-
-| Workstream | What it was |
-| --- | --- |
-| **A. Destination UX** | The form asked a person to retype a chat ID and a topic ID the app already held. Now a dropdown of connected topics, by name; **no identifier field anywhere**. Server does create-or-reuse on `(chat_id, thread_id)`. |
-| **B. 9GAG** | Answered **403 twice** from the deployed VPS while reporting **Ready**. Now setup-required with an optional server-side cookie; **Ready means prerequisites are satisfied**. |
-| **C. Deletion** | **Failed again on hardware.** Ten named stages, the production path calls them, plus one further exact attempt on the same document URI. **Not claimed fixed.** |
-| **D. Deployment** | One command, `./scripts/deploy-production`. `rsync --delete` removes files a newer release deleted — the silent defect in copy-and-unpack. |
-
-| Field | Value |
-| --- | --- |
-| App version | code 28, `0.13.3-d6a3` — **superseded by D6A4** |
-| App HEAD | `309ae0d3723cc056bda3432f84c8b0d08a0e25f9` |
-| Server HEAD | `befe5040d2d0177c7cedf23feaad3d1397166e31` |
-| Room schema | **12 — unchanged.** |
-| App unit tests | 1727, 0 failures. Lint clean. |
-| Server tests | 369, 0 failures. `ruff` and `mypy` clean. |
-| Install | **`cp app/build/outputs/apk/debug/app-debug.apk /sdcard/Download/`** — over the existing app, **never uninstall, never clear data** |
-| Hardware-proven | **Pairing, and authenticated requests. That is all.** |
-| Hardware-failed | **Permanent deletion**, now under two different fixes |
-| Never checked | D6A2's Preview ownership and album settlement; everything in D6A3 |
-
-**D6A3's live result:** the destination selector **passed**; the deployment, the rollback, the
-release marker, the 9GAG display and the deletion all **failed**. See D6A4 above.
-
-**Before remote pairing on a fresh setup:** deploy the server
-(`./scripts/deploy-production`), then `sudo remote-sources-ctl revoke-all-devices --confirm` if
-orphan device records exist, then one fresh pairing code used immediately.
-
-Previous: **D6A2** — three regressions reported from ordinary device use. **Two of them had already
-been "fixed" in D6A**, with code that passed its own tests and changed nothing on the device.
-
-| Reported | What was actually wrong |
-| --- | --- |
-| Finishing an upload closed a **different** item's Preview | A completed upload closed "the" preview without asking which one was open |
-| Permanent delete still did not work | The D6A check asked the provider a question it cannot answer after a real deletion, and read the silence as *could not confirm* |
-| Album rows sat in the Queue with no action | D6A wrote the fix and never called it; nothing durable recorded a shell as finished |
-
-| Field | Value |
-| --- | --- |
-| App version | code 27, `0.13.2-d6a2` — **superseded by D6A3** |
-| Room schema | **12 — unchanged.** No migration runs. |
-| App unit tests | 1704, 0 failures. Lint clean. |
-| App permissions | unchanged from D5C. **No camera** — pairing is typed, not QR. |
-| Server tests | 343, 0 failures. `ruff` and `mypy` clean. |
-| Server state | Deployed, migrated, **healthy**. **Unchanged by D6A2 — all three defects are Android-local.** |
-| Device-tested? | **No. Nothing in D6A, D6A1 or D6A2 ran on a device.** |
-| D6A end-to-end | **Never passed.** Remote pairing has never completed on a device. |
-
-Previous: D6A1 (`2a0f74e`, code 26), D6A (`d209e64`, code 25), D5C (`97125dc`, code 24) — **all
-device-untested in full**.
-
-**D6A1's live evidence, still the only remote evidence there is:** the private endpoint answered, the
-pairing exchange **succeeded**, the server minted a token, the app truthfully said it could not store
-it, and the consumed code was correctly refused afterwards. Each attempt left an active server-side
-device record — cleared with `remote-sources-ctl revoke-all-devices --confirm`.
-
-**What the first real pairing attempt established, sanitised:** the private endpoint answered, the
-exchange **succeeded**, the server minted a token, the app truthfully said it could not store it, and
-the consumed code was correctly refused afterwards. Each attempt left an active server-side device
-record whose plaintext nobody holds — cleared with the new
-`remote-sources-ctl revoke-all-devices --confirm`.
+Previous: **D6A3** (`309ae0d`, code 28), **D6A2** (`3cdfdd8`, code 27), **D6A1** (`2a0f74e`, code 26),
+**D6A** (`d209e64`, code 25), **D5C** (`97125dc`, code 24) — **all device-untested in full**.
 
 ## 5. Deployed VPS state — no private values
 
@@ -222,11 +179,14 @@ run in their own SSH shell.
 
 | | Discovery | Credentials | Live-tested |
 | --- | --- | --- | --- |
-| **9GAG** | implemented; payload shape verified against the live site | none | **no** |
+| **9GAG** | implemented; payload shape verified against the live site | optional server-side cookies | **refused live — 403**, classified `setup_required` |
 | **Reddit** | implemented (`u/…` and `r/…`) | **required** — anonymous is 403 | **no** |
 | **X** | implemented (gallery-dl + cookies) | **required** | **no** |
-| Instagram | prepared boundary, reports unsupported | — | n/a |
-| TikTok | prepared boundary, reports unsupported | — | n/a |
+| **Instagram** | **implemented at D6A5** (gallery-dl, Instaloader fallback) | **required** | **no** |
+| **TikTok** | **implemented at D6A5** (gallery-dl + yt-dlp) | **required** | **no** |
+
+All five are selectable in the Android app since D6A5, each with its own state sentence. **Being
+selectable is not being live-tested**, and the two must never be conflated in a report.
 
 **Mocked tests prove parsing and classification. They prove nothing about the live platforms.** Never
 describe a connector as end-to-end validated on that basis.
@@ -242,37 +202,47 @@ connector most likely to need maintenance**, since that payload is front-end dat
 - **D5A check 1** — a folder shows its real name; a local alias can be set, shown and cleared.
 - **D5A check 2** — tapping a folder opens its own media page.
 - **D5A check 3** — one disposable image scanned, thumbnailed, previewed and uploaded.
-- One D5A defect (Back went to the Dashboard) that D5B fixed and nobody has re-confirmed.
+- **D6A3** — the first successful pairing, authenticated requests, and the destination selector.
+- **D6A5 reports, authoritative:** deletion **after** a Telegram-confirmed upload **works**, and
+  manual external deletion followed by a complete scan **reconciles correctly**. Neither may be
+  broadly rewritten; both are now explicit regression guards.
 
 **Reported by the user during ordinary use — currently FAILED on hardware:**
 
-- **Manual permanent deletion said it succeeded and the source file remained.** Fixed in code in
-  D6A; **not re-verified on a device.**
-- **A 42-item send:** the app showed an album failure, most items were in the topic as individual
-  posts, **three** were missing, and album rows stayed in the Queue with no usable action. Fixed in
-  code in D6A; **not re-verified.** The 50 MB suspicion is **consistent with the evidence but not
-  proven** for those three items.
-- **Selection actions were unreachable without scrolling to the top.** Fixed in code; not re-verified.
+- **Manual permanent deletion without upload.** Root-caused in D6A5 to one line in
+  `SOURCE_DEPENDENT_STATUSES`; **not re-verified on a device.**
+- **A confirmed upload described as "already queued"**, with an empty Upload Queue. Fixed in D6A5;
+  **not re-verified.**
+- **A terminal Failed item with no removal action.** Fixed in D6A5; **not re-verified.**
+- **A Review item with no action that removes it from Review.** Fixed in D6A5; **not re-verified.**
+- **Preview from inside a folder did nothing.** Root-caused to a missing overlay host and fixed in
+  D6A5; **not re-verified.**
+- **A 42-item send:** album failure, three items missing, album rows stuck in the Queue. Fixed in
+  D6A; **not re-verified.** The 50 MB suspicion is **consistent with the evidence but not proven**.
+- **Selection actions unreachable without scrolling to the top.** Fixed; not re-verified.
+
+**Verified against production this milestone (server, not the phone):**
+
+- The deployment ran end to end; `remote-sources-ctl version` reports the full 40-character commit;
+  loopback health and readiness answer 200; an unauthenticated data route is 401; **no application
+  port is on a non-loopback address**; and **the pairing survived** — `devices` still shows
+  `active: 1`.
 
 **Unvalidated on hardware:**
 
-- **All of D6A4** — the release preflight, the real rollback, the release marker, the 9GAG
-  classification and readiness refresh, the reachable deletion stages, and animated delivery.
-- **D6A3 minus the destination selector**, which passed. The 9GAG classification, the deletion
-  diagnosis and the deployment command all failed live and were re-fixed in D6A4.
-- **All of D6A2** — including all three fixes. **Two of its three defects were reported fixed in D6A
-  and confirmed on hardware zero times.**
-- **All of D6A1** — including the fix itself.
-- **All of D6A.** Pairing has never completed on a device, so **nothing past pairing has ever run**.
-- **All of D5C** — the formal duplicate checklist has **still not been run**.
-- **All of D5B.**
+- **All of D6A5.** **All of D6A4.** **All of D6A2**, including all three fixes. **All of D6A1.**
+- **Everything past pairing in D6A** — no connector has completed a live check → review → send.
+- **All of D5C** — the duplicate checklist has **still not been run**. **All of D5B.**
 - Every D5A check beyond 1–3; everything left after D4B and D4C.
 
 **Rules.** Do not infer validation from tests, lint or a successful build — none touch a device.
-**No previously listed checklist item may be marked passed from those three reports**; the user
-described problems, not a regression run. Manual checklists cover only new behaviour and direct
-regressions; never ask for a full historical regression, token setup, multi-topic binding or old
-repair checks unless something visibly breaks.
+**A successful deployment validates the server, never the app.** No previously listed checklist item
+may be marked passed from a bug report; the user described problems, not a regression run. Manual
+checklists cover only new behaviour and direct regressions.
+
+**The durable backlog lives in `/root/work/telegram-topic-uploader/TODO.md`** and is the record of
+every open item with its state and its completion evidence. This ledger is the hardware view of it;
+the table is the whole of it.
 
 ## 9. Permanent product decisions
 
@@ -287,6 +257,24 @@ repair checks unless something visibly breaks.
   and `RESULT_UNKNOWN` is never retried — on either side.
 - **Deletion is of one exact document**, by granted tree plus recorded document ID, after re-proving
   identity, size and a fresh full SHA-256. No name matching, no listing, no recursion, no bulk form.
+- **D6A5: a control that silently disappears is indistinguishable from a broken one.** Offer it with
+  its sanitized reason instead. This was already the rule for permanent deletion on the Review card;
+  the Failed row not following it is what the device reported.
+- **D6A5: strictness must be paid for by something.** Retirement refuses an unproven failure code
+  *because it releases the reservation*. A removal that **keeps** the reservation keeps the duplicate
+  guard, so it can safely accept what retirement refuses. Weakening the rule without keeping the
+  guard would have been the unsafe version of the same change.
+- **D6A5: `RESULT_UNKNOWN` receives no action, on any surface, in any milestone.** No resend, no
+  ignore, no removal, no evidence change. It is refused first, before every other check.
+- **D6A5: the application must state the version it is actually running**, read from the installed
+  package. `BuildConfig` is the wrong source — it names what the source tree compiled as, so it
+  would report the new version while the phone runs the old APK. A UI literal is worse still.
+- **D6A5: "Do not upload" is not a deletion and is never described as one.** It is reversible, the
+  source file is untouched, and Restore undoes it. That is what makes it safe to offer on a row that
+  has no other safe action.
+- **D6A5: one Preview overlay, hosted by every route that offers Preview.** A second implementation
+  would mean a second autoplay policy, a second zoom, and a second chance to lose the D6A2 ownership
+  rule. The defect was a missing *host*, not a missing player.
 - **D6A4: a test that reads the working tree cannot detect a file missing from the release.** Ask
   Git what would ship, read the **index** rather than `HEAD`, and assert the loaded module came
   from the export — an editable install will otherwise answer the import from the checkout.
@@ -348,32 +336,52 @@ repair checks unless something visibly breaks.
   being a guard.
 - **Preserve privacy absolutely**, per the header of this file. Every test fixture is synthetic.
 - **`in-progress.md`** at the memory root: append a line before editing, remove it after pushing.
+- **Reconcile the conversation against the durable backlog before committing. Permanent, and not
+  optional.** No device report, user request, discovered defect, deferred verification, operational
+  requirement or unfinished item may exist **only** in a conversation. Before the final
+  agent-memory commit of any milestone, every one of them must appear in a durable file — normally
+  the backlog table in the application's `TODO.md` — carrying a description, an owning
+  repository/component, a state, the milestone handling it, and **the evidence required before it
+  may be called completed**. The final report must list whatever is still open. **Silence is never
+  equivalent to completion.**
+- **"Implemented" is not "works".** Use the distinct states and never merge them: `implemented`
+  (code plus **synthetic** tests), `deployed`, `installed`, `device-unverified`, `live-unverified`,
+  `blocked`, `completed`. A green test suite is evidence about a test suite.
+- **Deferred work stays visible.** Never delete an item from `TODO.md` because a milestone ended.
+  Record the reason it was deferred and the next exact action.
+- **Distrust prose written ahead of the fact.** A resumed session must verify claims against
+  artefacts on disk — test XMLs, lint reports, APK timestamps and sizes — never against what a
+  `TODO.md` or a checklist says was done. D6A5 was resumed from a state where both claimed results
+  that had not happened.
 
 ## 11. Roadmap
 
-1. **Deploy the D6A4 server commit first.** It is the first reproducible release since the outage;
-   the running host is carrying a hand-copied file. Then `remote-sources-ctl version` must print a
-   40-character commit, and `devices` must still show `active: 1`.
-2. **Device-validate D6A4**, `docs/D6A4_DEVICE_CHECKLIST.md`, **in order**. Priority: **§2 the
-   deletion — and specifically the SECOND sentence of its message, verbatim**, which now names the
-   stage the attempt reached; then §1 the 9GAG classification and the readiness refresh, §3 animated
-   delivery, §4 the D6A3 regressions. **§2 deletes real files** — disposable copies in a disposable
-   folder only.
-3. Live-validate one remote source against a **disposable** topic — the server's
-   `docs/D6A_LIVE_CHECKLIST.md` carries the exact order. Pairing already works and must not be
-   reworked; **nothing past pairing has ever run end to end.**
-4. Whatever the device reports about D5C and D5B.
+**The authoritative, itemised backlog is the table in
+`/root/work/telegram-topic-uploader/TODO.md`** — every reported item, its owner, its state and the
+evidence required to close it. This list is the ordering; that table is the record.
+
+1. **Device-validate D6A5**, `docs/D6A5_DEVICE_CHECKLIST.md`, **in order**. Confirm the Settings
+   version first — every other answer depends on which build produced it. Priority: **§1 the manual
+   deletion**, which **deletes real files** — disposable copies in a disposable folder only; then §3
+   confirmed-versus-queued; then §6 the four new findings; then §5 the five platforms.
+   **The server needs nothing** — `cb01747` is already deployed and healthy.
+2. Live-validate one remote source against a **disposable** topic — the server's
+   `docs/D6A_LIVE_CHECKLIST.md` carries the exact order. Pairing works and must not be reworked;
+   **nothing past pairing has ever run end to end.**
+3. Credentials for Instagram and TikTok, then a live check for each. Both are implemented and both
+   correctly report setup-required until a session exists on the server.
+4. Whatever the device reports about D6A4, D5C and D5B.
 5. Still owed from D4B/D4C: deletion retries, batch deletion, blocked deletion states, the launch
    scan, the Hebrew Preview.
-6. **Instagram** (gallery-dl + cookies, Instaloader fallback) and **TikTok** (gallery-dl + yt-dlp +
-   a **self-hosted** cobalt). Both are prepared boundaries that currently report unsupported.
-   **Stories and expiring content** stay a separate opt-in schedule and are deferred with them.
-7. A manual-resolution affordance for a remote `RESULT_UNKNOWN`. Recorded correctly and never
+6. A manual-resolution affordance for a remote `RESULT_UNKNOWN`. Recorded correctly and never
    retried, but resolving one is currently "look at the topic and decide".
-8. Optional content-based topic *suggestions* on Review — never automatic routing.
-9. Result-unknown reconciliation that never re-sends without evidence, and evidence-based resolution
-   of an unowned or ambiguous legacy reservation (D3A.1).
-10. **Explicitly not on the roadmap:** per-account mapping of local folders.
+7. Deferred from D6A5: the post-tap ignore refusal is still one generic sentence. The row explains
+   pre-emptively, so this only shows after a race.
+8. **Stories and expiring content** stay a separate opt-in schedule, deferred.
+9. Optional content-based topic *suggestions* on Review — never automatic routing.
+10. Result-unknown reconciliation that never re-sends without evidence, and evidence-based
+    resolution of an unowned or ambiguous legacy reservation (D3A.1).
+11. **Explicitly not on the roadmap:** per-account mapping of local folders.
 
 ## 12. New-chat startup procedure
 
