@@ -32,13 +32,113 @@ hash — and nothing added to it ever may.
 | Head after D6A7c | `cbea54ffa9d41b6a76a84a4d739845899995c3f2` (`cbea54f`) — deployed; **shipped four defects, see D6A7c1** |
 | Head after D6A7c1 | `f5c0b7d9a4010f7c012a2da1e854e1b8f3848865` (`f5c0b7d`) — deployed and verified |
 | Head after D6A7d, first commit | `60ebc6b43ba9e1122f383e2323eaba28347e0a26` (`60ebc6b`) — deployed and verified |
-| **Head after D6A7d** | **`6fa9662b25e606c5d432ea52cc2827500d4f8137`** (`6fa9662`) — **deployed and verified** |
+| Head after D6A7d | `6fa9662b25e606c5d432ea52cc2827500d4f8137` (`6fa9662`) — deployed and verified |
+| Head after D6A7e, first commit | `40dcb9801a368f4075ef3ceaa91af10f77f2c8e0` (`40dcb98`) — deployed; the first dry run found a bound |
+| Head after D6A7e, narrowing fix | `614265acc9a2485e19b4804fb428aab49afa3d01` (`614265a`) — deployed; backfill applied here |
+| **Head after D6A7e** | **`b3b9378216402ded73b4a4070eda77e5c0f41356`** (`b3b9378`) — **deployed and verified** |
 | Host | A DigitalOcean droplet, Ubuntu 24.04.4, amd64, 1 vCPU, ~2 GiB RAM, ~48 GB disk |
 | Deploy path on host | `/opt/remote-sources` |
 | State path on host | `/var/lib/remote-sources` |
 
 The VPS address, its Tailscale hostname and the tailnet name are **deliberately not recorded
 anywhere**. They live in the operator's shell and in the Android app's settings.
+
+## D6A7e — the listing that knows what a Reel is
+
+**The device report.** Remote History labels Stories correctly, and **a post the user knows to be a
+Reel appears as *Unknown type***. Separately, and this is the good half: **a second successful
+Instagram check did not resend the already-imported active Stories**, so **live Story deduplication
+is verified** — the check D6A7d left open.
+
+### The probe, before anything changed
+
+Metadata-only, bounded, read-only, against the deployed container and the configured session. No
+media downloaded, no source check through the API, no Telegram send, no item created, no cursor or
+Story state touched.
+
+| Fact | Value |
+| --- | --- |
+| gallery-dl | 1.32.8 |
+| `product_type` / `media_product_type` / `subtype_name_for_REST__` in a feed record | **absent, all three** |
+| `subcategory` on every feed record | `posts` — which carries Reels too |
+| `post_url` route shapes | `/p/` ×10, `/reel/` ×2 |
+| Feed identities on the account's clips listing | **4 of 6** |
+| Named by the untrusted `type` | **1** — it missed three |
+| `type` on the clips listing itself, every member a Reel | `post` on **10 of 12** |
+| Clips ∩ photos listings | **0** |
+| Clips throughput | 40 posts in 44.5 s (≈1.1 s each) |
+| Photos throughput | ~59 s for **three**, ~79 s for nine |
+
+**`post_url` is the same guess wearing a URL.** Read the extractor: `type` *and* `post_url` are both
+written in the `if len(files) == 1 and files[0]["video_url"]` branch. So the `/reel/` route looks
+canonical and is derived from media shape. Both fields are now in `UNTRUSTED_REEL_FIELDS`, with a
+test that fails the build if either is read.
+
+### What proves a Reel instead
+
+Not a field — a **listing**. `InstagramReelsExtractor.posts()` is `self.api.user_clips(uid)`,
+Instagram's own clips endpoint. `InstagramPhotosExtractor.posts()` yields a post only
+`if not self._is_reel(post)`, and `_is_reel` reads `product_type` / `media_product_type` /
+`clips_metadata` off the raw API post. Neither depends on the media's shape.
+
+A discovery that finds unproven posts resolves **both listings once** and cross-references by
+canonical identity — two requests for a whole page, never one per post. Bounded to 60 logical posts
+and 120 s each, run sequentially, and a listing that fails or times out **classifies nothing and
+fails nothing**. Membership in both is a contradiction, reported as `unknown` with a sanitized
+conflict outcome.
+
+> **The first production dry run found a real bound and is worth keeping.** It asked both listings
+> for the full 34-post window; clips resolved and **photos timed out**, leaving three rows Unknown.
+> That degradation was correct — and avoidable. The resolver now runs clips first and sizes the
+> photos window from what clips left, which turned 34 into 9. Measured, fixed, re-measured.
+
+**`post` got narrower, and the behaviour it replaced was an over-claim.** D6A7d answered `post` for
+any feed record carrying no reel signal; the profile listing carries Reels *and* posts under one
+subcategory, so that was never the same claim. An unproven record is `unknown` now. Five D6A7d tests
+changed because the behaviour they pinned was the defect.
+
+### The production backfill — run, with its counts
+
+`remote-sources-ctl classify-instagram-content`, dry run → verified runbook backup → apply → verify.
+
+| | Before | After |
+| --- | --- | --- |
+| Instagram rows with no classification | 28 | **1** |
+| `reel` | 0 | **25** |
+| `post` | 0 | **2** |
+| `story` | 11 | 11 |
+| History rows filled | — | **27** |
+| Failed / conflicting | — | **0 / 0** |
+
+Items 39, operations 39, check runs 2 — unchanged. Stories toggle, import state, enabled flag,
+baseline and preset all exactly as they were. **One row stays Unknown, and that is the pass working
+as designed.**
+
+### The schedule contract, pinned rather than changed
+
+A later device report asked what the Android card could not answer: *when will a Story I publish be
+discovered, and on an auto-send source, sent?* **No scheduler arithmetic changed.** The base
+intervals were already 8 h / 4 h / 2 h; `SourceResponse` already returned every schedule timestamp
+and the durable `last_check` with its trigger; and `PATCH /sources/{id}` has always recalculated
+`next_check_at` in the same response. Nine regression tests pin it and `API.md` documents it as the
+contract an app reads **instead of** deriving a countdown from a preset name — because jitter of
+±12%, adaptive dormancy, a platform backoff and any manual check all move the real time. The
+**manual cooldown is a different clock**.
+
+### No migration
+
+`content_kind` is already nullable on both tables and NULL already means *nobody proved anything*.
+**`0004_content_kind` remains the head.** No new API vocabulary, field or capability.
+
+### Gate
+
+`ruff format --check`, `ruff check`, `mypy` (96 files), **994 passed / 3 skipped**,
+`bash -n scripts/deploy-production`, `scripts/release-preflight` (49 modules) — all clean.
+
+### Still owed
+
+**Device-unverified: that a Reel appears as *Reel*, an ordinary video post as *Post*, and
+unclassifiable legacy content as *Unknown*, on the handset's Remote History.**
 
 ## What it is
 
@@ -1193,7 +1293,7 @@ correction. Row S8 in the server `TODO.md`.
 | Server HEAD | **`6fa9662b25e606c5d432ea52cc2827500d4f8137`** — deployed and verified |
 | Intermediate HEAD | `60ebc6b43ba9e1122f383e2323eaba28347e0a26` — also deployed and verified |
 | Migration head | **`0004_content_kind`** — two nullable columns plus one **proven** backfill. `0003` untouched |
-| Tests | **948 passed, 4 skipped** (903 at D6A7c1) |
+| Tests | **994 passed, 3 skipped** (948 at D6A7d) (903 at D6A7c1) |
 | Gate | `ruff format --check`, `ruff check`, `mypy`, `pytest`, `bash -n scripts/deploy-production`, `scripts/release-preflight`, `git diff --check` — all clean |
 
 ## The production fact this milestone was written from

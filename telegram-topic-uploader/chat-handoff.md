@@ -125,6 +125,102 @@ item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
 
+**D6A7e** — a queue Android accepted and never ran, a sentence that outlived its own action, a Reel
+the platform's own listing knows about, a schedule stated in numbers, and a 104.8 MB file that
+should never have been offered.
+
+> **Three device reports arrived during this milestone**, and one of them is good news that closes a
+> check open since D6A7c.
+
+### Verified on the handset, and recorded permanently
+
+- The D6A7d build opened over the existing application data.
+- **RESULT_UNKNOWN identification and resolution work** (device-check items 2–4).
+- **The later Story check works** (device-check item 7).
+- ✅ **A second *successful* Instagram check resent none of the already-imported active Stories.**
+  **Live Story deduplication is verified.** D6A7d could not close this: its second Check now was
+  refused by the manual cooldown, which is evidence of the cooldown and of nothing else.
+- Remote History displays **Story** for live Story deliveries.
+- **Per-item Upload now works and sends successfully.**
+- ✅ **Source deletion after a confirmed upload succeeded**, verified by the user in the Android file
+  manager. **The deletion-refusal sentence displayed beside it was therefore false.**
+- Screenshots continue to work.
+
+### The defects, all addressed and none of them closed
+
+1. **Upload queue froze 20 items, Android accepted the job, and nothing ever started.** Progress
+   stayed **0 / 20**; no item acquired; nothing sent; and because a retained active batch hides the
+   button, pressing *Upload queue* again appeared to do nothing.
+2. **A successful upload said the file was permanently deleted *and* that the app never asked
+   Android to delete it.**
+3. **The same false sentence reappeared minutes later on *"The scan started."*** — classified as
+   **stale notice replay / cross-operation notice contamination**. This is the report that
+   identified the cause; it is not evidence that anything needed the file.
+4. **A known Reel appeared as *Unknown type*.**
+5. **The source card named three presets and gave no numbers and no next-check time.**
+6. **Rows of 104.8 MB and 50.9 MB sat as `QUEUED`** offering *Upload now*, against the app's own
+   50 MB limit.
+7. **A RESULT_UNKNOWN replacement reached *Queued* and did not upload**, and its card showed a
+   disabled *"it is not in active processing"* action.
+8. **Three live queue rows under *"Items in this run: 20."*** The 20 is **historical and correct**
+   and must stay 20; the fault was that nothing said which number was which.
+
+### What was built
+
+**Acceptance is not a start.** `RESULT_SUCCESS` means the platform agreed to *consider* the job.
+Schema **15** adds `acceptedAt`, `startDeadlineAt`, `executionOwner`, `ownerAcquiredAt`; two active
+states join the vocabulary; a two-minute start deadline is reconciled on Queue entry, resume, pull
+and launch; and the card then offers **start it here / keep waiting / cancel**. The in-app runner is
+the *same* runner over the *same* snapshot. **Exactly one runner may hold a batch, decided by one
+guarded `UPDATE … WHERE executionOwner IS NULL` — not by cancellation timing**, because a job already
+dispatching sails through a cancellation window. The batch already frozen on the device is
+**recovered, not discarded**.
+
+**A notice is a one-shot event.** The deletion stage lived in a `StateFlow` only a manual deletion
+wrote and **nothing ever cleared**, and the screen did `"$base $stageMessage"`. One typed result now
+maps once into one immutable announcement carrying its own detail and an id that consumption names.
+Three notice channels became one. The vague sentence — *"something still needs this file, or the
+folder permission does not allow it"* — covered four situations with four different fixes and is
+**deleted from both locales**.
+
+**A Reel is proven by a listing, not a field.** No feed record carries a trusted signal, and
+`post_url`'s `/reel/` route is written in the same *"exactly one video file"* branch as `type`. The
+account's own `…/reels/` (Instagram's `user_clips`) and `…/photos/` (`not _is_reel`) listings are
+cross-referenced once per discovery. **Production backfill: 28 unclassified rows → 25 `reel`,
+2 `post`, 1 still Unknown; 27 history rows filled; 0 failed.**
+
+**The schedule, in numbers.** Presets state **8 / 4 / 2 hours**, and the card shows the *server's*
+last, last-successful and next check as exact local times and countdowns. **Nothing is derived from
+the preset.** The manual cooldown and the schedule are **two separate clocks**.
+
+**A file no method can carry is not send-ready work.** One clause in the one candidate query, so
+*Upload now*, the batch preview, the snapshot and the claim walk cannot disagree. Units checked
+rather than assumed: both sides are binary, so 50.9 MB really is over 52,428,800.
+
+**Two things the queue card never said.** The recorded sanitized failure code — written since D3A,
+never once rendered — and a contradiction: `QueueRemovalPolicy` preferred the *dismissal* rule's
+`NOT_QUEUED` ("this is not a *failed* row"), which renders as *"it is not in active processing"*
+under a status reading **Queued**.
+
+> **The replacement job's upload failure is not claimed as fixed.** The whole sequence now runs
+> end-to-end in deterministic tests against the real repository and every step passes; the uncertain
+> sibling does not block it. Whatever refused it wrote a code no screen displayed. **The next device
+> run must read the reason the card now states** — checklist line 54.
+
+| Field | Value |
+| --- | --- |
+| App version | code **39**, `0.13.14-d6a7e` |
+| App HEAD | `57181ebf1029422fc605814cf78489135250db83` |
+| Server HEAD | `b3b9378216402ded73b4a4070eda77e5c0f41356` — **deployed and verified** |
+| Room schema | **14 → 15**, four nullable columns, additive. Server: **no migration**, `0004_content_kind` still head |
+| App unit tests | **2377, 0 failures. Lint: 0 issues**, counted from the XML report |
+| Server tests | **994 passed, 3 skipped** |
+| APK | **copied to `/sdcard/Download/TelegramTopicUploader-0.13.14-d6a7e.apk`, hash verified, not installed** |
+| Live-proven | **Story deduplication**; **source deletion after a confirmed upload**; the Reel backfill |
+| **Not** proven | **every line of D6A7e on hardware**, and the replacement job's real refusal reason |
+
+## 4a. Previous milestone: D6A7d
+
 **D6A7d** — an uncertain upload that can finally be answered, a folder's real name, a delivery that
 says what it was, and a refusal that says which refusal.
 
@@ -175,6 +271,7 @@ endpoint reachable at all.
 | APK | **copied to `/sdcard/Download/TelegramTopicUploader-0.13.13-d6a7d.apk`, hash verified, not installed** |
 | Live-proven | **The first active-Story import**, against the real account and the real source |
 | **Not** proven | **every line of D6A7d on hardware**; **Story deduplication**; **live Reel classification** |
+
 
 ## 4a. Previous milestone: D6A7c1
 
@@ -537,6 +634,33 @@ connector most likely to need maintenance**, since that payload is front-end dat
 
 **Confirmed by the user, and only this:**
 
+- **D6A7e reports (2026-07-28), on the installed D6A7d build:**
+  - ✅ **Live Story deduplication.** A second *successful* Instagram check, with the same Stories
+    still active, resent **nothing**. This closes a check open since D6A7c; D6A7d's second Check now
+    was refused by the cooldown, which proved only the cooldown.
+  - ✅ **Source deletion after a confirmed upload succeeded**, verified in the **Android file
+    manager**. The file was genuinely gone. **The deletion-refusal sentence shown beside it was
+    therefore false**, and the same false sentence then appeared on an unrelated *"The scan
+    started."* — classified as **stale notice replay**, not as evidence about the file.
+  - ✅ RESULT_UNKNOWN identification and resolution (D6A7d checklist items 2–4) and the later Story
+    check (item 7) both work.
+  - ✅ **Per-item Upload now works and sends.** This is what rules out the media, the connection, the
+    destinations and the upload pipeline for the batch defect below.
+  - 🔴 **Upload queue: 20 items frozen, Android accepted the job, and nothing ever started.**
+    Progress **0 / 20**. **The background-batch path remains device-broken until D6A7e is verified.**
+  - 🔴 A known **Reel showed as Unknown type**. **Live Reel classification is not verified**, even
+    though the server has since proven the signal and reclassified 25 rows.
+  - 🔴 A **104.8 MB** row and a **50.9 MB** row sat as `QUEUED` offering *Upload now*, against the
+    app's own 50 MB limit.
+  - 🔴 A **RESULT_UNKNOWN replacement reached *Queued* and did not upload**, with a contradictory
+    disabled *"not in active processing"* action on the same card.
+  - 🔴 Three live queue rows under *"Items in this run: **20**"*. **The 20 is historical, correct,
+    and must never be rewritten** — it is a frozen batch's membership. The defect was presentation.
+  - 🔴 The source card named three presets with **no numbers and no next-check time**.
+
+  > **Source deletion itself passed in this observed case. Truthful *notice* behaviour did not, and
+  > remains open until D6A7e is physically verified.**
+
 - **D5A check 1** — a folder shows its real name; a local alias can be set, shown and cleared.
 - **D5A check 2** — tapping a folder opens its own media page.
 - **D5A check 3** — one disposable image scanned, thumbnailed, previewed and uploaded.
@@ -688,6 +812,32 @@ every open item with its state and its completion evidence. This ledger is the h
 the table is the whole of it.
 
 ## 9. Permanent product decisions
+
+- **D6A7e: the schedule presets mean 8, 4 and 2 hours, and the card says so.** *Relaxed* is a base of
+  every 8 hours, *Normal* every 4, *Attentive* every 2. **A base is not a promise:** every interval
+  is jittered by up to ±12%, a source that has just produced new posts may be checked sooner,
+  repeated empty checks gradually space out, and a platform refusal starts a backoff.
+- **D6A7e: the server owns every schedule time, and Android never computes one.** `last_check_at`,
+  `last_success_at`, `next_check_at` and the durable `last_check` (with its `manual` / `scheduled`
+  trigger) come off the wire; deriving a countdown from a preset name would look authoritative and
+  be routinely wrong. Changing the preset recalculates `next_check_at` in the same `PATCH` response.
+- **D6A7e: the manual Check-now cooldown and the automatic schedule are two separate clocks**, and
+  the card draws both. They are commonly minutes and hours apart, and conflating them tells the user
+  the wrong thing about when a Story will arrive.
+- **D6A7e: a Story is checked at the source's next real check, with the feed.** On an **auto-send**
+  source a newly discovered Story is delivered *during that successful check* — a check **starting**
+  is not a delivery: discovery must succeed, the Story must be new, its media must stage, and the
+  send must succeed.
+- **D6A7e: a frozen batch's item count is audit evidence and is never rewritten.** A batch created
+  with 20 items says 20 for ever, whatever the live queue does afterwards. The current queue count is
+  a **different number**, shown separately.
+- **D6A7e: acceptance by `JobScheduler` is not execution**, and the two are separate durable facts.
+  Exactly one runner may hold a batch, decided by a guarded durable claim rather than by cancelling
+  a pending platform job — cancellation is a request with a window.
+- **D6A7e: a notice is a one-shot event that owns everything it says.** No sanitized reason may be
+  stored beside a notice and concatenated at render time; consumption names the announcement's id.
+- **D6A7e: an oversized file stays visible and is never send-ready.** It is not deleted, hidden,
+  ignored or retired; it states its own size and the ceiling, and offers no send action.
 
 - **D6A7c1: screenshots and screen recording are allowed, everywhere in the application.** No
   `FLAG_SECURE`, no `setRecentsScreenshotEnabled(false)`, no secure surface, no blur, no overlay, no

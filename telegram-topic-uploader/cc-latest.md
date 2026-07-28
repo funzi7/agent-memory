@@ -11,31 +11,199 @@
 
 | Field | Value |
 | --- | --- |
-| Task | **D6A7d** — an uncertain upload that can be answered, a folder's real name, and a delivery that says what it was |
-| **Final application HEAD** | **`6a9ced6d1791d290a8751c0e1eb325e5dda4d5cd`** — pushed |
-| **Final server HEAD** | **`6fa9662b25e606c5d432ea52cc2827500d4f8137`** (`6fa9662`) — **deployed and verified** |
-| Version | code 37 → **38**, name `0.13.12-d6a7c1` → **`0.13.13-d6a7d`** |
-| Room schema | **13 → 14.** Five nullable columns on `upload_jobs` and one unique index. Server: **`0004_content_kind`** |
-| Gate | **2250 Android unit tests, 0 failures. Lint: no issues** (read from the XML report). Server **948 passed, 4 skipped** |
-| APK | `app-debug.apk`, 16,251,384 bytes, SHA-256 `810637f90bce3fb7582537bdc962c7f41899100d72178a426dc43754784949db`. Signer unchanged. **Copied to Downloads with a matching hash. Not installed** |
-| APK in Downloads | `/sdcard/Download/TelegramTopicUploader-0.13.13-d6a7d.apk` — hash verified identical |
-| Live | **The first active-Story import in this project**, and both deployments |
-| Hardware | **No line of D6A7d is verified.** `docs/D6A7D_DEVICE_CHECKLIST.md`; all *not attempted* |
+| Task | **D6A7e** — a queue Android accepted and never ran, a sentence that outlived its own action, and a Reel the platform's own listing knows about |
+| **Final application HEAD** | **`57181ebf1029422fc605814cf78489135250db83`** — pushed |
+| **Final server HEAD** | **`b3b9378216402ded73b4a4070eda77e5c0f41356`** (`b3b9378`) — **deployed and verified** |
+| Version | code 38 → **39**, name `0.13.13-d6a7d` → **`0.13.14-d6a7e`** |
+| Room schema | **14 → 15.** Four nullable columns on `upload_batch_sessions`. Server: **no migration**, `0004_content_kind` still head |
+| Gate | **2377 Android unit tests, 0 failures. Lint: 0 issues** (counted from the XML report). Server **994 passed, 3 skipped** |
+| APK | `app-debug.apk`, 16,330,039 bytes, SHA-256 `4c7acfd853068f23d6700d0bfbe773b650f59adfc9ae974bb1dec1d08c8f53c5`. **Copied to Downloads with a matching hash. Not installed** |
+| APK in Downloads | `/sdcard/Download/TelegramTopicUploader-0.13.14-d6a7e.apk` — hash verified identical |
+| Live | **Reel backfill run on production**: 28 unclassified rows → 25 `reel`, 2 `post`, 1 still Unknown; 27 history rows filled; 0 failed |
+| Hardware | **No line of D6A7e is verified.** `docs/D6A7E_DEVICE_CHECKLIST.md`; all *not attempted* |
 
 ### Previous milestone, for reference
 
 | Field | Value |
 | --- | --- |
-| Task | D6A7c1 — corrections a review found in D6A7c, plus screenshots and screen recording turned back on |
-| Application HEAD | `87cb1bbaa0df27da54eb0850c50f1759a07f5699` (`87cb1bb`) |
-| Server HEAD | `f5c0b7d9a4010f7c012a2da1e854e1b8f3848865` (`f5c0b7d`) |
-| Version | code 37, `0.13.12-d6a7c1` |
-| Gate | 2148 Android unit tests, 0 failures; server 903 passed, 4 skipped |
-| Hardware | Screenshots **confirmed working** by the D6A7d device report. Everything else still owed |
+| Task | D6A7d — an uncertain upload that can be answered, and a folder's real name |
+| Application HEAD | `6a9ced6d1791d290a8751c0e1eb325e5dda4d5cd` |
+| Server HEAD | `6fa9662b25e606c5d432ea52cc2827500d4f8137` |
+| Version | code 38, `0.13.13-d6a7d` |
+| Gate | 2250 Android unit tests; server 948 passed, 4 skipped |
+| Hardware | Items 2–4 and 7 **confirmed working** by the D6A7e device report |
 
 No production token, Meta credential, Telegram identifier, chat ID, thread ID, private link, VPS
 address, Tailscale hostname, SSH host, pairing code, device token, cookie value, account name, file
 name, content URI or media hash is recorded anywhere in this file.
+
+## D6A7e — three device reports, and one of them is good news
+
+### What the handset proved
+
+- ✅ **Live Story deduplication.** A second *successful* Instagram check, same Stories still active,
+  resent **nothing**. Open since D6A7c, whose second Check now was refused by the cooldown — which is
+  evidence of the cooldown and of nothing else.
+- ✅ **Source deletion after a confirmed upload succeeded**, checked in the Android **file manager**.
+- ✅ RESULT_UNKNOWN identification and resolution work; the later Story check works; **per-item
+  Upload now works and sends**; screenshots still work.
+
+### 1. Android accepted a batch and never ran it
+
+*Upload queue* froze twenty items. `RESULT_SUCCESS` came back. The JobService was **never entered**:
+progress **0 / 20**, no item acquired, nothing to Telegram — and because a retained active batch
+hides the button, pressing *Upload queue* again appeared to do nothing.
+
+**Acceptance is a request the platform agreed to consider, not a start**, and the durable state had
+nowhere to say so: `updatedAt` moves on every write, `createdAt` predates the request, `startedAt` is
+written only by a runner. So *accepted and never started* was indistinguishable from *not submitted*,
+and **nothing ever asked again**.
+
+Schema 15 adds `acceptedAt`, `startDeadlineAt`, `executionOwner`, `ownerAcquiredAt`.
+`START_DEADLINE_EXCEEDED` and `INTERRUPTED` join the vocabulary, both **active** — snapshot kept,
+slot kept, no upload job touched, no attempt spent. A two-minute deadline is reconciled on Queue
+entry, resume, pull, launch and before every batch action, and then the card offers **start it here /
+keep waiting / cancel**.
+
+> **The duplicate-send guarantee is a durable claim, not cancellation timing.** Both runners compete
+> for one column in one guarded `UPDATE … WHERE executionOwner IS NULL`. A job already dispatching
+> would sail straight through a cancellation window, which is exactly why cancelling the pending
+> platform job is a courtesy and not the rule.
+
+**The stuck session is recovered, not discarded.** It carries no `acceptedAt` — accepted by a build
+with nowhere to record one — and the deadline rule reads an absent acceptance as already past.
+
+### 2. The sentence that outlived its own action
+
+A successful upload said the file had been **permanently deleted** *and* that the app had **never
+asked Android to delete it**. The user checked: it really was deleted.
+
+**The second screenshot is what solved it.** Minutes later, an unrelated folder scan announced *"The
+scan started."* — with the same deletion sentence still attached. That rules out every reading in
+which deletion is at fault.
+
+`MainViewModel` published the deletion stage into a `StateFlow` **only a manual deletion wrote and
+nothing ever cleared**, and the screen composed `"$base $stageMessage"`. One refusal therefore
+attached itself to every notice for the life of the process.
+
+A notice is a one-shot event now: one typed result, mapped once, into one immutable `UiAnnouncement`
+that owns everything it says, with an id that consumption names so a recomposition, a navigation or
+a second action cannot replay or clear somebody else's. **Three notice channels became one.**
+
+And the vague sentence is **gone from both locales**: *"something still needs this file, or the
+folder permission does not allow it"* covered a job that still needed the bytes, a read-only grant, a
+live operation and an unsettled uncertain send with one set of words. The coordinator's classified
+outcome distinguishes all four and is always present.
+
+### 3. The Reel signal is a listing, not a field
+
+A bounded, sanitized probe of the live account, gallery-dl 1.32.8:
+
+| Fact | Value |
+| --- | --- |
+| `product_type` / `media_product_type` / `subtype_name_for_REST__` in a feed record | **absent, all three** |
+| `post_url` carrying a `/reel/` route | present — **written in the same `len(files)==1 and video_url` branch as `type`** |
+| Proven Reels in one six-post window, by the account's clips listing | **4** |
+| Named by `type` | **1** — it missed three |
+| `type` on the clips listing itself, every member a Reel | `post` on **10 of 12** |
+
+So the canonical-looking route is the media-shape guess wearing a URL, and both fields are refused
+by name. `…/reels/` is Instagram's own `user_clips`; `…/photos/` yields a post only
+`if not self._is_reel(post)`. Both are resolved **once per discovery**, clips first, with the photos
+window sized from what clips left — the first production dry run asked both for 34 posts and the
+photos tab timed out, because it spends ~59 s on **three**.
+
+**Production backfill:** 28 → **25 `reel`, 2 `post`, 1 still Unknown**; 27 history rows filled; 0
+failed. `post` also got narrower: an unproven feed record is `unknown` now, because the profile
+listing carries Reels and posts under one subcategory.
+
+### 4. The schedule, in numbers
+
+Presets state **8 / 4 / 2 hours**; the card shows the **server's** last, last-successful and next
+check as exact local times and countdowns. **Nothing is derived from the preset.** The manual
+cooldown and the schedule are **two separate clocks**. One screen-scoped ticker, once a minute,
+stopped whenever the screen is not resumed. No scheduler arithmetic changed.
+
+### 5. A 104.8 MB file was offered as send-ready work
+
+Two rows sat as `QUEUED` with *Upload now*, against the app's own 50 MB limit. The limit was never
+missing — the dispatch path has enforced it since D3A — but **eligibility never consulted it**, so a
+batch would freeze the file in as work it could only fail.
+
+**Units checked rather than assumed:** both sides are binary, ceiling 52,428,800, display ÷1024. So
+"50.9 MB" is ≈53.4 million bytes and is genuinely over; the comparison is on exact bytes because
+52,428,801 renders as "50.0 MB". One clause in the one candidate query, so *Upload now*, the preview,
+the snapshot and the claim walk cannot disagree. The row **stays visible** and says its size.
+
+### 6. Two things the queue card never said
+
+**The recorded failure code** — written since D3A, **never once rendered** — which is precisely why
+the device report could only say *"pressing Upload now still fails"*.
+
+**A contradiction.** `QueueRemovalPolicy` preferred the *dismissal* rule's answer; dismissal exists
+for a terminally failed row, so for a `QUEUED` row with an unproven error code it answered
+`NOT_QUEUED` — *"this is not a failed row"* — which renders as **"it is not in active processing"**
+under a status reading **Queued**.
+
+> **The replacement job's upload failure is not claimed as fixed.** The whole sequence now runs
+> end-to-end against the real repository — uncertain sibling, declared absent, replacement queued,
+> reservation owned, targeted claim, fresh dispatch identity, restart on both sides of dispatch —
+> and every step passes. Whatever refused it wrote a code no screen displayed. **Checklist line 54
+> is the most valuable line in the milestone.**
+
+### 7. History is not the live queue
+
+Three live rows under *"Items in this run: 20"*. **The 20 is right and must stay 20** — it is a
+frozen batch's membership, and rewriting it would destroy the only record of that run. The Queue now
+states its **current** total, eligible, blocked and oversized counts separately, and the historical
+card says what it is showing.
+
+### Guards re-scoped, never deleted
+
+Fourteen: the schema pins across nine files, the migration-list pins across four, the two
+pull-to-refresh guards, the batch-launcher surface, the "no private field" scan (which fired on the
+word *token* **in a comment** — the fourth time this project has hit that, exactly as predicted), the
+D6A3/D6A4 deletion-stage guards, and the D5B Back-stack slice whose anchor moved with the notice
+rename. Each carries its reason.
+
+**And one project invariant held rather than being relaxed:** the batch diagnostics were written as
+`Log.d` first, `D3B2SurfaceTest` refused them, and they became a bounded **in-memory** trail. Logcat
+would not have helped anyway — the person with the frozen batch cannot read it.
+
+### Next device action (ask for exactly this)
+
+Install `/sdcard/Download/TelegramTopicUploader-0.13.14-d6a7e.apk` **over** the existing app and run
+`docs/D6A7E_DEVICE_CHECKLIST.md`, **reading its four opening notes first** — all four describe
+correct behaviour that reads as broken.
+
+**§B is the reported defect** and the twenty-item batch is already on the device. **Line 27** is the
+stale-notice proof, and **line 54** — the exact refusal sentence on the replacement job — is the
+single most valuable line available.
+
+## D6A7d — the record of the previous milestone, kept for context
+
+| Field | Value |
+| --- | --- |
+| Task | D6A7d — an uncertain upload that can be answered, a folder's real name, and a delivery that says what it was |
+| Application HEAD | `6a9ced6d1791d290a8751c0e1eb325e5dda4d5cd` |
+| Server HEAD | `6fa9662b25e606c5d432ea52cc2827500d4f8137` |
+| Version | code 38, `0.13.13-d6a7d` |
+| Room schema | 13 → 14, five nullable columns on `upload_jobs` and one unique index. Server `0004_content_kind` |
+| Gate | 2250 Android unit tests, 0 failures; server 948 passed, 4 skipped |
+| APK | `TelegramTopicUploader-0.13.13-d6a7d.apk`, SHA-256 `810637f90bce3fb7582537bdc962c7f41899100d72178a426dc43754784949db` |
+| Hardware | **Items 2–4 and 7 confirmed working by the D6A7e device report.** The rest is still owed |
+
+**What it built.** Manual resolution for a `RESULT_UNKNOWN` row — *I found it in Telegram* records a
+confirmation and **invents no message ID**; *I did not find it* makes a second send *possible*
+without making one happen; one uncertain attempt is retried at most once, under a unique index. Real
+folder display names and **Rename folder**. `content_kind` — Story / Reel / Post / Unknown — frozen
+onto each delivery. Nine classified **Check now** refusals with the cooldown's exact local time. And
+`GET /review/unresolved`, the listing that made the D6A6 resolution endpoint reachable at all.
+
+**What D6A7e then learned about it.** The Story and RESULT_UNKNOWN halves work on hardware. The Reel
+half did not: D6A7d's own documentation said no trusted signal reached the parser, and D6A7e found
+the signal somewhere else entirely — in the account's own clips listing rather than in any field.
+D6A7d's `post` default also turned out to be an over-claim and is now `unknown`.
 
 ## D6A7c1 — three collections that decided each other's fate, and a window that refused screenshots
 
