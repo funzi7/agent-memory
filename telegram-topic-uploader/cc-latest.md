@@ -11,15 +11,16 @@
 
 | Field | Value |
 | --- | --- |
-| Task | **D6A7c** — Remote screens that never asked, History with no pictures, pinned posts distorting the import, and Instagram Stories as an opt-in |
-| **Final application HEAD** | **`1b75649a8714a4463cab80042674806026084e41`** (`1b75649`) — pushed |
-| **Final server HEAD** | **`cbea54ffa9d41b6a76a84a4d739845899995c3f2`** (`cbea54f`) — **deployed and verified** |
-| Version | code 35 → **36**, name `0.13.10-d6a7b` → **`0.13.11-d6a7c`** |
-| Room schema | **13 — unchanged.** Server migration `0003_instagram_stories`, **additive, columns only** |
-| Gate | **2114 Android unit tests, 0 failures. Lint: no issues.** Server **860 passed, 4 skipped**; `ruff`, `ruff format`, `mypy`, release preflight clean |
-| APK | `app-debug.apk`, 16,149,616 bytes, SHA-256 `37ad919c2048011b9dee45e3c04e8f04e46321f373f1b917f97d9559d90f517c`; instrumentation 1,541,193 bytes, `da0ece5f…eb7d3`. Signer unchanged. **Not installed, and not copied to Downloads** |
-| Live | The **extractor probe** and the **deployment** are live-verified. **No live Story has ever been imported** — the probe found the tray empty |
-| Hardware | **No line of D6A7c is verified.** `docs/D6A7C_DEVICE_CHECKLIST.md`; all *not attempted*. Backlog rows 72–86 |
+| Task | **D6A7c1** — corrections a review found in D6A7c, plus screenshots and screen recording turned back on |
+| **Final application HEAD** | **`87cb1bbaa0df27da54eb0850c50f1759a07f5699`** (`87cb1bb`) — pushed |
+| **Final server HEAD** | **`f5c0b7d9a4010f7c012a2da1e854e1b8f3848865`** (`f5c0b7d`) — **deployed and verified** |
+| Version | code 36 → **37**, name `0.13.11-d6a7c` → **`0.13.12-d6a7c1`** |
+| Room schema | **13 — unchanged.** Server: **no new migration**, head stays `0003_instagram_stories` |
+| Gate | **2148 Android unit tests, 0 failures. Lint: no issues** (read from the XML report). Server **903 passed, 4 skipped** |
+| APK | `app-debug.apk`, 16,149,611 bytes, SHA-256 `711363f75c5fc64684fb44e2fecb1a720787388a5b9da86b5becb069775d405e`; instrumentation 1,541,193 bytes. Signer unchanged. **Copied to Downloads with a matching hash. Not installed** |
+| APK in Downloads | `/sdcard/Download/TelegramTopicUploader-0.13.12-d6a7c1.apk` — hash verified identical |
+| Live | `--post-range` semantics, and the deployment |
+| Hardware | **No line of D6A7c1 is verified.** `docs/D6A7C1_DEVICE_CHECKLIST.md`; all *not attempted*. Backlog rows 87–98 |
 
 ### Previous milestone, for reference
 
@@ -35,6 +36,69 @@
 No production token, Meta credential, Telegram identifier, chat ID, thread ID, private link, VPS
 address, Tailscale hostname, SSH host, pairing code, device token, cookie value, account name, file
 name, content URI or media hash is recorded anywhere in this file.
+
+## D6A7c1 — three collections that decided each other's fate, and a window that refused screenshots
+
+D6A7c was implemented across a session boundary, committed, pushed and deployed. A review of the
+committed code then found several correctness gaps, and the handset found one more that is not a bug
+at all but a decision worth reversing.
+
+### 1. Screenshots, screen recording and Recents — reported from the device
+
+Android refused screenshots, blocked screen recording, and drew a **blank white card in Recents**.
+Cause: `FLAG_SECURE` on the activity window — and separately `setSecure(true)` on the preview's
+`VideoView` surface, which made any captured video black.
+
+Both removed. **Nothing replaces them**: no secure window, no `setRecentsScreenshotEnabled(false)`,
+no blur, no overlay, no substituted Recents preview, no per-screen variant.
+`ScreenshotPolicySurfaceTest` fails the build on any of them, and the **four inherited guards that
+asserted the old policy were re-scoped rather than deleted**, each carrying the reason.
+
+> **It is not a substitute for redaction and weakens none.** No token, cookie or credential is
+> rendered in plaintext anywhere — that is what makes a screenshot safe to share. A future
+> secure-screen feature is an explicit user decision.
+
+### 2. One shared boolean decided three collections
+
+D6A7c tracked Sources, Review and History as independent collections and then read their success
+from **a single mutable boolean they all shared**. `refreshAll()` starts all three, so a Sources
+failure could mark History failed, a request that failed could settle `LOADED`, one that succeeded
+could settle `FAILED` — and **which happened depended on completion order**.
+
+Every load **returns** its own outcome now. The tests gate each gateway call by hand and open them in
+a chosen order, because a race only *probably* exercised is not tested.
+
+`busy` had the matching defect — the first operation to finish cleared it while others ran — and is
+now a counter that cannot go negative, never reads false while anything is active, and releases
+exactly one operation on every exit path including cancellation.
+
+### 3. A collection never requested was "successfully loaded"
+
+The entry path refreshed the connection and called the collection API **only if** the connection was
+usable, but settled the collection `LOADED` either way. So an empty successful page, an unreachable
+server, invalid pairing and no server configured were the same screen — the confusion the load phase
+was introduced to end, reappearing one level down.
+
+`BLOCKED` is its own phase now, `FAILED` is its own, and **only a request that actually returned
+successfully** may say *there is nothing here*. D6A7c's harness always answered `serverStatus()`
+successfully, which is exactly why none of its tests could reproduce this.
+
+### 4. A flaky assertion in the upload gate
+
+`a connection lost before the body completes` failed about **one run in three**: a two-megabyte body
+cut mid-stream surfaces as `BodyIncomplete` or `ResultUnknown` depending on kernel buffering, and
+**both are safe** — neither claims acceptance. It now asserts the property its own message always
+claimed. A flaky gate makes every "N passed" in every milestone report worth less than it looks.
+
+### Next device action (ask for exactly this)
+
+Install from `/sdcard/Download/TelegramTopicUploader-0.13.12-d6a7c1.apk` **over** the existing app
+and run `docs/D6A7C1_DEVICE_CHECKLIST.md`, **reading its first three notes first** — all three
+describe correct behaviour that reads as broken.
+
+**§B is the quickest and is the reported defect**: a screenshot on two screens, a screen recording
+across two screens, a captured video preview that is not black, and a real Recents card. **§E1 step
+32** remains the most valuable line available and still takes a real day.
 
 ## D6A7c — the screens that never asked, and a Story that outlives its own URL
 

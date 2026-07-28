@@ -29,7 +29,8 @@ hash — and nothing added to it ever may.
 | **Head after D6A7** | **`b307b0882177738cf9e5dadf1a8eb14b62b40706`** (`b307b08`) — **deployed and verified** |
 | Head after D6A7a | **unchanged — `b307b08`.** See the D6A7a note below. |
 | Head after D6A7b | `94d6a449b6d9902766a0e3e0c26bed6482ee2357` (`94d6a44`) — deployed and verified |
-| **Head after D6A7c** | **`cbea54ffa9d41b6a76a84a4d739845899995c3f2`** (`cbea54f`) — **deployed and verified** |
+| Head after D6A7c | `cbea54ffa9d41b6a76a84a4d739845899995c3f2` (`cbea54f`) — deployed; **shipped four defects, see D6A7c1** |
+| **Head after D6A7c1** | **`f5c0b7d9a4010f7c012a2da1e854e1b8f3848865`** (`f5c0b7d`) — **deployed and verified** |
 | Host | A DigitalOcean droplet, Ubuntu 24.04.4, amd64, 1 vCPU, ~2 GiB RAM, ~48 GB disk |
 | Deploy path on host | `/opt/remote-sources` |
 | State path on host | `/var/lib/remote-sources` |
@@ -1047,3 +1048,136 @@ Telegram send. Nothing went to Telegram. No credential was requested, printed or
   absolute `/app/.venv/bin/…`.
 - **`release-preflight` refused this release by name** until the three new modules were tracked —
   exactly as designed. `git status` clean is still not preflight clean.
+
+---
+
+## D6A7c1 — a window counted in files, a count from the wrong check, and a preview that came too late
+
+**Head `f5c0b7d9a4010f7c012a2da1e854e1b8f3848865` (`f5c0b7d`) — deployed and verified.**
+**No new migration**; head remains `0003_instagram_stories`. **903 passed, 4 skipped** (860 at D6A7c).
+
+A manager review of the committed D6A7c code found four correctness gaps. D6A7c's own gate was green
+at 860 tests, and that is the instructive part: **three of the four were invisible because the
+fixtures agreed with the code**, and the fourth was an ordering property no single-step test can see.
+
+### 1. `last_N` was counted in files, not logical posts
+
+gallery-dl prints one record per media *file*. D6A7c bounded the run at **150 file records** against
+a want of `limit * 10`. Twenty-five ten-member carousels are **250 files**, and three pinned
+carousels eat thirty more before the chronological run starts. Every fixture in the ordering suite
+used single-media posts, so a file-counted window and a post-counted one were indistinguishable in
+all of them.
+
+**`--post-range` bounds logical posts**, established two ways rather than guessed:
+
+- `option.py` documents `--range` as "which **files**" and `--post-range` as "like `--range`, but for
+  **posts**";
+- `job.py` evaluates the post predicate on `Message.Directory` — one per logical post — and a post it
+  rejects has **every one of its `Message.Url` records skipped**; `predicate_range` then raises
+  `StopExtraction`, which `DataJob.run` catches **without recording an error**;
+- live against the deployed host with the configured session: `--post-range 1-3` → 3 posts,
+  `--post-range 1-8` → 8 posts, both exit `0`.
+
+> **What that live probe could NOT show**, and it is recorded rather than glossed: every post in the
+> probed prefix of this account is **single-media**, so it did not exercise a carousel and cannot by
+> itself distinguish file-bounding from post-bounding. The distinction rests on the source path
+> above, which is unambiguous. Carousels are covered by ten-member synthetic fixtures.
+
+There is deliberately **no `--range` beside it** — a file bound would cut a carousel in half.
+
+### 2. A bound that was reached is not a feed that ended
+
+**The first attempt at this got it wrong in an instructive way.** Counting the *selection* does not
+work: Instagram prints pinned posts first, so an old pin sorts into the selection and pads a short
+window out until it looks full. Twenty-three chronological posts plus seven old pins fills a
+twenty-five-post selection with two pins and hides that two of the newest twenty-five were never
+fetched.
+
+What may be trusted is the **trailing chronological run**. The chronological run is always a *suffix*
+of what was printed, so everything the feed holds newer than the last post printed is provably
+present. Short run + bound reached + cursor never seen → widen once (`PINNED_HEADROOM` 5 → 15), then
+report `temporary_failure / insufficient_post_window` writing **no cursor, no baseline, no items**.
+
+`MAX_DISCOVERY_ATTEMPTS = 2` — two runs, never a loop. `MAX_POST_WINDOW = 60`.
+
+### 3. The initial Story import count was the last attempt's
+
+Two Stories staged, one failed, the import stays open; the retry stages the last one and completes
+it — and D6A7c displayed **1** instead of **3**, because it wrote *that check's* count at completion.
+The total is accumulated now as each Story becomes safely staged, **in the same transaction as its
+item**, so a rollback takes the increment with it and a rediscovered Story never reaches it.
+Completion only stamps the state and the moment. Counting stops at completion.
+
+**No migration**: the fix is in *when* the existing column is written.
+
+### 4. A new Story could be delivered before it ever got a preview
+
+The retention pass ran **before** Story discovery inserted anything. So a Story found by that very
+check could be inserted, staged, auto-sent and have its transient staged media cleaned after
+confirmation **without ever receiving a History preview** — and a later check is no repair, because
+by then the Story and its upstream thumbnail URL are both gone.
+
+It runs after now. An **image** Story reuses its already-staged bytes rather than downloading the
+same picture twice; a video Story uses its upstream thumbnail when safely available and otherwise has
+none. The pass is also **addressed rather than swept**: it is handed exactly the items the check
+created, instead of re-querying every position-zero media row of the whole source every time.
+
+### Bounds raised, on measurement
+
+~1 s and ~12.7 KB per file record; a carousel-heavy `last_25` is ~250 records. The old 300 s / 4 MiB
+met that with no margin. Now **600 s / 8 MiB**, still hard bounds, truncation still
+`MALFORMED_UPSTREAM` rather than a short feed.
+
+### The audit confirmed intact
+
+Migration additive (13 `add_column`, zero destructive statements); Story identity cannot collide with
+a feed identity; staging all-or-nothing; a confirmed delivery removes **only its own** item directory
+and a failed one **keeps** the staged Story; highlights, live and tagged excluded; thumbnail auth and
+redaction; older production rows readable. New regression coverage for the cleanup-isolation cases.
+
+### Deployment, verified
+
+| Check | Result |
+| --- | --- |
+| `remote-sources-ctl version` | **`f5c0b7d9a4010f7c012a2da1e854e1b8f3848865`** — the exact pushed HEAD |
+| health · ready over loopback | **200** · **200**, every sub-check true |
+| unauthenticated `sources`/`history`/`destinations`/`review` | **401** on all four |
+| application port | `127.0.0.1:8099` only |
+| devices | total 4, **active: 1** — pairing survived |
+| migration head | `0003_instagram_stories` |
+| production data | 1 source, **28** items, 28 media rows, **28 confirmed** operations, 2 destinations |
+| the source's Stories toggle | **`include_stories = 0`, `never_enabled` — untouched** |
+
+**No production source check was run**, nothing went to Telegram, and no credential was requested,
+printed or handled.
+
+### Two production facts worth not rediscovering
+
+**1. The scheduler delivered three posts on its own.** Production went from 25 items / 25 operations
+at the D6A7c deployment to **28 / 28** by the D6A7c1 one, with `last_check_at` at `10:24` UTC. **No
+agent ran a check**, and none was invoked through the API. That was the source's own configured
+schedule — and because the source is `review_mode = auto_send`, a scheduled check **is** a Telegram
+delivery. Any deployment restart is eventually followed by one. Nothing has to *ask* for that.
+
+**2. A scheduled check leaves no `check_runs` row.** `check_now` opens a durable run; the scheduler's
+path calls `check_one` directly and records nothing. So `last_check_at` advances while `last_check`
+stays null, and a source card can only ever show a **manual** check's result. **D6A7b behaviour, not
+a D6A7c defect**, and deliberately **not fixed here** — it is a behaviour change rather than a
+correction. Row S8 in the server `TODO.md`.
+
+### Still open, unchanged
+
+- [ ] **No live Story has ever been observed or imported.** The probe found the tray empty.
+- [ ] **No live carousel-heavy import** and **no live pinned re-check** since the ordering work.
+- [ ] **No Story expiry observed.**
+- [ ] **X and TikTok keep `--dump-json`** — one live check of each, reading `queue_count`.
+- [ ] **9GAG platform-blocked**; **Meta publishing blocked on the user**; **rollback never executed**;
+      **off-site backup not set up**.
+
+### Gotchas this milestone added
+
+- **`--range` is files; `--post-range` is posts.** For **Stories the asymmetry reverses**: a story
+  reel yields one `Message.Directory` for the whole tray and one `Message.Url` per frame, so a
+  *post* is the reel and a *file* is a frame — **Stories keep `--range`**.
+- **A green suite is not coverage.** Three of these four defects were invisible because every fixture
+  used single-media posts, or asserted a state without asserting the number beside it.
