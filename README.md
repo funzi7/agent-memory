@@ -22,6 +22,8 @@ agent-memory/
 │   └── glossary.md            ← TRF-specific terms
 ├── telegram-topic-uploader/
 │   └── cc-latest.md            ← latest implementation handoff
+├── private-media-tv/
+│   └── cc-latest.md            ← Android TV F0 foundation handoff
 ├── opt/                       ← OptionsProfitTracker (future)
 ├── hydrome/                   ← HydroMe (future)
 ├── ratesnow/                  ← RatesNow (future)
