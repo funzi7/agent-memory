@@ -62,12 +62,12 @@ Always show the Termux `cp` command before installation:
 cp /root/work/telegram-topic-uploader/app/build/outputs/apk/debug/app-debug.apk /sdcard/Download/
 ```
 
-**Install over the existing app.** The debug certificate has not changed since D5A — at D6A7a it is
-still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`. **D6A7a (code 34,
-`0.13.9-d6a7a`) supersedes every earlier build; no intermediate version needs installing first.**
+**Install over the existing app.** The debug certificate has not changed since D5A — at D6A7b it is
+still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`. **D6A7b (code 35,
+`0.13.10-d6a7b`) supersedes every earlier build; no intermediate version needs installing first.**
 
 **D6A6 moved the Room schema 12 → 13** — one new table for the Instagram publishing queue, nothing
-else touched, the first schema move since D5C. **Neither D6A6a, D6A7 nor D6A7a moves it again.** If you are coming
+else touched, the first schema move since D5C. **None of D6A6a, D6A7, D6A7a or D6A7b moves it again.** If you are coming
 from code 30 or earlier the migration still runs on this install: check Directories, Review, the
 Queue and History afterwards, because anything missing is a migration defect, not a cosmetic one.
 Since D6A5 the **Settings screen states the installed version**, read from the package itself —
@@ -78,8 +78,59 @@ item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
 
-**D6A7a** — a corrective milestone opened on a hardware addendum that arrived *after* D6A7 was
-committed. Four device reports, two causal chains.
+**D6A7b** — an Instagram source stuck on *Checking* that never settled, with Pending Review at 0 and
+no posts. A second hardware addendum, on top of D6A7a.
+
+> **The obvious reading was wrong.** Every check completed in **seconds** and answered `200`. The
+> server was never stuck. There was simply nowhere for a *result* to live, and nothing on screen
+> that could show one.
+
+**Why there were no posts.** gallery-dl's `instagram:user` extractor does not enumerate a profile:
+it emits a `Message.Queue` naming the sub-extractor that would, and stops. `--dump-json` prints that
+and exits zero. **`--resolve-json` follows it** — same profile, same session: 142 bytes and 0 posts
+before, 383,444 bytes and **30 posts** after. Resolving costs ~1 s per file, so
+`extractor_timeout_seconds` went 120 → 300 on measurement.
+
+**And why nothing noticed.** gallery-dl writes one pretty-printed array unless `output.jsonl` is
+set, while the reader parsed line by line — zero records from a successful run, and zero records was
+treated as an empty feed. Unreadable output, an error recorded *inside* the dump with exit zero, and
+queue entries with no members are each refused by name now. Only `[]` is an empty feed, and only it
+may advance a baseline.
+
+**A requested history could never be retried.** A first scan that observed nothing still committed
+its baseline, so `last_25` became `only_new` permanently. Fixed, plus a narrow repair that re-arms a
+stranded source — **it fired on production, `count: 1`** — preserving the row as evidence.
+
+**A check is now a durable row.** It was performed inside the request that asked for it, so a
+disconnected client could never learn the result, a restart lost it, and a second tap started a
+second extractor. `check_now` starts a run and returns; `/sources/{id}/checks/latest` reads it; a
+second tap joins the live run; a restart settles an interrupted one. The app polls to a terminal
+state and reports one of five sentences, **both** branches refresh the row, and the card states what
+the last check did and whether the history was imported.
+
+**Live:** 25 Review items imported, session accepted, baseline and cursor written. ⚠️ The source is
+`auto_send`, so those 25 went to its Telegram topic and are `confirmed` — its own configured
+behaviour, triggered by the verification run the addendum required.
+
+**Two things to carry forward.** The Instagram jar was never broken — a probe that skipped
+`#HttpOnly_` lines made it look so, and those lines carry the session cookies. And **D6A7a shipped
+with ten stale version assertions**, because they read `build.gradle.kts` from disk and Gradle does
+not track it as a unit-test input: a version bump leaves the task UP-TO-DATE and the gate reports
+success. **Use `--rerun-tasks` for a final Android gate.**
+
+| Field | Value |
+| --- | --- |
+| App version | code 35, `0.13.10-d6a7b` |
+| App HEAD | `e6ec4556f92565db6159305513b43fd87ffcac34` |
+| Server HEAD | `94d6a449b6d9902766a0e3e0c26bed6482ee2357` — **deployed and verified** |
+| Room schema | **13 — unchanged.** Server: one additive table, `0002_check_runs` |
+| App unit tests | **2043, 0 failures. Lint clean.** |
+| Server tests | **759 passed, 4 skipped.** `ruff`, `ruff format`, `mypy`, preflight clean |
+| APK | `TelegramTopicUploader-0.13.10-d6a7b.apk`, **not installed** |
+| Live-proven | The server half: one real check imported 25 posts under the stored `last_25` policy |
+| Device-unverified | **Every Android line of D6A7b.** `docs/D6A7B_DEVICE_CHECKLIST.md`; all *not attempted*. Rows 65–71 |
+
+## 4a. Previous milestone: D6A7a — a confirmed upload that came back, and a queue that froze
 
 ### Chain one — one stray row caused both A-defects
 
@@ -510,6 +561,14 @@ the table is the whole of it.
   `blocked`, `completed`. A green test suite is evidence about a test suite.
 - **Deferred work stays visible.** Never delete an item from `TODO.md` because a milestone ended.
   Record the reason it was deferred and the next exact action.
+- **A green Gradle gate can be a stale one.** The unit-test task does not track `build.gradle.kts`
+  as an input, so a version bump leaves it UP-TO-DATE and every assertion that reads that file from
+  disk goes unchecked. D6A7a was committed with ten such failures reported as success. **Run the
+  final Android gate with `--rerun-tasks`,** and read the test XMLs rather than the exit code.
+- **Verify a diagnostic probe before believing it.** A throwaway cookie parser that skipped
+  `#HttpOnly_` lines produced a confident, wrong conclusion that the Instagram session was missing —
+  those lines are exactly where session cookies live. Prefer the production module over a
+  reimplementation when reading production state.
 - **Distrust prose written ahead of the fact.** A resumed session must verify claims against
   artefacts on disk — test XMLs, lint reports, APK timestamps and sizes — never against what a
   `TODO.md` or a checklist says was done. D6A5 was resumed from a state where both claimed results
@@ -518,32 +577,36 @@ the table is the whole of it.
 ## 11. Roadmap
 
 **The authoritative, itemised backlog is the table in
-`/root/work/telegram-topic-uploader/TODO.md`** — 64 rows, each with an owner, a state and the
+`/root/work/telegram-topic-uploader/TODO.md`** — 71 rows, each with an owner, a state and the
 evidence required to close it. This list is the ordering; that table is the record.
 
-1. **Device-validate D6A7a first — `docs/D6A7A_DEVICE_CHECKLIST.md`.** It repairs four defects the
+1. **Device-validate D6A7b first — `docs/D6A7B_DEVICE_CHECKLIST.md` §B.** Press **Check** on the
+   Instagram source and confirm it settles into one of five stated outcomes rather than sitting on
+   *Checking*. The server half is live-verified; the phone's loading state is what was reported and
+   is the one thing still unproved. Rows 65, 67, 68, 70.
+2. **Then D6A7a — `docs/D6A7A_DEVICE_CHECKLIST.md`.** It repairs four defects the
    handset found, and rows 59–63 stay `device-unverified` until it is run. The two lines that matter
    most: a confirmed file is **absent from Review** after a rescan while still shown under Confirmed
    on the folder page (§B), and its local copy actually disappears from the **Android file manager**
    after the delete (§C). §D and §E are the queue: **Upload queue** must always answer, and
    cancelling a batch that never started must release it and leave every item queued. §F is the
    recovery path for anything already stranded as uploading on that handset.
-2. **Then D6A7 §B — the connection defect.** Validate any source the server
+3. **Then D6A7 §B — the connection defect.** Validate any source the server
    refuses, **while watching the global connection card**: it must not move, and the message must
    end with the server's own code in brackets. **Write that code down.** Then Retry, and confirm
    nothing changes, because nothing had gone wrong.
-3. **Then D6A7 §C — validate an Instagram source.** This is the first honest Instagram validation
+4. **Then D6A7 §C — validate an Instagram source.** This is the first honest Instagram validation
    this deployment has ever been able to answer; every previous one hit the 500. Whatever it says,
    record the exact code. **Do not export cookies** unless it says the session is missing or
    rejected — it was neither.
-4. **Then the rest of `docs/D6A7_DEVICE_CHECKLIST.md`**, then D6A6a's one check: the 9GAG row must
+5. **Then the rest of `docs/D6A7_DEVICE_CHECKLIST.md`**, then D6A6a's one check: the 9GAG row must
    say *human-verification challenge*, not *rate limit*, and keep saying it after a refresh and a
    restart. Row 58.
-5. **Then the rest of `docs/D6A6_DEVICE_CHECKLIST.md`.** §3 the source-type and feed-mode choosers,
+6. **Then the rest of `docs/D6A6_DEVICE_CHECKLIST.md`.** §3 the source-type and feed-mode choosers,
    §4 the Ignore-race reasons, §5 the Instagram publishing queue — where **step 23** (the file
    survives "remove from publishing") is the one that matters most. If installing from code 30 or
    earlier, §2 the migration check comes before all of it.
-6. **Finish device-validating D6A5**: confirmed-versus-queued, the Failed row's removal, the Review
+7. **Finish device-validating D6A5**: confirmed-versus-queued, the Failed row's removal, the Review
    row's Do not upload, Preview from a folder, orphan reservations, the five-platform list.
 6. **9GAG live discovery is blocked by the platform** — both source types are challenged from this
    host with a correct session. There is nothing to fix in the connector; it needs a session or a

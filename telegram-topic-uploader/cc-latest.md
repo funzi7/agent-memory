@@ -11,18 +11,114 @@
 
 | Field | Value |
 | --- | --- |
-| Task | **D6A7a** — a corrective milestone opened on a hardware addendum received *after* D6A7 was committed. Follows **D6A7** |
-| **Final application HEAD** | **`b0910eeba9f0f20cb04d98934fb30885d5befcab`** (`b0910ee`) — pushed to `origin/main` |
-| **Final server HEAD** | **`b307b0882177738cf9e5dadf1a8eb14b62b40706`** (`b307b08`) — **unchanged by D6A7a.** No server change was required: tracing proved the local Telegram upload API contract is not involved |
-| Version | code 33 → **34**, name `0.13.8-d6a7` → **`0.13.9-d6a7a`** |
-| Room schema | **13 — unchanged.** No migration. Every change is a predicate, a guard, a branch or a derived projection field |
-| Gate | **2027 Android unit tests, 0 failures. Lint clean.** `assembleDebug`, `assembleDebugAndroidTest`, `git diff --check` clean |
-| APK | `app-debug.apk`, 16,062,922 bytes, SHA-256 `5ed20c277916734dcd2e9ee171420a1274a43d26d9797047b5c2a7ee569d1f55`; instrumentation APK 1,585,292 bytes, SHA-256 `32adb621eed04a240b8e4e76fb407a6bd368573052e30e13e4180ff9a6f2bc9f`. Copied to Downloads as `TelegramTopicUploader-0.13.9-d6a7a.apk`. **Not installed.** Signer unchanged, so the upgrade path is intact |
-| Hardware | **Nothing in D6A7a is hardware-verified.** `docs/D6A7A_DEVICE_CHECKLIST.md` lists every line; all are *not attempted*. Backlog rows 59–64 |
+| Task | **D6A7b** — an Instagram source stuck on "Checking" that never settled, zero Pending Review, no posts. A second hardware addendum, on top of **D6A7a** |
+| **Final application HEAD** | **`e6ec4556f92565db6159305513b43fd87ffcac34`** (`e6ec455`) — pushed |
+| **Final server HEAD** | **`94d6a449b6d9902766a0e3e0c26bed6482ee2357`** (`94d6a44`) — **deployed and verified** |
+| Version | code 34 → **35**, name `0.13.9-d6a7a` → **`0.13.10-d6a7b`** |
+| Room schema | **13 — unchanged.** Server gained one additive table, `check_runs`, migration `0002_check_runs` |
+| Gate | **2043 Android unit tests, 0 failures. Lint clean.** Server **759 passed, 4 skipped**; `ruff`, `ruff format`, `mypy`, release preflight clean |
+| APK | `app-debug.apk`, 16,088,050 bytes, SHA-256 `f413984f8a0e804607d3ab0941d046d5e4406f0e3272bc4cb764a5cc7b872dc1`; instrumentation 1,585,292 bytes, `32adb621…bc9f`. Copied to Downloads as `TelegramTopicUploader-0.13.10-d6a7b.apk`. **Not installed** |
+| Live | **The server half is live-verified.** One real check imported **25 posts**; the source is `auto_send`, so all 25 went to its Telegram topic and are `confirmed` |
+| Hardware | **No Android line of D6A7b is verified.** `docs/D6A7B_DEVICE_CHECKLIST.md`; all *not attempted*. Backlog rows 65–71 |
 
 No production token, Meta credential, Telegram identifier, chat ID, thread ID, private link, VPS
 address, Tailscale hostname, SSH host, pairing code, device token, cookie value, account name, file
 name, content URI or media hash is recorded anywhere in this file.
+
+## D6A7b — a check with nowhere to put its result, and a profile gallery-dl never listed
+
+**The device report.** An Instagram source was added successfully and appeared in Remote Sources.
+Pressing **Check** showed *Checking* and it never settled into success or a classified failure.
+Pending Review stayed at 0 and no posts appeared.
+
+> **The obvious reading was wrong, and the production evidence says so.** Every check completed in
+> **seconds** and answered `200`. The server was never stuck. Four separate causes.
+
+### What the source was actually configured to do
+
+`initial_import = last_25` — **not** `only_new`, so zero Review items was **not** expected. And:
+`baseline_established = true`, `initial_import_accepted = 0`, no cursor, `consecutive_empty = 3`,
+**zero items of any kind**. The requested history had been silently converted into "only new".
+
+### 1. gallery-dl prints one pretty-printed array, not one document per line
+
+`gallery_dl.job.DataJob` writes line-delimited JSON **only** when `output.jsonl` is configured;
+otherwise it accumulates every message and dumps the lot at the end. `iter_records` parsed line by
+line, so every line is a fragment and **not one is valid JSON** — zero records from a completely
+successful run. `read_dump` parses the whole document first; the line form stays as a fallback.
+
+### 2. A successful run that enumerated nothing is not an empty feed
+
+`classify_dump` refuses unreadable output, an **in-band error record** (gallery-dl records an
+extractor exception in the dump and *still exits zero*), and **queue entries with no members**. `[]`
+remains the one honest empty feed and the only thing that may advance a baseline.
+
+### 3. The real reason there were no members — the wrong gallery-dl mode
+
+`instagram:user` **does not enumerate a profile.** It emits a `Message.Queue` naming the
+sub-extractor that would, and stops. `--dump-json` prints that and exits zero.
+
+> **`--resolve-json` follows it.** Same profile, same session: `--dump-json` → 142 bytes, 0 posts,
+> empty stderr, exit 0. `--resolve-json` → 383,444 bytes, 30 URL records, **30 posts**.
+
+Resolving costs ~1 s per file here (30 files 36.3 s, 120 files 129.5 s), so
+`extractor_timeout_seconds` went 120 → **300** on measurement. Safe *because* a check no longer
+holds an HTTP request open. **X and TikTok keep `--dump-json`** — no evidence says their extractors
+queue, and the new classification now says so loudly if they do. Next exact action: one live check
+of each, reading `queue_count`.
+
+### 4. A requested history could never be retried
+
+`_apply_first_scan` committed the baseline having observed **no posts at all**, so `last_5/10/25`
+became `only_new` permanently — a baseline is never re-established and the frozen choice has no
+update path. It now refuses to complete such a scan, and `repair_unfulfilled_initial_imports`
+re-arms a stranded source: only a non-`only_new` choice, a committed baseline, **no accepted IDs, no
+cursor, and no item of any kind**. The row is preserved as evidence. **It fired on production:
+`count: 1`.**
+
+### 5. A check is a durable row, not an open connection
+
+The route performed the whole check *inside* the request. So a client that timed out or navigated
+away had nowhere to read the result; a restart lost it; a second tap started a second extractor; and
+the one answer the app got — *"Checking now."* — described a run that had **already finished**,
+carried no counts, and left the card byte-for-byte unchanged when the answer was "nothing new".
+
+`check_runs` + `0002_check_runs`. `check_now` starts a run and returns; `/sources/{id}/checks/latest`
+reads it; a second request **joins** the live run under a partial unique index; a restart settles an
+interrupted run as `interrupted` — which also releases that index, without which one crash would
+block a source's checks forever.
+
+Android: `checkNow` polls until terminal and reports one of five sentences; **both** branches refresh
+the row, where the failure branch used to refresh nothing; and the card finally states whether a
+check is running, what the last one did with counts, and whether the history has been imported.
+
+### Live result
+
+✅ `success_new_posts` in 160.0 s: **25 Review items, 25 accepted IDs, baseline established, cursor
+written, 25 media rows.** The session **was accepted**.
+
+⚠️ **The source is `review_mode = auto_send`, so all 25 were dispatched to its Telegram topic and
+are `confirmed`.** Its own configured behaviour and the import it was asked for — but triggered by
+the verification run the addendum required, not by a tap.
+
+### Two corrections worth carrying forward
+
+- **The jar was never the problem.** A throwaway probe that skipped `#HttpOnly_` lines made it look
+  as though `sessionid` was missing. Those lines *carry* the session cookies — the prefix is curl's
+  annotation on the domain field, not a comment — and `_parse_jar` has always read them. The
+  completeness check added here stays as a guard, re-documented as one.
+- **D6A7a shipped with ten stale version assertions.** They read `build.gradle.kts` from disk, and
+  **Gradle does not track that file as an input to the unit-test task**, so a version bump leaves
+  the task UP-TO-DATE and the final gate reports success without re-running them. Now re-scoped to
+  "the version never goes backwards"; only `AppVersionTest` pins the exact pair. **Use
+  `--rerun-tasks` for a milestone's final Android gate.**
+
+### Next device action (ask for exactly this)
+
+Install `TelegramTopicUploader-0.13.10-d6a7b.apk` **over** the existing app and run
+`docs/D6A7B_DEVICE_CHECKLIST.md` §B first: press **Check** and confirm it settles into one of five
+stated outcomes rather than sitting on *Checking*. `docs/D6A7A_DEVICE_CHECKLIST.md` is still owed
+and is not superseded.
 
 ## D6A7a — a confirmed upload that came back, a deletion that stopped at the gate, and a queue that froze
 

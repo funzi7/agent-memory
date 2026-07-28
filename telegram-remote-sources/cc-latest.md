@@ -28,6 +28,7 @@ hash — and nothing added to it ever may.
 | Head after D6A6a | `7564912c24c121c2c021887e8a5621b91f8d5df4` (`7564912`) — deployed and verified |
 | **Head after D6A7** | **`b307b0882177738cf9e5dadf1a8eb14b62b40706`** (`b307b08`) — **deployed and verified** |
 | Head after D6A7a | **unchanged — `b307b08`.** See the D6A7a note below. |
+| **Head after D6A7b** | **`94d6a449b6d9902766a0e3e0c26bed6482ee2357`** (`94d6a44`) — **deployed and verified** |
 | Host | A DigitalOcean droplet, Ubuntu 24.04.4, amd64, 1 vCPU, ~2 GiB RAM, ~48 GB disk |
 | Deploy path on host | `/opt/remote-sources` |
 | State path on host | `/var/lib/remote-sources` |
@@ -827,3 +828,84 @@ connector:
 was checked, no `/api/v1` route was called, and no deployment or rollback was run. The Instagram
 validation answer that D6A7 left open remains open and is still the next live evidence this
 repository owes.
+
+---
+
+## D6A7b — the Instagram check that answered 200 in seconds and imported nothing
+
+**The device reported a source stuck on "Checking" with zero Pending Review.** The obvious reading
+was wrong and this repository's own logs proved it: every check completed in **seconds** and answered
+`200`. Four causes, each verified on the deployed host.
+
+### 1. gallery-dl's real output shape
+
+`gallery_dl.job.DataJob` writes line-delimited JSON **only** when `output.jsonl` is configured;
+otherwise it dumps **one pretty-printed array** at the end. `iter_records` parsed `stdout` line by
+line, so every line was a fragment and none was valid JSON — **zero records from a fully successful
+run**, which was then treated as an empty feed.
+
+`read_dump` parses the whole document first, with the line form as a fallback. Shared by all three
+gallery-dl connectors.
+
+### 2. Zero records from a success is never an empty feed
+
+`classify_dump` refuses three cases by name: unreadable output; an **in-band error record** —
+gallery-dl records an extractor exception in the dump and *still exits zero*; and **queue entries
+with no members**. `[]` is the one honest empty feed and the only thing that may advance a baseline.
+
+### 3. The decisive one: the wrong gallery-dl mode
+
+`instagram:user` does not enumerate a profile. It emits a `Message.Queue` naming the sub-extractor
+that would, and stops.
+
+> Same profile, same session. `--dump-json` → **142 bytes, 0 posts**, empty stderr, exit `0`.
+> `--resolve-json` → **383,444 bytes, 30 URL records, 30 posts**.
+
+`extractor_timeout_seconds` 120 → **300**, measured: resolving costs ~1 s per file here (30 files
+36.3 s, 120 files 129.5 s), so the window a first `last_25` import needs could only ever time out.
+Safe because a check no longer holds an HTTP request open; still a hard bound, process group killed.
+
+**X and TikTok keep `--dump-json`.** No evidence says their extractors queue; the new classification
+now reports it loudly if they do. **Next exact action: one live check of each, reading
+`queue_count`.**
+
+### 4. A requested history that could never be retried
+
+`_apply_first_scan` committed the baseline having observed no posts, so `last_5/10/25` became
+`only_new` permanently. It now refuses to complete such a scan, and
+`repair_unfulfilled_initial_imports` re-arms a stranded source — only a non-`only_new` choice, a
+committed baseline, **no accepted IDs, no cursor, no item of any kind** — preserving the row as
+evidence. **Fired on production: `count: 1`.**
+
+### 5. A check is a durable row
+
+The route performed the whole check inside the request, so a disconnected client could never learn
+the result, a restart lost it, and a second tap started a second extractor.
+
+`check_runs`, migration `0002_check_runs`, additive. `check_now` starts a run and returns;
+`/sources/{id}/checks/latest` reads it; a second request **joins** the live run under a partial
+unique index; `recover_interrupted_runs` settles a run the process did not survive as `interrupted`
+— its own state, because nothing is known about the platform — which also releases the index. The
+source response carries the initial-import state and the last run's counts.
+
+### Live result
+
+✅ `success_new_posts` in 160.0 s: **25 Review items, 25 accepted IDs, baseline established, cursor
+written, 25 media rows.** The configured session **was accepted**.
+
+⚠️ The source is `review_mode = auto_send`, so all 25 were dispatched to its Telegram topic and are
+`confirmed` with no failures. Its own configured behaviour, triggered by the verification run the
+addendum required.
+
+**The cookie jar was never the problem.** A throwaway probe that skipped `#HttpOnly_` lines suggested
+`sessionid` was missing; those lines *carry* the session cookies and `_parse_jar` has always read
+them. A completeness guard was added anyway — `<platform>_session_incomplete` for Instagram and X,
+decided from the file before any subprocess runs — with a test pinning that an HttpOnly session
+cookie counts. TikTok is deliberately excluded: it discovers anonymously.
+
+### Gate and deployment
+
+- **759 passed, 4 skipped.** `ruff`, `ruff format`, `mypy`, release preflight clean.
+- Deployed at the exact committed HEAD and verified: `/api/v1/health` and `/api/v1/ready` `200` over
+  loopback, unauthenticated route `401`, the application port bound to `127.0.0.1` only, paired
+  devices preserved (`active: 1`).
