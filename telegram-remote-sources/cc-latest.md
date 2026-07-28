@@ -28,7 +28,8 @@ hash — and nothing added to it ever may.
 | Head after D6A6a | `7564912c24c121c2c021887e8a5621b91f8d5df4` (`7564912`) — deployed and verified |
 | **Head after D6A7** | **`b307b0882177738cf9e5dadf1a8eb14b62b40706`** (`b307b08`) — **deployed and verified** |
 | Head after D6A7a | **unchanged — `b307b08`.** See the D6A7a note below. |
-| **Head after D6A7b** | **`94d6a449b6d9902766a0e3e0c26bed6482ee2357`** (`94d6a44`) — **deployed and verified** |
+| Head after D6A7b | `94d6a449b6d9902766a0e3e0c26bed6482ee2357` (`94d6a44`) — deployed and verified |
+| **Head after D6A7c** | **`cbea54ffa9d41b6a76a84a4d739845899995c3f2`** (`cbea54f`) — **deployed and verified** |
 | Host | A DigitalOcean droplet, Ubuntu 24.04.4, amd64, 1 vCPU, ~2 GiB RAM, ~48 GB disk |
 | Deploy path on host | `/opt/remote-sources` |
 | State path on host | `/var/lib/remote-sources` |
@@ -909,3 +910,140 @@ cookie counts. TikTok is deliberately excluded: it discovers anonymously.
 - Deployed at the exact committed HEAD and verified: `/api/v1/health` and `/api/v1/ready` `200` over
   loopback, unauthenticated route `401`, the application port bound to `127.0.0.1` only, paired
   devices preserved (`active: 1`).
+
+---
+
+## D6A7c — pinned posts printed first, and a Story that had to outlive its own URL
+
+**Head `cbea54ffa9d41b6a76a84a4d739845899995c3f2` (`cbea54f`) — deployed and verified.**
+Migration **`0003_instagram_stories`**, additive, columns only. **860 passed, 4 skipped** (759 at
+D6A7b).
+
+### The probe came first, and it is the reason this milestone is not guesswork
+
+A sanitized, bounded, metadata-only probe of the **exact installed extractor** was run inside the
+deployed container against the already-configured session, before a line was written. Nothing was
+written to the database, no API route was called, nothing went to Telegram, and no account, post id,
+Story id, caption, URL or cookie was printed or persisted.
+
+| Fact | Value |
+| --- | --- |
+| version / exit / elapsed | gallery-dl **1.32.8** / `0` / 60.3 s |
+| stdout / URL records / queue entries | 763,192 bytes / **60** / **0** |
+| records carrying `date` | **60 of 60** |
+| a field literally named `pinned` | present on all 60, **truthy on 3** |
+| arrival order strictly newest-first | **no** — exactly one inversion |
+| pinned posts printed before a newer post | **3** |
+| carousels in the window | **0** — multi-member grouping was **not** exercised live |
+
+**Reading:** the three pinned posts are printed first, contiguously, ahead of newer posts. Nothing
+in gallery-dl sorts — `InstagramExtractor.items()` yields whatever Instagram's API returned, and the
+`pinned` config (default `true`) only decides whether pins are *included*, never where they land.
+**The order is observed, never guaranteed.**
+
+### 1. Chronology is imposed here
+
+`domain/feed_order.py`. Logical posts sorted by publication time, newest first, tie-broken by
+identity — **not** by arrival order, which is the thing pinning perturbs.
+
+- `last_5/10/25` = the newest 5/10/25 **chronological** posts. A pin outside the window is excluded
+  because it is not one of the newest; a pin inside it is included once because it is.
+- **The cursor names the newest *dated* post**, which is the half that mattered more: a cursor
+  pointing at an old pin would make the next check stop enumerating there and treat everything above
+  it as already seen. An undated record sorts last and can never take the cursor; when nothing
+  observed has a usable time, the previous cursor **stands** — safe, because
+  `(source_id, canonical_post_id)` is unique and re-reading creates nothing.
+- **The `pinned` field is never read.** `_extract_pinned` returns *account identifiers*. A test
+  asserts that deleting the field entirely changes no ordering.
+- `MAX_WINDOW` 120 → **150**: pins consume slots ahead of the chronological window, so a `last_25`
+  that must discard three pins needs room for twenty-eight. ~1 s per file measured, 300 s bound.
+- Carousel grouping, shortcode identity and the unique constraint are untouched.
+- **22 regression tests**, covering all seven required proofs.
+
+### 2. Stories — a setting on the profile source, never a source type
+
+- `include_stories` default `false`, per source, accepted **only** for `instagram_profile` and
+  refused **by name** elsewhere rather than stored and ignored.
+- `StoryImportState` — `never_enabled` / `initial_pending` / `initial_complete` — plus a completion
+  timestamp and a count. **The state does not change what is imported**: both before and after
+  completion the rule is "import every active Story not already seen", because identity does the
+  work. What it records is whether the *promise made when the setting was turned on* was kept, and a
+  failed run must not be able to fake it.
+- Identity is `story:<media_id>`, **per frame**. The extractor gives every frame of an account's
+  tray the same reel-level `post_id`; folding on it would make one item of the tray and drop every
+  later Story. Collision with a feed identity is **decidable** — neither the base64url shortcode
+  alphabet nor the decimal fallback contains `:` — and a test checks the whole alphabet.
+- **No Story cursor**, written down as a decision in `domain/stories.py` and proved by test. The
+  tray is complete on every read and expires within a day, so there is nothing to bound; a cursor
+  written past a Story not safely imported would hide it permanently.
+- Highlights refused **twice**: the URL this adapter builds can only route to `subcategory=stories`,
+  and `highlights` is in the excluded set. Live has no extractor at all. Tagged stays excluded.
+- **A feed success beside a Story failure settles the run `partial`** — terminal, not a success.
+  Strong signals (rate limit, challenge) are taken from **either** half, because a refusal is a fact
+  about the platform whichever request met it; the platform-clear only happens when *every* part
+  succeeded.
+
+### 3. Story media is staged at discovery
+
+`staging/items/<item id>/` — the **same** root, quota, permissions, escape check and one-tree
+cleanup the operation directories use. Not a parallel storage system.
+
+- All-or-nothing per Story. A failure removes the item and **frees its identity**, so the retry is
+  honest; the initial import stays **open**.
+- Delivery reuses the staged copy, **copied not moved** — a failed send leaves the item still
+  sendable, and a Story's upstream media cannot be fetched twice.
+- Cleaned only on a **confirmed** delivery.
+- Proved by a test where the upstream refuses **every** request and the delivery still confirms.
+
+### 4. History previews
+
+`delivery/thumbnails.py`. One bounded, MIME-validated, quota'd preview per media row, fetched once
+at discovery. `HistoryEntry.first_media_kind` and `.thumbnail_available`; `GET
+/history/{id}/thumbnail` serves bytes behind the same device dependency, or `404`.
+
+**A sibling of staging, not part of it** — staging is transient working space, a preview is kept as
+long as its history row, and a permanent retention inside a transient quota is how deliveries begin
+failing months later for a reason nobody can see. Oldest-first eviction rather than refusal.
+
+**No URL of any kind reaches the phone.** A test asserts over the serialised body that no account,
+post id, Story id, source URL, media URL, chat/thread id or filesystem path appears.
+
+### Deployment, verified
+
+| Check | Result |
+| --- | --- |
+| `remote-sources-ctl version` | **`cbea54ffa9d41b6a76a84a4d739845899995c3f2`** — the exact pushed HEAD |
+| `/api/v1/health` · `/api/v1/ready` over loopback | **200** · **200**, every sub-check true |
+| unauthenticated `/sources` · `/history` | **401** · **401** |
+| application port on a non-loopback address | **none** — only `sshd` and `tailscaled` |
+| `devices` | total 4, **active: 1** — pairing survived |
+| alembic | **`0003_instagram_stories`** |
+| production data | 1 source, 25 items, 25 media rows, **25 confirmed operations**, 2 destinations — all intact |
+| the source's Stories toggle | **`include_stories = 0`, `never_enabled` — untouched by the deployment** |
+| retained previews on existing rows | **0** — correct: previews are fetched at discovery and those 25 predate the feature |
+
+**No production source check was run**, deliberately: that source is `auto_send`, so a check is a
+Telegram send. Nothing went to Telegram. No credential was requested, printed or handled.
+
+### Still open — and be precise about which
+
+- [ ] **No live Story has ever been imported.** The probe found the tray **empty** — `[]`, 9.4 s,
+      exit 0, session accepted. So the URL shape, exit code, empty answer and session acceptance are
+      live-verified, and **every Story field name comes from reading the installed extractor's
+      source rather than from an observed record.** This is the milestone's largest live unknown.
+- [ ] **No second live feed import since the ordering fix.** Proved synthetically and against a
+      measured real dump shape, not by a live re-import.
+- [ ] **No Story expiry has been observed.** The staging guarantee is proved by a test in which the
+      upstream refuses everything; nothing has waited a real day.
+- [ ] **Carousel grouping was not exercised live** — the probe window contained none.
+- [ ] **X and TikTok keep `--dump-json`**, carried forward unchanged from D6A7b. Next exact action:
+      one live check of each, reading `queue_count`.
+
+### Gotchas this milestone added
+
+- **A `docker cp` into the container fails: the rootfs is read-only.** Pipe a script through
+  `docker exec -i … python3 -` instead.
+- **`sh -lc` inside the container resets `PATH`** and loses `/app/.venv/bin`. Use `sh -c`, or the
+  absolute `/app/.venv/bin/…`.
+- **`release-preflight` refused this release by name** until the three new modules were tracked —
+  exactly as designed. `git status` clean is still not preflight clean.

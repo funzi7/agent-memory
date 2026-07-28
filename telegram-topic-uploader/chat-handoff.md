@@ -62,12 +62,12 @@ Always show the Termux `cp` command before installation:
 cp /root/work/telegram-topic-uploader/app/build/outputs/apk/debug/app-debug.apk /sdcard/Download/
 ```
 
-**Install over the existing app.** The debug certificate has not changed since D5A — at D6A7b it is
-still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`. **D6A7b (code 35,
-`0.13.10-d6a7b`) supersedes every earlier build; no intermediate version needs installing first.**
+**Install over the existing app.** The debug certificate has not changed since D5A — at D6A7c it is
+still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`. **D6A7c (code 36,
+`0.13.11-d6a7c`) supersedes every earlier build; no intermediate version needs installing first.**
 
 **D6A6 moved the Room schema 12 → 13** — one new table for the Instagram publishing queue, nothing
-else touched, the first schema move since D5C. **None of D6A6a, D6A7, D6A7a or D6A7b moves it again.** If you are coming
+else touched, the first schema move since D5C. **None of D6A6a, D6A7, D6A7a, D6A7b or D6A7c moves it again.** If you are coming
 from code 30 or earlier the migration still runs on this install: check Directories, Review, the
 Queue and History afterwards, because anything missing is a migration defect, not a cosmetic one.
 Since D6A5 the **Settings screen states the installed version**, read from the package itself —
@@ -78,8 +78,58 @@ item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
 
-**D6A7b** — an Instagram source stuck on *Checking* that never settled, with Pending Review at 0 and
-no posts. A second hardware addendum, on top of D6A7a.
+**D6A7c** — Remote screens that never asked, History with no pictures, pinned posts distorting the
+import, and Instagram Stories as an opt-in.
+
+> **The device report: Remote Sources showed no source and Remote History showed no history until
+> Refresh was pressed** — and both had been on the server the whole time. Nothing was broken on the
+> server or in the transport. The screens simply never asked.
+
+**And that is two defects.** The collections started as empty lists, so *"there is nothing here"*,
+*"nothing has been asked yet"* and *"the request failed"* all rendered as the same blank screen.
+Loading is a **state** now, and the empty-state sentence is reachable from exactly one of them — a
+request that *completed successfully* and returned nothing. **A failed refresh never blanks data
+that had already loaded.** Entry and resume load; a redraw does not; there is no timer anywhere.
+
+**History cards carry a picture** — retained by the server at discovery, delivered to the app as
+**bytes from an authenticated endpoint, never a URL**. No second image library. A preview that fails
+to arrive changes no delivery fact on the card.
+
+**Pinned posts no longer distort the import, and the cause was measured rather than assumed.** A
+sanitized probe of the exact installed extractor against the deployed server: three pinned posts
+printed **ahead of** newer ones, one ordering inversion, `date` on every record. Nothing in
+gallery-dl sorts. `last_25` now means the twenty-five newest **by publication time**, and the cursor
+names the newest *dated* post.
+
+**Instagram Stories are a switch on an existing Instagram Profile source**, off by default, never a
+source type. Enabling on Auto send asks first and sends nothing until confirmed; disabling never
+asks. Story media is staged **at discovery**, so a Story in Review outlives its own expiring URL.
+
+| Field | Value |
+| --- | --- |
+| App version | code 36, `0.13.11-d6a7c` |
+| App HEAD | `1b75649a8714a4463cab80042674806026084e41` |
+| Server HEAD | `cbea54ffa9d41b6a76a84a4d739845899995c3f2` — **deployed and verified** |
+| Room schema | **13 — unchanged.** Server: `0003_instagram_stories`, additive, columns only |
+| App unit tests | **2114, 0 failures. Lint: no issues.** |
+| Server tests | **860 passed, 4 skipped.** `ruff`, `ruff format`, `mypy`, preflight clean |
+| APK | `app-debug.apk`, 16,149,616 bytes, **not installed** |
+| Live-proven | The extractor probe, and the deployment |
+| **Not** proven | **Every line of D6A7c on hardware**, and **no live Story has ever been imported** |
+
+**Two results that are correct and will look like bugs**, both stated at the top of
+`docs/D6A7C_DEVICE_CHECKLIST.md`: the existing 25 history rows show **placeholders**, because
+previews are fetched at discovery and those deliveries predate the feature; and the Story path has
+**never carried a real Story**, because the probe found the tray empty.
+
+**And a correction to carry forward: D6A7b reported "lint clean" while three warnings were present.**
+`./gradlew lint` exits zero on warnings, so a gate reading the exit code passes while the zero-issue
+bar does not. **Read the report, not the exit code.** Fixed here.
+
+## 4a. Previous milestone: D6A7b — a check that could not end
+
+An Instagram source stuck on *Checking* that never settled, with Pending Review at 0 and no posts. A
+second hardware addendum, on top of D6A7a.
 
 > **The obvious reading was wrong.** Every check completed in **seconds** and answered `200`. The
 > server was never stuck. There was simply nowhere for a *result* to live, and nothing on screen
@@ -419,7 +469,33 @@ connector most likely to need maintenance**, since that payload is front-end dat
   unauthenticated route is 401; the application port is loopback-only; the pairing survived; and
   both configured credentials are still present.
 
+**Reported by the user during ordinary use — root-caused at D6A7c, NOT re-verified:**
+
+- **Remote Sources showed no source and Remote History showed no history until Refresh was pressed.**
+  Both were on the server throughout. The screens never loaded themselves, and — the second half —
+  an empty list, an unasked screen and a failed request all rendered identically. Fixed at D6A7c;
+  **no line of it has run on a device.** Rows 72–76.
+
+**Verified against production at D6A7c (server, not the phone):**
+
+- **The extractor probe**, sanitized and metadata-only, inside the deployed container with the
+  configured session: gallery-dl **1.32.8**, exit `0`, 60 URL records, `date` on all 60, a field
+  named `pinned` truthy on **3**, arrival order **not** newest-first with one inversion, and **3
+  pinned posts printed before a newer post**. This is the measured cause of the pinned-post defect.
+- **The Story tray answered `[]`** in 9.4 s with the session accepted — so the URL shape, exit code
+  and session acceptance are live-verified, and **no live Story record has ever been observed.**
+- `cbea54f` deployed and reporting itself; health and readiness 200 with every sub-check true;
+  unauthenticated routes 401; port loopback-only; pairing preserved; migration `0003` applied; and
+  the production data intact — 1 source, 25 items, 25 media rows, 25 confirmed operations, 2
+  destinations, with the source's `include_stories` still `0` because the deployment did not touch
+  it.
+
 **Unvalidated on hardware:**
+
+- **All of D6A7c.** Automatic screen loading, the empty/failed/unasked distinction, pull-to-refresh
+  on the Remote screens, history thumbnails and their placeholders, the carousel media count, the
+  Stories toggle, its Auto-send confirmation, the Story status lines, and Story staging surviving an
+  expiry. `docs/D6A7C_DEVICE_CHECKLIST.md`; every line *not attempted*.
 
 - **All of D6A6** — the source-type and feed-mode choosers, the Ignore-race reasons, the whole
   Instagram publishing queue, and **the 12 → 13 migration**. Nothing in D6A6 has run on a device.
@@ -569,6 +645,18 @@ the table is the whole of it.
   `#HttpOnly_` lines produced a confident, wrong conclusion that the Instagram session was missing —
   those lines are exactly where session cookies live. Prefer the production module over a
   reimplementation when reading production state.
+- **A green lint task is not a clean lint report.** `./gradlew lint` exits zero on *warnings*, so a
+  gate that reads the exit code passes while this project's zero-issue bar does not. D6A7b reported
+  "lint clean" with three warnings present, one of them an unused string that was never referenced
+  even at its own commit. **Read `app/build/reports/lint-results-debug.xml`.** This is the same
+  shape as the stale-Gradle-task trap, in a different task.
+- **Measure the extractor before designing around it.** D6A7c's whole ordering fix rests on a
+  sanitized, bounded, metadata-only probe of the *exact installed version* — which found a field
+  named `pinned`, proved the printed order is not chronological, and proved the order is **observed
+  rather than guaranteed**. Reading the installed package's source is stronger evidence than memory
+  for field names, and a live probe is the only evidence for ordering. **Record what the probe could
+  not establish as loudly as what it could:** the Story tray was empty, so no Story field name in
+  this system has ever been confirmed against a real record.
 - **Distrust prose written ahead of the fact.** A resumed session must verify claims against
   artefacts on disk — test XMLs, lint reports, APK timestamps and sizes — never against what a
   `TODO.md` or a checklist says was done. D6A5 was resumed from a state where both claimed results
@@ -577,57 +665,69 @@ the table is the whole of it.
 ## 11. Roadmap
 
 **The authoritative, itemised backlog is the table in
-`/root/work/telegram-topic-uploader/TODO.md`** — 71 rows, each with an owner, a state and the
+`/root/work/telegram-topic-uploader/TODO.md`** — 86 rows, each with an owner, a state and the
 evidence required to close it. This list is the ordering; that table is the record.
 
-1. **Device-validate D6A7b first — `docs/D6A7B_DEVICE_CHECKLIST.md` §B.** Press **Check** on the
+1. **Device-validate D6A7c first — `docs/D6A7C_DEVICE_CHECKLIST.md`.** Read its opening two notes
+   before anything else: the existing 25 history rows show **placeholders** rather than pictures
+   (previews are fetched at discovery, and those deliveries predate the feature), and **no live
+   Story has ever been imported** (the probe found the tray empty). Both are correct results that
+   read as bugs.
+
+   **§A is the reported defect** — open Remote Sources and Remote History from a cold launch
+   *without pressing Refresh* and see the source and the 25 deliveries appear by themselves. **§F1
+   step 40 is the most valuable line in the milestone**: a Story left in Remote Review until its
+   Instagram copy has expired, then sent successfully. It takes a real day, and it is the only proof
+   that Story staging does what it exists for. Rows 72–86.
+
+2. **Then D6A7b — `docs/D6A7B_DEVICE_CHECKLIST.md` §B.** Press **Check** on the
    Instagram source and confirm it settles into one of five stated outcomes rather than sitting on
    *Checking*. The server half is live-verified; the phone's loading state is what was reported and
    is the one thing still unproved. Rows 65, 67, 68, 70.
-2. **Then D6A7a — `docs/D6A7A_DEVICE_CHECKLIST.md`.** It repairs four defects the
+3. **Then D6A7a — `docs/D6A7A_DEVICE_CHECKLIST.md`.** It repairs four defects the
    handset found, and rows 59–63 stay `device-unverified` until it is run. The two lines that matter
    most: a confirmed file is **absent from Review** after a rescan while still shown under Confirmed
    on the folder page (§B), and its local copy actually disappears from the **Android file manager**
    after the delete (§C). §D and §E are the queue: **Upload queue** must always answer, and
    cancelling a batch that never started must release it and leave every item queued. §F is the
    recovery path for anything already stranded as uploading on that handset.
-3. **Then D6A7 §B — the connection defect.** Validate any source the server
+4. **Then D6A7 §B — the connection defect.** Validate any source the server
    refuses, **while watching the global connection card**: it must not move, and the message must
    end with the server's own code in brackets. **Write that code down.** Then Retry, and confirm
    nothing changes, because nothing had gone wrong.
-4. **Then D6A7 §C — validate an Instagram source.** This is the first honest Instagram validation
+5. **Then D6A7 §C — validate an Instagram source.** This is the first honest Instagram validation
    this deployment has ever been able to answer; every previous one hit the 500. Whatever it says,
    record the exact code. **Do not export cookies** unless it says the session is missing or
    rejected — it was neither.
-5. **Then the rest of `docs/D6A7_DEVICE_CHECKLIST.md`**, then D6A6a's one check: the 9GAG row must
+6. **Then the rest of `docs/D6A7_DEVICE_CHECKLIST.md`**, then D6A6a's one check: the 9GAG row must
    say *human-verification challenge*, not *rate limit*, and keep saying it after a refresh and a
    restart. Row 58.
-6. **Then the rest of `docs/D6A6_DEVICE_CHECKLIST.md`.** §3 the source-type and feed-mode choosers,
+7. **Then the rest of `docs/D6A6_DEVICE_CHECKLIST.md`.** §3 the source-type and feed-mode choosers,
    §4 the Ignore-race reasons, §5 the Instagram publishing queue — where **step 23** (the file
    survives "remove from publishing") is the one that matters most. If installing from code 30 or
    earlier, §2 the migration check comes before all of it.
-7. **Finish device-validating D6A5**: confirmed-versus-queued, the Failed row's removal, the Review
+8. **Finish device-validating D6A5**: confirmed-versus-queued, the Failed row's removal, the Review
    row's Do not upload, Preview from a folder, orphan reservations, the five-platform list.
-6. **9GAG live discovery is blocked by the platform** — both source types are challenged from this
+9. **9GAG live discovery is blocked by the platform** — both source types are challenged from this
    host with a correct session. There is nothing to fix in the connector; it needs a session or a
    route 9GAG accepts. **Never add challenge solving, proxy rotation or retry-until-allowed.**
-7. **The official Meta Instagram publisher** — rows 43–54. Blocked on the user creating the Meta App
+10. **The official Meta Instagram publisher** — rows 43–54. Blocked on the user creating the Meta App
    and authorizing the account (rows 47–48) before any of it can be verified.
-8. Live-validate one remote source against a **disposable** topic. Pairing works and must not be
+11. Live-validate one remote source against a **disposable** topic. Pairing works and must not be
    reworked; **nothing past pairing has ever run end to end.**
-9. Credentials for **X and TikTok** remote sources, then a live check for each. **Instagram is
+12. Credentials for **X and TikTok** remote sources, then a live check for each. **Instagram is
    already configured and its material is now `ready`** — that session needs nothing.
-10. Decide `BulkSendDestination`: either feed the policy from a surface that can hold pointed items,
+13. Decide `BulkSendDestination`: either feed the policy from a surface that can hold pointed items,
     or withdraw the two `ReviewGridScreen` branches that cannot render today.
-11. Whatever the device reports about D6A4, D5C and D5B.
-12. Still owed from D4B/D4C: deletion retries, batch deletion, blocked deletion states, the launch
+14. Whatever the device reports about D6A4, D5C and D5B.
+15. Still owed from D4B/D4C: deletion retries, batch deletion, blocked deletion states, the launch
    scan, the Hebrew Preview.
-13. Multi-item / carousel outbound sharing — deliberately not implemented, never to be claimed
+16. Multi-item / carousel outbound sharing — deliberately not implemented, never to be claimed
     without device evidence.
-14. Optional content-based topic *suggestions* on Review — never automatic routing.
-15. Result-unknown reconciliation for local uploads, and evidence-based resolution of an unowned or
+17. Optional content-based topic *suggestions* on Review — never automatic routing.
+18. Result-unknown reconciliation for local uploads, and evidence-based resolution of an unowned or
     ambiguous legacy reservation (D3A.1).
-16. **Explicitly not on the roadmap:** per-account mapping of local folders; Instagram-native music,
+19. **Explicitly not on the roadmap:** per-account mapping of local folders; Instagram-native music,
     stickers, polls or editing; publishing by scraping, UI automation or credentials.
 
 ## 12. New-chat startup procedure

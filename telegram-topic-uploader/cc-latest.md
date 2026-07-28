@@ -11,19 +11,131 @@
 
 | Field | Value |
 | --- | --- |
-| Task | **D6A7b** — an Instagram source stuck on "Checking" that never settled, zero Pending Review, no posts. A second hardware addendum, on top of **D6A7a** |
-| **Final application HEAD** | **`e6ec4556f92565db6159305513b43fd87ffcac34`** (`e6ec455`) — pushed |
-| **Final server HEAD** | **`94d6a449b6d9902766a0e3e0c26bed6482ee2357`** (`94d6a44`) — **deployed and verified** |
-| Version | code 34 → **35**, name `0.13.9-d6a7a` → **`0.13.10-d6a7b`** |
-| Room schema | **13 — unchanged.** Server gained one additive table, `check_runs`, migration `0002_check_runs` |
-| Gate | **2043 Android unit tests, 0 failures. Lint clean.** Server **759 passed, 4 skipped**; `ruff`, `ruff format`, `mypy`, release preflight clean |
-| APK | `app-debug.apk`, 16,088,050 bytes, SHA-256 `f413984f8a0e804607d3ab0941d046d5e4406f0e3272bc4cb764a5cc7b872dc1`; instrumentation 1,585,292 bytes, `32adb621…bc9f`. Copied to Downloads as `TelegramTopicUploader-0.13.10-d6a7b.apk`. **Not installed** |
-| Live | **The server half is live-verified.** One real check imported **25 posts**; the source is `auto_send`, so all 25 went to its Telegram topic and are `confirmed` |
-| Hardware | **No Android line of D6A7b is verified.** `docs/D6A7B_DEVICE_CHECKLIST.md`; all *not attempted*. Backlog rows 65–71 |
+| Task | **D6A7c** — Remote screens that never asked, History with no pictures, pinned posts distorting the import, and Instagram Stories as an opt-in |
+| **Final application HEAD** | **`1b75649a8714a4463cab80042674806026084e41`** (`1b75649`) — pushed |
+| **Final server HEAD** | **`cbea54ffa9d41b6a76a84a4d739845899995c3f2`** (`cbea54f`) — **deployed and verified** |
+| Version | code 35 → **36**, name `0.13.10-d6a7b` → **`0.13.11-d6a7c`** |
+| Room schema | **13 — unchanged.** Server migration `0003_instagram_stories`, **additive, columns only** |
+| Gate | **2114 Android unit tests, 0 failures. Lint: no issues.** Server **860 passed, 4 skipped**; `ruff`, `ruff format`, `mypy`, release preflight clean |
+| APK | `app-debug.apk`, 16,149,616 bytes, SHA-256 `37ad919c2048011b9dee45e3c04e8f04e46321f373f1b917f97d9559d90f517c`; instrumentation 1,541,193 bytes, `da0ece5f…eb7d3`. Signer unchanged. **Not installed, and not copied to Downloads** |
+| Live | The **extractor probe** and the **deployment** are live-verified. **No live Story has ever been imported** — the probe found the tray empty |
+| Hardware | **No line of D6A7c is verified.** `docs/D6A7C_DEVICE_CHECKLIST.md`; all *not attempted*. Backlog rows 72–86 |
+
+### Previous milestone, for reference
+
+| Field | Value |
+| --- | --- |
+| Task | D6A7b — an Instagram source stuck on "Checking" that never settled |
+| Application HEAD | `e6ec4556f92565db6159305513b43fd87ffcac34` (`e6ec455`) |
+| Server HEAD | `94d6a449b6d9902766a0e3e0c26bed6482ee2357` (`94d6a44`) |
+| Version | code 35, `0.13.10-d6a7b` |
+| Live | One real check imported **25 posts**; the source is `auto_send`, so all 25 went to its Telegram topic and are `confirmed` |
+| Hardware | **No Android line of D6A7b is verified either.** Backlog rows 65–71 — still owed |
 
 No production token, Meta credential, Telegram identifier, chat ID, thread ID, private link, VPS
 address, Tailscale hostname, SSH host, pairing code, device token, cookie value, account name, file
 name, content URI or media hash is recorded anywhere in this file.
+
+## D6A7c — the screens that never asked, and a Story that outlives its own URL
+
+**The device report.** Remote Sources showed no source although one existed on the server. Remote
+History showed no history although twenty-five confirmed delivery operations existed. Pressing
+**Refresh** in Remote Sources loaded both.
+
+> **Nothing was broken on the server and nothing was broken in the transport.** The screens simply
+> never asked. And that is two defects, not one — the second being why the first was so hard to
+> see.
+
+### 1. "Empty", "unasked" and "failed" were the same blank screen
+
+The collections were initialised to `emptyList()`, so *"there is nothing here"*, *"nothing has been
+asked yet"* and *"the request failed"* all rendered identically. Loading is a **state** now —
+`RemoteLoadPhase`: `NOT_LOADED` / `LOADING` / `LOADED` / `FAILED` — and the rule the milestone asks
+for falls out of it:
+
+**"No sources", "No history" and "No review items" are reachable from exactly one phase**, `LOADED`.
+A surface guard pins that each empty label is passed to exactly one composable, so a screen cannot
+start drawing one directly again.
+
+`failed()` is `copy(phase = FAILED)` — it replaces **nothing**, not the data, not `hasLoadedOnce`,
+not the success timestamp. A momentary tunnel drop appearing to lose twenty-five confirmed
+deliveries would have been the worse version of the original defect.
+
+**Entry and resume load; a redraw does not.** `LifecycleResumeEffect` with a constant key fires on
+entry and on each resume and never on a recomposition; the ViewModel refuses a duplicate anyway — an
+in-flight set per collection plus a one-minute staleness bound. **No timer exists in the path**, and
+a guard refuses `while (true)`, `Timer(`, `scheduleAtFixedRate` and `repeatOnLifecycle` in the
+remote ViewModel.
+
+Pull-to-refresh on all three screens through **one** shared wrapper, including when empty.
+
+### 2. History cards carry a picture
+
+The server retains one bounded, MIME-validated preview per delivered item, fetched **once at
+discovery**, in its own quota'd store. It reaches the phone as **bytes from an authenticated
+endpoint, never a URL** — an upstream Instagram address would work for about a day and then quietly
+stop, and no model here has ever carried a media URL.
+
+**No second image library.** The existing bounded `BitmapFactory` / `LruCache` approach is reused,
+and the remote decoder holds **no network client of its own** — its only byte source is the gateway
+every other remote call uses. Guards assert both.
+
+> **Your existing 25 history rows will show placeholders, not pictures, and that is correct.**
+> Previews are fetched at discovery and those deliveries predate the feature. Confirmed against the
+> production database: `media with retained preview: 0`. **This will look like a bug on the
+> device**, and the checklist opens by saying so.
+
+### 3. Pinned posts — measured before anything was written
+
+A sanitized probe of the exact installed extractor (gallery-dl **1.32.8**) inside the deployed
+container, using the configured session: exit `0`, 60 URL records, **0 queue entries**, `date` on
+**60 of 60**, a field literally named `pinned` **truthy on 3**, arrival order **not** newest-first
+with one inversion, and **3 pinned posts printed before a newer post**.
+
+Nothing in gallery-dl sorts. So `last_25` now means the twenty-five newest posts **by publication
+time**, ordered on the server, and **the cursor names the newest *dated* post** — the half that
+mattered more, because a cursor on an old pin would make the next check treat everything above it as
+already seen. The `pinned` field is **never read**: it returns account identifiers, and a test
+asserts that deleting it changes no ordering.
+
+### 4. Stories — a switch, never a source type
+
+Off by default, per source, Instagram profile only, refused **by name** elsewhere. Identity is
+`story:<media_id>` per **frame** (the tray shares one reel-level `post_id`), namespaced so collision
+with a feed shortcode is **decidable**. **No Story cursor**, written down as a decision. Media is
+**staged at discovery**, so a Story in Review is still sendable after the Instagram copy expires.
+
+Enabling on an **auto-send** source asks first and **sends nothing to the server until confirmed** —
+a guard asserts cancelling has no path to a request. Disabling never asks.
+
+### Two guards fired, both re-scoped rather than relaxed
+
+- **The D5A pull-to-refresh count.** Six → **seven**, not nine, because the three Remote screens
+  share one wrapper — and it now asserts that too.
+- **The server's release-integrity test refused the release by name**, listing the three untracked
+  new modules. Exactly as designed; that is the D6A4 outage's lesson working.
+
+### And a correction worth carrying forward
+
+**D6A7b reported "lint clean" and three warnings were in fact present** — two `PluralsCandidate` and
+one `UnusedResources`, all on D6A7b's own strings, and `remote_source_next_check` was never
+referenced even at its own commit. `lint` exits zero on warnings, so a gate that reads the exit code
+passes while the project's zero-issue bar does not. **Read the report, not the exit code.** Fixed
+here: two counting strings became proper plurals (Hebrew has a dual form, so `%d` was wrong for
+exactly two) and the unused one was removed from **both** locales.
+
+### Next device action (ask for exactly this)
+
+Install `app-debug.apk` (`0.13.11-d6a7c`, code 36) **over** the existing app and run
+`docs/D6A7C_DEVICE_CHECKLIST.md` — **reading its opening two notes first**, because both describe
+correct results that read as bugs.
+
+§A is the reported defect: **open Remote Sources and Remote History from a cold launch without
+pressing Refresh**, and see the source and the 25 deliveries appear by themselves.
+
+**§F1 step 40 is the single most valuable line in the milestone** — a Story left in Remote Review
+until its Instagram copy has expired, then sent successfully. It takes a real day, and it is the
+only proof that Story staging does what it exists for.
 
 ## D6A7b — a check with nowhere to put its result, and a profile gallery-dl never listed
 
@@ -821,6 +933,17 @@ source types reach the connector and report the challenge.
   The transport layer had **zero diff** in D6A4. Re-run before treating one as real.
 - **Ruff's S603/S607 fire on `subprocess` in tests**, and `E501` on embedded shell/Python stub
   programs. The release and deploy tests carry per-file ignores with stated reasons.
+- **D6A7c: `./gradlew lint` exits zero on warnings.** A gate that reads the exit code passes while
+  the project's zero-issue bar does not — which is how D6A7b reported "lint clean" with three
+  warnings present. **Read `app/build/reports/lint-results-debug.xml`,** not the exit code.
+- **D6A7c: adding a method to `RemoteServerGateway` breaks every test double at once**, but the fix
+  is one edit: they all extend `StubRemoteGateway`, except `FakeRemoteGateway` in the pairing test.
+- **D6A7c: `docker cp` into the container fails — the rootfs is read-only.** Pipe a script through
+  `sudo docker exec -i <container> /app/.venv/bin/python3 -` instead. And `sh -lc` inside the
+  container **resets `PATH`** and loses `/app/.venv/bin`; use `sh -c` or absolute paths.
+- **D6A7c: `assembleDebugAndroidTest` can report success while producing a stale APK.** Check the
+  output file's timestamp, and force it with `--rerun-tasks` for a milestone's final gate — the same
+  staleness trap the unit-test task has.
 - **Writing certain literals into Kotlin through a file-writing tool can land a raw NUL byte**, which
   makes `grep` treat the file as binary. If a grep over a file you just wrote returns nothing it
   should have matched, check for NUL bytes first.
