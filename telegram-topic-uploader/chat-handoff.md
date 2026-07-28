@@ -72,6 +72,16 @@ supplied HEAD against GitHub before trusting it.
   verification result is written to a durable file** — the relevant project `TODO.md` or state
   document, and this handoff — **before the milestone ends**. A later chat must never have to
   rediscover something this one was told. Silence is not equivalent to completion.
+- **Do not silently close an older device row.** A checklist line is closed by somebody running it,
+  never by a later milestone deciding it probably works. D6A7d closed exactly one — screenshots —
+  and only because the device said so.
+- **A refusal is not a result.** The D6A7c1 device report pressed Check now twice; the second was
+  refused by the manual cooldown, and that is evidence about the cooldown and nothing else. Story
+  deduplication was **not** proven and must not be recorded as proven.
+- **`GRADLE_USER_HOME=/root/.gradle` for every Gradle command.** The agent runs as `devagent`, whose
+  `$HOME` is `/home/devagent`, while the Gradle cache lives under `/root/.gradle`. Without it,
+  `--offline` fails at configuration time with dozens of "no cached version available" lines that
+  read like a broken build and are not.
 
 ## 3. Installation rule
 
@@ -81,9 +91,9 @@ Always show the Termux `cp` command before installation:
 cp /root/work/telegram-topic-uploader/app/build/outputs/apk/debug/app-debug.apk /sdcard/Download/
 ```
 
-**Install over the existing app.** The debug certificate has not changed since D5A — at D6A7c1 it is
-still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`. **D6A7c1 (code 37,
-`0.13.12-d6a7c1`) supersedes every earlier build; no intermediate version needs installing first.**
+**Install over the existing app.** The debug certificate has not changed since D5A — at D6A7d it is
+still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`. **D6A7d (code 38,
+`0.13.13-d6a7d`) supersedes every earlier build; no intermediate version needs installing first.**
 
 ### The permanent APK-to-Downloads rule — D6A7c1
 
@@ -101,10 +111,12 @@ not install the release. Three further conditions:
 - **If `/sdcard/Download/` is unavailable, the Android release handoff has failed** — report the
   exact filesystem error rather than silently skipping the copy.
 
-**D6A6 moved the Room schema 12 → 13** — one new table for the Instagram publishing queue, nothing
-else touched, the first schema move since D5C. **None of D6A6a, D6A7, D6A7a, D6A7b, D6A7c or D6A7c1 moves it again.** If you are coming
-from code 30 or earlier the migration still runs on this install: check Directories, Review, the
-Queue and History afterwards, because anything missing is a migration defect, not a cosmetic one.
+**D6A7d moves the Room schema 13 → 14** — five nullable columns on `upload_jobs` and one unique
+index, so a person's finding about an uncertain upload can be recorded without manufacturing
+Telegram evidence. Purely additive: no row is rewritten, no table recreated, destructive fallback
+still forbidden. (D6A6 moved it 12 → 13 for the Instagram publishing queue; nothing between them
+moved it.) **A migration runs on this install: check Directories, Review, the Queue and History
+afterwards, because anything missing is a migration defect, not a cosmetic one.**
 Since D6A5 the **Settings screen states the installed version**, read from the package itself —
 check it before recording any device answer, because a checklist answered against the previous
 build reads identically to one answered against this one.
@@ -113,8 +125,61 @@ item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
 
+**D6A7d** — an uncertain upload that can finally be answered, a folder's real name, a delivery that
+says what it was, and a refusal that says which refusal.
+
+> **The device report carried one real success.** Instagram Stories were enabled on the existing
+> source and one **Check now** discovered and uploaded **every currently active Story** — the
+> **first verified live Story import in this project**. The server's own record agrees: eleven
+> Stories, one successful manual check, items 28 → 39.
+>
+> **And it proved nothing about deduplication.** The second Check now was *refused* by the
+> fifteen-minute manual cooldown. **That check is still open.**
+
+**Four local files sat in Review with an unknown Telegram result and nothing could be done about
+them.** The state was correct — a request may have left the device and no confirmation came back —
+and refusing to resend automatically is right. What was wrong is that the row was a dead end: no way
+to ignore it, resend it, mark it resolved, or even identify it well enough to go and look in
+Telegram. Three actions now, each confirmed: **I found it in Telegram** records a manual
+confirmation and **invents no message ID and no confirmation timestamp**; **I did not find it**
+makes a second send *possible* without making one happen; **Leave unresolved** calls nothing. Send
+again is a separate decision, warned about duplicates, and one uncertain attempt is retried at most
+once — a unique index, not a rule the interface remembers.
+
+**Every uncertain card now shows the media**, the real folder name, the file name, the kind and the
+topic, so it can actually be compared against Telegram.
+
+**Folders show their real names.** *Folder 2* and *Folder 6* were the generated ordinal, used because
+nothing had ever asked Android what the folder is called. It is asked when a folder is added, and
+**Rename folder** is on the folder's own page as well as in Directories.
+
+**Remote History says *Story*, *Reel*, *Post* or *Unknown type*** beside the media structure. A Reel
+is only ever labelled one when Instagram's own metadata proves it — **a Reel showing as *Post* is
+expected, not a defect.**
+
+**Check now says which refusal, and when.** Nine classified reasons, the cooldown with the exact
+local time, and only a real transport failure may say the server is unreachable.
+
+**On the server:** `content_kind` frozen onto each delivery, scheduled checks that finally create
+durable Check Runs, and `GET /review/unresolved` — the listing that made the D6A6 resolution
+endpoint reachable at all.
+
+| Field | Value |
+| --- | --- |
+| App version | code 38, `0.13.13-d6a7d` |
+| App HEAD | `6a9ced6d1791d290a8751c0e1eb325e5dda4d5cd` |
+| Server HEAD | `6fa9662b25e606c5d432ea52cc2827500d4f8137` — **deployed and verified** |
+| Room schema | **13 → 14**, additive. Server: **`0004_content_kind`**, additive |
+| App unit tests | **2250, 0 failures. Lint: no issues** |
+| Server tests | **948 passed, 4 skipped** |
+| APK | **copied to `/sdcard/Download/TelegramTopicUploader-0.13.13-d6a7d.apk`, hash verified, not installed** |
+| Live-proven | **The first active-Story import**, against the real account and the real source |
+| **Not** proven | **every line of D6A7d on hardware**; **Story deduplication**; **live Reel classification** |
+
+## 4a. Previous milestone: D6A7c1
+
 **D6A7c1** — corrections a manager review found in D6A7c, plus screenshots and screen recording
-turned back on.
+turned back on. **The screenshot fix is now confirmed on hardware.**
 
 > **The device report: Android refused screenshots, blocked screen recording, and showed a blank
 > white card in Recents.** `FLAG_SECURE` on the window, and `setSecure(true)` on the video preview's

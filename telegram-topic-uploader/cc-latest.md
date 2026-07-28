@@ -11,27 +11,27 @@
 
 | Field | Value |
 | --- | --- |
-| Task | **D6A7c1** — corrections a review found in D6A7c, plus screenshots and screen recording turned back on |
-| **Final application HEAD** | **`87cb1bbaa0df27da54eb0850c50f1759a07f5699`** (`87cb1bb`) — pushed |
-| **Final server HEAD** | **`f5c0b7d9a4010f7c012a2da1e854e1b8f3848865`** (`f5c0b7d`) — **deployed and verified** |
-| Version | code 36 → **37**, name `0.13.11-d6a7c` → **`0.13.12-d6a7c1`** |
-| Room schema | **13 — unchanged.** Server: **no new migration**, head stays `0003_instagram_stories` |
-| Gate | **2148 Android unit tests, 0 failures. Lint: no issues** (read from the XML report). Server **903 passed, 4 skipped** |
-| APK | `app-debug.apk`, 16,149,611 bytes, SHA-256 `711363f75c5fc64684fb44e2fecb1a720787388a5b9da86b5becb069775d405e`; instrumentation 1,541,193 bytes. Signer unchanged. **Copied to Downloads with a matching hash. Not installed** |
-| APK in Downloads | `/sdcard/Download/TelegramTopicUploader-0.13.12-d6a7c1.apk` — hash verified identical |
-| Live | `--post-range` semantics, and the deployment |
-| Hardware | **No line of D6A7c1 is verified.** `docs/D6A7C1_DEVICE_CHECKLIST.md`; all *not attempted*. Backlog rows 87–98 |
+| Task | **D6A7d** — an uncertain upload that can be answered, a folder's real name, and a delivery that says what it was |
+| **Final application HEAD** | **`6a9ced6d1791d290a8751c0e1eb325e5dda4d5cd`** — pushed |
+| **Final server HEAD** | **`6fa9662b25e606c5d432ea52cc2827500d4f8137`** (`6fa9662`) — **deployed and verified** |
+| Version | code 37 → **38**, name `0.13.12-d6a7c1` → **`0.13.13-d6a7d`** |
+| Room schema | **13 → 14.** Five nullable columns on `upload_jobs` and one unique index. Server: **`0004_content_kind`** |
+| Gate | **2250 Android unit tests, 0 failures. Lint: no issues** (read from the XML report). Server **948 passed, 4 skipped** |
+| APK | `app-debug.apk`, 16,251,384 bytes, SHA-256 `810637f90bce3fb7582537bdc962c7f41899100d72178a426dc43754784949db`. Signer unchanged. **Copied to Downloads with a matching hash. Not installed** |
+| APK in Downloads | `/sdcard/Download/TelegramTopicUploader-0.13.13-d6a7d.apk` — hash verified identical |
+| Live | **The first active-Story import in this project**, and both deployments |
+| Hardware | **No line of D6A7d is verified.** `docs/D6A7D_DEVICE_CHECKLIST.md`; all *not attempted* |
 
 ### Previous milestone, for reference
 
 | Field | Value |
 | --- | --- |
-| Task | D6A7b — an Instagram source stuck on "Checking" that never settled |
-| Application HEAD | `e6ec4556f92565db6159305513b43fd87ffcac34` (`e6ec455`) |
-| Server HEAD | `94d6a449b6d9902766a0e3e0c26bed6482ee2357` (`94d6a44`) |
-| Version | code 35, `0.13.10-d6a7b` |
-| Live | One real check imported **25 posts**; the source is `auto_send`, so all 25 went to its Telegram topic and are `confirmed` |
-| Hardware | **No Android line of D6A7b is verified either.** Backlog rows 65–71 — still owed |
+| Task | D6A7c1 — corrections a review found in D6A7c, plus screenshots and screen recording turned back on |
+| Application HEAD | `87cb1bbaa0df27da54eb0850c50f1759a07f5699` (`87cb1bb`) |
+| Server HEAD | `f5c0b7d9a4010f7c012a2da1e854e1b8f3848865` (`f5c0b7d`) |
+| Version | code 37, `0.13.12-d6a7c1` |
+| Gate | 2148 Android unit tests, 0 failures; server 903 passed, 4 skipped |
+| Hardware | Screenshots **confirmed working** by the D6A7d device report. Everything else still owed |
 
 No production token, Meta credential, Telegram identifier, chat ID, thread ID, private link, VPS
 address, Tailscale hostname, SSH host, pairing code, device token, cookie value, account name, file
@@ -1011,3 +1011,136 @@ source types reach the connector and report the challenge.
 - **Writing certain literals into Kotlin through a file-writing tool can land a raw NUL byte**, which
   makes `grep` treat the file as binary. If a grep over a file you just wrote returns nothing it
   should have matched, check for NUL bytes first.
+
+---
+
+# D6A7d — the first live Stories, and four rows that could not be answered
+
+The device report on the D6A7c1 build carried one real success and four dead ends.
+
+## What the hardware proved, and what it did not
+
+**Verified.** Android screenshots work — the `FLAG_SECURE` removal is confirmed. The local Review
+screen opens and shows its rows. Instagram Stories were enabled on the existing source, and
+**pressing Check now while active Stories existed discovered and uploaded every currently active
+Story.** This is the **first verified live Story import in this project**, and the server's own
+record agrees: eleven Stories, one successful manual check, items 28 → 39.
+
+> **The second Check now was *refused* by the fifteen-minute manual cooldown.** A refusal is not
+> evidence of deduplication. **The Story dedupe check is still open**, and no document in any of the
+> three repositories may say otherwise.
+
+**Still unverified:** a second successful check importing zero copies of the same active Stories;
+one later new Story importing exactly once; a Story left in Review remaining sendable after expiry;
+screen recording; a non-blank Recents preview; a captured local video preview that is not black; a
+live carousel-heavy import; a live pinned-post re-check; and **live Reel classification**, which has
+never been exercised at all.
+
+## 1. A `RESULT_UNKNOWN` row is a question, and questions can be answered
+
+Four local files sat in Review with an unknown Telegram result. **The state was correct** — a
+request may have left the device and no confirmation came back — and the refusal to resend
+automatically is right, because an automatic resend is how one post becomes two. **That rule is
+untouched.** What was wrong is that the row could not be ignored, resent, marked resolved, or even
+*identified* well enough to go and check Telegram by hand.
+
+Three actions, each behind a confirmation dialog:
+
+- **I found it in Telegram** — resolves the row as manually confirmed. It leaves Review and stays in
+  History as *confirmed by you, not confirmed by Telegram*. **No message ID is invented, no
+  confirmation timestamp is invented, no network call is made, nothing is sent, no file is
+  deleted**, and the reservation on those bytes is deliberately **kept**.
+- **I did not find it — allow sending again** — resolves the attempt as user-declared absent and
+  releases **this job's own** reservation. Creates no job and sends nothing.
+- **Leave unresolved** — reaches no repository at all. The view model returns before any call.
+
+**Send again is the second decision.** It prepares one queue row, warned in red; the send is the
+ordinary explicit action afterwards, through the one existing engine, so the replacement receives a
+fresh dispatch attempt from the same dispatcher as any other job. The uncertain attempt survives
+untouched in History with its attempt, error code and evidence exactly as the transport left them.
+
+**Design decisions worth carrying forward:**
+
+- **The status is never overloaded.** `RESULT_UNKNOWN` stays `RESULT_UNKNOWN`, so the deletion gate,
+  the retirement policy and the destination relationship behave exactly as before. The finding lives
+  on its own columns: `unknownResolution`, `unknownResolvedAt`, `unknownResolvedAttemptId`,
+  `unknownResolutionProvenance`.
+- **"Retried at most once" is a unique index**, not a rule the interface remembers.
+  `retryOfUncertainJobId` on the *new* row carries it, so repeated taps collide and a process death
+  between the resolution and the retry is safe — the resolution commits on its own.
+- **Idempotency is the statement's `WHERE`**, not a read: `AND unknownResolution IS NULL`. A replay
+  after a restart matches zero rows.
+- **The projection filters; nothing is retired.** A settled row leaves Review the same way an
+  ignored one does — no status rewritten, no reservation touched.
+
+## 2. A card you can compare against Telegram
+
+Every uncertain Review card draws the **same** thumbnail the grid does, from the same bounded cache
+and the same decoder — no second image library, no main-thread decode, and a failure leaves the
+placeholder rather than hiding the card. Beside it: the real folder name, the file name, the media
+kind, the topic label, the uncertain status and the three actions. The full preview is one tap away
+and **opening it resolves nothing**. There is a direct action to the folder page, and Back returns
+to Review at the exact scroll offset.
+
+## 3. A folder is called what the user calls it
+
+The device showed *Folder 2* and *Folder 6* — the generated ordinal a row is created with. **The
+naming policy has existed since D5A; what was missing is that nothing ever asked.** The provider's
+name was read only by an explicit refresh nobody had a reason to press.
+
+It is asked now, once, when a folder is added: one read-only question about the tree's own root
+document. A reauthorization refreshes it and never blanks a correct name. **Rename folder is on the
+folder's own page** as well as in Directories, from the same composable. A rename is local metadata —
+no Android folder renamed, no tree URI changed, no permission revoked, no scan state touched.
+
+The Queue and History projections now carry the three naming fields, so every screen asks the one
+policy instead of printing whichever field its query selected.
+
+## 4. Remote History says what was delivered
+
+*Story* / *Reel* / *Post* / *Unknown type*, **beside** the media structure rather than merged into
+it, because all three can be one video. The app derives nothing — the value is the server's frozen
+classification, and an absent field or an unrecognised value both read as *Unknown type*.
+
+> **A Reel will almost certainly show as *Post*, and that is correct.** See the server handoff: the
+> only trustworthy reel signals are Instagram's own product metadata, and gallery-dl 1.32.8's `type`
+> field guesses "reel" from *exactly one video file*, so it is deliberately not read. **Do not record
+> a Reel labelled *Post* as a device failure** — record it as *not proven*.
+
+## 5. Check now says which refusal
+
+*"The server is not checking this source now"* was true of every refusal and useful for none. The API
+had returned the structured facts since D6A7b; the app flattened them. Nine classified reasons now:
+the cooldown with the **exact local eligible time** and *"אפשר לבדוק שוב בעוד N דקות"*; a check
+already running, which is **accepted** and attached to rather than refused; a disabled source; a
+platform backoff; a rejected pairing; a real transport failure — **the only one that may say the
+server is unreachable** — and a safe fallback carrying the server's own sanitized code.
+
+**No application-wide timer.** The countdown is a `LaunchedEffect` inside the card that shows it,
+ticking every thirty seconds, existing only while that card does and only for a refusal with an end.
+Returning to the screen clears it and re-reads the source. A settled check refreshes the source card,
+Remote Review **and** Remote History.
+
+## 6. The remote uncertain workflow, finally reachable
+
+The server's `resolve-unknown` endpoint has been correct since D6A6 and unreachable, because no
+listing ever returned a `result_unknown` item. The server gained `GET /review/unresolved`; Remote
+Review gained a third chip. **The server owns that state machine and the app does not duplicate a
+line of it** — a surface test asserts the local and remote paths cannot reach each other.
+
+## Practical notes for the next session
+
+- **`GRADLE_USER_HOME=/root/.gradle`.** The agent runs as `devagent` whose `$HOME` is
+  `/home/devagent`, and the Gradle cache lives under `/root/.gradle`. Without it `--offline` fails at
+  configuration time with dozens of "no cached version available" lines that look like a broken
+  build and are not.
+- **Read the lint XML, not the exit code.** `lint` exits zero on warnings. D6A7d's first run had ten
+  warnings and one hint — plurals, an autoboxed `mutableStateOf`, and seven strings declared but
+  never rendered. All fixed rather than suppressed; the unused ones were wired to the surfaces that
+  owed the user those sentences.
+- **`--rerun-tasks` for the final gate.** Gradle does not track `build.gradle.kts` as a unit-test
+  input, so a version bump leaves the task UP-TO-DATE and stale assertions pass.
+- **Older milestone surface tests pin the schema version.** D6A7d had to update nine of them, plus
+  one that sliced `MIGRATION_12_13` up to `val ALL` and started reading the new migration's SQL, and
+  one that asserted the canonical projection contains no `WHERE` anywhere — a correlated `EXISTS`
+  subquery is a join predicate, not a filter, and the guard was narrowed to say what it means.

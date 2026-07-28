@@ -30,7 +30,9 @@ hash — and nothing added to it ever may.
 | Head after D6A7a | **unchanged — `b307b08`.** See the D6A7a note below. |
 | Head after D6A7b | `94d6a449b6d9902766a0e3e0c26bed6482ee2357` (`94d6a44`) — deployed and verified |
 | Head after D6A7c | `cbea54ffa9d41b6a76a84a4d739845899995c3f2` (`cbea54f`) — deployed; **shipped four defects, see D6A7c1** |
-| **Head after D6A7c1** | **`f5c0b7d9a4010f7c012a2da1e854e1b8f3848865`** (`f5c0b7d`) — **deployed and verified** |
+| Head after D6A7c1 | `f5c0b7d9a4010f7c012a2da1e854e1b8f3848865` (`f5c0b7d`) — deployed and verified |
+| Head after D6A7d, first commit | `60ebc6b43ba9e1122f383e2323eaba28347e0a26` (`60ebc6b`) — deployed and verified |
+| **Head after D6A7d** | **`6fa9662b25e606c5d432ea52cc2827500d4f8137`** (`6fa9662`) — **deployed and verified** |
 | Host | A DigitalOcean droplet, Ubuntu 24.04.4, amd64, 1 vCPU, ~2 GiB RAM, ~48 GB disk |
 | Deploy path on host | `/opt/remote-sources` |
 | State path on host | `/var/lib/remote-sources` |
@@ -1181,3 +1183,155 @@ correction. Row S8 in the server `TODO.md`.
   *post* is the reel and a *file* is a frame — **Stories keep `--range`**.
 - **A green suite is not coverage.** Three of these four defects were invisible because every fixture
   used single-media posts, or asserted a state without asserting the number beside it.
+
+---
+
+# D6A7d — what a delivery *was*, and a scheduled check that left no trace
+
+| Field | Value |
+| --- | --- |
+| Server HEAD | **`6fa9662b25e606c5d432ea52cc2827500d4f8137`** — deployed and verified |
+| Intermediate HEAD | `60ebc6b43ba9e1122f383e2323eaba28347e0a26` — also deployed and verified |
+| Migration head | **`0004_content_kind`** — two nullable columns plus one **proven** backfill. `0003` untouched |
+| Tests | **948 passed, 4 skipped** (903 at D6A7c1) |
+| Gate | `ruff format --check`, `ruff check`, `mypy`, `pytest`, `bash -n scripts/deploy-production`, `scripts/release-preflight`, `git diff --check` — all clean |
+
+## The production fact this milestone was written from
+
+**The first live Story import in this project succeeded.** Stories were enabled on the real
+Instagram source and one manual **Check now** discovered and uploaded every currently active Story.
+The server's own record agrees and was read directly before and after both deployments:
+
+- `include_stories = True`, `story_import_state = initial_complete`, `story_initial_item_count = 11`
+- one `check_runs` row: `trigger = manual`, `state = succeeded`, `inserted_stories = 11`
+- items 28 → **39**, delivery operations 28 → **39**
+
+**The second Check now was refused by the fifteen-minute manual cooldown.** A refusal is not
+evidence of deduplication. **That check is still open** and is the single most valuable line in the
+Android device checklist.
+
+## 1. `content_kind` — three things one word could not tell apart
+
+A Story can be a video. So can a Reel. So can an ordinary post. The History card had only
+`media_count` and `first_media_kind`, so the one question the user asked — *what was this?* — had no
+field to answer it.
+
+`InstagramContentKind`: `story` / `reel` / `post` / `unknown`. Shown **beside** the media structure,
+never merged into it. Every value is earned:
+
+- **`story`** — the Story discovery path and the `story:` namespace on the canonical identity. The
+  only value provable from a stored row alone, and therefore the only one the migration backfills.
+- **`reel`** — Instagram's own product metadata only: `product_type` / `media_product_type` equal to
+  `clips`, `subtype_name_for_REST__ == "XDTClipsMedia"`, or gallery-dl's `reels` subcategory.
+- **`post`** — feed content read successfully and not proven to be a Reel. A positive statement.
+- **`unknown`** — legacy, non-Instagram, or genuinely insufficient evidence. Visible, not actionable.
+
+> ### The field that is deliberately not read — measured, not assumed
+>
+> gallery-dl **1.32.8**, `InstagramExtractor._parse_post_rest`, ends with:
+>
+> ```python
+> if "type" not in data:
+>     if len(files) == 1 and files[0]["video_url"]:
+>         data["type"] = "reel"
+>     else:
+>         data["type"] = "post"
+> ```
+>
+> That is *"exactly one video file"*. Reading it would relabel **every ordinary single-video post a
+> Reel**. It is not consulted, and a regression test carries `"type": "reel"` on a post that is not
+> one and asserts it still classifies as `post`.
+>
+> **The consequence, stated because it is visible on the device.** The printed record is
+> `{**post_data, **file}` and `product_type` is read by the extractor without being copied into
+> either — so with the profile arguments this service uses, **no trusted reel signal reaches the
+> parser and feed content classifies as `post`**. That is the specification, not a gap. **Live Reel
+> classification has therefore never been exercised, and no claim about it may be made.**
+
+**Frozen where it matters.** `DeliveryOperation` copies the classification at creation, exactly as
+it copies `destination_label`, so editing, reclassifying or deleting an item cannot change what a
+past delivery says it was. A test rewrites the item afterwards and asserts the operation is
+unchanged.
+
+## 2. A scheduled check now leaves the evidence a manual one always did
+
+The defect was observed in production at D6A7c1 and deferred as row S8: the scheduler called
+`check_one` directly, so a scheduled check advanced `last_check_at`, imported content and — on an
+auto-send source — delivered it, while writing no `CheckRun` at all. On an auto-send source a
+scheduled check *is* the delivery, so the card could report only the kind of check that mattered
+least.
+
+`Scheduler.run_scheduled_check` gives both triggers the same shape of evidence:
+
+- **one execution, one row.** `begin_run` is authoritative through the partial unique index, so a
+  tick that meets a live run — manual or scheduled — starts nothing and joins nothing; the source is
+  checked on the next tick. A scheduler retry cannot produce two rows for one execution.
+- **`RUNNING` is never a resting state.** Ordinary completion settles through the same
+  `settle_from_report` the manual path uses; an exception settles `FAILED`; a process that did not
+  survive settles `INTERRUPTED` at the next start-up. **A restart cannot fabricate a completed run.**
+- **partial stays partial** — the feed and Story halves are carried separately.
+- **the manual cooldown is not consulted by the scheduler.** It bounds how often a *person* may ask.
+
+No migration was needed: `check_runs.trigger` and `CheckTrigger` have existed since D6A7b. Only the
+scheduler's failure to write a row was new.
+
+## 3. `GET /review/unresolved` — the listing that made an endpoint reachable
+
+`POST /review/{item_id}/resolve-unknown` has been correct since **D6A6** and was completely
+unreachable from an application: a `result_unknown` item is in neither `/review` nor
+`/review/ignored`, so nothing a client could list ever named one, and settling one required already
+knowing an item id.
+
+Additive, same projection, same redaction, same pagination. **Declared above `/review/{item_id}`** —
+FastAPI matches in declaration order, and a literal path registered after a parameterised one is
+never reached. A test pins that, and the `401`.
+
+## 4. `0004_content_kind`
+
+Two nullable columns — `remote_items.content_kind`, `delivery_operations.content_kind` — and exactly
+one backfill: rows whose `canonical_post_id` begins `story:` become `story`, and so do the delivery
+operations naming them. That prefix is a namespace this service controls and no feed identity can
+produce one, so it is a proof rather than a heuristic. **Everything else stays `NULL` → `unknown`.**
+
+`0003` is untouched, and a test asserts it — it is deployed, so it is history.
+
+## 5. Capabilities added
+
+```
+instagram.content_kind.v1   checks.scheduled_runs.v1   review.unresolved.v1
+```
+
+## Deployment verification — both deployments
+
+Recorded before and after, without printing identity:
+
+| | Before | After |
+| --- | --- | --- |
+| devices / items / operations / check_runs | 4 / 39 / 39 / 1 | **identical** |
+| `include_stories` | `True` | `True` |
+| `story_import_state` | `initial_complete` | `initial_complete` |
+| `story_initial_item_count` | `11` | `11` |
+| `story_initial_completed_at` | unchanged | unchanged |
+| review mode / schedule | `auto_send` / `normal` | unchanged |
+
+Also verified each time: the exact 40-character deployed commit reported by the service, migration
+head `0004_content_kind`, `/health` and `/ready` both `200` with `migrations_current: true`, `401` on
+every protected route **including the new `/review/unresolved`**, and the application port listening
+on `127.0.0.1` only.
+
+**The backfill did exactly what it claimed:** 11 items and 11 operations became `story`; 28 and 28
+stayed `NULL`.
+
+**No production source check was run**, no Instagram discovery was invoked through the API, nothing
+was sent to Telegram, and the source's Stories toggle, destination, review mode and schedule were not
+touched. **The scheduler did not execute during or after either deployment** — `next_check_at` was
+several hours out both times.
+
+## Still open on the server
+
+- **Story deduplication on a second successful check.** ⛔ Not closed by the first import succeeding.
+- One later new Story imported exactly once; real Story expiry.
+- **Live Reel classification** — never observed; `reel` has never been produced outside a test.
+- A scheduled check observed on a source card.
+- Live pinned-post re-check; X and TikTok live extractor-shape checks; 9GAG (platform-blocked).
+- Production rollback has never executed. Off-site backup is not set up.
