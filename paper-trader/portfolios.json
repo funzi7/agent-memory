@@ -1,5 +1,5 @@
 {
-  "last_processed_date": "2026-07-28",
+  "last_processed_date": "2026-07-29",
   "portfolios": {
     "benchmark_100": {
       "portfolio_id": "benchmark_100",
@@ -12,7 +12,7 @@
           "shares": 1.0,
           "avg_price": 86.56325664138794,
           "entry_date": "2026-06-24",
-          "bars_held": 24,
+          "bars_held": 25,
           "cost_basis": 87.42888964138794,
           "high_water": 88.8499984741211,
           "partial_exit_done": false
@@ -123,6 +123,10 @@
         [
           "2026-07-28",
           99.76111280001831
+        ],
+        [
+          "2026-07-29",
+          98.50111066378784
         ]
       ],
       "cash_history": [
@@ -225,6 +229,10 @@
         [
           "2026-07-28",
           12.57111035861206
+        ],
+        [
+          "2026-07-29",
+          12.57111035861206
         ]
       ],
       "stats": {
@@ -237,10 +245,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -87.43,
       "realized_pnl": 0.0,
-      "monthly_pace": -0.76,
+      "monthly_pace": -2.05,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 19
+      "pace_days": 20
     },
     "benchmark_10k": {
       "portfolio_id": "benchmark_10k",
@@ -253,7 +261,7 @@
           "shares": 13.0,
           "avg_price": 734.176902557373,
           "entry_date": "2026-06-23",
-          "bars_held": 25,
+          "bars_held": 26,
           "cost_basis": 9545.299733245849,
           "high_water": 754.9500122070312,
           "partial_exit_done": false
@@ -364,6 +372,10 @@
         [
           "2026-07-28",
           10085.880076324464
+        ],
+        [
+          "2026-07-29",
+          9937.680552398682
         ]
       ],
       "cash_history": [
@@ -466,6 +478,10 @@
         [
           "2026-07-28",
           454.700266754151
+        ],
+        [
+          "2026-07-29",
+          454.700266754151
         ]
       ],
       "stats": {
@@ -478,10 +494,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -9545.3,
       "realized_pnl": 0.0,
-      "monthly_pace": -84.92,
+      "monthly_pace": -236.28,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 19
+      "pace_days": 20
     },
     "rsi2_100": {
       "portfolio_id": "rsi2_100",
@@ -489,7 +505,14 @@
       "account_size": 100.0,
       "cash": 98.20483805389405,
       "positions": {},
-      "pending_orders": [],
+      "pending_orders": [
+        {
+          "ticker": "SPYM",
+          "side": "BUY",
+          "reason": "RSI2=8.5 < 10",
+          "orig": "SPY"
+        }
+      ],
       "equity_history": [
         [
           "2026-06-09",
@@ -594,6 +617,10 @@
         [
           "2026-07-28",
           98.20483805389405
+        ],
+        [
+          "2026-07-29",
+          98.20483805389405
         ]
       ],
       "cash_history": [
@@ -696,6 +723,10 @@
         [
           "2026-07-28",
           98.20483805389405
+        ],
+        [
+          "2026-07-29",
+          98.20483805389405
         ]
       ],
       "stats": {
@@ -708,10 +739,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -1.8,
       "realized_pnl": -1.8,
-      "monthly_pace": -1.98,
+      "monthly_pace": -1.88,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 19
+      "pace_days": 20
     },
     "rsi2_10k": {
       "portfolio_id": "rsi2_10k",
@@ -719,7 +750,13 @@
       "account_size": 10000.0,
       "cash": 9992.58630734253,
       "positions": {},
-      "pending_orders": [],
+      "pending_orders": [
+        {
+          "ticker": "SPY",
+          "side": "BUY",
+          "reason": "RSI2=8.5 < 10"
+        }
+      ],
       "equity_history": [
         [
           "2026-06-09",
@@ -824,6 +861,10 @@
         [
           "2026-07-28",
           9992.58630734253
+        ],
+        [
+          "2026-07-29",
+          9992.58630734253
         ]
       ],
       "cash_history": [
@@ -926,6 +967,10 @@
         [
           "2026-07-28",
           9992.58630734253
+        ],
+        [
+          "2026-07-29",
+          9992.58630734253
         ]
       ],
       "stats": {
@@ -938,10 +983,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -7.41,
       "realized_pnl": -7.41,
-      "monthly_pace": -8.19,
+      "monthly_pace": -7.78,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 19
+      "pace_days": 20
     },
     "trend200_100": {
       "portfolio_id": "trend200_100",
@@ -1054,6 +1099,10 @@
         [
           "2026-07-28",
           100.0
+        ],
+        [
+          "2026-07-29",
+          100.0
         ]
       ],
       "cash_history": [
@@ -1156,6 +1205,10 @@
         [
           "2026-07-28",
           100.0
+        ],
+        [
+          "2026-07-29",
+          100.0
         ]
       ],
       "stats": {
@@ -1171,7 +1224,7 @@
       "monthly_pace": 0.0,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 19
+      "pace_days": 20
     },
     "trend200_10k": {
       "portfolio_id": "trend200_10k",
@@ -1184,7 +1237,7 @@
           "shares": 13.0,
           "avg_price": 716.0978602294922,
           "entry_date": "2026-06-23",
-          "bars_held": 25,
+          "bars_held": 26,
           "cost_basis": 9310.272182983399,
           "high_water": 736.4000244140625,
           "partial_exit_done": false
@@ -1295,6 +1348,10 @@
         [
           "2026-07-28",
           9471.097690063476
+        ],
+        [
+          "2026-07-29",
+          9292.217563110351
         ]
       ],
       "cash_history": [
@@ -1397,6 +1454,10 @@
         [
           "2026-07-28",
           689.727817016601
+        ],
+        [
+          "2026-07-29",
+          689.727817016601
         ]
       ],
       "stats": {
@@ -1409,10 +1470,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -9310.27,
       "realized_pnl": 0.0,
-      "monthly_pace": -875.18,
+      "monthly_pace": -1019.25,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 19
+      "pace_days": 20
     },
     "rotation_100": {
       "portfolio_id": "rotation_100",
@@ -1525,6 +1586,10 @@
         [
           "2026-07-28",
           100.0
+        ],
+        [
+          "2026-07-29",
+          100.0
         ]
       ],
       "cash_history": [
@@ -1627,6 +1692,10 @@
         [
           "2026-07-28",
           100.0
+        ],
+        [
+          "2026-07-29",
+          100.0
         ]
       ],
       "stats": {
@@ -1642,7 +1711,7 @@
       "monthly_pace": 0.0,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 19
+      "pace_days": 20
     },
     "rotation_10k": {
       "portfolio_id": "rotation_10k",
@@ -1655,7 +1724,7 @@
           "shares": 13.0,
           "avg_price": 725.9428070983886,
           "entry_date": "2026-07-02",
-          "bars_held": 18,
+          "bars_held": 19,
           "cost_basis": 9438.256492279052,
           "high_water": 725.9428070983886,
           "partial_exit_done": false
@@ -1766,6 +1835,10 @@
         [
           "2026-07-28",
           9343.113380767823
+        ],
+        [
+          "2026-07-29",
+          9164.233253814698
         ]
       ],
       "cash_history": [
@@ -1868,6 +1941,10 @@
         [
           "2026-07-28",
           561.7435077209484
+        ],
+        [
+          "2026-07-29",
+          561.7435077209484
         ]
       ],
       "stats": {
@@ -1880,10 +1957,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -9438.26,
       "realized_pnl": 0.0,
-      "monthly_pace": -726.03,
+      "monthly_pace": -877.56,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 19
+      "pace_days": 20
     },
     "momentum_scan_100": {
       "portfolio_id": "momentum_scan_100",
@@ -1893,29 +1970,29 @@
       "positions": {},
       "pending_orders": [
         {
-          "ticker": "AMD",
+          "ticker": "AMAT",
           "side": "BUY",
-          "reason": "rank 5, 6-1 +142.7%"
+          "reason": "rank 5, 6-1 +167.0%"
         },
         {
           "ticker": "ARM",
           "side": "BUY",
-          "reason": "rank 4, 6-1 +198.4%"
+          "reason": "rank 4, 6-1 +208.0%"
         },
         {
           "ticker": "INTC",
           "side": "BUY",
-          "reason": "rank 2, 6-1 +253.0%"
+          "reason": "rank 2, 6-1 +264.3%"
         },
         {
           "ticker": "MRVL",
           "side": "BUY",
-          "reason": "rank 3, 6-1 +204.6%"
+          "reason": "rank 3, 6-1 +221.5%"
         },
         {
           "ticker": "MU",
           "side": "BUY",
-          "reason": "rank 1, 6-1 +310.2%"
+          "reason": "rank 1, 6-1 +299.8%"
         }
       ],
       "equity_history": [
@@ -2018,6 +2095,10 @@
         [
           "2026-07-28",
           80.80089874642945
+        ],
+        [
+          "2026-07-29",
+          80.80089874642945
         ]
       ],
       "cash_history": [
@@ -2120,6 +2201,10 @@
         [
           "2026-07-28",
           80.80089874642945
+        ],
+        [
+          "2026-07-29",
+          80.80089874642945
         ]
       ],
       "stats": {
@@ -2132,10 +2217,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -19.2,
       "realized_pnl": -19.2,
-      "monthly_pace": -19.01,
+      "monthly_pace": -18.06,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 19
+      "pace_days": 20
     },
     "momentum_scan_10k": {
       "portfolio_id": "momentum_scan_10k",
@@ -2148,7 +2233,7 @@
           "shares": 15.0,
           "avg_price": 132.98445826721192,
           "entry_date": "2026-06-24",
-          "bars_held": 24,
+          "bars_held": 25,
           "cost_basis": 1995.7668740081788,
           "high_water": 139.6300048828125,
           "partial_exit_done": false
@@ -2158,7 +2243,7 @@
           "shares": 7.0,
           "avg_price": 281.63574261474605,
           "entry_date": "2026-06-24",
-          "bars_held": 24,
+          "bars_held": 25,
           "cost_basis": 1972.4501983032224,
           "high_water": 297.8900146484375,
           "partial_exit_done": false
@@ -2168,7 +2253,7 @@
           "shares": 1.0,
           "avg_price": 1083.411430114746,
           "entry_date": "2026-06-24",
-          "bars_held": 24,
+          "bars_held": 25,
           "cost_basis": 1084.411430114746,
           "high_water": 1213.56005859375,
           "partial_exit_done": false
@@ -2178,7 +2263,7 @@
           "shares": 28.0,
           "avg_price": 88.81438164138794,
           "entry_date": "2026-06-30",
-          "bars_held": 20,
+          "bars_held": 21,
           "cost_basis": 2487.802685958862,
           "high_water": 97.87000274658203,
           "partial_exit_done": false
@@ -2188,7 +2273,7 @@
           "shares": 4.0,
           "avg_price": 318.8193336639404,
           "entry_date": "2026-07-09",
-          "bars_held": 14,
+          "bars_held": 15,
           "cost_basis": 1276.2773346557617,
           "high_water": 327.8699951171875,
           "partial_exit_done": false
@@ -2295,6 +2380,10 @@
         [
           "2026-07-28",
           6990.540837108612
+        ],
+        [
+          "2026-07-29",
+          6530.980679332733
         ]
       ],
       "cash_history": [
@@ -2397,6 +2486,10 @@
         [
           "2026-07-28",
           312.3407486076362
+        ],
+        [
+          "2026-07-29",
+          312.3407486076362
         ]
       ],
       "stats": {
@@ -2409,10 +2502,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -9687.66,
       "realized_pnl": -870.95,
-      "monthly_pace": -3272.3,
+      "monthly_pace": -3591.23,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 19
+      "pace_days": 20
     },
     "leveraged_momentum_100": {
       "portfolio_id": "leveraged_momentum_100",
@@ -2425,7 +2518,7 @@
           "shares": 1.0,
           "avg_price": 67.03349999999999,
           "entry_date": "2026-06-24",
-          "bars_held": 24,
+          "bars_held": 25,
           "cost_basis": 67.70383499999998,
           "high_water": 82.75,
           "partial_exit_done": false
@@ -2435,7 +2528,7 @@
           "shares": 1.0,
           "avg_price": 23.591789923667907,
           "entry_date": "2026-07-15",
-          "bars_held": 10,
+          "bars_held": 11,
           "cost_basis": 23.82770792366791,
           "high_water": 23.591789923667907,
           "partial_exit_done": false
@@ -2445,17 +2538,17 @@
         {
           "ticker": "SOXL",
           "side": "BUY",
-          "reason": "מילוי אמצע-חודש — דירוג #1, מומנטום 6-1 +393.4%"
+          "reason": "מילוי אמצע-חודש — דירוג #1, מומנטום 6-1 +435.0%"
         },
         {
           "ticker": "TECL",
           "side": "BUY",
-          "reason": "מילוי אמצע-חודש — דירוג #5, מומנטום 6-1 +62.4%"
+          "reason": "מילוי אמצע-חודש — דירוג #5, מומנטום 6-1 +73.2%"
         },
         {
           "ticker": "USD",
           "side": "BUY",
-          "reason": "מילוי אמצע-חודש — דירוג #4, מומנטום 6-1 +72.1%"
+          "reason": "מילוי אמצע-חודש — דירוג #4, מומנטום 6-1 +82.0%"
         }
       ],
       "equity_history": [
@@ -2558,6 +2651,10 @@
         [
           "2026-07-28",
           70.60845837332917
+        ],
+        [
+          "2026-07-29",
+          62.978457305213944
         ]
       ],
       "cash_history": [
@@ -2660,6 +2757,10 @@
         [
           "2026-07-28",
           8.468457076332108
+        ],
+        [
+          "2026-07-29",
+          8.468457076332108
         ]
       ],
       "stats": {
@@ -2672,10 +2773,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -91.53,
       "realized_pnl": 0.0,
-      "monthly_pace": -49.12,
+      "monthly_pace": -54.67,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 19
+      "pace_days": 20
     },
     "leveraged_momentum_10k": {
       "portfolio_id": "leveraged_momentum_10k",
@@ -2688,7 +2789,7 @@
           "shares": 8.0,
           "avg_price": 233.22655561065673,
           "entry_date": "2026-06-24",
-          "bars_held": 24,
+          "bars_held": 25,
           "cost_basis": 1866.8124448852539,
           "high_water": 266.7099914550781,
           "partial_exit_done": false
@@ -2698,7 +2799,7 @@
           "shares": 9.0,
           "avg_price": 210.3050969467163,
           "entry_date": "2026-06-24",
-          "bars_held": 24,
+          "bars_held": 25,
           "cost_basis": 1893.7458725204467,
           "high_water": 230.75999450683594,
           "partial_exit_done": false
@@ -2708,7 +2809,7 @@
           "shares": 20.0,
           "avg_price": 98.68931938934325,
           "entry_date": "2026-06-24",
-          "bars_held": 24,
+          "bars_held": 25,
           "cost_basis": 1974.7863877868651,
           "high_water": 104.26000213623047,
           "partial_exit_done": false
@@ -2718,7 +2819,7 @@
           "shares": 40.0,
           "avg_price": 38.15456884918213,
           "entry_date": "2026-06-24",
-          "bars_held": 24,
+          "bars_held": 25,
           "cost_basis": 1527.1827539672852,
           "high_water": 41.45450134277344,
           "partial_exit_done": false
@@ -2728,7 +2829,7 @@
           "shares": 43.0,
           "avg_price": 63.031499999999994,
           "entry_date": "2026-07-20",
-          "bars_held": 7,
+          "bars_held": 8,
           "cost_basis": 2711.3545,
           "high_water": 71.62999725341797,
           "partial_exit_done": false
@@ -2835,6 +2936,10 @@
         [
           "2026-07-28",
           6536.733578746796
+        ],
+        [
+          "2026-07-29",
+          5817.063523357392
         ]
       ],
       "cash_history": [
@@ -2937,6 +3042,10 @@
         [
           "2026-07-28",
           46.77359873581008
+        ],
+        [
+          "2026-07-29",
+          46.77359873581008
         ]
       ],
       "stats": {
@@ -2949,10 +3058,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -9953.23,
       "realized_pnl": 20.66,
-      "monthly_pace": -4989.09,
+      "monthly_pace": -5495.29,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 19
+      "pace_days": 20
     },
     "guru_track_100": {
       "portfolio_id": "guru_track_100",
@@ -3061,6 +3170,10 @@
         [
           "2026-07-28",
           100.0
+        ],
+        [
+          "2026-07-29",
+          100.0
         ]
       ],
       "cash_history": [
@@ -3163,6 +3276,10 @@
         [
           "2026-07-28",
           100.0
+        ],
+        [
+          "2026-07-29",
+          100.0
         ]
       ],
       "stats": {
@@ -3178,7 +3295,7 @@
       "monthly_pace": 0.0,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 19
+      "pace_days": 20
     },
     "guru_track_10k": {
       "portfolio_id": "guru_track_10k",
@@ -3287,6 +3404,10 @@
         [
           "2026-07-28",
           10000.0
+        ],
+        [
+          "2026-07-29",
+          10000.0
         ]
       ],
       "cash_history": [
@@ -3389,6 +3510,10 @@
         [
           "2026-07-28",
           10000.0
+        ],
+        [
+          "2026-07-29",
+          10000.0
         ]
       ],
       "stats": {
@@ -3404,7 +3529,7 @@
       "monthly_pace": 0.0,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 19
+      "pace_days": 20
     },
     "screener_track_100": {
       "portfolio_id": "screener_track_100",
@@ -3417,7 +3542,7 @@
           "shares": 1.0,
           "avg_price": 28.064024236679074,
           "entry_date": "2026-06-24",
-          "bars_held": 24,
+          "bars_held": 25,
           "cost_basis": 28.344664236679073,
           "high_water": 33.15999984741211,
           "partial_exit_done": false,
@@ -3428,7 +3553,7 @@
           "shares": 1.0,
           "avg_price": 47.0235,
           "entry_date": "2026-06-24",
-          "bars_held": 24,
+          "bars_held": 25,
           "cost_basis": 47.493735,
           "high_water": 57.95000076293945,
           "partial_exit_done": false,
@@ -3536,6 +3661,10 @@
         [
           "2026-07-28",
           103.11160152626037
+        ],
+        [
+          "2026-07-29",
+          103.17160099220276
         ]
       ],
       "cash_history": [
@@ -3638,6 +3767,10 @@
         [
           "2026-07-28",
           24.16160076332092
+        ],
+        [
+          "2026-07-29",
+          24.16160076332092
         ]
       ],
       "stats": {
@@ -3650,10 +3783,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -75.84,
       "realized_pnl": 0.0,
-      "monthly_pace": -5.21,
+      "monthly_pace": -4.88,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 19
+      "pace_days": 20
     },
     "screener_track_10k": {
       "portfolio_id": "screener_track_10k",
@@ -3666,9 +3799,9 @@
           "shares": 4.0,
           "avg_price": 195.98293700408934,
           "entry_date": "2026-06-24",
-          "bars_held": 24,
+          "bars_held": 25,
           "cost_basis": 784.503176587786,
-          "high_water": 249.17999267578125,
+          "high_water": 263.42999267578125,
           "partial_exit_done": true,
           "rank": 5
         },
@@ -3677,7 +3810,7 @@
           "shares": 5.0,
           "avg_price": 249.84486122131347,
           "entry_date": "2026-06-24",
-          "bars_held": 24,
+          "bars_held": 25,
           "cost_basis": 1250.2243061065674,
           "high_water": 249.84486122131347,
           "partial_exit_done": false,
@@ -3688,7 +3821,7 @@
           "shares": 7.0,
           "avg_price": 200.17004232788085,
           "entry_date": "2026-06-24",
-          "bars_held": 24,
+          "bars_held": 25,
           "cost_basis": 1402.190296295166,
           "high_water": 212.5,
           "partial_exit_done": false,
@@ -3699,9 +3832,9 @@
           "shares": 5.0,
           "avg_price": 144.9024168319702,
           "entry_date": "2026-06-24",
-          "bars_held": 24,
+          "bars_held": 25,
           "cost_basis": 725.0676397154067,
-          "high_water": 167.47000122070312,
+          "high_water": 170.6199951171875,
           "partial_exit_done": true,
           "rank": 6
         },
@@ -3710,7 +3843,7 @@
           "shares": 15.0,
           "avg_price": 47.0235,
           "entry_date": "2026-06-24",
-          "bars_held": 24,
+          "bars_held": 25,
           "cost_basis": 705.8525,
           "high_water": 57.95000076293945,
           "partial_exit_done": true,
@@ -3721,7 +3854,7 @@
           "shares": 3.0,
           "avg_price": 434.19199360656734,
           "entry_date": "2026-06-24",
-          "bars_held": 24,
+          "bars_held": 25,
           "cost_basis": 1303.575980819702,
           "high_water": 477.57000732421875,
           "partial_exit_done": false,
@@ -3829,6 +3962,10 @@
         [
           "2026-07-28",
           10367.681387269022
+        ],
+        [
+          "2026-07-29",
+          10331.211466156961
         ]
       ],
       "cash_history": [
@@ -3931,6 +4068,10 @@
         [
           "2026-07-28",
           4222.161474549295
+        ],
+        [
+          "2026-07-29",
+          4222.161474549295
         ]
       ],
       "stats": {
@@ -3943,10 +4084,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -5777.84,
       "realized_pnl": 393.58,
-      "monthly_pace": -107.26,
+      "monthly_pace": -140.19,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 19
+      "pace_days": 20
     },
     "swing_100": {
       "portfolio_id": "swing_100",
@@ -3959,7 +4100,7 @@
           "shares": 1.0,
           "avg_price": 14.787389732837676,
           "entry_date": "2026-07-10",
-          "bars_held": 13,
+          "bars_held": 14,
           "cost_basis": 14.935263732837676,
           "high_water": 14.859999656677246,
           "partial_exit_done": false
@@ -3969,7 +4110,7 @@
           "shares": 3.0,
           "avg_price": 23.261625,
           "entry_date": "2026-07-23",
-          "bars_held": 4,
+          "bars_held": 5,
           "cost_basis": 70.482724,
           "high_water": 24.65999984741211,
           "partial_exit_done": false
@@ -3977,27 +4118,40 @@
       },
       "pending_orders": [
         {
-          "ticker": "BRO",
-          "side": "BUY",
-          "reason": "פריצה #3 +5.2% מעל הרף, RSI 69",
-          "rank": 3,
-          "price": 73.65,
-          "qty": 0
+          "ticker": "AES",
+          "side": "SELL",
+          "reason": "המהלך נגמר — מתחת לממוצע 10"
         },
         {
-          "ticker": "EPAM",
+          "ticker": "ADBE",
           "side": "BUY",
-          "reason": "פריצה #1 +6.6% מעל הרף, RSI 67",
-          "rank": 1,
-          "price": 100.4,
-          "qty": 0
-        },
-        {
-          "ticker": "SOLV",
-          "side": "BUY",
-          "reason": "פריצה #2 +5.5% מעל הרף, RSI 69",
+          "reason": "פריצה #2 +5.7% מעל הרף, RSI 69",
           "rank": 2,
-          "price": 86.17,
+          "price": 263.43,
+          "qty": 0
+        },
+        {
+          "ticker": "AMT",
+          "side": "BUY",
+          "reason": "פריצה #3 +4.5% מעל הרף, RSI 62",
+          "rank": 3,
+          "price": 179.26,
+          "qty": 0
+        },
+        {
+          "ticker": "GEHC",
+          "side": "BUY",
+          "reason": "פריצה #1 +9.5% מעל הרף, RSI 69",
+          "rank": 1,
+          "price": 71.9,
+          "qty": 0
+        },
+        {
+          "ticker": "NOW",
+          "side": "BUY",
+          "reason": "פריצה #4 +4.0% מעל הרף, RSI 62",
+          "rank": 4,
+          "price": 115.76,
           "qty": 0
         }
       ],
@@ -4097,6 +4251,10 @@
         [
           "2026-07-28",
           98.7991131023369
+        ],
+        [
+          "2026-07-29",
+          96.62911493339159
         ]
       ],
       "cash_history": [
@@ -4195,6 +4353,10 @@
         [
           "2026-07-28",
           9.98911363639452
+        ],
+        [
+          "2026-07-29",
+          9.98911363639452
         ]
       ],
       "stats": {
@@ -4207,10 +4369,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -90.01,
       "realized_pnl": -4.59,
-      "monthly_pace": -4.9,
+      "monthly_pace": -6.94,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 19
+      "pace_days": 20
     },
     "swing_10k": {
       "portfolio_id": "swing_10k",
@@ -4223,7 +4385,7 @@
           "shares": 250.0,
           "avg_price": 14.787389732837676,
           "entry_date": "2026-07-10",
-          "bars_held": 13,
+          "bars_held": 14,
           "cost_basis": 3698.097433209419,
           "high_water": 14.859999656677246,
           "partial_exit_done": false
@@ -4233,7 +4395,7 @@
           "shares": 8.0,
           "avg_price": 124.79236835861205,
           "entry_date": "2026-07-20",
-          "bars_held": 7,
+          "bars_held": 8,
           "cost_basis": 999.3389468688964,
           "high_water": 129.5500030517578,
           "partial_exit_done": false
@@ -4243,7 +4405,7 @@
           "shares": 16.0,
           "avg_price": 88.95445866394043,
           "entry_date": "2026-07-22",
-          "bars_held": 5,
+          "bars_held": 6,
           "cost_basis": 1424.2713386230469,
           "high_water": 96.33999633789062,
           "partial_exit_done": false
@@ -4253,7 +4415,7 @@
           "shares": 12.0,
           "avg_price": 131.2655969467163,
           "entry_date": "2026-07-23",
-          "bars_held": 4,
+          "bars_held": 5,
           "cost_basis": 1576.1871633605956,
           "high_water": 138.2100067138672,
           "partial_exit_done": false
@@ -4263,13 +4425,27 @@
           "shares": 2.0,
           "avg_price": 568.8743218688965,
           "entry_date": "2026-07-24",
-          "bars_held": 3,
+          "bars_held": 4,
           "cost_basis": 1138.748643737793,
           "high_water": 582.5999755859375,
           "partial_exit_done": false
         }
       },
-      "pending_orders": [],
+      "pending_orders": [
+        {
+          "ticker": "AES",
+          "side": "SELL",
+          "reason": "המהלך נגמר — מתחת לממוצע 10"
+        },
+        {
+          "ticker": "GEHC",
+          "side": "BUY",
+          "reason": "פריצה #1 +9.5% מעל הרף, RSI 69",
+          "rank": 1,
+          "price": 71.9,
+          "qty": 57
+        }
+      ],
       "equity_history": [
         [
           "2026-06-24",
@@ -4366,6 +4542,10 @@
         [
           "2026-07-28",
           9549.310352982524
+        ],
+        [
+          "2026-07-29",
+          9444.750176133159
         ]
       ],
       "cash_history": [
@@ -4464,6 +4644,10 @@
         [
           "2026-07-28",
           442.8303305521042
+        ],
+        [
+          "2026-07-29",
+          442.8303305521042
         ]
       ],
       "stats": {
@@ -4476,10 +4660,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -9557.17,
       "realized_pnl": -720.53,
-      "monthly_pace": -474.82,
+      "monthly_pace": -560.86,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 19
+      "pace_days": 20
     },
     "pullback_100": {
       "portfolio_id": "pullback_100",
@@ -4492,7 +4676,7 @@
           "shares": 3.0,
           "avg_price": 32.42620484733581,
           "entry_date": "2026-07-21",
-          "bars_held": 6,
+          "bars_held": 7,
           "cost_basis": 98.25140054200743,
           "high_water": 33.33000183105469,
           "partial_exit_done": false
@@ -4502,33 +4686,33 @@
         {
           "ticker": "CRWD",
           "side": "BUY",
-          "reason": "משיכה #4 — חוזק יחסי 97% · מרחק מממוצע 50 +1.3%",
-          "rank": 4,
-          "price": 181.8,
-          "qty": 0
-        },
-        {
-          "ticker": "DELL",
-          "side": "BUY",
-          "reason": "משיכה #1 — חוזק יחסי 100% · מרחק מממוצע 50 +0.8%",
-          "rank": 1,
-          "price": 392.1,
-          "qty": 0
-        },
-        {
-          "ticker": "FTNT",
-          "side": "BUY",
-          "reason": "משיכה #3 — חוזק יחסי 98% · מרחק מממוצע 50 +1.5%",
+          "reason": "משיכה #3 — חוזק יחסי 97% · מרחק מממוצע 50 -0.4%",
           "rank": 3,
-          "price": 149.98,
+          "price": 179.38,
           "qty": 0
         },
         {
           "ticker": "HPE",
           "side": "BUY",
-          "reason": "משיכה #2 — חוזק יחסי 100% · מרחק מממוצע 50 +1.1%",
+          "reason": "משיכה #1 — חוזק יחסי 100% · מרחק מממוצע 50 -1.9%",
+          "rank": 1,
+          "price": 44.44,
+          "qty": 0
+        },
+        {
+          "ticker": "HUM",
+          "side": "BUY",
+          "reason": "משיכה #2 — חוזק יחסי 98% · מרחק מממוצע 50 +0.1%",
           "rank": 2,
-          "price": 45.59,
+          "price": 365.41,
+          "qty": 0
+        },
+        {
+          "ticker": "STLD",
+          "side": "BUY",
+          "reason": "משיכה #4 — חוזק יחסי 95% · מרחק מממוצע 50 +2.1%",
+          "rank": 4,
+          "price": 252.34,
           "qty": 0
         }
       ],
@@ -4572,6 +4756,10 @@
         [
           "2026-07-28",
           101.73860495115663
+        ],
+        [
+          "2026-07-29",
+          98.91859762693788
         ]
       ],
       "cash_history": [
@@ -4614,6 +4802,10 @@
         [
           "2026-07-28",
           1.7485994579925688
+        ],
+        [
+          "2026-07-29",
+          1.7485994579925688
         ]
       ],
       "stats": {
@@ -4626,33 +4818,23 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -98.25,
       "realized_pnl": 0.0,
-      "monthly_pace": 3.65,
+      "monthly_pace": -2.06,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 10
+      "pace_days": 11
     },
     "pullback_10k": {
       "portfolio_id": "pullback_10k",
       "strategy": "pullback",
       "account_size": 10000.0,
-      "cash": 135.12041918564296,
+      "cash": 259.27991918564305,
       "positions": {
-        "AMD": {
-          "ticker": "AMD",
-          "shares": 2.0,
-          "avg_price": 477.48862499999996,
-          "entry_date": "2026-07-17",
-          "bars_held": 8,
-          "cost_basis": 955.4772499999999,
-          "high_water": 552.3300170898438,
-          "partial_exit_done": true
-        },
         "BEN": {
           "ticker": "BEN",
           "shares": 68.0,
           "avg_price": 32.42620484733581,
           "entry_date": "2026-07-21",
-          "bars_held": 6,
+          "bars_held": 7,
           "cost_basis": 2205.9819296188352,
           "high_water": 33.33000183105469,
           "partial_exit_done": false
@@ -4662,7 +4844,7 @@
           "shares": 17.0,
           "avg_price": 125.29261835861206,
           "entry_date": "2026-07-21",
-          "bars_held": 6,
+          "bars_held": 7,
           "cost_basis": 2130.974512096405,
           "high_water": 128.30999755859375,
           "partial_exit_done": false
@@ -4672,7 +4854,7 @@
           "shares": 5.0,
           "avg_price": 398.9993877868652,
           "entry_date": "2026-07-27",
-          "bars_held": 2,
+          "bars_held": 3,
           "cost_basis": 1995.996938934326,
           "high_water": 407.9599914550781,
           "partial_exit_done": false
@@ -4682,25 +4864,61 @@
           "shares": 11.0,
           "avg_price": 181.4206668319702,
           "entry_date": "2026-07-28",
-          "bars_held": 1,
+          "bars_held": 2,
           "cost_basis": 1996.6273351516722,
           "high_water": 181.8000030517578,
+          "partial_exit_done": false
+        },
+        "DELL": {
+          "ticker": "DELL",
+          "shares": 2.0,
+          "avg_price": 388.69424999999995,
+          "entry_date": "2026-07-29",
+          "bars_held": 1,
+          "cost_basis": 778.3884999999999,
+          "high_water": 388.69424999999995,
           "partial_exit_done": false
         }
       },
       "pending_orders": [
         {
-          "ticker": "AMD",
+          "ticker": "DELL",
           "side": "SELL",
           "reason": "התמיכה נשברה — מתחת לממוצע 50"
         },
         {
-          "ticker": "DELL",
+          "ticker": "FFIV",
+          "side": "SELL",
+          "reason": "התמיכה נשברה — מתחת לממוצע 50"
+        },
+        {
+          "ticker": "IRM",
+          "side": "SELL",
+          "reason": "התמיכה נשברה — מתחת לממוצע 50"
+        },
+        {
+          "ticker": "HPE",
           "side": "BUY",
-          "reason": "משיכה #1 — חוזק יחסי 100% · מרחק מממוצע 50 +0.8%",
+          "reason": "משיכה #1 — חוזק יחסי 100% · מרחק מממוצע 50 -1.9%",
           "rank": 1,
-          "price": 392.1,
-          "qty": 2
+          "price": 44.44,
+          "qty": 37
+        },
+        {
+          "ticker": "HUM",
+          "side": "BUY",
+          "reason": "משיכה #2 — חוזק יחסי 98% · מרחק מממוצע 50 +0.1%",
+          "rank": 2,
+          "price": 365.41,
+          "qty": 4
+        },
+        {
+          "ticker": "STLD",
+          "side": "BUY",
+          "reason": "משיכה #3 — חוזק יחסי 95% · מרחק מממוצע 50 +2.1%",
+          "rank": 3,
+          "price": 252.34,
+          "qty": 6
         }
       ],
       "equity_history": [
@@ -4743,6 +4961,10 @@
         [
           "2026-07-28",
           9464.80047289658
+        ],
+        [
+          "2026-07-29",
+          9161.760021724705
         ]
       ],
       "cash_history": [
@@ -4785,22 +5007,26 @@
         [
           "2026-07-28",
           135.12041918564296
+        ],
+        [
+          "2026-07-29",
+          259.27991918564305
         ]
       ],
       "stats": {
-        "n_trades": 11,
+        "n_trades": 12,
         "n_wins": 3,
         "gross_profit": 264.0053203659065,
-        "gross_loss": 843.8269353790279
+        "gross_loss": 896.7561853790278
       },
-      "fees_paid_total": 26.0,
-      "cash_change_today": -37.01,
-      "cash_change_since_inception": -9864.88,
-      "realized_pnl": -579.82,
-      "monthly_pace": -1123.92,
+      "fees_paid_total": 28.0,
+      "cash_change_today": 124.16,
+      "cash_change_since_inception": -9740.72,
+      "realized_pnl": -632.75,
+      "monthly_pace": -1600.28,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 10
+      "pace_days": 11
     },
     "twitter_track_100": {
       "portfolio_id": "twitter_track_100",
@@ -4813,7 +5039,7 @@
           "shares": 4.0,
           "avg_price": 5.192595057249069,
           "entry_date": "2026-06-30",
-          "bars_held": 20,
+          "bars_held": 21,
           "cost_basis": 20.97808422899628,
           "high_water": 5.429999828338623,
           "partial_exit_done": false
@@ -4823,7 +5049,7 @@
           "shares": 1.0,
           "avg_price": 18.32915969467163,
           "entry_date": "2026-07-01",
-          "bars_held": 19,
+          "bars_held": 20,
           "cost_basis": 18.512451694671633,
           "high_water": 18.770000457763672,
           "partial_exit_done": false
@@ -4833,7 +5059,7 @@
           "shares": 1.0,
           "avg_price": 20.29014068698883,
           "entry_date": "2026-07-02",
-          "bars_held": 18,
+          "bars_held": 19,
           "cost_basis": 20.493041686988832,
           "high_water": 21.219999313354492,
           "partial_exit_done": false
@@ -4928,6 +5154,10 @@
         [
           "2026-07-28",
           95.89388694267463
+        ],
+        [
+          "2026-07-29",
+          95.16388549308967
         ]
       ],
       "cash_history": [
@@ -5018,6 +5248,10 @@
         [
           "2026-07-28",
           39.24388541679572
+        ],
+        [
+          "2026-07-29",
+          39.24388541679572
         ]
       ],
       "stats": {
@@ -5030,10 +5264,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -60.76,
       "realized_pnl": -0.77,
-      "monthly_pace": -3.1,
+      "monthly_pace": -3.71,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 19
+      "pace_days": 20
     },
     "twitter_track_10k": {
       "portfolio_id": "twitter_track_10k",
@@ -5046,7 +5280,7 @@
           "shares": 504.0,
           "avg_price": 5.192595057249069,
           "entry_date": "2026-06-30",
-          "bars_held": 20,
+          "bars_held": 21,
           "cost_basis": 2619.587908853531,
           "high_water": 5.429999828338623,
           "partial_exit_done": false
@@ -5056,9 +5290,9 @@
           "shares": 24.0,
           "avg_price": 97.35865255737305,
           "entry_date": "2026-06-30",
-          "bars_held": 20,
+          "bars_held": 21,
           "cost_basis": 2337.0782496122474,
-          "high_water": 111.26000213623047,
+          "high_water": 115.76000213623047,
           "partial_exit_done": false
         },
         "PGY": {
@@ -5066,7 +5300,7 @@
           "shares": 138.0,
           "avg_price": 18.32915969467163,
           "entry_date": "2026-07-01",
-          "bars_held": 19,
+          "bars_held": 20,
           "cost_basis": 2530.182279622927,
           "high_water": 18.770000457763672,
           "partial_exit_done": false
@@ -5076,7 +5310,7 @@
           "shares": 128.0,
           "avg_price": 20.29014068698883,
           "entry_date": "2026-07-02",
-          "bars_held": 18,
+          "bars_held": 19,
           "cost_basis": 2598.1380079345704,
           "high_water": 21.219999313354492,
           "partial_exit_done": false
@@ -5171,6 +5405,10 @@
         [
           "2026-07-28",
           10119.978336758137
+        ],
+        [
+          "2026-07-29",
+          10146.37813610506
         ]
       ],
       "cash_history": [
@@ -5261,6 +5499,10 @@
         [
           "2026-07-28",
           88.47806972932722
+        ],
+        [
+          "2026-07-29",
+          88.47806972932722
         ]
       ],
       "stats": {
@@ -5273,10 +5515,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -9911.52,
       "realized_pnl": 173.46,
-      "monthly_pace": 129.07,
+      "monthly_pace": 150.34,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 19
+      "pace_days": 20
     },
     "combined_100": {
       "portfolio_id": "combined_100",
@@ -5373,6 +5615,10 @@
         [
           "2026-07-28",
           100.0
+        ],
+        [
+          "2026-07-29",
+          100.0
         ]
       ],
       "cash_history": [
@@ -5463,6 +5709,10 @@
         [
           "2026-07-28",
           100.0
+        ],
+        [
+          "2026-07-29",
+          100.0
         ]
       ],
       "stats": {
@@ -5479,38 +5729,38 @@
       "monthly_pace": 0.0,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 19
+      "pace_days": 20
     },
     "combined_10k": {
       "portfolio_id": "combined_10k",
       "strategy": "combined",
       "account_size": 10000.0,
-      "cash": 4835.035,
+      "cash": 4774.08,
       "positions": {
         "AES": {
           "ticker": "AES",
-          "shares": 23,
-          "avg_price": 14.83,
-          "entry_date": "2026-07-28",
+          "shares": 24,
+          "avg_price": 14.82,
+          "entry_date": "2026-07-29",
           "bars_held": 0,
-          "cost_basis": 341.09,
-          "high_water": 14.83,
+          "cost_basis": 355.68,
+          "high_water": 14.82,
           "partial_exit_done": false,
-          "weight": 0.0341,
+          "weight": 0.0356,
           "sources": [
             "swing"
           ]
         },
         "AMDL": {
           "ticker": "AMDL",
-          "shares": 5,
-          "avg_price": 47.99,
-          "entry_date": "2026-07-28",
+          "shares": 6,
+          "avg_price": 42.43,
+          "entry_date": "2026-07-29",
           "bars_held": 0,
-          "cost_basis": 239.95,
-          "high_water": 47.99,
+          "cost_basis": 254.58,
+          "high_water": 42.43,
           "partial_exit_done": false,
-          "weight": 0.024,
+          "weight": 0.0255,
           "sources": [
             "leveraged_momentum"
           ]
@@ -5518,13 +5768,13 @@
         "ARDX": {
           "ticker": "ARDX",
           "shares": 45,
-          "avg_price": 5.085,
-          "entry_date": "2026-07-28",
+          "avg_price": 5.0,
+          "entry_date": "2026-07-29",
           "bars_held": 0,
-          "cost_basis": 228.83,
-          "high_water": 5.085,
+          "cost_basis": 225.0,
+          "high_water": 5.0,
           "partial_exit_done": false,
-          "weight": 0.0229,
+          "weight": 0.0225,
           "sources": [
             "twitter_track"
           ]
@@ -5532,13 +5782,13 @@
         "BEN": {
           "ticker": "BEN",
           "shares": 6,
-          "avg_price": 33.33,
-          "entry_date": "2026-07-28",
+          "avg_price": 32.39,
+          "entry_date": "2026-07-29",
           "bars_held": 0,
-          "cost_basis": 199.98,
-          "high_water": 33.33,
+          "cost_basis": 194.34,
+          "high_water": 32.39,
           "partial_exit_done": false,
-          "weight": 0.02,
+          "weight": 0.0194,
           "sources": [
             "pullback"
           ]
@@ -5546,13 +5796,13 @@
         "CRWD": {
           "ticker": "CRWD",
           "shares": 1,
-          "avg_price": 181.8,
-          "entry_date": "2026-07-28",
+          "avg_price": 179.38,
+          "entry_date": "2026-07-29",
           "bars_held": 0,
-          "cost_basis": 181.8,
-          "high_water": 181.8,
+          "cost_basis": 179.38,
+          "high_water": 179.38,
           "partial_exit_done": false,
-          "weight": 0.0182,
+          "weight": 0.0179,
           "sources": [
             "pullback"
           ]
@@ -5560,27 +5810,27 @@
         "HAS": {
           "ticker": "HAS",
           "shares": 1,
-          "avg_price": 96.34,
-          "entry_date": "2026-07-28",
+          "avg_price": 95.17,
+          "entry_date": "2026-07-29",
           "bars_held": 0,
-          "cost_basis": 96.34,
-          "high_water": 96.34,
+          "cost_basis": 95.17,
+          "high_water": 95.17,
           "partial_exit_done": false,
-          "weight": 0.0096,
+          "weight": 0.0095,
           "sources": [
             "swing"
           ]
         },
         "INTC": {
           "ticker": "INTC",
-          "shares": 1,
-          "avg_price": 86.3,
-          "entry_date": "2026-07-28",
+          "shares": 2,
+          "avg_price": 81.88,
+          "entry_date": "2026-07-29",
           "bars_held": 0,
-          "cost_basis": 86.3,
-          "high_water": 86.3,
+          "cost_basis": 163.76,
+          "high_water": 81.88,
           "partial_exit_done": false,
-          "weight": 0.0086,
+          "weight": 0.0164,
           "sources": [
             "momentum_scan"
           ]
@@ -5588,27 +5838,27 @@
         "IRM": {
           "ticker": "IRM",
           "shares": 1,
-          "avg_price": 125.7,
-          "entry_date": "2026-07-28",
+          "avg_price": 120.75,
+          "entry_date": "2026-07-29",
           "bars_held": 0,
-          "cost_basis": 125.7,
-          "high_water": 125.7,
+          "cost_basis": 120.75,
+          "high_water": 120.75,
           "partial_exit_done": false,
-          "weight": 0.0126,
+          "weight": 0.0121,
           "sources": [
             "pullback"
           ]
         },
         "KORU": {
           "ticker": "KORU",
-          "shares": 5,
-          "avg_price": 14.15,
-          "entry_date": "2026-07-28",
+          "shares": 6,
+          "avg_price": 12.08,
+          "entry_date": "2026-07-29",
           "bars_held": 0,
-          "cost_basis": 70.75,
-          "high_water": 14.15,
+          "cost_basis": 72.48,
+          "high_water": 12.08,
           "partial_exit_done": false,
-          "weight": 0.0071,
+          "weight": 0.0072,
           "sources": [
             "leveraged_momentum"
           ]
@@ -5616,11 +5866,11 @@
         "MGNI": {
           "ticker": "MGNI",
           "shares": 11,
-          "avg_price": 19.7,
-          "entry_date": "2026-07-28",
+          "avg_price": 19.73,
+          "entry_date": "2026-07-29",
           "bars_held": 0,
-          "cost_basis": 216.7,
-          "high_water": 19.7,
+          "cost_basis": 217.03,
+          "high_water": 19.73,
           "partial_exit_done": false,
           "weight": 0.0217,
           "sources": [
@@ -5630,13 +5880,13 @@
         "NOW": {
           "ticker": "NOW",
           "shares": 2,
-          "avg_price": 110.62,
-          "entry_date": "2026-07-28",
+          "avg_price": 115.76,
+          "entry_date": "2026-07-29",
           "bars_held": 0,
-          "cost_basis": 221.24,
-          "high_water": 110.62,
+          "cost_basis": 231.52,
+          "high_water": 115.76,
           "partial_exit_done": false,
-          "weight": 0.0221,
+          "weight": 0.0232,
           "sources": [
             "twitter_track"
           ]
@@ -5644,13 +5894,13 @@
         "ON": {
           "ticker": "ON",
           "shares": 3,
-          "avg_price": 84.39,
-          "entry_date": "2026-07-28",
+          "avg_price": 78.86,
+          "entry_date": "2026-07-29",
           "bars_held": 0,
-          "cost_basis": 253.17,
-          "high_water": 84.39,
+          "cost_basis": 236.58,
+          "high_water": 78.86,
           "partial_exit_done": false,
-          "weight": 0.0253,
+          "weight": 0.0237,
           "sources": [
             "momentum_scan"
           ]
@@ -5658,13 +5908,13 @@
         "PCAR": {
           "ticker": "PCAR",
           "shares": 1,
-          "avg_price": 138.21,
-          "entry_date": "2026-07-28",
+          "avg_price": 133.87,
+          "entry_date": "2026-07-29",
           "bars_held": 0,
-          "cost_basis": 138.21,
-          "high_water": 138.21,
+          "cost_basis": 133.87,
+          "high_water": 133.87,
           "partial_exit_done": false,
-          "weight": 0.0138,
+          "weight": 0.0134,
           "sources": [
             "swing"
           ]
@@ -5672,13 +5922,13 @@
         "PGY": {
           "ticker": "PGY",
           "shares": 12,
-          "avg_price": 16.61,
-          "entry_date": "2026-07-28",
+          "avg_price": 16.19,
+          "entry_date": "2026-07-29",
           "bars_held": 0,
-          "cost_basis": 199.32,
-          "high_water": 16.61,
+          "cost_basis": 194.28,
+          "high_water": 16.19,
           "partial_exit_done": false,
-          "weight": 0.0199,
+          "weight": 0.0194,
           "sources": [
             "twitter_track"
           ]
@@ -5686,13 +5936,13 @@
         "QQQ": {
           "ticker": "QQQ",
           "shares": 2,
-          "avg_price": 675.49,
-          "entry_date": "2026-07-28",
+          "avg_price": 661.73,
+          "entry_date": "2026-07-29",
           "bars_held": 0,
-          "cost_basis": 1350.98,
-          "high_water": 675.49,
+          "cost_basis": 1323.46,
+          "high_water": 661.73,
           "partial_exit_done": false,
-          "weight": 0.1351,
+          "weight": 0.1323,
           "sources": [
             "rotation",
             "trend200"
@@ -5701,11 +5951,11 @@
         "RBLX": {
           "ticker": "RBLX",
           "shares": 1,
-          "avg_price": 49.5,
-          "entry_date": "2026-07-28",
+          "avg_price": 50.13,
+          "entry_date": "2026-07-29",
           "bars_held": 0,
-          "cost_basis": 49.5,
-          "high_water": 49.5,
+          "cost_basis": 50.13,
+          "high_water": 50.13,
           "partial_exit_done": false,
           "weight": 0.005,
           "sources": [
@@ -5715,13 +5965,13 @@
         "SOXL": {
           "ticker": "SOXL",
           "shares": 1,
-          "avg_price": 109.54,
-          "entry_date": "2026-07-28",
+          "avg_price": 91.99,
+          "entry_date": "2026-07-29",
           "bars_held": 0,
-          "cost_basis": 109.54,
-          "high_water": 109.54,
+          "cost_basis": 91.99,
+          "high_water": 91.99,
           "partial_exit_done": false,
-          "weight": 0.011,
+          "weight": 0.0092,
           "sources": [
             "leveraged_momentum"
           ]
@@ -5729,13 +5979,13 @@
         "SPY": {
           "ticker": "SPY",
           "shares": 1,
-          "avg_price": 740.86,
-          "entry_date": "2026-07-28",
+          "avg_price": 729.46,
+          "entry_date": "2026-07-29",
           "bars_held": 0,
-          "cost_basis": 740.86,
-          "high_water": 740.86,
+          "cost_basis": 729.46,
+          "high_water": 729.46,
           "partial_exit_done": false,
-          "weight": 0.0741,
+          "weight": 0.0729,
           "sources": [
             "benchmark"
           ]
@@ -5743,27 +5993,27 @@
         "TECL": {
           "ticker": "TECL",
           "shares": 1,
-          "avg_price": 163.03,
-          "entry_date": "2026-07-28",
+          "avg_price": 150.12,
+          "entry_date": "2026-07-29",
           "bars_held": 0,
-          "cost_basis": 163.03,
-          "high_water": 163.03,
+          "cost_basis": 150.12,
+          "high_water": 150.12,
           "partial_exit_done": false,
-          "weight": 0.0163,
+          "weight": 0.015,
           "sources": [
             "leveraged_momentum"
           ]
         },
         "USD": {
           "ticker": "USD",
-          "shares": 2,
-          "avg_price": 75.84,
-          "entry_date": "2026-07-28",
+          "shares": 3,
+          "avg_price": 68.78,
+          "entry_date": "2026-07-29",
           "bars_held": 0,
-          "cost_basis": 151.68,
-          "high_water": 75.84,
+          "cost_basis": 206.34,
+          "high_water": 68.78,
           "partial_exit_done": false,
-          "weight": 0.0152,
+          "weight": 0.0206,
           "sources": [
             "leveraged_momentum"
           ]
@@ -5858,6 +6108,10 @@
         [
           "2026-07-28",
           10000.0
+        ],
+        [
+          "2026-07-29",
+          10000.0
         ]
       ],
       "cash_history": [
@@ -5948,6 +6202,10 @@
         [
           "2026-07-28",
           4835.035
+        ],
+        [
+          "2026-07-29",
+          4774.08
         ]
       ],
       "stats": {
@@ -5957,14 +6215,14 @@
         "gross_loss": 0.0
       },
       "fees_paid_total": 0.0,
-      "cash_change_today": -202.3,
-      "cash_change_since_inception": -5164.97,
+      "cash_change_today": -60.95,
+      "cash_change_since_inception": -5225.92,
       "realized_pnl": 0.0,
       "derived": true,
       "monthly_pace": 0.0,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 19
+      "pace_days": 20
     }
   },
   "migrations": [
