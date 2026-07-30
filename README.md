@@ -23,7 +23,7 @@ agent-memory/
 ├── telegram-topic-uploader/
 │   └── cc-latest.md            ← latest implementation handoff
 ├── private-media-tv/
-│   └── cc-latest.md            ← Android TV F0 foundation handoff
+│   └── cc-latest.md            ← latest Android TV implementation handoff
 ├── opt/                       ← OptionsProfitTracker (future)
 ├── hydrome/                   ← HydroMe (future)
 ├── ratesnow/                  ← RatesNow (future)
