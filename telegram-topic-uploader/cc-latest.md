@@ -11,31 +11,163 @@
 
 | Field | Value |
 | --- | --- |
-| Task | **D6A7e** — a queue Android accepted and never ran, a sentence that outlived its own action, and a Reel the platform's own listing knows about |
-| **Final application HEAD** | **`57181ebf1029422fc605814cf78489135250db83`** — pushed |
-| **Final server HEAD** | **`b3b9378216402ded73b4a4070eda77e5c0f41356`** (`b3b9378`) — **deployed and verified** |
-| Version | code 38 → **39**, name `0.13.13-d6a7d` → **`0.13.14-d6a7e`** |
-| Room schema | **14 → 15.** Four nullable columns on `upload_batch_sessions`. Server: **no migration**, `0004_content_kind` still head |
-| Gate | **2377 Android unit tests, 0 failures. Lint: 0 issues** (counted from the XML report). Server **994 passed, 3 skipped** |
-| APK | `app-debug.apk`, 16,330,039 bytes, SHA-256 `4c7acfd853068f23d6700d0bfbe773b650f59adfc9ae974bb1dec1d08c8f53c5`. **Copied to Downloads with a matching hash. Not installed** |
-| APK in Downloads | `/sdcard/Download/TelegramTopicUploader-0.13.14-d6a7e.apk` — hash verified identical |
-| Live | **Reel backfill run on production**: 28 unclassified rows → 25 `reel`, 2 `post`, 1 still Unknown; 27 history rows filled; 0 failed |
-| Hardware | **No line of D6A7e is verified.** `docs/D6A7E_DEVICE_CHECKLIST.md`; all *not attempted* |
+| Task | **D6A7e1** — a security incident contained, a session the screen never mentioned, a transfer no screen may own, and a count that finally opens its own list |
+| **Final application HEAD** | **`b1a434d7c6fd826fac5e2bec31c15ad630393fc8`** — pushed |
+| **Final server HEAD** | **`92269ada1c5c2bead729bad5dc81860010fac23e`** (`92269ad`) — **deployed and verified** |
+| Version | code 39 → **40**, name `0.13.14-d6a7e` → **`0.13.15-d6a7e1`** |
+| Room schema | **15 → 16.** One additive table, `explicit_send_requests`. Server: **`0005_session_use`**, three nullable columns on `platform_health` |
+| Gate | **2439 Android unit tests, 0 failures. Lint: 0 issues** (counted from the XML report, all with `--rerun-tasks`). Server **1035 passed, 3 skipped** |
+| APK | `app-debug.apk`, 16,390,787 bytes, SHA-256 `29d367e1dec3bae7b2e7cf573cfdfcc873838a8a5356c2da16f4de53951df2b8`. **Copied to Downloads with a matching hash. Not installed** |
+| APK in Downloads | `/sdcard/Download/TelegramTopicUploader-0.13.15-d6a7e1.apk` — hash verified identical |
+| Production | **Instagram credential absent, every Instagram source paused (enabled: 0)**, verified from local credential and process state. **No live Instagram request was made in this milestone** |
+| Hardware | **No line of D6A7e1 is verified.** `docs/D6A7E1_DEVICE_CHECKLIST.md`; all *not attempted* |
 
 ### Previous milestone, for reference
 
 | Field | Value |
 | --- | --- |
-| Task | D6A7d — an uncertain upload that can be answered, and a folder's real name |
-| Application HEAD | `6a9ced6d1791d290a8751c0e1eb325e5dda4d5cd` |
-| Server HEAD | `6fa9662b25e606c5d432ea52cc2827500d4f8137` |
-| Version | code 38, `0.13.13-d6a7d` |
-| Gate | 2250 Android unit tests; server 948 passed, 4 skipped |
-| Hardware | Items 2–4 and 7 **confirmed working** by the D6A7e device report |
+| Task | D6A7e — a queue Android accepted and never ran, a sentence that outlived its own action, and a Reel the listing knows |
+| Application HEAD | `57181ebf1029422fc605814cf78489135250db83` |
+| Server HEAD | `b3b9378216402ded73b4a4070eda77e5c0f41356` |
+| Version | code 39, `0.13.14-d6a7e` |
+| Gate | 2377 Android unit tests; server 994 passed, 3 skipped |
+| Hardware | **Nothing.** Every line still owed, and D6A7e1 does not supersede it |
 
 No production token, Meta credential, Telegram identifier, chat ID, thread ID, private link, VPS
 address, Tailscale hostname, SSH host, pairing code, device token, cookie value, account name, file
 name, content URI or media hash is recorded anywhere in this file.
+
+## D6A7e1 — the incident, and the two defects that arrived with it
+
+### 1. The security incident, and exactly what can be claimed
+
+The user had exported their **primary Instagram business account's** cookies and imported them as
+the server's viewing session. Instagram then showed a new connection from **Singapore — the
+server's own hosting region** — treated the activity as suspicious, logged the account out, and
+required a fresh sign-in.
+
+**The mechanism, stated truthfully.** An exported cookie jar *is* an authenticated session; no
+password was ever needed, asked for or obtained, because the session cookie is itself the
+credential. Importing it authorised server-side use: the server materialised the session, handed
+its path to gallery-dl, and gallery-dl contacted Instagram from the server's own network
+location. Instagram therefore saw authenticated activity from a new address, environment and
+request pattern rather than from the user's phone. Both ordinary scheduled checks **and**
+development/maintenance probes used it.
+
+**What cannot be proved.** *Only Instagram knows the exact risk signal behind the forced logout.*
+The server's use can explain the new connection; nothing stronger is claimed anywhere.
+
+**The sanitized audit** (from the host's own command log, durable CheckRun rows and source
+timestamps): jar imported **2026-07-27 20:16 UTC**; used continuously through **2026-07-30 04:25
+UTC** — the initial 25-post import, an 11-Story initial import (07-28 13:47, manual), a manual
+check (17:22), scheduled checks at 23:54 (7 more Stories), 07-29 07:31, 07-29 16:49 and 07-30
+04:25 — plus every documented D6A7b–D6A7e probe (resolve-json, timing, pinned-post, Story tray,
+post-range, roster, and the classification backfill's dry runs and apply). The 04:25 check settled
+**partial**: feed no-new-content, Story half `temporary_failure/extractor_failed` — *consistent
+with* the session being invalidated around then, not proof of it. **Exact per-request counts
+cannot be reconstructed**: probes were never durably counted, pre-D6A7d scheduled checks left no
+rows, and log retention is bounded. That gap is stated rather than filled.
+
+**Containment, performed and verified from local state only — no live request was made to prove
+an absence.** Credential envelope cleared (07-30 09:43 UTC); the decrypted tmpfs copy was found
+**still present after the clear** — the exact defect this milestone fixes — and destroyed by the
+approved restart; every Instagram source paused through the new auditable command. Verified:
+credential *not set*, enabled Instagram sources **0**, no check running, no gallery-dl/yt-dlp
+process, health and readiness 200, unauthenticated routes 401, port loopback-only, every other
+credential untouched, and every row count identical before and after (1 source, 46 items, 46
+media, 46 operations, 2 destinations, 4 devices, 6 check runs).
+
+**The warning gap, corrected.** Previous UI and documentation never said that Instagram would see
+authenticated activity from the server's location. It does now — in the app, in `SECURITY.md`,
+`THREAT_MODEL.md`, `CONNECTORS.md` and both READMEs.
+
+### 2. What the server gained
+
+- **`clear` removes the credential everywhere it exists** — envelope *and* the decrypted runtime
+  copy (the CLI runs inside the container, where that file lives); re-importing removes the
+  previous copy first, so a rotated session cannot keep acting as the old account; a
+  constructed adapter re-stats the now-absent file and refuses. Idempotent, namespace-scoped,
+  prints nothing a secret could travel in.
+- **`remote-sources-ctl pause-instagram-sources --confirm`** — one transaction, exactly the
+  `enabled` column, counts only, idempotent, refuses without the flag, and **no bulk resume
+  exists by design**: a later cookie import re-enables nothing, and that is regression-tested.
+- **The permanent live-probe rule**: no development, debugging or maintenance command may contact
+  the live platform without the user's explicit approval of that specific run.
+  `classify-instagram-content` now refuses without `--confirm-live-session-use` — required on a
+  **dry run** too, because a dry run reads the account's listings live.
+- **Migration `0005_session_use`** plus a `SessionUseRecorder`: every authenticated extractor
+  operation writes a sanitized purpose **before** it runs and settles a sanitized outcome
+  **after** its result is classified; start-up settles what a dead process left as `interrupted`,
+  so a death can never fabricate a success. Exposed through `/system/status` under
+  `platform.session_use.v1`. Pre-existing rows stay NULL — **the audit is documentation, never
+  manufactured rows.**
+
+### 3. The Dashboard count that opened an empty list
+
+**Reported:** Queue 3, Requires review 3, and the filtered Review screen showed **zero** cards.
+
+**Root cause, proven rather than assumed.** The tile tallied `DashboardGrouping.classify` alone
+while the Review projection applied three further hand-written exclusions — ignored media (D5A),
+settled uncertain rows (D6A7d), and the view model's Instagram-set-aside filter (D6A6). The three
+rows were **settled uncertain uploads**: counted forever and listed nowhere — *not even in
+History*, so D6A7d's own "becomes a History record" sentence was never actually implemented. **No
+media was lost; the rows were in the Queue the whole time.**
+
+All three decisions moved **into `classify`**: *found it in Telegram* is a completed record (the
+card still says the user confirmed it and Telegram did not); *did not find it* with its one
+replacement is retired; an unretried one stays in Review where its **Send again** lives; ignored
+review work retires; set-aside media gains a deliberately tile-less group whose visible home is
+the Instagram publishing screen. **The repair is a projection change only** — no row rewritten,
+nothing deleted, resent or rescanned.
+
+### 4. A transfer no screen may own
+
+**Reported:** Send now from Preview, then Back or app-switch → the upload stops with an error and
+the file stays queued. A regression against **D4B**'s persistent-transfer contract.
+
+**Root cause:** the send ran the whole transfer inside the Activity-retained `viewModelScope`.
+Preview's own disposal was never the culprit — it stops playback and nothing else, and a guard
+now pins that.
+
+**The fix — a durable explicit-send chain** (`ExplicitSendCoordinator`, schema 15 → 16, one
+additive table). Every **Send now** — Preview, Queue row, any single-item surface — records a
+durable request and the transfer runs in the **application scope**. Back, in-app navigation,
+rotation, recomposition and app-switching cancel nothing; progress hands off to the Queue row by
+**job identity** (no unkeyed slot anywhere); only **Cancel now** reaches a live transfer.
+
+**Send now on B while A uploads** is no longer refused and forgotten: B waits in durable FIFO
+order and starts **by itself** when A settles — confirmed, permanently failed, RESULT_UNKNOWN
+(never retried) or explicitly cancelled — each waiting item revalidated through the launcher's
+own preflight and skipped with its **exact sanitized reason** if it became unsendable. **Cancel
+pending send** withdraws intent only. An ordinary queued row with no tap never starts. A restart
+resumes only requests whose job **provably never dispatched**; dispatch evidence hands the job to
+the RESULT_UNKNOWN boundary, never to a resend. The chain shares the one global media-operation
+arbiter with the batch, albums and repair — it waits for the slot rather than racing it.
+
+### 5. Files above 50 MB — the decision, recorded and not implemented
+
+The selected long-term solution is the **official Telegram Local Bot API Server in `--local`
+mode** (bot uploads to **2000 MB**, per the official documentation), designed in the server
+repository's `docs/D6A7F_LOCAL_BOT_API_DESIGN.md` for **D6A7f**. **Not activated here**: it needs
+the user's Telegram `api_id`/`api_hash`, an explicit `logOut` migration off the public Bot API
+(with its documented ~10-minute cooldown as the real downtime floor), a one-endpoint audit of
+every bot client in both repositories, and its own release with a rehearsed rollback. **Rejected
+outright:** automatic quality reduction, transcoding, splitting a video across posts, Telegram
+user-account uploads, TDLib-as-user, unofficial services. Until then oversized rows stay visible
+and blocked, enter no send path, and the card names the **current Telegram transport** without
+promising anything. The design's Android-connectivity recommendation for the managing chat is
+**Option A** (the phone talks to the private local endpoint over Tailscale) — it keeps one
+transport and one ambiguity boundary; Option B (a gateway on the app server) is the right
+*second* step if the token is ever to leave the phone, and should not be bundled into the
+transport migration.
+
+### Next device action (ask for exactly this)
+
+Install `/sdcard/Download/TelegramTopicUploader-0.13.15-d6a7e1.apk` **over** the existing app and
+run `docs/D6A7E1_DEVICE_CHECKLIST.md`, **reading its three opening notes first** — all three
+describe correct behaviour that reads as broken. **Lines 10 and 12** are the reported
+transfer-lifetime regression and matter most; **16–18** are the new explicit-send chain; **6** is
+the count the Dashboard owed.
 
 ## D6A7e — three device reports, and one of them is good news
 

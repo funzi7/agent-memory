@@ -92,8 +92,8 @@ cp /root/work/telegram-topic-uploader/app/build/outputs/apk/debug/app-debug.apk 
 ```
 
 **Install over the existing app.** The debug certificate has not changed since D5A — at D6A7d it is
-still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`. **D6A7d (code 38,
-`0.13.13-d6a7d`) supersedes every earlier build; no intermediate version needs installing first.**
+still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`. **D6A7e1 (code 40,
+`0.13.15-d6a7e1`) supersedes every earlier build; no intermediate version needs installing first.**
 
 ### The permanent APK-to-Downloads rule — D6A7c1
 
@@ -111,7 +111,14 @@ not install the release. Three further conditions:
 - **If `/sdcard/Download/` is unavailable, the Android release handoff has failed** — report the
   exact filesystem error rather than silently skipping the copy.
 
-**D6A7d moves the Room schema 13 → 14** — five nullable columns on `upload_jobs` and one unique
+**D6A7e1 moves the Room schema 15 → 16** — one new table, `explicit_send_requests`, so a *Send
+now* tap is durable authorization that survives a process death and a second tap can wait its
+turn instead of being refused and forgotten. Purely additive: no row rewritten, no table
+recreated, destructive fallback still forbidden. (D6A7e moved it 14 → 15 for the batch
+acceptance columns.) **A migration runs on this install: check Directories, Review, the Queue and
+History afterwards, because anything missing is a migration defect, not a cosmetic one.**
+
+**D6A7d moved the Room schema 13 → 14** — five nullable columns on `upload_jobs` and one unique
 index, so a person's finding about an uncertain upload can be recorded without manufacturing
 Telegram evidence. Purely additive: no row is rewritten, no table recreated, destructive fallback
 still forbidden. (D6A6 moved it 12 → 13 for the Instagram publishing queue; nothing between them
@@ -124,6 +131,64 @@ build reads identically to one answered against this one.
 item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
+
+**D6A7e1** — a security incident contained, a session the screens never mentioned, a transfer no
+screen may own, and a Dashboard count that finally opens its own list.
+
+> **This milestone began with Instagram, not with the app.** The user had exported their
+> **primary Instagram business account's** cookies and imported them as the server's viewing
+> session. Instagram showed a new connection from **Singapore — the server's own hosting
+> region** — treated it as suspicious, logged the account out, and required a fresh sign-in.
+
+### The incident, and the exact limit of what may be claimed
+
+- An exported cookie jar **is** an authenticated session. **No password was needed, asked for or
+  obtained** — the session cookie is itself the credential.
+- Importing it **authorised server-side use**: the server materialised the session, handed the
+  path to gallery-dl, and gallery-dl contacted Instagram **from the server's network location**.
+  Instagram saw authenticated activity from a new address, environment and request pattern.
+- **Both ordinary scheduled checks and development/maintenance probes used it.**
+- **Only Instagram knows the exact risk signal that caused the forced logout.** The server's use
+  can explain the new connection. Nothing stronger is ever to be claimed.
+- **Previous UI and documentation never warned** that Instagram would see authenticated activity
+  from the server's location. That gap is corrected in the app and in both repositories' docs.
+
+**Sanitized timeline:** jar imported **2026-07-27 20:16 UTC**; in use until **2026-07-30 04:25
+UTC** across 2 manual and 4 scheduled checks plus every documented D6A7b–D6A7e probe; the last
+check settled **partial** with the Story half failing — *consistent with* invalidation, not proof.
+**Exact per-request counts cannot be reconstructed** and that is stated rather than filled.
+
+**Containment, verified from local credential and process state — never by making a request with
+the thing being removed:** credential cleared; the decrypted tmpfs copy (which the clear had left
+behind — the defect fixed here) destroyed by restart; **every Instagram source paused**; health,
+readiness, 401s, loopback binding, other credentials and all row counts unchanged.
+
+### The two defects that arrived alongside it
+
+1. **Dashboard said Requires review: 3 over an empty filtered list.** The three were *settled
+   uncertain uploads* — counted forever, listed nowhere, **not even in History**. The tile
+   tallied `classify` while the list applied three more hand-written exclusions. All three moved
+   into the one canonical grouping; **the repair is a projection, not a rewrite. No media was
+   ever lost.**
+2. **A Send now from Preview died with its screen** — Back or app-switch stopped the upload,
+   against **D4B**'s persistent-transfer contract. The transfer now lives in an
+   application-scoped **durable explicit-send chain** (schema 15 → 16, one additive table).
+   Nothing a screen does cancels it; a second tap waits its durable FIFO turn and starts by
+   itself; only **Cancel now** stops a live transfer.
+
+| Field | Value |
+| --- | --- |
+| App version | code **40**, `0.13.15-d6a7e1` |
+| App HEAD | `b1a434d7c6fd826fac5e2bec31c15ad630393fc8` |
+| Server HEAD | `92269ada1c5c2bead729bad5dc81860010fac23e` — **deployed and verified** |
+| Room schema | **15 → 16**, one additive table. Server: **`0005_session_use`**, three nullable columns |
+| App unit tests | **2439, 0 failures. Lint: 0 issues**, counted from the XML report with `--rerun-tasks` |
+| Server tests | **1035 passed, 3 skipped** |
+| APK | **copied to `/sdcard/Download/TelegramTopicUploader-0.13.15-d6a7e1.apk`, hash verified, not installed** |
+| Production | **Instagram credential absent, Instagram sources paused (enabled: 0)** |
+| **Not** proven | **every line of D6A7e1 on hardware**, and everything D6A7e still owed |
+
+## 4a. Previous milestone: D6A7e
 
 **D6A7e** — a queue Android accepted and never ran, a sentence that outlived its own action, a Reel
 the platform's own listing knows about, a schedule stated in numbers, and a 104.8 MB file that
@@ -581,6 +646,26 @@ reachability from the phone.
 
 **Not done, needs the user:** every credential, pairing, and any live platform or Telegram request.
 
+## 5a. The Instagram viewing-session rule — D6A7e1, absolute
+
+**A cookie jar is an authenticated session, and the platform sees this server using it.** The
+user's primary business account was logged out by Instagram after its imported session acted from
+the server's region. Therefore, permanently:
+
+- **Only a dedicated, low-value viewing account may ever be imported** — its own email, unique
+  password, two-factor, **no business assets, no ad account, no Facebook Page ownership, no
+  important messages**, kept out of the primary account's Accounts Center where avoidable. It may
+  still be challenged; the separation limits the cost, not the possibility.
+- **One shared viewing session serves every Instagram source.** Adding a source never logs in to
+  the target account, never asks for its credentials, and creates no session for it. A **private**
+  target is readable only if the viewing account is already an approved follower.
+- **No live probe without the user's explicit approval of that specific run.** Ordinary configured
+  production checks are separate and are governed by source enablement and the schedule.
+- **Re-enabling is per-source, from the application, after the dedicated session is configured.**
+  Nothing resumes automatically; a cookie import re-enables nothing.
+- **Never ask the user to re-export cookies** unless evidence shows the configured session is
+  itself missing or rejected — the D6A7 lesson, still standing.
+
 ## 6. The server-side secret rule — absolute
 
 The **Telegram bot token, Reddit OAuth credentials and X cookies exist only on the server.** The
@@ -602,7 +687,7 @@ run in their own SSH shell.
 | **9GAG** | **accounts and Interests** — two distinct source types | optional server-side cookies, **configured** | **refused live — anti-bot challenge on every deep path**, classified `challenge`, **confirmed from the device 2026-07-27** |
 | **Reddit** | implemented (`u/…` and `r/…`) | **required** — anonymous is 403 | **no** |
 | **X** | implemented (gallery-dl + cookies) | **required** | **no** |
-| **Instagram** | **implemented at D6A5** (gallery-dl, Instaloader fallback) | **required** | **no** |
+| **Instagram** | **implemented at D6A5** | **required — and D6A7e1 removed the configured session; every Instagram source is paused** | live-proven for feed, Stories and Story deduplication (D6A7b–D6A7e); **now dormant by decision** |
 | **TikTok** | **implemented at D6A5** (gallery-dl + yt-dlp) | **required** | **no** |
 
 All five are selectable in the Android app since D6A5, each with its own state sentence. **Being
@@ -633,6 +718,26 @@ connector most likely to need maintenance**, since that payload is front-end dat
 ## 8. Hardware-validation ledger
 
 **Confirmed by the user, and only this:**
+
+- **D6A7e1 reports (2026-07-30), on the installed D6A7e build:**
+  - 🔴 **Instagram logged the primary business account out** after showing a new connection from
+    Singapore — the server's hosting region — while that account's exported session was the
+    server's viewing session. **Instagram never disclosed the reason**; the server's use of the
+    session can explain the connection and no more. Contained: credential removed, decrypted copy
+    destroyed by restart, every Instagram source paused, **no live Instagram request made during
+    D6A7e1**.
+  - 🔴 **Dashboard: Queue 3, Requires review 3, filtered Review 0 cards.** Root-caused to a
+    projection disagreement — three *settled uncertain* rows counted by the tile and excluded by
+    the list, and absent from History too. **Not lost media.** Fixed at D6A7e1; **device-unverified.**
+  - 🔴 **Send now from Preview stops when Preview is closed or the app is backgrounded**, and the
+    file stays queued — a regression against **D4B**'s persistent-transfer contract. Fixed at
+    D6A7e1 by moving the transfer to an application-scoped durable chain; **device-unverified.**
+  - 🟡 **Product decision recorded:** pressing Send now on a second item while one uploads must
+    queue an explicit FIFO request that starts automatically — built at D6A7e1,
+    **device-unverified**. Ordinary queued items stay manual.
+  - 🟡 **Product decision recorded:** files above 50 MB will be solved by the **official Telegram
+    Local Bot API Server in local mode (2000 MB)**, in **D6A7f**. Not activated at D6A7e1. No
+    compression, splitting or user-account upload was approved.
 
 - **D6A7e reports (2026-07-28), on the installed D6A7d build:**
   - ✅ **Live Story deduplication.** A second *successful* Instagram check, with the same Stories
@@ -813,6 +918,33 @@ the table is the whole of it.
 
 ## 9. Permanent product decisions
 
+- **D6A7e1: a cookie jar is an authenticated session, and importing one authorises this server to
+  act as that account from its own location.** Only a dedicated, low-value viewing account may
+  ever be imported; one shared session serves every Instagram source; adding a source logs in to
+  nothing; a private target needs the viewing account approved as a follower. See §5a.
+- **D6A7e1: no development, debugging or maintenance command may contact a live platform without
+  the user's explicit approval of that specific run.** Operator commands that can reach a platform
+  require a confirmation flag, state their bounded scope first, and record one sanitized
+  session-use purpose and outcome. `classify-instagram-content` needs
+  `--confirm-live-session-use` **even for a dry run**, because its dry run reads the account's
+  listings live.
+- **D6A7e1: a paused source is never resumed by anything but the user, one source at a time.**
+  There is deliberately no bulk resume, and importing a credential re-enables nothing.
+- **D6A7e1: one canonical predicate decides every count and every list.** A tile's number and the
+  rows that tile opens are the same rows, by construction — no screen may hold a second
+  hand-written exclusion. The Requires-review defect was exactly that, three times over.
+- **D6A7e1: a transfer's lifetime is never a screen's lifetime.** Preview may start and observe an
+  upload; it may not own the coroutine, the request, the claim or the cancellation. Closing
+  Preview releases playback only; Back, navigation, rotation, recomposition and app-switching
+  cancel nothing; **only an explicit Cancel now may stop a live transfer**.
+- **D6A7e1: an explicit Send now tap is durable authorization for exactly that one item.** A
+  second tap while one uploads is recorded in a FIFO chain and starts by itself; ordinary queued
+  items never start on their own; **Cancel pending send** withdraws intent and nothing else; one
+  media transfer is active globally, ever.
+- **D6A7e1: files above 50 MB are solved by the official Telegram Local Bot API Server in local
+  mode (2000 MB) in D6A7f — never by compression, transcoding, splitting a video across posts, a
+  Telegram user account, TDLib-as-user, or an unofficial service.** Until it is deployed,
+  oversized rows stay visible and blocked and no screen may promise otherwise.
 - **D6A7e: the schedule presets mean 8, 4 and 2 hours, and the card says so.** *Relaxed* is a base of
   every 8 hours, *Normal* every 4, *Attentive* every 2. **A base is not a promise:** every interval
   is jittered by up to ±12%, a source that has just produced new posts may be checked sooner,

@@ -35,13 +35,99 @@ hash — and nothing added to it ever may.
 | Head after D6A7d | `6fa9662b25e606c5d432ea52cc2827500d4f8137` (`6fa9662`) — deployed and verified |
 | Head after D6A7e, first commit | `40dcb9801a368f4075ef3ceaa91af10f77f2c8e0` (`40dcb98`) — deployed; the first dry run found a bound |
 | Head after D6A7e, narrowing fix | `614265acc9a2485e19b4804fb428aab49afa3d01` (`614265a`) — deployed; backfill applied here |
-| **Head after D6A7e** | **`b3b9378216402ded73b4a4070eda77e5c0f41356`** (`b3b9378`) — **deployed and verified** |
+| Head after D6A7e | `b3b9378216402ded73b4a4070eda77e5c0f41356` (`b3b9378`) — deployed and verified |
+| **Head after D6A7e1** | **`92269ada1c5c2bead729bad5dc81860010fac23e`** (`92269ad`) — **deployed and verified**; migration head **`0005_session_use`** |
 | Host | A DigitalOcean droplet, Ubuntu 24.04.4, amd64, 1 vCPU, ~2 GiB RAM, ~48 GB disk |
 | Deploy path on host | `/opt/remote-sources` |
 | State path on host | `/var/lib/remote-sources` |
 
 The VPS address, its Tailscale hostname and the tailnet name are **deliberately not recorded
 anywhere**. They live in the operator's shell and in the Android app's settings.
+
+## D6A7e1 — the session Instagram saw, and the removal that now removes
+
+**A security incident, contained the day it was understood, and the code defects it exposed.**
+
+### What happened, and the limit of what may be claimed
+
+The user had exported their **primary Instagram business account's** cookies and imported them
+here as the viewing session. Instagram showed a new connection from **Singapore — this server's
+own hosting region** — treated the activity as suspicious, logged the account out, and required a
+fresh sign-in.
+
+An exported jar **is** an authenticated session: no password was needed, asked for or obtained,
+because the session cookie *is* the credential. Importing it authorised server-side use — this
+server materialised it, handed the path to gallery-dl, and gallery-dl contacted Instagram from
+this host. Instagram therefore saw authenticated activity from a new address, environment and
+request pattern. **Only Instagram knows the exact risk signal behind the logout**; the server's
+use can explain the new connection and nothing stronger is claimed.
+
+### The sanitized audit (read-only; no new Instagram request was made for it)
+
+| Fact | Value |
+| --- | --- |
+| Jar imported | **2026-07-27 20:16 UTC** (host command log; the command only, never content) |
+| Session in use until | **2026-07-30 04:25 UTC** |
+| Durable check runs | 6 — 2 manual (07-28 13:47 initial 11-Story import; 17:22), 4 scheduled (07-28 23:54 → 7 Stories; 07-29 07:31; 07-29 16:49; 07-30 04:25) |
+| Probes, all documented, all session-using | resolve-json + timing (D6A7b), pinned-post + Story tray (D6A7c), post-range (D6A7c1), roster probes + classification dry runs and apply (D6A7e) |
+| Last check's shape | **partial** — feed `success_no_new_posts`, Story half `temporary_failure/extractor_failed`. **Consistent with** the session being invalidated around then; not proof |
+| What cannot be proved | the exact number of extractor invocations — probes were never durably counted, pre-D6A7d scheduled checks left no rows, log retention is bounded |
+
+### Containment — verified from local state only
+
+`clear instagram/cookies` (07-30 09:43 UTC) → **the decrypted tmpfs copy was still present
+afterwards**, which is exactly the defect fixed here → destroyed by the approved restart → every
+Instagram source paused through the new command. Verified: credential **not set**, enabled
+Instagram sources **0**, no running check, no gallery-dl/yt-dlp process, health and readiness
+200, unauthenticated routes 401, port loopback-only, other credentials untouched, row counts
+identical (1 source, 46 items, 46 media, 46 operations, 2 destinations, 4 devices, 6 check runs).
+**Absence was proved from credential and process state — never by making a request with the thing
+being removed.**
+
+### What was built
+
+- **`clear` now removes envelope *and* decrypted runtime copy**; re-import removes the previous
+  copy first; a constructed adapter re-stats the absent file and refuses. Idempotent,
+  namespace-scoped, prints no secret metadata. `tests/test_credential_clear.py` (12).
+- **`remote-sources-ctl pause-instagram-sources --confirm`** — one transaction, one column,
+  counts only, idempotent, contacts nothing, deletes nothing, preserves every setting and Story
+  fact. **No bulk resume by design**; a later cookie import re-enables nothing.
+  `tests/test_pause_instagram_sources.py` (8).
+- **The permanent live-probe rule** in `OPERATIONS.md`, with its first enforcement:
+  `classify-instagram-content` refuses without `--confirm-live-session-use`, **including on a dry
+  run**, because a dry run resolves the account's listings live.
+- **`0005_session_use`** + `SessionUseRecorder`: three nullable columns on `platform_health`
+  (`session_last_used_at`, `session_last_use_purpose`, `session_last_use_outcome`); the purpose is
+  written **before** each authenticated extractor operation and the outcome only **after** its
+  result is classified; start-up settles unsettled rows as `interrupted`. Closed vocabularies;
+  no account, source, URL or post identity has a column that could hold it. Exposed through
+  `/system/status` with `session_scope` under the new `platform.session_use.v1` capability.
+  Existing rows backfill **NULL** — an audit is documentation, never manufactured rows.
+  `tests/test_session_use.py` (18).
+
+### The product rules this fixed in place
+
+One shared viewing session serves **every** Instagram source; adding a source never logs in to
+the target and never asks for its credentials; a **private** target is readable only if the
+viewing account is an approved follower; the next session must be a **dedicated, low-value**
+account (own email, unique password, two-factor, no business assets, no ad account, no Page
+ownership, kept out of the primary account's Accounts Center where avoidable). **A dedicated
+account may still be challenged** — the separation limits the cost, not the possibility.
+Re-enabling paused sources is per-source, from the application, after that session is configured.
+
+### Gate
+
+`ruff format --check`, `ruff check`, `mypy` (100 files), **1035 passed / 3 skipped**,
+`bash -n scripts/deploy-production`, `scripts/release-preflight` (50 modules) — all clean. **No
+test contacts Instagram, Telegram or any live platform**; the new suites forbid it structurally.
+
+### Still owed
+
+The user creates the dedicated viewing account and imports its cookies
+(`sudo remote-sources-configure instagram-cookies <path>`), then re-enables selected sources
+**individually from the app**. Nothing resumes on its own. And **D6A7f** — the official Local Bot
+API Server for files above 50 MB — is designed in `docs/D6A7F_LOCAL_BOT_API_DESIGN.md` and
+deliberately not begun.
 
 ## D6A7e — the listing that knows what a Reel is
 
