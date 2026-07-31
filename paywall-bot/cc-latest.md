@@ -1,92 +1,120 @@
-# paywall-bot — PR #87 final-boundary RTL and source-health handoff (2026-07-30)
+# paywall-bot — PR #88 source-health, queue and Codex Gate handoff (2026-07-31)
 
 ## Git and pull request
 
 - Repository: `funzi7/paywall-bot`.
-- Actual fetched starting `origin/main`: `3984794798293eff28c89965a1077769ba2f1ee5`.
-- Branch: `fix/techfeedil-rtl-excerpts-source-health-20260730`.
-- Final branch/PR head: `84e7c1c517e545a08b5b6e55b196c934a8123818`.
-- Draft PR #87: https://github.com/funzi7/paywall-bot/pull/87, targeting `main`; not merged.
-- Current read-only main at final diagnosis: `4557f89a1b7d73db6851ca5b29ff692c59746440`.
-- Starting/current production-state blobs:
-  `state/techfeedil.json` `cff7e9da31dfec31353e8360ab233081ef7b6adb` /
-  `62990159174808418d2a05e73d77582e289041b5`;
-  health `1fcd4e9d743826d99a3c915e7906bf0ff3fc4fa4` unchanged.
-  PR #87 changes no tracked `state/` path.
+- Actual fetched starting `origin/main`: `17040d5b03d0de427cc2d7f5cfc9ed3b7ace303e`.
+- Branch: `fix/techfeedil-health-queue-gate-20260731`.
+- Ready-for-review PR #88: https://github.com/funzi7/paywall-bot/pull/88, targeting `main`; not merged.
+- Final remote branch/PR head at handoff: `b5361afa6e3a569b030e26023315bdb21045ec80`.
+- The local Termux/PRoot checkout could not be synchronized or locally verified because Git commands continued to fail with `bwrap: fchdir to oldroot: No such file or directory`. All mutations and exact-head validation used the GitHub repository boundary.
 
-## Root causes
+## Production evidence inspected read-only
 
-1. pc.co.il/456036, message 361: `build_article_message` added the trusted
-   RTL isolate around the English-led `xAI` excerpt, then
-   `tg_bot._publish_clean_message` ran the assembled line through the
-   semantic source cleaner and removed the controls immediately before
-   `Bot.send_message`.
-2. geektime.co.il/everybody-hates-anthropic, message 358: the publisher
-   description was an unfinished prefix of the first body paragraph, with no
-   generated ellipsis. It was selected for Telegram and rendered as a
-   Telegraph blockquote before the complete paragraph.
-3. Telegraph force mode did not require the native title/author metadata
-   policy; Jina used `summary_blocks_remaining = 1`; Tech excerpts still had
-   fixed 800/500 caps and a legacy hard slice.
-4. Copied production deferred rows stayed at retry zero because phase-2
-   exceptions incremented aggregate errors but did not advance row lifecycle.
+- Daily Source Health run `30609946194`, job `91090294635`, finished
+  2026-07-31T06:32:44Z: about 9.6 seconds, 21 direct requests, 3 Jina
+  requests, no unfinished checks, overall degraded, and shared Telegram,
+  Telegraph and production-poll checks healthy.
+- Affected Poll & Post run `30624364449`, job `91136063612`, produced
+  state commit `9d0e9a1b797f69d41916f2ac8fbdb250598a1dd3`.
+- Its copied state held these retry-count-4 deferred identities:
+  `https://gadgety.co.il/366030/xmc-1200-של-xmems`,
+  `https://pc.co.il/455617`, and `https://pc.co.il/455771`.
+- The Gadget Reviews official RSS discovered current items, but full-article
+  extraction returned direct 429 and Jina 403. The Verifier official RSS
+  discovered article 80300, but full-article extraction returned direct/Jina
+  403. No demonstrably complete public first-party alternate body was proven.
+- TECH12 remained behind a Radware challenge with no proven same-scope official
+  endpoint. N12 Digital is a broader healthy sibling, so publisher status is
+  partial/degraded. Geektime's health feed returned a temporary 403 before a
+  later production poll published successfully. HWzone later exposed a fresh
+  2026-07-31 item.
+- GitHub Actions logs for the three Telegraph rows showed failure before any
+  Telegraph API call at final mandatory-field validation: valid Latin glyphs
+  `µ` U+00B5, `é` U+00E9 and `É` U+00C9 were rejected. Gadgety's carried
+  s.w.org WordPress emoji hero was separately confirmed invalid.
+- PR #87's source-health P2 was incorrectly staled by commit timestamp after an
+  unrelated Page Doctor commit.
 
-## Implementation
+## Root causes and implementation
 
-- Semantic clean → MarkdownV2 escape → one exact renderer-owned
-  `RLM+RLI … PDI+RLM` wrapper. Final-send validation trusts controls only at
-  exact outer positions, URL-only lines stay bare, and initial/RetryAfter sends
-  reuse the identical payload. Source controls remain rejected.
-- One idempotent Tech-only display policy covers Telegraph request
-  `title`/`author_name` and serialized content nodes without contaminating
-  semantic identity/fingerprint/tag values. TheMarker remains feature-off and
-  byte-pinned.
-- Generic NFKC/whitespace/quote-dash subtitle/body comparison removes only
-  unfinished substantial prefixes across direct HTML/Jina/finalization.
-- Tech dynamic fitting keeps the complete excerpt when the exact escaped,
-  wrapped UTF-16 payload fits 4,096 units; overflow truncates at sentence,
-  word, then combining/emoji-sequence boundary with ellipsis.
-- HTML keeps complete Cocoon p/li blocks. Jina collects a provisional bounded
-  region and stops on structural, repeated-lede, material-shape or corrupt
-  first-block evidence without swallowing body.
-- A source-health 429 records bounded `Retry-After` and makes no fallback or
-  article request in that run; a recent representative identity may be reused
-  without a cached body. TGR has a bounded official-home fallback for
-  non-cooldown failures.
-- Tech phase-2 exceptions/publish/send failures advance bounded retry/terminal
-  lifecycle. failed→degraded emits recovery only; healthy→degraded emits one
-  degradation; unchanged effective states are silent.
+1. Publisher rate limiting was checked too late and initially inspected only
+   top-level feed results. The monitor now scans every publisher probe,
+   including every first-party fallback-chain response, before extraction
+   scheduling. It captures only bounded Retry-After seconds/date metadata,
+   persists a fixed publisher cooldown, performs zero article/Jina/home
+   fallback requests after any 429, and never caches body text.
+2. Discovery unavailability formerly generated a derivative
+   `no_representative_item` extraction failure. It is now skipped/degraded
+   without increasing extraction failure streaks; recent source-specific
+   production evidence informs the effective publisher pipeline state.
+3. Source-wide direct-429 or direct/Jina access blocks now park newly discovered
+   items in a bounded, body-free cooldown state without consuming per-item
+   retries. Items resume after fixed expiry; historical terminal failures are
+   not resurrected.
+4. Telegraph final validation accepts Unicode Latin letters and narrow
+   micro-unit glyphs while source bidi controls, foreign-script contamination,
+   and content-integrity gates remain fail-closed. Invalid emoji/icon/logo/
+   tracking heroes are rejected. Failures retain stable
+   `telegraph_publish_failed` aggregation plus bounded
+   validation/render/request/API subreasons with no response bodies.
+5. A versioned idempotent migration targets only the three exact identities and
+   exact legacy Telegraph reason/subreason if runtime made them terminal. It
+   restores normal deferred processing only; a second run is a byte-identical
+   no-op and never publishes.
+6. Source-health output now produces one coherent final component/publisher
+   state, distinguishes discovery/extraction/pipeline/blocked queue, reports
+   partial multi-feed degradation, suppresses unchanged alert spam, and clears
+   recovery alert state.
+7. Codex Gate now bases finding liveness on trusted GraphQL review-thread
+   `isResolved`/`isOutdated` state, not commit timestamps. Active unresolved
+   non-outdated trusted P1/P2 findings block across unrelated commits; outdated
+   findings require a current-head clean signal; resolved findings and the
+   explicit administrator override clear. Pure Node decision tests cover all
+   required cases. After Codex review, the gate module was additionally moved
+   to an immutable PR-base/default-branch checkout so a PR cannot execute its
+   own policy module. The bootstrap PR's base does not yet contain that new
+   module, so its own gate uses the pre-existing intentional technical
+   fail-soft; after merge future runs load the trusted default-branch module.
 
-## Read-only live evidence
+## Changed areas
 
-- N12 TECH12: direct Radware challenge; Jina and inspected official N12/Mako
-  category/RSS/embedded forms did not prove current same-scope TECH12 URLs.
-  Broader Digital/Nexter was not substituted; no fallback added.
-- The Gadget Reviews: official RSS 429/cooldown; official home listing current
-  with canonical dated review URLs; conservative token-gated fallback added.
-- The Verifier: direct/Jina 403; public official RSS remained discoverable but
-  no official complete accessible article representation was proven; no
-  fallback or access-control bypass.
-- Exact stuck rows in copied state: gadgety.co.il/366030/xmc-1200-של-xmems,
-  pc.co.il/455617, pc.co.il/455771. No posted canonical/terminal identity was
-  proven; pc/455771 remained live. No manual deletion or one-shot cleanup.
+- Runtime: `core/source_health.py`, `core/article_parser.py`,
+  `core/main.py`, `core/telegraph_pub.py`.
+- Policy/config: `sites/techfeedil/config.yaml`,
+  `.github/workflows/codex-gate.yml`, `tools/codex_gate_logic.js`.
+- Tests/CI: focused source-health and Telegraph queue suites, sanitized fixture,
+  Node gate suite, and `.github/workflows/ci.yml`.
+- Documentation: `README.md`, `docs/techfeedil-attribution-health.md`,
+  `handoffs/CONTEXT.md`.
 
-## Tests and safety
+## Validation and safety
 
-Final-head CI run 30585622054 passed every focused suite, 360/360 full-discovery tests, compileall, all workflow-YAML parses, all shell syntax checks, the state guard and git diff checks.
+- Exact-head CI run `30633921686`, job `91166641995`: success. It passed
+  message-format, all requested Tech Feed IL and complete TheMarker regressions,
+  53 existing Source Health tests, 6 focused source-health recovery tests, 7
+  Telegraph queue tests, full unittest discovery, compileall, Node syntax and
+  12 gate tests, every tracked workflow YAML parse, every tracked shell
+  `bash -n`, state cleanliness, and diff checks.
+- Codex Gate run `30633921399`: success under the documented bootstrap
+  fail-soft. Earlier Codex findings were addressed by commits
+  `eb00200ab40de99fb21447d091308ad6f5622c28`,
+  `5562292d1b0ab15e9b5e902cda27b7cef57df5c8`, and
+  `b5361afa6e3a569b030e26023315bdb21045ec80`.
+- Tracked state blobs were re-read from the final branch and match the starting
+  snapshot exactly: `.gitkeep` `e69de29...`, `errors.log` `bbf0071...`,
+  health `1bc88a...`, Tech Feed IL `645266...`, both Telegraph token files
+  `ed8d3f...`/`09a3d1...`, and TheMarker `4bc558...`.
+- No real Telegram send, owner DM, Telegraph createPage/editPage, Backfill,
+  page-doctor, historical repair, production-state edit, or runtime-log commit
+  occurred. Tests mock all write boundaries and copied state was used for
+  replays.
 
-CI covers all named Tech suites, `tests.test_message_format`, full unittest
-discovery/complete TheMarker regressions, compileall, every workflow YAML,
-every tracked shell with `bash -n`, `git diff --check`, and
-`git diff --exit-code -- state/`. Exact Telegram/Telegraph/DM/state-save
-boundaries are mocked. No real publication, page edit, repost, owner DM,
-Backfill, page-doctor, production-state save, token display or article-body log
-occurred.
+## Remaining operational limits
 
-## Blockers / uncertainty
-
-- No proven current same-scope first-party N12 TECH12 fallback.
-- No proven complete public first-party The Verifier extraction representation.
-- Local Python/git-network execution in this Termux/PRoot session is blocked by
-  the runner's bubblewrap `fchdir to oldroot` failure; the exact remote PR
-  head is validated by GitHub Actions.
+- No complete public first-party body fallback was proven for The Gadget
+  Reviews or The Verifier. Their new items remain queued under bounded source
+  cooldown and resume automatically when publisher extraction recovers.
+- Local `HEAD = remote branch HEAD` could not be established inside the
+  broken PRoot wrapper. Remote branch head, PR head and exact-head CI all point
+  to `b5361afa6e3a569b030e26023315bdb21045ec80`.
