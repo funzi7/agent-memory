@@ -5,116 +5,167 @@
 - Repository: `funzi7/paywall-bot`.
 - Actual fetched starting `origin/main`: `17040d5b03d0de427cc2d7f5cfc9ed3b7ace303e`.
 - Branch: `fix/techfeedil-health-queue-gate-20260731`.
-- Ready-for-review PR #88: https://github.com/funzi7/paywall-bot/pull/88, targeting `main`; not merged.
-- Final remote branch/PR head at handoff: `b5361afa6e3a569b030e26023315bdb21045ec80`.
-- The local Termux/PRoot checkout could not be synchronized or locally verified because Git commands continued to fail with `bwrap: fchdir to oldroot: No such file or directory`. All mutations and exact-head validation used the GitHub repository boundary.
+- Ready-for-review PR #88: https://github.com/funzi7/paywall-bot/pull/88, targeting `main`; open, mergeable, not draft, not merged.
+- Final remote branch and PR head: `7c4d10acb51968500bd80f8da3b5494f3d4b29f0`; direct comparison is identical (ahead 0 / behind 0).
+- The local Termux/PRoot checkout could not be synchronized or locally verified because every attempted Git/shell command failed with `bwrap: fchdir to oldroot: No such file or directory`. All branch mutations and exact-head validation used the GitHub repository boundary; do not claim local tests passed.
 
-## Production evidence inspected read-only
+## Exact production evidence inspected read-only
 
 - Daily Source Health run `30609946194`, job `91090294635`, finished
   2026-07-31T06:32:44Z: about 9.6 seconds, 21 direct requests, 3 Jina
-  requests, no unfinished checks, overall degraded, and shared Telegram,
-  Telegraph and production-poll checks healthy.
-- Affected Poll & Post run `30624364449`, job `91136063612`, produced
-  state commit `9d0e9a1b797f69d41916f2ac8fbdb250598a1dd3`.
-- Its copied state held these retry-count-4 deferred identities:
-  `https://gadgety.co.il/366030/xmc-1200-של-xmems`,
-  `https://pc.co.il/455617`, and `https://pc.co.il/455771`.
-- The Gadget Reviews official RSS discovered current items, but full-article
-  extraction returned direct 429 and Jina 403. The Verifier official RSS
-  discovered article 80300, but full-article extraction returned direct/Jina
-  403. No demonstrably complete public first-party alternate body was proven.
-- TECH12 remained behind a Radware challenge with no proven same-scope official
-  endpoint. N12 Digital is a broader healthy sibling, so publisher status is
-  partial/degraded. Geektime's health feed returned a temporary 403 before a
-  later production poll published successfully. HWzone later exposed a fresh
+  requests, no unfinished checks, overall degraded, shared Telegram,
+  Telegraph, and production-poll checks healthy.
+- Poll & Post run `30624364449`, job `91136063612`, produced state commit
+  `9d0e9a1b797f69d41916f2ac8fbdb250598a1dd3`. Later polls published N12
+  Digital, TGspot, Geektime, and Gadgety, proving the general pipeline live.
+- Copied state held these exact retry-count-4 `telegraph_publish_failed` rows:
+  - Gadgety `https://gadgety.co.il/366030/xmc-1200-של-xmems`
+  - PC `https://pc.co.il/455617`
+  - PC `https://pc.co.il/455771`
+- The Gadget Reviews official RSS returned 200 with 30 current items, while
+  representative article extraction returned direct 429 and Jina 403.
+- The Verifier official RSS exposed current article
+  `https://theverifier.co.il/80300/apple-siri-ai-icloud-subscription-paywall/`;
+  direct and Jina article extraction returned 403.
+- N12 TECH12 remained a Radware challenge with no proven current same-scope
+  official representation. The broader filtered N12 Digital feed remained a
+  separate healthy sibling. Geektime's daily health feed got 403, but a later
+  production poll published a current item. HWzone later supplied a fresh
   2026-07-31 item.
-- GitHub Actions logs for the three Telegraph rows showed failure before any
-  Telegraph API call at final mandatory-field validation: valid Latin glyphs
-  `µ` U+00B5, `é` U+00E9 and `É` U+00C9 were rejected. Gadgety's carried
-  s.w.org WordPress emoji hero was separately confirmed invalid.
-- PR #87's source-health P2 was incorrectly staled by commit timestamp after an
-  unrelated Page Doctor commit.
 
-## Root causes and implementation
+## Root causes
 
-1. Publisher rate limiting was checked too late and initially inspected only
-   top-level feed results. The monitor now scans every publisher probe,
-   including every first-party fallback-chain response, before extraction
-   scheduling. It captures only bounded Retry-After seconds/date metadata,
-   persists a fixed publisher cooldown, performs zero article/Jina/home
-   fallback requests after any 429, and never caches body text.
-2. Discovery unavailability formerly generated a derivative
-   `no_representative_item` extraction failure. It is now skipped/degraded
-   without increasing extraction failure streaks; recent source-specific
-   production evidence informs the effective publisher pipeline state.
-3. Source-wide direct-429 or direct/Jina access blocks now park newly discovered
-   items in a bounded, body-free cooldown state without consuming per-item
-   retries. Items resume after fixed expiry; historical terminal failures are
-   not resurrected.
-4. Telegraph final validation accepts Unicode Latin letters and narrow
-   micro-unit glyphs while source bidi controls, foreign-script contamination,
-   and content-integrity gates remain fail-closed. Invalid emoji/icon/logo/
-   tracking heroes are rejected. Failures retain stable
-   `telegraph_publish_failed` aggregation plus bounded
-   validation/render/request/API subreasons with no response bodies.
-5. A versioned idempotent migration targets only the three exact identities and
-   exact legacy Telegraph reason/subreason if runtime made them terminal. It
-   restores normal deferred processing only; a second run is a byte-identical
-   no-op and never publishes.
-6. Source-health output now produces one coherent final component/publisher
-   state, distinguishes discovery/extraction/pipeline/blocked queue, reports
-   partial multi-feed degradation, suppresses unchanged alert spam, and clears
-   recovery alert state.
-7. Codex Gate now bases finding liveness on trusted GraphQL review-thread
-   `isResolved`/`isOutdated` state, not commit timestamps. Active unresolved
-   non-outdated trusted P1/P2 findings block across unrelated commits; outdated
-   findings require a current-head clean signal; resolved findings and the
-   explicit administrator override clear. Pure Node decision tests cover all
-   required cases. After Codex review, the gate module was additionally moved
-   to an immutable PR-base/default-branch checkout so a PR cannot execute its
-   own policy module. The bootstrap PR's base does not yet contain that new
-   module, so its own gate uses the pre-existing intentional technical
-   fail-soft; after merge future runs load the trusted default-branch module.
+1. Publisher 429 classification existed, but extraction cooldown was consulted
+   only when no representative existed. A multi-feed publisher could therefore
+   receive an article request after one sibling had returned 429.
+2. Direct configured fallback, Jina fallback, and stale website cross-check
+   429s were not uniformly terminal. Later fallback endpoints could still be
+   requested in the same probe.
+3. Discovery unavailability manufactured a derivative
+   `no_representative_item` extraction failure. Degraded display evidence
+   could also clear an older extraction failure even though no extraction ran.
+4. Source-wide extraction failures burned each queued item's retry on every
+   poll instead of parking the item behind a source cooldown.
+5. The three Telegraph rows parsed/finalized successfully and failed before any
+   API call at mandatory final-field validation: valid `µ` U+00B5, `é`
+   U+00E9, and `É` U+00C9 were rejected. Gadgety's carried s.w.org emoji URL
+   was independently an invalid WordPress placeholder hero.
+6. Codex Gate inferred finding liveness from REST comment time versus newest
+   commit time. An unrelated PR #87 commit therefore made an unresolved P2 look
+   stale. Subsequent rollout review found the trusted-workflow, PR-head check,
+   and resolution-watchdog edge cases that are also fixed here.
 
-## Changed areas
+## Implemented invariants
 
-- Runtime: `core/source_health.py`, `core/article_parser.py`,
-  `core/main.py`, `core/telegraph_pub.py`.
-- Policy/config: `sites/techfeedil/config.yaml`,
-  `.github/workflows/codex-gate.yml`, `tools/codex_gate_logic.js`.
-- Tests/CI: focused source-health and Telegraph queue suites, sanitized fixture,
-  Node gate suite, and `.github/workflows/ci.yml`.
-- Documentation: `README.md`, `docs/techfeedil-attribution-health.md`,
-  `handoffs/CONTEXT.md`.
+- All sibling discovery probes finish before extraction scheduling. Any
+  current-run 429 creates one coherent publisher cooldown result and zero
+  subsequent article/direct/Jina/home-fallback extraction requests, regardless
+  of a sibling or cached representative.
+- The current-probe rate-limit latch spans direct, Jina, configured fallback,
+  and stale-listing paths. The first 429 records only bounded status and
+  Retry-After evidence and terminates that feed's remaining fallback chain.
+  Already-running sibling discovery is not cancelled.
+- Cooldown state has a bounded fixed expiry and does not self-extend from stale
+  state. Cached representative identity is metadata only; cached body text is
+  never reused.
+- `discovery_unavailable` is non-derivative. It does not increment or clear
+  the extraction failure lifecycle merely because discovery supplied no item.
+  Publisher-cooldown observations with
+  `additional_article_request=false` likewise preserve an existing extraction
+  failure until a real extraction result. A no-evidence failed cooldown still
+  counts as a genuine failure.
+- Publisher digest state separates discovery, extraction, production pipeline,
+  and blocked/cooldown queue. Multi-feed N12 is partial/degraded rather than
+  wholly failed; unchanged degraded/failed runs remain silent and real
+  recovery clears alert state once.
+- New items blocked by source-wide extraction failure stay in a body-free,
+  bounded queue state without consuming per-item retries. They resume after
+  cooldown expiry; historical terminal failures are not resurrected.
+- Telegraph keeps stable high-level `telegraph_publish_failed` aggregation
+  plus bounded validation/render/request/API subreasons. Unicode Latin letters
+  and narrow µ/μ units are accepted; unsupported scripts, source bidi controls,
+  contamination, emoji/icons/logos/tracking pixels remain fail-closed.
+- The versioned migration is exact to the three canonical identities and exact
+  legacy reason/subreason. It restores only matching terminal rows to normal
+  deferred processing, never publishes, and is byte-identical on a second run.
+- Codex Gate uses trusted GraphQL review-thread `isResolved`/`isOutdated`
+  state, exact Codex App identities, Summary/Testing quote stripping, and
+  reaction-based current-head clean signals. Active unresolved non-outdated
+  P1/P2 survives docs/test/state/unrelated commits.
+- The gate evaluator is loaded only from base/default-branch workflow code via
+  `pull_request_target`, `issue_comment`, or default-branch dispatch; it
+  checks out and executes no PR code. It creates the authoritative
+  `check-codex-status` directly on `pr.head.sha`; its native evaluator job
+  has a different name.
+- The default-branch watchdog queries authoritative thread state, rechecks red
+  verdicts after resolution/outdating, admits that transition through its
+  dispatch guard, and dispatches `codex-gate.yml` from the PR base/default
+  ref rather than the PR head ref.
+- On final head Codex posted a clean PR-level `+1` at
+  2026-07-31T14:27:26Z. Eight addressed active threads were replied to and
+  resolved; no unresolved non-outdated trusted P1/P2 remains. Four historical
+  unresolved threads are already GitHub-outdated and therefore non-blocking.
 
-## Validation and safety
+## Changed files
 
-- Exact-head CI run `30633921686`, job `91166641995`: success. It passed
-  message-format, all requested Tech Feed IL and complete TheMarker regressions,
-  53 existing Source Health tests, 6 focused source-health recovery tests, 7
-  Telegraph queue tests, full unittest discovery, compileall, Node syntax and
-  12 gate tests, every tracked workflow YAML parse, every tracked shell
-  `bash -n`, state cleanliness, and diff checks.
-- Codex Gate run `30633921399`: success under the documented bootstrap
-  fail-soft. Earlier Codex findings were addressed by commits
-  `eb00200ab40de99fb21447d091308ad6f5622c28`,
-  `5562292d1b0ab15e9b5e902cda27b7cef57df5c8`, and
-  `b5361afa6e3a569b030e26023315bdb21045ec80`.
-- Tracked state blobs were re-read from the final branch and match the starting
-  snapshot exactly: `.gitkeep` `e69de29...`, `errors.log` `bbf0071...`,
-  health `1bc88a...`, Tech Feed IL `645266...`, both Telegraph token files
-  `ed8d3f...`/`09a3d1...`, and TheMarker `4bc558...`.
-- No real Telegram send, owner DM, Telegraph createPage/editPage, Backfill,
-  page-doctor, historical repair, production-state edit, or runtime-log commit
-  occurred. Tests mock all write boundaries and copied state was used for
-  replays.
+- Workflows: `.github/workflows/ci.yml`,
+  `.github/workflows/codex-gate.yml`,
+  `.github/workflows/claude-fallback-watchdog.yml`.
+- Runtime: `core/article_parser.py`, `core/main.py`,
+  `core/source_health.py`, `core/telegraph_pub.py`.
+- Configuration/docs: `sites/techfeedil/config.yaml`, `README.md`,
+  `docs/techfeedil-attribution-health.md`, `handoffs/CONTEXT.md`.
+- Tests/tools: `tools/codex_gate_logic.js`,
+  `tests/test_codex_gate_logic.js`,
+  `tests/test_techfeedil_source_health_recovery.py`,
+  `tests/test_techfeedil_telegraph_queue_recovery.py`,
+  `tests/fixtures/techfeedil_telegraph_latin_validation.json`.
 
-## Remaining operational limits
+## Validation
 
-- No complete public first-party body fallback was proven for The Gadget
-  Reviews or The Verifier. Their new items remain queued under bounded source
-  cooldown and resume automatically when publisher extraction recovers.
-- Local `HEAD = remote branch HEAD` could not be established inside the
-  broken PRoot wrapper. Remote branch head, PR head and exact-head CI all point
-  to `b5361afa6e3a569b030e26023315bdb21045ec80`.
+- Final exact-head CI run `30638366727`, job `91181688502`, passed on
+  `7c4d10acb51968500bd80f8da3b5494f3d4b29f0`.
+- It passed: `tests.test_message_format`, `tests.test_techfeedil`,
+  `tests.test_techfeedil_wave2`, `tests.test_source_health`, both new
+  focused suites, quality/hotfix/Cocoon/Verifier/multisource/RTL/Walla/TGspot/
+  content-bounds/live-render/ordered-content/excerpt suites, full
+  `unittest discover -v` (including complete TheMarker regressions),
+  `compileall`, Node syntax and all Codex Gate tests, every tracked workflow
+  YAML parse, every tracked shell script through `bash -n`, state guard, and
+  `git diff --check`.
+- Earlier exact-head green review runs while addressing Codex findings:
+  `30636412296`, `30637282034`, `30637648842`, and
+  `30638151842`.
+- Focused assertions prove zero real Telegram send/owner DM/Telegraph write,
+  no tracked production-state save, zero subsequent publisher request after
+  429 (including direct/Jina/configured/stale paths), bounded logs, exact
+  migration second-run no-op, and TheMarker compatibility.
+- No real Telegram post/DM, Telegraph createPage/editPage, Backfill,
+  page-doctor, old-page repair, production-state edit, or runtime-log commit
+  was performed.
+
+## Tracked state snapshot — unchanged on final head
+
+- `state/.gitkeep`: `e69de29bb2d1d6434b8b29ae775ad8c2e48c5391`
+- `state/errors.log`: `bbf0071e77de0a189f66ac10cb4c69ca8f68bcab`
+- `state/techfeedil-health.json`: `1bc88a257dbf4d6a4c841845deb6965ee619aaaa`
+- `state/techfeedil-telegraph-token.json`: `ed8d3f177dbf590a79d49c8beace6d6895439cb2`
+- `state/techfeedil.json`: `645266616b48b01c0f158db141e4d208c2766582`
+- `state/telegraph_token.json`: `09a3d17f40c228daa58d90c452db42b0bd05e799`
+- `state/themarker.json`: `4bc5580991822b5acb7b86eac6f42faaff987603`
+
+## Remaining blockers / post-merge expectation
+
+- Local branch checkout and local tests remain blocked by the PRoot bubblewrap
+  `fchdir` failure; remote branch/PR identity and exact-head CI are verified.
+- The secure `pull_request_target` gate is a bootstrap change: GitHub loads it
+  from the default branch, so PR #88 itself cannot execute that new trusted
+  workflow until after merge. Static gate/watchdog tests and current-head Codex
+  review validate this rollout; future PRs execute it from trusted `main`.
+- No complete first-party article fallback was proven for The Gadget Reviews
+  or The Verifier. Their new items remain queued until bounded cooldown expiry
+  and extraction recovery; no fake success was introduced.
+- After merge, the three exact Telegraph items retry only through the normal
+  poll, source-blocked items stop burning retries, Geektime/HWzone recover on
+  successful checks, N12 remains accurately partial, and unrelated commits can
+  no longer clear active Codex P1/P2 findings.
