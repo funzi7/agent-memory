@@ -36,13 +36,73 @@ hash — and nothing added to it ever may.
 | Head after D6A7e, first commit | `40dcb9801a368f4075ef3ceaa91af10f77f2c8e0` (`40dcb98`) — deployed; the first dry run found a bound |
 | Head after D6A7e, narrowing fix | `614265acc9a2485e19b4804fb428aab49afa3d01` (`614265a`) — deployed; backfill applied here |
 | Head after D6A7e | `b3b9378216402ded73b4a4070eda77e5c0f41356` (`b3b9378`) — deployed and verified |
-| **Head after D6A7e1** | **`92269ada1c5c2bead729bad5dc81860010fac23e`** (`92269ad`) — **deployed and verified**; migration head **`0005_session_use`** |
+| Head after D6A7e1 | `92269ada1c5c2bead729bad5dc81860010fac23e` (`92269ad`) — deployed and verified; migration head `0005_session_use` |
+| **Head after D6A7e2** | **`478323c1ea6ec61a708b59b6b0b5621e7ecdb876`** (`478323c`) — **deployed and verified**; migration head **`0006_session_connection`** |
 | Host | A DigitalOcean droplet, Ubuntu 24.04.4, amd64, 1 vCPU, ~2 GiB RAM, ~48 GB disk |
 | Deploy path on host | `/opt/remote-sources` |
 | State path on host | `/var/lib/remote-sources` |
 
 The VPS address, its Tailscale hostname and the tailnet name are **deliberately not recorded
 anywhere**. They live in the operator's shell and in the Android app's settings.
+
+## D6A7e2 — a dedicated viewing account, and a session that says whether it works
+
+**HEAD `478323c1ea6ec61a708b59b6b0b5621e7ecdb876`, deployed and verified. Migration head
+`0006_session_connection`.** Server tests: **1066 passed, 3 skipped.**
+
+### The gap D6A7e1 left
+
+D6A7e1 could report that a credential *exists*. That is not the question anyone opens the screen
+to ask, and this milestone proved the gap concretely: the new dedicated account's cookie file
+parsed, an envelope was written, and none of it was evidence that Instagram would accept it.
+
+### The state, and why it is composed rather than stored
+
+`0006_session_connection` adds three **nullable** columns to `platform_health` —
+`session_configured_at`, `session_validated_at`, `session_connection_state`. Purely additive; the
+existing row is preserved; `0005_session_use` was not edited, and a test enforces that a deployed
+migration never is.
+
+The stored value is only the **verdict of the last authenticated use**. What the API returns is
+`effective_connection_state(...)`, composed at read time in one place, with this precedence:
+
+1. **absent** — no credential. Nothing else can outrank this; after the D6A7e1 containment a stale
+   challenge must not dress an empty server up as anything else.
+2. **unreadable** — a credential exists and the server cannot materialise it. A server fault, not a
+   credential one. (The D6A7 tmpfs shape.)
+3. the credential's own refusal verdict — **rejected / challenged / rate_limited**.
+4. **backoff** — a live window is open. Derived, *never stored*: a window is a fact about now.
+5. the stored verdict, otherwise.
+6. **configured_unverified** — a credential exists and nothing has proved it works.
+
+**The generation boundary.** `session_configured_at` is stamped on import and on clear, and
+`SessionUseRecorder` carries that timestamp as a ticket. A use that began before the current
+credential was configured settles nothing — so an in-flight request against the *old* account can
+never write a verdict about the *new* one. No credential-derived identifier is needed for this,
+which is the point: nothing that could identify an account is stored to make it work.
+
+### The import, and the single authorised live request
+
+- The plaintext jar was streamed over SSH **stdin straight into the container's tmpfs** and never
+  written to server disk, never passed as an argument, never printed. The scoped sudo grant does
+  not include `install`, `cp` or `rm`, and the container bind-mounts only `/var/lib/remote-sources`
+  — so this was the only route that kept plaintext off disk, not a convenience.
+- Import removes the runtime copy **before** writing the new envelope, then marks configured. Both
+  plaintext copies were destroyed afterwards and their absence verified.
+- **`validate-instagram-session` refuses without `--confirm-live-session-use`** (exit 2), refuses
+  with no credential, refuses if the material is unreadable, and refuses if no Instagram profile
+  source exists. It picks the identity internally and **never prints it**.
+- Exactly **one** live request was made. Result: `connection_state: connected`,
+  `validation_ok: true`, `elapsed_seconds: 2.1`, `instagram_enabled_sources: 0`.
+- **The import enabled nothing.** Verified afterwards: no new CheckRun (still 6), cursor, Story
+  state and `last_check_at` untouched, every row count identical. Re-enabling stays the user's
+  decision, one source at a time.
+
+### The permanent rule this adds
+
+> **Presence is not connection.** A stored credential is a fact about this server; a working
+> session is a fact about the platform, and only an authenticated request can establish it. No
+> surface may present the first as the second — `docs/SECURITY.md` item 5.
 
 ## D6A7e1 — the session Instagram saw, and the removal that now removes
 

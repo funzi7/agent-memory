@@ -92,8 +92,8 @@ cp /root/work/telegram-topic-uploader/app/build/outputs/apk/debug/app-debug.apk 
 ```
 
 **Install over the existing app.** The debug certificate has not changed since D5A — at D6A7d it is
-still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`. **D6A7e1 (code 40,
-`0.13.15-d6a7e1`) supersedes every earlier build; no intermediate version needs installing first.**
+still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`. **D6A7e2 (code 41,
+`0.13.16-d6a7e2`) supersedes every earlier build; no intermediate version needs installing first.**
 
 ### The permanent APK-to-Downloads rule — D6A7c1
 
@@ -111,7 +111,12 @@ not install the release. Three further conditions:
 - **If `/sdcard/Download/` is unavailable, the Android release handoff has failed** — report the
   exact filesystem error rather than silently skipping the copy.
 
-**D6A7e1 moves the Room schema 15 → 16** — one new table, `explicit_send_requests`, so a *Send
+**D6A7e2 does not move the Room schema — it stays at 16, and no migration runs on this install.**
+Every folder grant, destination, queue item, confirmation, ignore marker, deletion tombstone and
+Story identity is simply still there. (That makes the install cheap to verify and cheap to reason
+about: anything missing afterwards is not a migration defect, because there was no migration.)
+
+**D6A7e1 moved the Room schema 15 → 16** — one new table, `explicit_send_requests`, so a *Send
 now* tap is durable authorization that survives a process death and a second tap can wait its
 turn instead of being refused and forgotten. Purely additive: no row rewritten, no table
 recreated, destructive fallback still forbidden. (D6A7e moved it 14 → 15 for the batch
@@ -131,6 +136,46 @@ build reads identically to one answered against this one.
 item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
+
+**D6A7e2** — a viewing session that says whether it *works*, a sentence that stopped over-claiming,
+a Preview you can walk, and an Instagram tile that opens its own list.
+
+> **A dedicated Instagram viewing account replaced the compromised primary one.** Its cookie jar
+> was streamed straight into the container's tmpfs over SSH stdin — never written to server disk,
+> never passed as an argument, never printed — both plaintext copies were destroyed and their
+> absence verified, and **exactly one** authorised live request validated it.
+
+### What the milestone actually establishes
+
+- **The server verified the new session: `connected`, in 2.1 s.** `instagram_enabled_sources: 0`
+  before and after — **the import enabled nothing**, and re-enabling remains the user's decision,
+  one source at a time. No new CheckRun, no cursor movement, no Story state change, every row count
+  identical.
+- **The app now answers "is it connected?" rather than "does a credential exist?"** Nine states
+  render with words as well as colour, exactly one of them is success, and only the server may
+  declare it. `platform.session_connection.v1`.
+- **A false sentence is gone.** An empty session-use record no longer claims the session was never
+  used; it says nothing has been recorded *since tracking was added*, and that earlier uses are not
+  represented.
+- **Preview walks previous/next** over a frozen snapshot of the list actually on screen, with
+  visible controls, a *3 of 20* position, and gesture arbitration that leaves the seek bar, vertical
+  scrolling and image panning alone. **Paging cancels nothing.**
+- **A Dashboard Instagram tile** counts the local publishing queue's waiting rows and opens the
+  existing screen — one predicate behind both, so the D6A7e1 count/list defect cannot recur here.
+
+| Field | Value |
+| --- | --- |
+| App version | code **41**, `0.13.16-d6a7e2` |
+| App HEAD | `6cebd96412980fb0b440c4182c968310d262fdc2` |
+| Server HEAD | `478323c1ea6ec61a708b59b6b0b5621e7ecdb876` — **deployed and verified** |
+| Room schema | **16, unchanged — no migration runs.** Server: **`0006_session_connection`**, three nullable columns |
+| App unit tests | **2481, 0 failures. Lint: 0 issues**, counted from the XML report with `--rerun-tasks` |
+| Server tests | **1066 passed, 3 skipped** |
+| APK | **copied to `/sdcard/Download/TelegramTopicUploader-0.13.16-d6a7e2.apk`, hash verified, not installed** |
+| Production | **A dedicated Instagram viewing session is configured and verified `connected`. Instagram sources still paused (enabled: 0)** |
+| **Not** proven | **every line of D6A7e2 on hardware** (`docs/D6A7E2_DEVICE_CHECKLIST.md`), every line of D6A7e1, and everything D6A7e still owed |
+
+## 4a. Previous milestone: D6A7e1
 
 **D6A7e1** — a security incident contained, a session the screens never mentioned, a transfer no
 screen may own, and a Dashboard count that finally opens its own list.
@@ -665,6 +710,16 @@ the server's region. Therefore, permanently:
   Nothing resumes automatically; a cookie import re-enables nothing.
 - **Never ask the user to re-export cookies** unless evidence shows the configured session is
   itself missing or rejected — the D6A7 lesson, still standing.
+- **D6A7e2: presence is not connection.** A stored credential is a fact about the server; a working
+  session is a fact about the platform, and only an authenticated request can establish it. The
+  server composes the verdict and the app *translates* it — never re-derives it — so
+  *configured, unverified* and *connected* are different words on the screen and a server too old
+  to answer can produce only the first. Re-deriving a state the server already composed is exactly
+  how two surfaces come to disagree about one server.
+- **D6A7e2: a use that began before the current credential settles nothing about it.**
+  `session_configured_at` is a generation boundary carried as a ticket, so an in-flight request
+  against the old account can never write a verdict about the new one. It needs no
+  credential-derived identifier, which is the point.
 
 ## 6. The server-side secret rule — absolute
 
@@ -687,7 +742,7 @@ run in their own SSH shell.
 | **9GAG** | **accounts and Interests** — two distinct source types | optional server-side cookies, **configured** | **refused live — anti-bot challenge on every deep path**, classified `challenge`, **confirmed from the device 2026-07-27** |
 | **Reddit** | implemented (`u/…` and `r/…`) | **required** — anonymous is 403 | **no** |
 | **X** | implemented (gallery-dl + cookies) | **required** | **no** |
-| **Instagram** | **implemented at D6A5** | **required — and D6A7e1 removed the configured session; every Instagram source is paused** | live-proven for feed, Stories and Story deduplication (D6A7b–D6A7e); **now dormant by decision** |
+| **Instagram** | **implemented at D6A5** | **required — D6A7e1 removed the compromised session; D6A7e2 imported a dedicated one and the server verified it `connected`. Every Instagram source is still paused (`enabled: 0`)** | live-proven for feed, Stories and Story deduplication (D6A7b–D6A7e); one bounded D6A7e2 validation succeeded; **otherwise dormant, by decision** |
 | **TikTok** | **implemented at D6A5** (gallery-dl + yt-dlp) | **required** | **no** |
 
 All five are selectable in the Android app since D6A5, each with its own state sentence. **Being
@@ -887,6 +942,17 @@ connector most likely to need maintenance**, since that payload is front-end dat
 
 **Unvalidated on hardware:**
 
+- **All of D6A7e2.** The connection verdict on the card (including whether it truthfully reads
+  *connected* on the handset), the corrected empty-history sentence, Preview previous/next and its
+  gesture arbitration, the pan-before-page rule on a zoomed image, the Instagram Dashboard tile and
+  its count, and — the one that matters most — **a Send now surviving a swipe to the next item**.
+  `docs/D6A7E2_DEVICE_CHECKLIST.md`; 40 lines, every one *not attempted*. Note line 10: the user
+  re-enables the Instagram source by hand, and nothing in this milestone did it for them.
+
+- **All of D6A7e1.** `docs/D6A7E1_DEVICE_CHECKLIST.md`; every line *not attempted*. Two of its
+  lines are superseded by the D6A7e2 checklist (the session-state vocabulary and the empty
+  session-use sentence) and should be read from the newer file; the rest still stand.
+
 - **All of D6A7c1.** Screenshots, screen recording, the Recents preview, the independent collection
   loads, the blocked-versus-empty distinction, and the cumulative Story count.
   `docs/D6A7C1_DEVICE_CHECKLIST.md`; every line *not attempted*.
@@ -918,6 +984,24 @@ the table is the whole of it.
 
 ## 9. Permanent product decisions
 
+- **D6A7e2: presence is not connection, and only the server may say *connected*.** A parsed cookie
+  file proves nothing about whether the platform will accept it. The server composes one
+  authoritative verdict from presence, readability, the last authenticated outcome and the live
+  backoff window; the app renders that verdict and never invents one, so a server too old to answer
+  can claim at most *configured, unverified*. Colour never carries the meaning alone.
+- **D6A7e2: a status sentence may not out-claim its own evidence.** "The server has never used a
+  viewing session" was false the moment it shipped — the primary account's session had been used
+  many times before tracking existed. An empty record says *nothing has been recorded since
+  tracking was added*, and says that earlier uses are not represented. **When a feature can only
+  see part of the history, the sentence must say which part.**
+- **D6A7e2: moving between items is never an action on them.** Preview navigation redraws and
+  nothing else: no transfer is cancelled, no send is withdrawn, no batch and no deletion is
+  touched, and a live Send now keeps running with its progress on its own row. The navigation
+  session is frozen when Preview opens and never becomes a row.
+- **D6A7e2: a gesture belongs to the most specific thing under the finger.** Paging lives on the
+  media surface alone, so a seek-bar drag stays a seek; a drag must be clearly horizontal to page;
+  a zoomed image pans to its own edge before a further swipe pages it. Direction is arbitrated, not
+  guessed.
 - **D6A7e1: a cookie jar is an authenticated session, and importing one authorises this server to
   act as that account from its own location.** Only a dedicated, low-value viewing account may
   ever be imported; one shared session serves every Instagram source; adding a source logs in to

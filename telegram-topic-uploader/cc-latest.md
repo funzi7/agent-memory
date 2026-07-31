@@ -11,6 +11,21 @@
 
 | Field | Value |
 | --- | --- |
+| Task | **D6A7e2** — a dedicated viewing account imported and verified, a session state that says whether it *works*, a sentence that stopped over-claiming, a Preview you can walk, and an Instagram tile that opens its own list |
+| **Final application HEAD** | **`6cebd96412980fb0b440c4182c968310d262fdc2`** — pushed |
+| **Final server HEAD** | **`478323c1ea6ec61a708b59b6b0b5621e7ecdb876`** (`478323c`) — **deployed and verified** |
+| Version | code 40 → **41**, name `0.13.15-d6a7e1` → **`0.13.16-d6a7e2`** |
+| Room schema | **16, unchanged — no migration runs.** Server: **`0006_session_connection`**, three nullable columns on `platform_health` |
+| Gate | **2481 Android unit tests, 0 failures. Lint: 0 issues** (counted from the XML report, all with `--rerun-tasks`). Server **1066 passed, 3 skipped** |
+| APK | `app-debug.apk`, 16,434,192 bytes, SHA-256 `458fe4a79a433fe37f6e9d40ce004c200607e29886ace8132aaaeb803644ad02`. **Copied to Downloads with a matching hash. Not installed** |
+| APK in Downloads | `/sdcard/Download/TelegramTopicUploader-0.13.16-d6a7e2.apk` — hash verified identical |
+| Production | **A dedicated Instagram viewing session is configured and the server verified it `connected`** (one authorised live request, 2.1 s). **Every Instagram source remains paused — `enabled: 0` before and after the import** |
+| Hardware | **No line of D6A7e2 is verified.** `docs/D6A7E2_DEVICE_CHECKLIST.md`; all 40 lines *not attempted* |
+
+### Previous milestone, for reference
+
+| Field | Value |
+| --- | --- |
 | Task | **D6A7e1** — a security incident contained, a session the screen never mentioned, a transfer no screen may own, and a count that finally opens its own list |
 | **Final application HEAD** | **`b1a434d7c6fd826fac5e2bec31c15ad630393fc8`** — pushed |
 | **Final server HEAD** | **`92269ada1c5c2bead729bad5dc81860010fac23e`** (`92269ad`) — **deployed and verified** |
@@ -22,7 +37,7 @@
 | Production | **Instagram credential absent, every Instagram source paused (enabled: 0)**, verified from local credential and process state. **No live Instagram request was made in this milestone** |
 | Hardware | **No line of D6A7e1 is verified.** `docs/D6A7E1_DEVICE_CHECKLIST.md`; all *not attempted* |
 
-### Previous milestone, for reference
+### Milestone before that, for reference
 
 | Field | Value |
 | --- | --- |
@@ -36,6 +51,100 @@
 No production token, Meta credential, Telegram identifier, chat ID, thread ID, private link, VPS
 address, Tailscale hostname, SSH host, pairing code, device token, cookie value, account name, file
 name, content URI or media hash is recorded anywhere in this file.
+
+## D6A7e2 — the replacement account, and four things the screens could not say
+
+### 1. The dedicated viewing account, and how its credential was moved
+
+The user placed the new account's cookie file on the handset and it was imported without any part
+of it being read, printed, hashed, copied into a repository, or written to server disk.
+
+**The route mattered and was not a convenience.** The scoped sudo grant excludes `install`, `cp`
+and `rm`, and the container bind-mounts only `/var/lib/remote-sources` — so the file was streamed
+over SSH **stdin** directly into the container's **tmpfs** (`umask 077; cat > …`), which is the
+only path that keeps plaintext off durable storage and out of any argument list. The import
+command's own output was sanitized before display so that byte and cookie counts were withheld.
+Both plaintext copies were then destroyed and their absence positively verified.
+
+**Exactly one live request was authorised and exactly one was made.** Result:
+`connection_state: connected`, `validation_ok: true`, `elapsed_seconds: 2.1`,
+`instagram_enabled_sources: 0`. Afterwards: no new CheckRun (still 6), no cursor movement, no
+Story-state change, `last_check_at` untouched, every row count identical. **The import enabled
+nothing**, by design.
+
+### 2. "Configured" was never the question
+
+D6A7e1 shipped the card that had been missing and it could still only say a credential *exists*.
+The new account proved why that is not enough: the file parsed and an envelope was written, and
+none of that was evidence Instagram would accept it.
+
+The server now composes **one** authoritative verdict — `platform.session_connection.v1`, with
+`session_connection_state`, `session_validated_at` and `session_configured_at` on the platform
+status — and the app **translates** it rather than re-deriving it. Nine states, each with words as
+well as colour, and exactly one drawn as success. A server too old to answer can produce at most
+*configured, unverified*: `legacyStateOf` is structurally incapable of returning `CONNECTED`, and
+both a behavioural test and a static guard hold it there.
+
+### 3. The sentence that was false
+
+An empty session-use record used to say the server had **never** used a viewing session. The
+incident that opened D6A7e1 is the counter-example: that session was used many times, before any
+of it was recorded. It now says *no session use has been recorded since session-use tracking was
+added*, and adds that *earlier uses are not represented by this card* — English and Hebrew, with a
+build-failing guard on the old wording in either locale.
+
+**The general rule this leaves behind:** when a feature can only see part of the history, the
+sentence must say which part.
+
+### 4. Preview walks, and walking is not acting
+
+`PreviewNavigation` freezes the ordered list when Preview opens, so a background rescan cannot
+shuffle the session under the user; a vanished item is skipped rather than redrawn under a stale
+identity; boundaries answer *nothing* rather than wrapping. Visible Previous/Next controls sit
+beside the swipe, with a *3 of 20* position — deliberately **not** pinned left-to-right, because
+unlike D4C's timeline it is a Hebrew sentence and not a physical axis.
+
+**The real risk here was gesture arbitration**, and it is handled by placement as much as by
+arithmetic: paging lives only on the media surface, so the seek bar and every button are siblings
+whose drags can never reach it; a drag must cross 120 px *and* be 1.5× more horizontal than
+vertical; a zoomed image pans to its own edge before a further swipe pages it, and pinching never
+pages. Navigation touches no transfer, no pending send, no batch and no deletion — a live Send now
+keeps running with its progress on its own row — and the snapshot is process state that never
+becomes a database row.
+
+### 5. The Instagram tile
+
+A ninth Dashboard tile counting the local publishing queue's waiting rows, opening the **existing**
+publishing screen on the ordinary back stack. One predicate — `InstagramPublishQueuePolicy.active`
+— drives both the number and the screen's first section, and *published* is its exact complement in
+the same file, so the D6A7e1 count/list class of defect cannot recur here. Rows marked published
+stay on screen in their own section so the undo affordance survives the split. Drawing the tile
+makes no Remote Sources request.
+
+### 6. What the guards caught — the useful part of this milestone
+
+Every one of these came from an existing check rather than from review, and none was fixed by
+weakening the check. **This is the pattern worth carrying forward.**
+
+- **`D4CSurfaceTest` was right and the new code was wrong.** The *3 of 20* label had been pinned
+  left-to-right by analogy with D4C's seek timeline. The timeline is pinned because a media
+  position is a physical distance along a file and the drag must move the way it looks; a position
+  label is a Hebrew sentence, and pinning it breaks the reading of the word between the numbers.
+  **The production code was fixed, not the test.**
+- **Lint found a dropped sentence, not merely an unused string.** Three `UnusedResources`: two were
+  genuine duplicates the card rewrite had superseded and were deleted; the third — *the viewing
+  account only asks to view the source profile* — had been dropped from the card by mistake and was
+  **put back on screen**. **An unused string is a question, not an instruction to delete.**
+- **A guard had gone vacuous rather than red.** `substringAfter` returns the *whole file* when its
+  delimiter is missing, so renaming the viewing-session composable left one assertion silently
+  passing against an unrelated fragment. Anchored on the real name now, with an existence assertion
+  first, and re-scoped honestly: the card does have controls, so the pin is that none of them can
+  spend or change the session.
+- **`ViewingSessionPolicyTest`** now covers the older-server fallback explicitly, recording the two
+  expectations that moved and why.
+
+Nothing was deleted; every re-scope carries its reason in the file and in
+`docs/RELEASE_REVIEW.md`.
 
 ## D6A7e1 — the incident, and the two defects that arrived with it
 
