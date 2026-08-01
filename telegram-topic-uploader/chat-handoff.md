@@ -137,6 +137,110 @@ item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
 
+**D6A7e4** — a name the validation already had, two cadences nobody could choose, and a list that
+admits what is wrong.
+
+> **Three approved product changes plus one owed correction.** The server was changed, deployed and
+> verified. **Instagram was not contacted**: no validation, no check and no operator probe was run,
+> and no credential was replaced or re-validated. No Telegram content was sent. No source was
+> enabled or disabled.
+
+### What it built
+
+**1. The source name comes from the validation that already ran.** `POST /sources/validate` returns
+`suggested_display_name` and `suggested_name_from_platform` on a **successful** validation only,
+composed from the one platform call it already makes. The order is a trusted platform-returned
+display name, then the platform's canonical handle, then the normalised identity — **never** the raw
+text the request carried, which normalisation may have changed or refused. **No second request.**
+
+**2. Five schedule presets.** `attentive` 2 h, `normal` 4 h, `relaxed` 8 h, **`slow` 12 h**,
+**`daily` 24 h**. The three existing wire values are unchanged. No deployed source was moved.
+
+**3. Platform tabs and one deterministic order** on Remote Sources — All, Instagram, TikTok, X,
+9GAG, Reddit, each with its source count, plus *Other* only when an unknown-platform source exists.
+
+**4. The server's D6A7e2 test-count records corrected** to 1071 passed / 3 skipped. Durable backlog
+row 120 is closed.
+
+### The rules those produced, which outlive the milestone
+
+- **A suggested name is a suggestion, never an instruction.** The form field carries *who last filled
+  it* — empty, automatic, or manual — and a manual value is never overwritten by anything automatic.
+  Both failures are silent, which is why this is a typed value with its own tests rather than a
+  convention: an automatic name that refuses to update leaves the previous account's name above a new
+  identity, and one that overwrites eats what somebody typed.
+- **Guard a late answer twice.** Two validations can be in flight and the network does not promise
+  order. The ViewModel discards a superseded response by ticket; independently the published state
+  carries the platform, identity and source type it was asked about, and the form applies only an
+  answer that describes what it is currently showing.
+- **A suggestion is composed from the request that already happened.** Never add a platform request
+  for a display string.
+- **The base interval is a base.** The app derives no next-check time from a preset — a static guard
+  asserts `approximateHours` appears nowhere in the screen's code. `next_check_at` is the only number
+  presented as an answer.
+- **The 24-hour scheduler cap is why Daily is bounded.** It predates the presets and is applied after
+  jitter and after the ×3 dormancy multiplier, so Daily sits *at* the cap: dormancy cannot lengthen
+  it and its jitter is one-sided (roughly 21–24 h). Documented rather than adjusted; the cap is the
+  older and stronger rule.
+- **A tab is a projection, not a query.** Selecting one makes no request, changes no source and
+  creates no check run — asserted by a guard over `selectSourceTab`'s body, so a per-tab request
+  cannot be added later without failing a test.
+- **An unknown platform gets an *Other* tab or it disappears.** And if it disappears, the All count
+  stops equalling the sum of the others — the symptom nobody can explain. *Other* exists only when
+  such a source does, so there is no speculative empty tab.
+- **Sort in one place.** Checking, then waiting on a person, then enabled by nearest next check, then
+  enabled with no time yet, then disabled; ties by a locale-aware case-insensitive `Collator`, then
+  by a stable id nobody sees. **The exclusions matter as much:** a rate limit is not attention because
+  waiting *is* the action, one failure is not (three in a row is), and a successful check that found
+  nothing is not an error.
+- **Re-scope a guard, never delete it.** Four pre-existing guards went red; all four were re-scoped
+  and none loosened. A guard that goes vacuous is worse than one that goes red.
+
+| Field | Value |
+| --- | --- |
+| App version | code **43**, `0.13.18-d6a7e4` |
+| App HEAD | `989f4270bfa86018c3a695bc2a1f9c12fec43f5c` |
+| Server HEAD | `eaeba836650f67245b0bd8265b46f6e03d2cd29d` — **changed and deployed**, from `478323c1ea6ec61a708b59b6b0b5621e7ecdb876` |
+| Room schema | **16, unchanged — no migration runs.** Server: `0006_session_connection`, **unchanged; none was needed and none was written** |
+| App unit tests | **2607, 0 failures, 0 errors, 0 skipped. Lint: 0 issues**, both counted from the XML reports with `--rerun-tasks` |
+| Server tests | **1143 passed, 3 skipped** (1146 collected), at the deployed HEAD |
+| APK | **copied to `/sdcard/Download/TelegramTopicUploader-0.13.18-d6a7e4.apk`, hash verified, not installed** |
+| Production | Server deployed and verified. **No Instagram contact, no check, no probe, no Telegram content sent, no source enabled or disabled** |
+| **Not** proven | **every line of D6A7e4 on hardware** (`docs/D6A7E4_DEVICE_CHECKLIST.md`). Also: **no platform-returned display name has been observed live** — 9GAG and Reddit are exercised against synthetic payloads only, and Instagram, TikTok and X make no such claim at all. **The D6A7e3 Preview checks remain open** |
+
+### The Instagram viewing session, as D6A7e4 found it — read this before claiming it is connected
+
+A **read-only** probe taken before deploying found the dedicated viewing account's stored connection
+state as **`rejected`**, `last_signal = authentication_expired`, following a **scheduled** check at
+09:32 UTC on 2026-08-01. The same row records a successful authenticated operation at 06:26 UTC the
+same morning, so it was working and stopped being accepted between those two times.
+
+**D6A7e4 did not cause this and did not repair it.** It ran no validation, no check and no operator
+probe; it did not replace, clear or re-validate the credential. The post-deployment probe showed the
+credential's configuration timestamp unchanged and both sources still enabled on `normal`.
+
+**Do not repeat "the viewing session is connected" from §4c onward** — that was true at D6A7e2 and
+was still true on the morning of 2026-08-01. It is a claim to re-verify, not a fact to carry.
+
+## 4b. The D6A7e2 server test-count mismatch — resolved, and now corrected in the repository
+
+Two durable records disagreed. The server's own committed documents and its D6A7e2 commit message
+said **1070 passed, 4 skipped**; agent-memory said **1066 passed, 3 skipped**.
+
+`.venv/bin/python -m pytest -q` was run **twice**, read-only, at the unchanged HEAD `478323c`, and
+produced **1071 passed, 3 skipped** both times. `pytest -q -rs` shows the only reachable skip is
+`tests/test_connector_conformance.py:591`, firing for the three harnesses that declare
+`unconfigured=None`, so three skips is code-determined rather than environmental. 1071 + 3 = **1074
+collected**, matching the recorded 1070 + 4 exactly (one test miscounted between columns); 1066 + 3
+= 1069 is five short, so the memory figure was simply wrong.
+
+**Correct: 1071 passed, 3 skipped.** ✅ **D6A7e4 corrected the server repository's own documents** —
+`README.md`, `TODO.md`, `docs/PROJECT_STATE.md` and `docs/RELEASE_REVIEW.md` — with the evidence
+recorded beside them. No commit message was rewritten. Durable backlog row 120 is closed.
+
+**That figure is historical.** The current server total is **1143 passed, 3 skipped**.
+
+## 4c. Previous milestone: D6A7e3
 **D6A7e3** — a swipe that goes the way you push it, a screen that scrolls under your finger, and a
 video that admits it is not there.
 
@@ -202,7 +306,7 @@ problem regardless.
 | Production | **Unchanged.** No Instagram contact, no deployment, no Telegram content sent |
 | **Not** proven | **every line of D6A7e3 on hardware** (`docs/D6A7E3_DEVICE_CHECKLIST.md`, 21 lines) — in particular **none of the three defects above is claimed fixed** |
 
-## 4b. The D6A7e2 server test-count mismatch, resolved from evidence
+### The D6A7e2 test-count mismatch, as D6A7e3 resolved it
 
 Two durable records disagreed. The server's own committed documents and its D6A7e2 commit message
 said **1070 passed, 4 skipped**; agent-memory said **1066 passed, 3 skipped**.
@@ -218,7 +322,8 @@ collected**, matching the recorded 1070 + 4 exactly (one test miscounted between
 repository's own documents still carry 1070/4 and are owed a correction in the next server
 milestone** — D6A7e3 was forbidden to move the server HEAD.
 
-## 4c. Previous milestone: D6A7e2
+
+## 4d. Previous milestone: D6A7e2
 
 **D6A7e2** — a viewing session that says whether it *works*, a sentence that stopped over-claiming,
 a Preview you can walk, and an Instagram tile that opens its own list.
@@ -258,7 +363,7 @@ a Preview you can walk, and an Instagram tile that opens its own list.
 | Production | **A dedicated Instagram viewing session is configured and verified `connected`. Instagram sources still paused (enabled: 0)** |
 | **Not** proven | **every line of D6A7e2 on hardware** (`docs/D6A7E2_DEVICE_CHECKLIST.md`), every line of D6A7e1, and everything D6A7e still owed |
 
-## 4d. Previous milestone: D6A7e1
+## 4e. Previous milestone: D6A7e1
 
 **D6A7e1** — a security incident contained, a session the screens never mentioned, a transfer no
 screen may own, and a Dashboard count that finally opens its own list.
@@ -857,6 +962,14 @@ connector most likely to need maintenance**, since that payload is front-end dat
 
 **Confirmed by the user, and only this:**
 
+- **D6A7e4 (2026-08-01): nothing.** No line of `docs/D6A7E4_DEVICE_CHECKLIST.md` has been
+  attempted, and **the whole of the D6A7e3 checklist is still owed** — D6A7e4 changed nothing in
+  Preview and closes none of it.
+- **Server-observed, not user-reported (2026-08-01):** the dedicated Instagram viewing session's
+  stored state moved from `connected` at 06:26 UTC to **`rejected`** after a **scheduled** check at
+  09:32 UTC. Observed read-only during D6A7e4's pre-deployment probe; **not caused and not repaired
+  by any agent action**, and no validation, check or probe was run.
+
 - **D6A7e3 reports (2026-08-01), on the installed D6A7e2 build — the first physical run of D6A7e2:**
   - ✅ **The dedicated Instagram viewing session is imported and server-validated as `connected`.**
   - ✅ **The import enabled no Instagram source.** Enablement remains the user's decision.
@@ -1087,6 +1200,19 @@ the table is the whole of it.
 
 ## 9. Permanent product decisions
 
+- **D6A7e4: the approved schedule presets are 2, 4, 8, 12 and 24 hours** — Attentive, Normal,
+  Relaxed, Slow, Daily. Hebrew: עירני / רגיל / רגוע / איטי / יומי, each written as *בסיס: כל …*.
+  **They are adaptive base intervals, not fixed promises**, and the exact server-returned
+  `next_check_at` is what the user is shown. The three original wire values were not renamed; the
+  two new ones are `slow` and `daily`.
+- **D6A7e4: adding a source fills the name from the validation that already ran** — and a name a
+  person typed is **never** overwritten by it. Opening an existing source's editor never replaces
+  its stored name either; an explicit action is offered instead.
+- **D6A7e4: Remote Sources is organised by platform tabs**, and tab filtering performs **no**
+  separate network request — one loaded collection, projected locally.
+- **D6A7e4: source sorting is one centralized, deterministic policy** applied identically in every
+  tab including All. Checking, then waiting on a person, then enabled by nearest next check, then
+  enabled with no time, then disabled; ties by locale-aware case-insensitive name, then stable id.
 - **D6A7e2: presence is not connection, and only the server may say *connected*.** A parsed cookie
   file proves nothing about whether the platform will accept it. The server composes one
   authoritative verdict from presence, readability, the last authenticated outcome and the live

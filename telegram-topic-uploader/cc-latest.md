@@ -11,6 +11,90 @@
 
 | Field | Value |
 | --- | --- |
+| Task | **D6A7e4** — a name the validation already had, two cadences nobody could choose, and a list that admits what is wrong |
+| **Final application HEAD** | **`989f4270bfa86018c3a695bc2a1f9c12fec43f5c`** — pushed |
+| **Final server HEAD** | **`eaeba836650f67245b0bd8265b46f6e03d2cd29d`** (`eaeba83`) — **pushed, deployed and verified**, from `478323c` |
+| Version | code 42 → **43**, name `0.13.17-d6a7e3` → **`0.13.18-d6a7e4`** |
+| Room schema | **16, unchanged — no migration runs.** Server: **`0006_session_connection`**, unchanged — none was needed and none was written |
+| Gate | **2607 Android unit tests, 0 failures, 0 errors, 0 skipped. Lint: 0 issues** (both counted from the XML reports, every task with `--rerun-tasks`, from the **committed** tree). Server: **1143 passed, 3 skipped** (1146 collected) |
+| APK | `app-debug.apk`, 16,514,245 bytes, SHA-256 `97cc5959889cfd601748533c509bbe0a972ebfd7a3a864d28855ec9c6079cffe`. **Copied to Downloads with a matching hash. Not installed** |
+| APK in Downloads | `/sdcard/Download/TelegramTopicUploader-0.13.18-d6a7e4.apk` — hash verified identical |
+| Production | Server deployed and verified at the exact pushed HEAD. **Instagram was not contacted**: no validation, no check, no operator probe; no credential replaced or re-validated; no source enabled or disabled. No Telegram content sent |
+| Hardware | **No line of D6A7e4 is verified.** `docs/D6A7E4_DEVICE_CHECKLIST.md`, 35 lines, all *not attempted*. **The D6A7e3 checklist is also still owed in full** |
+
+### The three approved product changes
+
+**1. The source name comes from the validation that already ran.** `POST /sources/validate` returns
+`suggested_display_name` and `suggested_name_from_platform` on a **successful** validation only,
+composed from the one platform call it already makes — a trusted platform display name, else the
+platform's canonical handle, else the normalised identity, **never** the raw request text. A refusal
+carries nothing.
+
+Form ownership is a typed value, `SourceNameField`, and it is pure: empty fills, a previous automatic
+value is **replaced** when the identity changes, **a name a person typed is never overwritten**,
+deleting it returns the field to empty, and one explicit action may replace a manual value because
+somebody asked. `withSuggestion` enforces the manual guard itself, not each call site.
+
+Editing an existing source never replaces its stored name — the editor's field opens as the user's
+own whatever produced the label, plus an explicit *Use the platform identity* action.
+
+**2. Five schedule presets** — 2 / 4 / 8 / 12 / 24 hours, `attentive` / `normal` / `relaxed` /
+**`slow`** / **`daily`**. Three wire values unchanged; no deployed source moved.
+
+**3. Platform tabs and one deterministic order** on Remote Sources. One loaded collection; a tab is a
+projection of it and makes no request.
+
+### The rules worth carrying forward
+
+- **A suggested name is a suggestion.** Both ways of getting auto-fill wrong are silent — one leaves
+  the previous account's name above a new identity, the other eats what somebody typed — which is why
+  the field carries *who last filled it* rather than being a plain `String`.
+- **Guard a late answer twice.** The ViewModel discards a superseded response by ticket, and the form
+  independently checks the published answer describes the platform, identity and source type it is
+  showing. Two guards, because this failure is invisible until the source exists misnamed.
+- **Never add a platform request for a display string.** The suggestion is composed from the
+  validation that already happened; a server test counts adapter invocations and asserts one.
+- **The base interval is a base.** A static guard asserts `approximateHours` appears nowhere in the
+  screen's code; `next_check_at` is the only number presented as an answer.
+- **The scheduler's 24-hour cap is why Daily is bounded.** It predates the presets and is applied
+  after jitter and after the ×3 dormancy multiplier, so Daily sits *at* the cap: dormancy cannot
+  lengthen it, and its jitter is one-sided (roughly 21–24 h). Documented, not adjusted.
+- **A tab is a projection, not a query** — asserted over `selectSourceTab`'s body, so a per-tab
+  request cannot be added later without failing a test.
+- **An unknown platform needs *Other* or it disappears**, taking the All-equals-the-sum invariant
+  with it. *Other* exists only when such a source does.
+- **The sort's exclusions matter as much as its inclusions.** A rate limit is not attention (waiting
+  *is* the action), one failure is not (three in a row is), and a successful check that found nothing
+  is not an error.
+- **Re-scope a guard, never delete it.** Four pre-existing guards went red; all four were re-scoped
+  and none loosened.
+
+### The Instagram viewing session, as found — do not repeat an older claim
+
+A **read-only** probe taken before deploying found the stored connection state **`rejected`**,
+`last_signal = authentication_expired`, after a **scheduled** check at 09:32 UTC on 2026-08-01. The
+same row records a successful authenticated operation at 06:26 UTC that morning.
+
+**D6A7e4 neither caused nor repaired this.** It ran no validation, no check and no operator probe,
+and replaced nothing. The post-deployment probe showed the credential's configuration timestamp
+unchanged and both sources still enabled on `normal`. Earlier handoffs say the session is
+*connected*; that was true at D6A7e2 and on the morning of 2026-08-01, and is a claim to re-verify.
+
+### Deployment verification, all performed
+
+Deployed HEAD `eaeba836650f67245b0bd8265b46f6e03d2cd29d` (exact, 40 characters); migration head
+`0006_session_connection` in both the script directory and the database; health `200` and readiness
+all-true; `/sources`, `/destinations`, `/review`, `/history`, `/system/status`, `/device` each `401`
+unauthenticated; the application port bound to `127.0.0.1` only; the Instagram credential's
+configuration timestamp unchanged; **2 sources, 2 enabled, 0 disabled — identical before and
+after**; both still on `normal`, so **no source was moved to Slow or Daily**; and the deployed build
+reports all five presets at 2 / 4 / 8 / 12 / 24 hours.
+
+### Previous milestone, for reference
+
+
+| Field | Value |
+| --- | --- |
 | Task | **D6A7e3** — a corrective milestone opened by the first physical run of D6A7e2: a swipe that goes the way you push it, a screen that scrolls under your finger, and a video that admits it is not there |
 | **Final application HEAD** | **`dc3f6331cfae9437ed0683210974a347fa9ccc11`** — pushed |
 | **Final server HEAD** | **`478323c1ea6ec61a708b59b6b0b5621e7ecdb876`** (`478323c`) — **unchanged, not redeployed, not contacted for a change** |

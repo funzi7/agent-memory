@@ -38,12 +38,106 @@ hash — and nothing added to it ever may.
 | Head after D6A7e | `b3b9378216402ded73b4a4070eda77e5c0f41356` (`b3b9378`) — deployed and verified |
 | Head after D6A7e1 | `92269ada1c5c2bead729bad5dc81860010fac23e` (`92269ad`) — deployed and verified; migration head `0005_session_use` |
 | **Head after D6A7e2, unchanged through D6A7e3** | **`478323c1ea6ec61a708b59b6b0b5621e7ecdb876`** (`478323c`) — **deployed and verified**; migration head **`0006_session_connection`**. D6A7e3 was an Android-only correction: this repository was not edited, not deployed and not contacted for a change, and Instagram was not contacted |
+| **Head after D6A7e4** | **`eaeba836650f67245b0bd8265b46f6e03d2cd29d`** (`eaeba83`) — **deployed and verified**; migration head **`0006_session_connection`**, unchanged. No migration was needed and none was written |
 | Host | A DigitalOcean droplet, Ubuntu 24.04.4, amd64, 1 vCPU, ~2 GiB RAM, ~48 GB disk |
 | Deploy path on host | `/opt/remote-sources` |
 | State path on host | `/var/lib/remote-sources` |
 
 The VPS address, its Tailscale hostname and the tailnet name are **deliberately not recorded
 anywhere**. They live in the operator's shell and in the Android app's settings.
+
+## D6A7e4 — the source name validation already knew, two slower cadences, and a count corrected from evidence
+
+**HEAD `eaeba836650f67245b0bd8265b46f6e03d2cd29d`, deployed and verified. Migration head unchanged at
+`0006_session_connection`. Instagram was not contacted: no validation, no check, no operator probe;
+no credential replaced or re-validated; no source enabled or disabled.**
+
+### 1. A suggested source name, from one validation
+
+Adding a source asked for the same thing twice: the identity was validated against the platform — a
+request that, when it succeeds, has already seen what the platform calls the account — and the
+separate name field was left empty for the user to retype it.
+
+`POST /sources/validate` now returns two additive fields on the **successful** result:
+
+| Field | Meaning |
+| --- | --- |
+| `suggested_display_name` | A name the client may put in its source-name field. `null` on any refusal. |
+| `suggested_name_from_platform` | `true` only when a platform genuinely answered with that name. |
+
+**One request, not two.** `adapter.validate` is the only platform call on the path; the suggestion is
+composed from its result and the already-normalised identity. A test installs an adapter that counts
+its own invocations and asserts one.
+
+`domain/source_naming.py` is the single policy — a trusted platform display name, then the canonical
+handle, then `NormalisedSource.display`. Never the raw request text, which normalisation may have
+changed or refused. The fallback is `display` rather than the bare identity **deliberately**: it is
+what keeps a 9GAG Interest distinguishable from a 9GAG profile of the same word, and a Reddit `r/`
+from a `u/`.
+
+`ValidationResult` gained an additive `display_name`. **9GAG** fills it from the profile's `fullName`
+/ `username` or the Interest's `name` / `listType`, out of the payload it had already fetched;
+**Reddit** from the listing's `subreddit_name_prefixed` / `author`. Both read *named keys only*,
+never a whole object, so a field nobody deliberately chose cannot reach a response.
+**Instagram, TikTok and X make no display-name claim at all** and fall back to the normalised
+identity — stated rather than papered over, because a name the platform never gave is not one to
+imply.
+
+### 2. Five schedule presets
+
+`attentive` 2 h, `normal` 4 h, `relaxed` 8 h, **`slow` 12 h**, **`daily` 24 h**. The three existing
+wire values are untouched — deployed source rows carry them and older clients send them. One
+base-interval table, on the enum, read by the scheduler, the API and the docs alike.
+
+**The dormancy audit, documented rather than engineered away.**
+`MAX_REGULAR_INTERVAL_SECONDS` — 24 hours — predates the presets and is applied *after* jitter and
+*after* the ×3 dormancy multiplier. So a 3× multiplier on a 24-hour base cannot become three days:
+`daily` sits **at** the cap, dormancy cannot lengthen it, and its jitter is one-sided (the downward
+half applies, the upward half is clamped, landing roughly 21–24 h out). `slow` reaches the same
+ceiling after several empty checks and stops. Parameterised tests assert the bound for **every**
+preset across the whole ladder.
+
+**No migration.** `remote_sources.schedule_preset` is `String(24)` with no `CHECK` constraint, so the
+values are data. A migration written to document an enum would be a deployed file that changes
+nothing — and a test asserts the *absence* of a constraint rather than the presence of a file.
+
+### 3. The D6A7e2 count, corrected in this repository
+
+`README.md`, `TODO.md`, `docs/PROJECT_STATE.md` and `docs/RELEASE_REVIEW.md` read **1070 passed, 4
+skipped**. Two identical read-only `pytest -q` runs at the unchanged D6A7e2 HEAD `478323c` both
+answered **1071 passed, 3 skipped** — the one skip site producing three code-determined skips, and
+1071 + 3 = **1074 collected**. All four documents now carry the corrected figures with the evidence
+beside them. **No commit message was rewritten.**
+
+That figure is historical. **The current total is 1143 passed, 3 skipped (1146 collected)** — 64 new
+tests in `tests/test_d6a7e4_source_naming.py` and `tests/test_d6a7e4_schedule_presets.py`, plus eight
+existing `test_domain.py` parametrisations that expand over the two added presets.
+
+### The gate, and where it was run from
+
+`release-preflight` and `tests/test_release_integrity.py` both read `HEAD`, so both fired on the
+uncommitted `domain/source_naming.py` **exactly as designed**. The figures above are from the run
+that followed the commit. `ruff format --check` 104 files, `ruff check` clean, `mypy` clean over 102
+source files, `bash -n scripts/deploy-production` clean, `git diff --check` clean.
+
+### Deployment verification
+
+Deployed HEAD exact and 40 characters; migration head `0006_session_connection` in both the script
+directory and the database; health `200`, readiness all-true; six protected routes each `401`
+unauthenticated; the application port bound to `127.0.0.1` only; the Instagram credential's
+configuration timestamp unchanged; **2 sources, 2 enabled, 0 disabled — identical before and after**,
+both still `normal`, so **no source was moved to Slow or Daily**; and the deployed build reports all
+five presets at 2 / 4 / 8 / 12 / 24 hours.
+
+### The Instagram viewing session, as found before deploying
+
+A **read-only** probe found the stored connection state **`rejected`**, `last_signal =
+authentication_expired`, following a **scheduled** check at 09:32 UTC on 2026-08-01. The same row
+records a successful authenticated operation at 06:26 UTC that morning, so the session was working
+and stopped being accepted between those two times.
+
+**Scheduler-attributed. D6A7e4 neither caused nor repaired it**, ran no validation, check or probe,
+and replaced nothing. Do not repeat an older "connected" claim without re-verifying.
 
 ## D6A7e2 — a dedicated viewing account, and a session that says whether it works
 
