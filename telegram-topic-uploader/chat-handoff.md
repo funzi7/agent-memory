@@ -137,6 +137,99 @@ item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
 
+**D6A7e5** — a corrective milestone opened by the first physical run of D6A7e4: a chain Android owns,
+a deletion that explains itself, and five presets you can reach.
+
+> **Application only.** The server repository was **not edited and not deployed**; its HEAD and the
+> deployed HEAD both remain `eaeba836650f67245b0bd8265b46f6e03d2cd29d`. **Instagram was not
+> contacted**: no validation, no check, no operator probe; no credential replaced or cleared; no
+> source enabled or disabled. No Telegram content was sent. The application was **not installed** and
+> **not run** on any device or emulator.
+
+| Field | Value |
+| --- | --- |
+| **Final application HEAD** | **`9fb66608faa7f344a2579e6df062796b838084bf`** — pushed |
+| **Final server HEAD** | **`eaeba836650f67245b0bd8265b46f6e03d2cd29d`** — unchanged |
+| Version | code 43 → **44**, name `0.13.18-d6a7e4` → **`0.13.19-d6a7e5`** |
+| Room schema | **16 → 17**, one additive table, no row rewritten, no destructive fallback |
+| Gate | **2685 Android unit tests, 0 failures, 0 errors, 0 skipped; lint 0 issues** — counted from the XML reports, every task `--rerun-tasks`, re-run in full after the last edit |
+| APK | `/sdcard/Download/TelegramTopicUploader-0.13.19-d6a7e5.apk`, SHA-256 `840a95f1e6c6ee51d1f83b4563f4af9065cf2e83de6f4ac5986834f565afa5d9` — hash verified identical, **not installed** |
+| Hardware | **Nothing verified.** `docs/D6A7E5_DEVICE_CHECKLIST.md`, 35 lines, all *not attempted* |
+
+### The five findings the handset produced, and the limit of what may be claimed
+
+D6A7e4 was installed **over the existing application data** and used.
+
+1. **The explicit Send now FIFO did not reliably continue when the user switched to another Android
+   application.** **Do not state a cause.** It is not established whether the active transfer stopped,
+   whether it completed and the next request never started, whether the process was suspended, or
+   whether the process was killed and later reconciled.
+2. **Two positively uploaded videos remained on the device.** **Do not say the storage provider
+   refused deletion.** Which of the general retention categories applies is a question about the
+   durable rows on that handset — and the application can now answer it per row.
+3. **The Instagram viewing session is currently rejected** — see §4a below. Not this milestone's to
+   close.
+4. **Only two of five schedule presets were visibly reachable** on the narrow RTL screen.
+5. **A nearly screen-high empty vertical block** in the expanded source editor.
+
+**None of the five is marked fixed by a test run.**
+
+### What it built
+
+**An Android platform execution owner for the explicit-send chain.** A dedicated user-initiated data
+transfer `JobService` on its **own** fixed job id for Android 14+, and one narrowly scoped
+data-transfer foreground service below it — WorkManager was preferred by the instruction and is not a
+dependency here and cannot be resolved offline, so the fallback and its two install-time permissions
+are documented in the manifest. No boot receiver, no wake lock, no alarm, no new exported component,
+and no second upload engine.
+
+**One durable runner lease** in a new single-row table, taken by one guarded `UPDATE`, so a foreground
+start, the JobService, the fallback service and restart recovery cannot both drain the chain. The tap
+is persisted **before** the platform is asked; an accepted-but-never-entered job becomes a bounded
+state with *Start now* on it; returning to the app reads the durable chain and needs no second tap.
+One progress notification with *Cancel current upload* and *Cancel the rest*, neither carrying an
+identifier.
+
+**A deletion audit that produced two repairs**: an idempotent reconciliation for confirmed
+delete-policy uploads whose task was never written (the confirming transaction's insert is
+best-effort by design), and one centralized wake so a blocker *ending* is itself the trigger. Plus one
+pure classifier so History says exactly one truthful sentence — including *repair pending*, where it
+used to say *Source kept*.
+
+**One shared wrapping schedule selector** for Add and Edit with all five presets visible, and a
+rejected Instagram session that states its own repair.
+
+### The durable backlog, reconciled
+
+Row **124** (five schedule presets on hardware) **failed** at D6A7e4 and is re-opened; row **125** was
+untestable while it did. Row **130** (the Instagram viewing session) is confirmed rejected from a
+second, stronger source. Rows **111–119** and the remaining D6A7e4 rows stay device-unverified.
+Twelve rows were added, each naming the evidence that would close it — including two that say what
+they cannot say: **137**, the two previously undeleted videos, whose retention category is
+*unestablished* and must be reported as the exact on-screen sentence, and **141**, the empty layout
+block, which is *traced, not proven fixed*. The table is in the application's `TODO.md`.
+
+### The rules those produced, which outlive the milestone
+
+- **`ApplicationScope` is not background execution.** It says which object owns the work *inside* the
+  process and nothing about whether Android will keep the process running. An explicit user-authorized
+  transfer chain needs a **platform** execution owner. Every comment implying otherwise was corrected.
+- **Ownership settles a race; cancellation timing never does.** A pending platform job already on its
+  way in passes straight through a cancel. One guarded durable `UPDATE` has no window.
+- **Acceptance is not a start**, and the two must be recorded separately or a stuck chain looks busy.
+- **Persist the user's tap before asking the platform**, so no scheduling outcome can lose it.
+- **The absence of a row is not a decision.** A missing deletion task is *repair pending*, never
+  *kept by policy*.
+- **A blocker ending is a trigger.** Waiting for an unrelated future upload, or a restart, is not a
+  schedule.
+- **Re-scope a guard, never delete it.** ~40 pre-existing static guards went red; all were re-scoped
+  to exact new values behind one **named exemption list of one file**, which a new test holds to one
+  file. Two slices that had silently widened were tightened.
+- **A control off the end of an invisible scroll does not exist.**
+- **Trace a measurement defect before changing it, and report what the trace did *not* prove.**
+
+## 4a0. Previous milestone: D6A7e4
+
 **D6A7e4** — a name the validation already had, two cadences nobody could choose, and a list that
 admits what is wrong.
 
@@ -208,19 +301,35 @@ row 120 is closed.
 | Production | Server deployed and verified. **No Instagram contact, no check, no probe, no Telegram content sent, no source enabled or disabled** |
 | **Not** proven | **every line of D6A7e4 on hardware** (`docs/D6A7E4_DEVICE_CHECKLIST.md`). Also: **no platform-returned display name has been observed live** — 9GAG and Reddit are exercised against synthetic payloads only, and Instagram, TikTok and X make no such claim at all. **The D6A7e3 Preview checks remain open** |
 
-### The Instagram viewing session, as D6A7e4 found it — read this before claiming it is connected
+### The Instagram viewing session, as D6A7e5 found it on the handset — read this before claiming it is connected
 
-A **read-only** probe taken before deploying found the dedicated viewing account's stored connection
-state as **`rejected`**, `last_signal = authentication_expired`, following a **scheduled** check at
-09:32 UTC on 2026-08-01. The same row records a successful authenticated operation at 06:26 UTC the
-same morning, so it was working and stopped being accepted between those two times.
+The installed D6A7e4 build's card **visibly stated `viewing connection rejected`**, with the **last
+server session use a few minutes earlier**, its **purpose `source validation`**, and its **outcome
+`failed`**. That is a live rejection **observed by a real operation** — not merely an old cached
+*connected* value. It is consistent with, and stronger than, the read-only probe D6A7e4 took before
+deploying (`rejected`, `last_signal = authentication_expired`, after a scheduled check at 09:32 UTC on
+2026-08-01, having worked at 06:26 UTC the same morning).
 
-**D6A7e4 did not cause this and did not repair it.** It ran no validation, no check and no operator
-probe; it did not replace, clear or re-validate the credential. The post-deployment probe showed the
-credential's configuration timestamp unchanged and both sources still enabled on `normal`.
+Record truthfully, and repeat nothing beyond this:
 
-**Do not repeat "the viewing session is connected" from §4c onward** — that was true at D6A7e2 and
-was still true on the morning of 2026-08-01. It is a claim to re-verify, not a fact to carry.
+- the dedicated viewing credential **remains configured**;
+- Instagram is **currently rejecting** that session;
+- a **source-validation operation observed** the rejection;
+- **Refresh status does not reconnect the account** — it only rereads server state;
+- **repeated validation with the same rejected session is not a repair.**
+
+**D6A7e5 neither caused nor repaired this and contacted Instagram at no point**: no validation, no
+check, no operator probe, no cookie replaced or cleared, no source enabled or disabled, no server
+state changed. D6A7e5 also **reworded the card** so the rejected state states its repair instead of
+saying nothing, and it offers **no Connect and no Retry validation button**, because neither could
+perform one.
+
+**The open follow-up is the user's and the server operator's, not an agent's:** sign in to the
+dedicated viewing account again, export a fresh cookie jar, import it through the approved server
+operator flow, and perform **one separately authorised bounded validation**.
+
+**Do not repeat "the viewing session is connected" from §4c onward** — that was true at D6A7e2 and on
+the morning of 2026-08-01. It is a claim to re-verify, not a fact to carry.
 
 ## 4b. The D6A7e2 server test-count mismatch — resolved, and now corrected in the repository
 

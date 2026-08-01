@@ -39,12 +39,60 @@ hash — and nothing added to it ever may.
 | Head after D6A7e1 | `92269ada1c5c2bead729bad5dc81860010fac23e` (`92269ad`) — deployed and verified; migration head `0005_session_use` |
 | **Head after D6A7e2, unchanged through D6A7e3** | **`478323c1ea6ec61a708b59b6b0b5621e7ecdb876`** (`478323c`) — **deployed and verified**; migration head **`0006_session_connection`**. D6A7e3 was an Android-only correction: this repository was not edited, not deployed and not contacted for a change, and Instagram was not contacted |
 | **Head after D6A7e4** | **`eaeba836650f67245b0bd8265b46f6e03d2cd29d`** (`eaeba83`) — **deployed and verified**; migration head **`0006_session_connection`**, unchanged. No migration was needed and none was written |
+| **Head after D6A7e5, unchanged** | **`eaeba836650f67245b0bd8265b46f6e03d2cd29d`** (`eaeba83`) — **unchanged. This repository was not edited, not deployed, not restarted and not contacted for a change.** D6A7e5 was an Android-only corrective milestone; migration head **`0006_session_connection`**, unchanged; **Instagram was not contacted** |
 | Host | A DigitalOcean droplet, Ubuntu 24.04.4, amd64, 1 vCPU, ~2 GiB RAM, ~48 GB disk |
 | Deploy path on host | `/opt/remote-sources` |
 | State path on host | `/var/lib/remote-sources` |
 
 The VPS address, its Tailscale hostname and the tailnet name are **deliberately not recorded
 anywhere**. They live in the operator's shell and in the Android app's settings.
+
+## D6A7e5 — the server was not touched, and the viewing session is rejected on the handset too
+
+**D6A7e5 changed nothing here.** The repository was not edited, not deployed, not restarted and not
+contacted for a change. `SERVER_HEAD` and `DEPLOYED_HEAD` are both
+`eaeba836650f67245b0bd8265b46f6e03d2cd29d`, migration head `0006_session_connection`, unchanged. No
+server test suite was run, because no server code moved. The milestone was an Android-only correction
+of two defects the first physical run of D6A7e4 found on the handset.
+
+### The one thing recorded here: the viewing session, as the handset showed it
+
+This is the **only** server-relevant finding of the milestone, and it is an observation, not an action.
+
+The installed D6A7e4 build's Instagram viewing-session card **visibly stated `viewing connection
+rejected`**, with:
+
+- the **last server session use a few minutes earlier**;
+- its **purpose: `source validation`**;
+- its **outcome: `failed`**.
+
+That is a **live rejection observed by a real operation**, not merely an old cached *connected*
+value — which makes it stronger evidence than, and consistent with, the read-only probe D6A7e4 took
+before deploying (`rejected`, `last_signal = authentication_expired`, following a scheduled check at
+09:32 UTC on 2026-08-01, having worked at 06:26 UTC the same morning).
+
+Record truthfully, and claim nothing beyond it:
+
+- the **dedicated viewing credential remains configured** on the server;
+- **Instagram is currently rejecting that session**;
+- a **source-validation operation observed** the rejection;
+- **Refresh status in the app does not reconnect the account** — it only rereads server state;
+- **repeated validation against the same rejected session is not a repair**, and a source check does
+  not repair a session either.
+
+**D6A7e5 neither caused nor repaired it.** It ran no validation, no check and no operator probe;
+replaced, cleared and re-validated nothing; enabled and disabled no source; changed no server state;
+and made no Instagram request of any kind.
+
+### The open follow-up — the user's and the operator's, never an agent's
+
+1. The user signs in to the **dedicated viewing account** again.
+2. They export a **fresh cookie jar**.
+3. It is imported through the **approved server operator flow**.
+4. **One separately authorised bounded validation** is performed.
+
+Until all four have happened, **do not record the session as connected**, and do not schedule or
+retry validation against the rejected material.
 
 ## D6A7e4 — the source name validation already knew, two slower cadences, and a count corrected from evidence
 
