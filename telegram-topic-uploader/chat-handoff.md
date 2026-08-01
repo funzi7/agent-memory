@@ -137,6 +137,89 @@ item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
 
+**D6A7e3** — a swipe that goes the way you push it, a screen that scrolls under your finger, and a
+video that admits it is not there.
+
+> **A corrective, Android-only milestone, opened entirely by the first physical run of D6A7e2.**
+> The server was not edited, not deployed and not contacted for a change; Instagram was not
+> contacted; no Telegram content was sent.
+
+### What the handset confirmed about D6A7e2 — permanent
+
+- **D6A7e2 was installed on the physical device and exercised.**
+- The **dedicated Instagram viewing session is connected**, server-validated.
+- **The import enabled no Instagram source.**
+- Preview previous/next is present on hardware; the Instagram Dashboard tile exists.
+
+### The three defects it found, all fixed here and none of them closed
+
+1. 🔴 **The swipe direction was the opposite of what the user expects.** D6A7e2 shipped *left →
+   next, right → previous*. **The required contract is right → next, left → previous**, and that is
+   now what ships. **Device-unverified.**
+2. 🔴 **The Preview could not be scrolled vertically when the drag began on the video surface** —
+   the controls below the video were unreachable. Root cause: a generic `detectDragGestures` claims
+   a drag as soon as touch slop is crossed *in any direction* and consumes it, so the parent's
+   `verticalScroll` never saw it. **Device-unverified.**
+3. 🔴 **Some videos played audio over a completely black area with no error shown.**
+   **Device-unverified.**
+
+### The rules those produced, which outlive the milestone
+
+- **Right is next, left is previous**, decided from the physical sign of the drag alone.
+  `LayoutDirection` is not consulted on any gesture path — the same hand movement must mean the same
+  thing in Hebrew and English.
+- **Decide gesture ownership before consuming anything.** This is the general trap: any scrollable
+  parent containing a horizontally-paging child will lose its scroll if the child consumes on plain
+  touch slop. A vertical drag must consume *nothing*. The wrong fixes — removing the scroll,
+  shrinking the child — were refused explicitly and are guarded against.
+- **Prepared is not rendered.** `onPrepared` plus granted audio focus plus no `MediaPlayer` error
+  plus an advancing position were **all true** while the screen was black. None of them is about a
+  picture. Only the platform's first-video-frame signal, or a real frame arriving on the texture,
+  may mean *visible*.
+- **Local playback and Telegram upload are separate facts.** A clip this device cannot decode is
+  still a file this application can send.
+- **Never claim an unproven cause.** "Unsupported codec" is the tempting label for every black
+  video and is now impossible to reach without evidence: an unrecognised platform error is
+  `UNKNOWN`, an unanswerable decoder query is treated as *decoder present*, and the classification
+  checks the **surface first**.
+- **One rebuild, carried in the state.** `MAX_RECREATIONS = 1`, never a retry loop.
+
+`VideoView` was replaced by one platform `MediaPlayer` per item **generation** on a `TextureView`
+the composable owns; playback starts only when prepared **and** surface-bound; every callback is
+refused unless it carries the generation on screen. **Media3/ExoPlayer is not in the offline Gradle
+cache**, so it could not have been used, and it would have been a speculative fix for a lifecycle
+problem regardless.
+
+| Field | Value |
+| --- | --- |
+| App version | code **42**, `0.13.17-d6a7e3` |
+| App HEAD | `dc3f6331cfae9437ed0683210974a347fa9ccc11` |
+| Server HEAD | `478323c1ea6ec61a708b59b6b0b5621e7ecdb876` — **unchanged, not redeployed** |
+| Room schema | **16, unchanged — no migration runs.** Server: `0006_session_connection`, unchanged |
+| App unit tests | **2538, 0 failures, 0 errors, 0 skipped. Lint: 0 issues**, both counted from the XML reports with `--rerun-tasks` |
+| Server tests | **1071 passed, 3 skipped** at the unchanged HEAD — *corrected from evidence; see §4b* |
+| APK | **copied to `/sdcard/Download/TelegramTopicUploader-0.13.17-d6a7e3.apk`, hash verified, not installed** |
+| Production | **Unchanged.** No Instagram contact, no deployment, no Telegram content sent |
+| **Not** proven | **every line of D6A7e3 on hardware** (`docs/D6A7E3_DEVICE_CHECKLIST.md`, 21 lines) — in particular **none of the three defects above is claimed fixed** |
+
+## 4b. The D6A7e2 server test-count mismatch, resolved from evidence
+
+Two durable records disagreed. The server's own committed documents and its D6A7e2 commit message
+said **1070 passed, 4 skipped**; agent-memory said **1066 passed, 3 skipped**.
+
+`.venv/bin/python -m pytest -q` was run **twice**, read-only, at the unchanged HEAD `478323c`, and
+produced **1071 passed, 3 skipped** both times. `pytest -q -rs` shows the only reachable skip is
+`tests/test_connector_conformance.py:591`, firing for the three harnesses that declare
+`unconfigured=None`, so three skips is code-determined rather than environmental. 1071 + 3 = **1074
+collected**, matching the recorded 1070 + 4 exactly (one test miscounted between columns); 1066 + 3
+= 1069 is five short, so the memory figure was simply wrong.
+
+**Correct: 1071 passed, 3 skipped.** Both agent-memory files are corrected. **The server
+repository's own documents still carry 1070/4 and are owed a correction in the next server
+milestone** — D6A7e3 was forbidden to move the server HEAD.
+
+## 4c. Previous milestone: D6A7e2
+
 **D6A7e2** — a viewing session that says whether it *works*, a sentence that stopped over-claiming,
 a Preview you can walk, and an Instagram tile that opens its own list.
 
@@ -170,12 +253,12 @@ a Preview you can walk, and an Instagram tile that opens its own list.
 | Server HEAD | `478323c1ea6ec61a708b59b6b0b5621e7ecdb876` — **deployed and verified** |
 | Room schema | **16, unchanged — no migration runs.** Server: **`0006_session_connection`**, three nullable columns |
 | App unit tests | **2481, 0 failures. Lint: 0 issues**, counted from the XML report with `--rerun-tasks` |
-| Server tests | **1066 passed, 3 skipped** |
+| Server tests | **1071 passed, 3 skipped** — *corrected in D6A7e3; see §4b* |
 | APK | **copied to `/sdcard/Download/TelegramTopicUploader-0.13.16-d6a7e2.apk`, hash verified, not installed** |
 | Production | **A dedicated Instagram viewing session is configured and verified `connected`. Instagram sources still paused (enabled: 0)** |
 | **Not** proven | **every line of D6A7e2 on hardware** (`docs/D6A7E2_DEVICE_CHECKLIST.md`), every line of D6A7e1, and everything D6A7e still owed |
 
-## 4a. Previous milestone: D6A7e1
+## 4d. Previous milestone: D6A7e1
 
 **D6A7e1** — a security incident contained, a session the screens never mentioned, a transfer no
 screen may own, and a Dashboard count that finally opens its own list.
@@ -774,6 +857,26 @@ connector most likely to need maintenance**, since that payload is front-end dat
 
 **Confirmed by the user, and only this:**
 
+- **D6A7e3 reports (2026-08-01), on the installed D6A7e2 build — the first physical run of D6A7e2:**
+  - ✅ **The dedicated Instagram viewing session is imported and server-validated as `connected`.**
+  - ✅ **The import enabled no Instagram source.** Enablement remains the user's decision.
+  - ✅ **Preview previous/next is present and works on hardware**, and the **Instagram Dashboard
+    tile exists.** Both are D6A7e2 features and both are now confirmed.
+  - 🔴 **The horizontal swipe direction was the opposite of what the user expects.** D6A7e2
+    implemented *swipe left → next, swipe right → previous*. **The user's explicit decision is
+    swipe right → next, swipe left → previous.** Reversed at D6A7e3; **device-unverified.**
+  - 🔴 **The Preview screen could not be scrolled vertically when the gesture began on the video
+    surface** — there is content below the video and it was unreachable, because the paging gesture
+    captured the drag. Fixed at D6A7e3 by deciding gesture ownership before consuming anything;
+    **device-unverified.**
+  - 🔴 **Some videos played audio while the video area stayed completely black, and the application
+    displayed no error.** Root cause: *prepared* was being treated as *rendered*. Fixed at D6A7e3
+    with a real render state, one player generation per item, a first-frame deadline and truthful
+    non-black outcomes; **device-unverified.**
+  - 🟡 **Rule recorded from this run:** **local playback and Telegram upload eligibility are
+    independent facts.** A clip this device cannot decode is still a file this application can send,
+    and a Preview playback failure must never alter Upload Queue state.
+
 - **D6A7e1 reports (2026-07-30), on the installed D6A7e build:**
   - 🔴 **Instagram logged the primary business account out** after showing a new connection from
     Singapore — the server's hosting region — while that account's exported session was the
@@ -1212,7 +1315,28 @@ the table is the whole of it.
   fixture first.
 - **A flaky test is a defect in the gate.** It makes every "N passed" in every report worth less than
   it looks. D6A7c1 found one failing about one run in three and fixed it by asserting the property
-  the test's own message always claimed.
+  the test's own message always claimed. **D6A7e3 found a second one of exactly the same shape** — a
+  cancellation test asserting *exactly one* request had reached `MockWebServer` while racing the
+  cancellation — and fixed it the same way. When a test asserts an exact count of something a race
+  can change, ask what its *name* claims; that is usually the real property.
+- **Two durable records that disagree are both suspect, and running the thing is the evidence.**
+  D6A7e2's server test count was recorded as 1070/4 in the server repository and 1066/3 in
+  agent-memory. Re-running the suite twice at the unchanged HEAD gave **1071/3**, and the skip site
+  was read to prove three skips is code-determined. Neither record was right, and neither would ever
+  have been caught by comparing them to each other. **Reconcile a mismatch against the artefact, not
+  against the other document, and record the evidence.**
+- **A signal about the *player* is not a signal about the *picture*.** D6A7e3's black-video defect
+  had `onPrepared` fired, audio focus granted, no `MediaPlayer` error, and an advancing position —
+  every one of them true while the screen was black. Wherever a subsystem reports readiness, ask
+  what the *user* would call success and observe **that** instead. Here: the platform's
+  first-video-frame signal, or a real frame arriving on the texture.
+- **Decide gesture ownership before consuming anything.** A generic drag detector claims a gesture
+  the moment touch slop is crossed *in any direction*, so a scrollable parent containing a
+  horizontally-paging child silently loses its scroll. D6A7e3's Preview could not be scrolled at all
+  from the video. A vertical drag must reach the parent **unconsumed**.
+- **Never label a failure with a cause you did not establish.** "Unsupported codec" was the tempting
+  answer for every black video and would have been wrong for the ones caused by the surface. Map a
+  platform error only where the platform names a cause; everything else is *unknown*, said plainly.
 - **A green lint task is not a clean lint report.** `./gradlew lint` exits zero on *warnings*, so a
   gate that reads the exit code passes while this project's zero-issue bar does not. D6A7b reported
   "lint clean" with three warnings present, one of them an unused string that was never referenced
@@ -1233,10 +1357,26 @@ the table is the whole of it.
 ## 11. Roadmap
 
 **The authoritative, itemised backlog is the table in
-`/root/work/telegram-topic-uploader/TODO.md`** — 98 rows, each with an owner, a state and the
+`/root/work/telegram-topic-uploader/TODO.md`** — 120 rows after D6A7e3, each with an owner, a state and the
 evidence required to close it. This list is the ordering; that table is the record.
 
-1. **Device-validate D6A7c1 first — `docs/D6A7C1_DEVICE_CHECKLIST.md`.** Read its first three notes
+1. **Device-validate D6A7e3 first — `docs/D6A7E3_DEVICE_CHECKLIST.md`, 21 lines.** It repairs the
+   three defects the first physical run of D6A7e2 found, and none of them may be called fixed until
+   this runs. Read the three notes at the top before anything else — all three describe intended
+   behaviour that could read as broken.
+
+   **The three lines that decide the milestone:** **5–6** (a rightward swipe opens the *next* item),
+   **8** (a vertical drag begun in the centre of the video scrolls the screen to the controls below
+   it), and **12** — the most valuable single line available — a previously black video showing
+   either a real *moving* frame or one of seven exact non-black sentences, **with the exact sentence
+   written down**. Whichever it is, it is the first evidence anyone has had about why those clips
+   would not show. **Line 13** matters nearly as much: no audio may continue behind a terminal
+   playback error.
+
+   `docs/D6A7E2_DEVICE_CHECKLIST.md` is superseded and carries a note saying so; its lines 23–24 now
+   describe the *old* swipe direction and must not be used against this build.
+
+2. **Then device-validate D6A7c1 — `docs/D6A7C1_DEVICE_CHECKLIST.md`.** Read its first three notes
    before anything else; all three describe correct behaviour that reads as broken.
 
    **§B is the quickest and is the reported defect** — take a screenshot on two screens, record the
@@ -1244,7 +1384,7 @@ evidence required to close it. This list is the ordering; that table is the reco
    and confirm the real preview is there. Then §D, the failure-is-never-an-empty-list checks.
    **§E1 step 32** remains the most valuable line available and still takes a real day. Rows 87–98.
 
-2. **Then D6A7c — `docs/D6A7C_DEVICE_CHECKLIST.md`.** Read its opening two notes
+3. **Then D6A7c — `docs/D6A7C_DEVICE_CHECKLIST.md`.** Read its opening two notes
    before anything else: the existing 25 history rows show **placeholders** rather than pictures
    (previews are fetched at discovery, and those deliveries predate the feature), and **no live
    Story has ever been imported** (the probe found the tray empty). Both are correct results that
@@ -1256,54 +1396,54 @@ evidence required to close it. This list is the ordering; that table is the reco
    Instagram copy has expired, then sent successfully. It takes a real day, and it is the only proof
    that Story staging does what it exists for. Rows 72–86.
 
-3. **Then D6A7b — `docs/D6A7B_DEVICE_CHECKLIST.md` §B.** Press **Check** on the
+4. **Then D6A7b — `docs/D6A7B_DEVICE_CHECKLIST.md` §B.** Press **Check** on the
    Instagram source and confirm it settles into one of five stated outcomes rather than sitting on
    *Checking*. The server half is live-verified; the phone's loading state is what was reported and
    is the one thing still unproved. Rows 65, 67, 68, 70.
-4. **Then D6A7a — `docs/D6A7A_DEVICE_CHECKLIST.md`.** It repairs four defects the
+5. **Then D6A7a — `docs/D6A7A_DEVICE_CHECKLIST.md`.** It repairs four defects the
    handset found, and rows 59–63 stay `device-unverified` until it is run. The two lines that matter
    most: a confirmed file is **absent from Review** after a rescan while still shown under Confirmed
    on the folder page (§B), and its local copy actually disappears from the **Android file manager**
    after the delete (§C). §D and §E are the queue: **Upload queue** must always answer, and
    cancelling a batch that never started must release it and leave every item queued. §F is the
    recovery path for anything already stranded as uploading on that handset.
-5. **Then D6A7 §B — the connection defect.** Validate any source the server
+6. **Then D6A7 §B — the connection defect.** Validate any source the server
    refuses, **while watching the global connection card**: it must not move, and the message must
    end with the server's own code in brackets. **Write that code down.** Then Retry, and confirm
    nothing changes, because nothing had gone wrong.
-6. **Then D6A7 §C — validate an Instagram source.** This is the first honest Instagram validation
+7. **Then D6A7 §C — validate an Instagram source.** This is the first honest Instagram validation
    this deployment has ever been able to answer; every previous one hit the 500. Whatever it says,
    record the exact code. **Do not export cookies** unless it says the session is missing or
    rejected — it was neither.
-7. **Then the rest of `docs/D6A7_DEVICE_CHECKLIST.md`**, then D6A6a's one check: the 9GAG row must
+8. **Then the rest of `docs/D6A7_DEVICE_CHECKLIST.md`**, then D6A6a's one check: the 9GAG row must
    say *human-verification challenge*, not *rate limit*, and keep saying it after a refresh and a
    restart. Row 58.
-8. **Then the rest of `docs/D6A6_DEVICE_CHECKLIST.md`.** §3 the source-type and feed-mode choosers,
+9. **Then the rest of `docs/D6A6_DEVICE_CHECKLIST.md`.** §3 the source-type and feed-mode choosers,
    §4 the Ignore-race reasons, §5 the Instagram publishing queue — where **step 23** (the file
    survives "remove from publishing") is the one that matters most. If installing from code 30 or
    earlier, §2 the migration check comes before all of it.
-9. **Finish device-validating D6A5**: confirmed-versus-queued, the Failed row's removal, the Review
+10. **Finish device-validating D6A5**: confirmed-versus-queued, the Failed row's removal, the Review
    row's Do not upload, Preview from a folder, orphan reservations, the five-platform list.
-10. **9GAG live discovery is blocked by the platform** — both source types are challenged from this
+11. **9GAG live discovery is blocked by the platform** — both source types are challenged from this
    host with a correct session. There is nothing to fix in the connector; it needs a session or a
    route 9GAG accepts. **Never add challenge solving, proxy rotation or retry-until-allowed.**
-11. **The official Meta Instagram publisher** — rows 43–54. Blocked on the user creating the Meta App
+12. **The official Meta Instagram publisher** — rows 43–54. Blocked on the user creating the Meta App
    and authorizing the account (rows 47–48) before any of it can be verified.
-12. Live-validate one remote source against a **disposable** topic. Pairing works and must not be
+13. Live-validate one remote source against a **disposable** topic. Pairing works and must not be
    reworked; **nothing past pairing has ever run end to end.**
-13. Credentials for **X and TikTok** remote sources, then a live check for each. **Instagram is
+14. Credentials for **X and TikTok** remote sources, then a live check for each. **Instagram is
    already configured and its material is now `ready`** — that session needs nothing.
-14. Decide `BulkSendDestination`: either feed the policy from a surface that can hold pointed items,
+15. Decide `BulkSendDestination`: either feed the policy from a surface that can hold pointed items,
     or withdraw the two `ReviewGridScreen` branches that cannot render today.
-15. Whatever the device reports about D6A4, D5C and D5B.
-16. Still owed from D4B/D4C: deletion retries, batch deletion, blocked deletion states, the launch
+16. Whatever the device reports about D6A4, D5C and D5B.
+17. Still owed from D4B/D4C: deletion retries, batch deletion, blocked deletion states, the launch
    scan, the Hebrew Preview.
-17. Multi-item / carousel outbound sharing — deliberately not implemented, never to be claimed
+18. Multi-item / carousel outbound sharing — deliberately not implemented, never to be claimed
     without device evidence.
-18. Optional content-based topic *suggestions* on Review — never automatic routing.
-19. Result-unknown reconciliation for local uploads, and evidence-based resolution of an unowned or
+19. Optional content-based topic *suggestions* on Review — never automatic routing.
+20. Result-unknown reconciliation for local uploads, and evidence-based resolution of an unowned or
     ambiguous legacy reservation (D3A.1).
-20. **Explicitly not on the roadmap:** per-account mapping of local folders; Instagram-native music,
+21. **Explicitly not on the roadmap:** per-account mapping of local folders; Instagram-native music,
     stickers, polls or editing; publishing by scraping, UI automation or credentials.
 
 ## 12. New-chat startup procedure

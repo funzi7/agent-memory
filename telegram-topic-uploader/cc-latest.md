@@ -11,18 +11,33 @@
 
 | Field | Value |
 | --- | --- |
+| Task | **D6A7e3** — a corrective milestone opened by the first physical run of D6A7e2: a swipe that goes the way you push it, a screen that scrolls under your finger, and a video that admits it is not there |
+| **Final application HEAD** | **`dc3f6331cfae9437ed0683210974a347fa9ccc11`** — pushed |
+| **Final server HEAD** | **`478323c1ea6ec61a708b59b6b0b5621e7ecdb876`** (`478323c`) — **unchanged, not redeployed, not contacted for a change** |
+| Version | code 41 → **42**, name `0.13.16-d6a7e2` → **`0.13.17-d6a7e3`** |
+| Room schema | **16, unchanged — no migration runs.** Server: **`0006_session_connection`**, unchanged |
+| Gate | **2538 Android unit tests, 0 failures, 0 errors, 0 skipped. Lint: 0 issues** (both counted from the XML reports, all tasks with `--rerun-tasks`). Server, read-only at unchanged HEAD: **1071 passed, 3 skipped** — see the test-count correction below |
+| APK | `app-debug.apk`, 16,472,257 bytes, SHA-256 `30d83f02cc3ce770ac42d81dddbd053691b795b9d52ddae6d9e1b573114f24af`. **Copied to Downloads with a matching hash. Not installed** |
+| APK in Downloads | `/sdcard/Download/TelegramTopicUploader-0.13.17-d6a7e3.apk` — hash verified identical |
+| Production | **Unchanged.** No Instagram contact, no server deployment, no Telegram content sent. The dedicated viewing session remains `connected`; every Instagram source remains in the state the user left it in |
+| Hardware | **D6A7e2 was installed and exercised — see below. No line of D6A7e3 is verified.** `docs/D6A7E3_DEVICE_CHECKLIST.md`; all 21 lines *not attempted* |
+
+### Previous milestone, for reference
+
+| Field | Value |
+| --- | --- |
 | Task | **D6A7e2** — a dedicated viewing account imported and verified, a session state that says whether it *works*, a sentence that stopped over-claiming, a Preview you can walk, and an Instagram tile that opens its own list |
 | **Final application HEAD** | **`6cebd96412980fb0b440c4182c968310d262fdc2`** — pushed |
 | **Final server HEAD** | **`478323c1ea6ec61a708b59b6b0b5621e7ecdb876`** (`478323c`) — **deployed and verified** |
 | Version | code 40 → **41**, name `0.13.15-d6a7e1` → **`0.13.16-d6a7e2`** |
 | Room schema | **16, unchanged — no migration runs.** Server: **`0006_session_connection`**, three nullable columns on `platform_health` |
-| Gate | **2481 Android unit tests, 0 failures. Lint: 0 issues** (counted from the XML report, all with `--rerun-tasks`). Server **1066 passed, 3 skipped** |
+| Gate | **2481 Android unit tests, 0 failures. Lint: 0 issues** (counted from the XML report, all with `--rerun-tasks`). Server: **1071 passed, 3 skipped** — *corrected in D6A7e3 from evidence; both the 1066/3 recorded here and the 1070/4 in the server's own documents were wrong* |
 | APK | `app-debug.apk`, 16,434,192 bytes, SHA-256 `458fe4a79a433fe37f6e9d40ce004c200607e29886ace8132aaaeb803644ad02`. **Copied to Downloads with a matching hash. Not installed** |
 | APK in Downloads | `/sdcard/Download/TelegramTopicUploader-0.13.16-d6a7e2.apk` — hash verified identical |
 | Production | **A dedicated Instagram viewing session is configured and the server verified it `connected`** (one authorised live request, 2.1 s). **Every Instagram source remains paused — `enabled: 0` before and after the import** |
-| Hardware | **No line of D6A7e2 is verified.** `docs/D6A7E2_DEVICE_CHECKLIST.md`; all 40 lines *not attempted* |
+| Hardware | **Installed on the handset and exercised. Four results confirmed, three defects found — all three are the subject of D6A7e3.** `docs/D6A7E2_DEVICE_CHECKLIST.md` now carries a superseding note at the top |
 
-### Previous milestone, for reference
+### Milestone before that, for reference
 
 | Field | Value |
 | --- | --- |
@@ -37,7 +52,7 @@
 | Production | **Instagram credential absent, every Instagram source paused (enabled: 0)**, verified from local credential and process state. **No live Instagram request was made in this milestone** |
 | Hardware | **No line of D6A7e1 is verified.** `docs/D6A7E1_DEVICE_CHECKLIST.md`; all *not attempted* |
 
-### Milestone before that, for reference
+### And before that, for reference
 
 | Field | Value |
 | --- | --- |
@@ -51,6 +66,132 @@
 No production token, Meta credential, Telegram identifier, chat ID, thread ID, private link, VPS
 address, Tailscale hostname, SSH host, pairing code, device token, cookie value, account name, file
 name, content URI or media hash is recorded anywhere in this file.
+
+## D6A7e3 — the first physical run of D6A7e2, and the three things it found
+
+**Application HEAD `dc3f6331cfae9437ed0683210974a347fa9ccc11`. Server HEAD unchanged at
+`478323c1ea6ec61a708b59b6b0b5621e7ecdb876` — not edited, not deployed, not contacted for a change.
+Instagram was not contacted. No Telegram content was sent.** Code 42, `0.13.17-d6a7e3`, Room 16.
+
+### 1. What the handset confirmed — record this permanently
+
+- **D6A7e2 was installed on the physical device and exercised.**
+- The dedicated Instagram viewing session was imported and **server-validated as connected**.
+- **The import enabled no Instagram source.** Enablement remains the user's decision.
+- Preview previous/next is present and works on hardware.
+- The Instagram Dashboard tile exists and belongs to D6A7e2.
+
+### 2. What it found — three defects, all fixed here, none claimed verified
+
+1. **The swipe direction was the opposite of what the user expects.** D6A7e2 shipped *left → next,
+   right → previous*. The required and now implemented contract is **right → next, left →
+   previous**.
+2. **The Preview could not be scrolled vertically when the drag began on the video surface.** There
+   is content below the video and it was unreachable.
+3. **Some videos played audio while the video area stayed completely black, with no error shown.**
+
+### 3. The rules these produced, which outlive this milestone
+
+- **Right is next. Left is previous.** Decided from the physical sign of the drag alone.
+  `LayoutDirection` is not consulted on any gesture path and a guard forbids it returning — the same
+  hand movement must mean the same thing in Hebrew and English, because a media session is a
+  filmstrip rather than a paragraph. The visible Previous/Next buttons keep their logical meaning.
+- **Decide gesture ownership before consuming anything.** A generic `detectDragGestures` claims a
+  drag as soon as touch slop is crossed *in any direction* and consumes it, so a parent
+  `verticalScroll` never sees a gesture that began on the child. That is the whole cause of defect 2,
+  and it is a trap anywhere a scrollable parent contains a horizontally-paging child. The fix is
+  `PreviewNavigation.dragOwner` plus an `awaitEachGesture` loop that consumes only after horizontal
+  paging has won; a vertical drag consumes nothing at all. **The wrong fixes — removing the scroll,
+  shrinking the video — were refused explicitly and are guarded against.**
+- **Prepared is not rendered.** This is the durable one. `onPrepared` plus granted audio focus plus
+  no `MediaPlayer` error plus an advancing position were *all true* while the screen was black. None
+  of them is about a picture. Only the platform's first-video-frame signal, or a real frame arriving
+  on the texture, may mean *visible*.
+- **Local playback and Telegram upload are separate facts.** A clip this device cannot decode is
+  still a file this application can send. Said on every failure screen, and structural: the render
+  domain has no vocabulary for an upload.
+- **Never claim an unproven cause.** "Unsupported codec" was the tempting label for every black
+  video. A platform error maps to a classification only where the platform names one; anything else
+  is `UNKNOWN`; an unanswerable `findDecoderForFormat` is treated as *decoder present* so the honest
+  first-frame timeout is reported instead. The classification checks the **surface first**, because
+  blaming a codec for a surface that never existed is exactly the wrong sentence.
+- **One rebuild, carried in the state.** A retry loop makes an intermittent surface fault look fixed
+  and makes a bad file spin forever. `MAX_RECREATIONS = 1` lives in `VideoRenderState`, not in a
+  local.
+
+### 4. What replaced `VideoView`, and why not Media3
+
+One platform `MediaPlayer` per item **generation**, bound to a `TextureView` the composable owns.
+Playback starts only when the player is prepared **and** its own surface is bound. Every transition
+refuses a generation that is not the current one, so item A's late *prepared*, *first frame*,
+*error*, *release* or *surface destroyed* cannot fail, clear or overwrite item B — the D6A2 class of
+defect, in a new place.
+
+**Media3/ExoPlayer is not in this project's offline Gradle cache**, so adding it would have failed
+the offline build — and it would have been a speculative fix for a lifecycle problem. `TextureView`
+was chosen over `SurfaceView` because it is an ordinary view in the window: it survives Compose
+measurement and vertical scrolling and stays capturable in screenshots and recordings. The two jobs
+`VideoView` did implicitly are now explicit arithmetic in `VideoSurfaceTransform` — letterboxing,
+and the container's quarter turn applied **once**, refused a second time on platforms that already
+rotated the frame.
+
+### 5. The bounded local probe
+
+`AndroidVideoRenderProbe` opens **one** document read-only, reads track headers with
+`MediaExtractor`, and asks `MediaCodecList` for a decoder for the **exact declared format** rather
+than for the MIME. It decodes no frame, scans no library, opens no output stream, persists nothing
+and logs nothing. `VideoRenderFacts` structurally cannot hold a name, URI, path, hash, caption or
+folder. **Nothing it produces is sent to the server.**
+
+### 6. The D6A7e2 server test-count mismatch, resolved from evidence
+
+The server's own committed records (`README.md`, `TODO.md`, `docs/PROJECT_STATE.md`,
+`docs/RELEASE_REVIEW.md` and the D6A7e2 commit message) said **1070 passed, 4 skipped**. This memory
+said **1066 passed, 3 skipped**. Neither was right.
+
+**Evidence.** `.venv/bin/python -m pytest -q` was run **twice**, read-only, at the unchanged HEAD
+`478323c`, and produced **1071 passed, 3 skipped** both times. `pytest -q -rs` shows the suite's
+only reachable skip is `tests/test_connector_conformance.py:591` — *this platform requires no
+credential, so it has no unconfigured state* — which fires for the three harnesses declaring
+`unconfigured=None` (lines 112, 165, 435). Three skips is determined by the code, not the
+environment.
+
+- 1071 + 3 = **1074 collected**, exactly matching the recorded 1070 + 4, so the server's figure is
+  one test miscounted between columns.
+- 1066 + 3 = 1069, five short of the collection, so this memory's figure was simply wrong.
+
+**The correct count is 1071 passed, 3 skipped.** This memory and
+`telegram-remote-sources/cc-latest.md` are corrected. **The server repository's own committed
+documents still carry 1070/4 and are owed a correction in the next server milestone** — fixing them
+here would have moved the server HEAD, which D6A7e3 forbade. Nothing was deployed and no server file
+was changed.
+
+### 7. A flaky test was fixed rather than tolerated
+
+`TelegramMediaRepairGatewayTest > a D3B2 cancellation ends the live edit and can never produce a
+duplicate post` failed one run in three with `expected:<1> but was:<0>`. It asserted *exactly one*
+request had reached `MockWebServer` while cancelling on the first progress callback of an 8 MB body
+— a race with no bearing on duplicate posts. It now asserts the property its own name always
+claimed: **never a second request**. The client-side proofs are unchanged.
+
+### 8. Guards re-scoped, none deleted
+
+Five assertions named an implementation this milestone was asked to replace. Each was re-pointed at
+the replacement, with the reason recorded in the file; three are strictly stronger.
+`D4ASurfaceTest` ("the player is this application's own"), `D4BSurfaceTest` (the autoplay trigger —
+which turned out to *be* the defect, so the guard now asserts the opposite), `D4CSurfaceTest` (the
+teardown steps, now following them into `releasePreviewPlayer`, and the tap-enabled state), and
+`D6A7E2SurfaceTest` (the gesture and player counts, which now assert the **absence** of what they
+used to require, so they cannot pass vacuously against code that no longer exists).
+
+### 9. Owed from the handset
+
+`docs/D6A7E3_DEVICE_CHECKLIST.md` — 21 lines, **all not attempted**. The three that decide whether
+this milestone worked: **5–6** (a rightward swipe advances), **8** (a finger on the video scrolls the
+screen to the controls below it), and **12** (a previously black video shows a real moving frame, or
+one of seven exact non-black sentences with no audio behind it). Line 12 is the most valuable single
+line available: whichever sentence appears is the first evidence anyone has had about *why* those
+clips would not show.
 
 ## D6A7e2 — the replacement account, and four things the screens could not say
 

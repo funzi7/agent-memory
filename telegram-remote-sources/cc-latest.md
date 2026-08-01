@@ -37,7 +37,7 @@ hash — and nothing added to it ever may.
 | Head after D6A7e, narrowing fix | `614265acc9a2485e19b4804fb428aab49afa3d01` (`614265a`) — deployed; backfill applied here |
 | Head after D6A7e | `b3b9378216402ded73b4a4070eda77e5c0f41356` (`b3b9378`) — deployed and verified |
 | Head after D6A7e1 | `92269ada1c5c2bead729bad5dc81860010fac23e` (`92269ad`) — deployed and verified; migration head `0005_session_use` |
-| **Head after D6A7e2** | **`478323c1ea6ec61a708b59b6b0b5621e7ecdb876`** (`478323c`) — **deployed and verified**; migration head **`0006_session_connection`** |
+| **Head after D6A7e2, unchanged through D6A7e3** | **`478323c1ea6ec61a708b59b6b0b5621e7ecdb876`** (`478323c`) — **deployed and verified**; migration head **`0006_session_connection`**. D6A7e3 was an Android-only correction: this repository was not edited, not deployed and not contacted for a change, and Instagram was not contacted |
 | Host | A DigitalOcean droplet, Ubuntu 24.04.4, amd64, 1 vCPU, ~2 GiB RAM, ~48 GB disk |
 | Deploy path on host | `/opt/remote-sources` |
 | State path on host | `/var/lib/remote-sources` |
@@ -48,7 +48,24 @@ anywhere**. They live in the operator's shell and in the Android app's settings.
 ## D6A7e2 — a dedicated viewing account, and a session that says whether it works
 
 **HEAD `478323c1ea6ec61a708b59b6b0b5621e7ecdb876`, deployed and verified. Migration head
-`0006_session_connection`.** Server tests: **1066 passed, 3 skipped.**
+`0006_session_connection`.** Server tests: **1071 passed, 3 skipped.**
+
+> **Corrected in D6A7e3, from evidence.** This line used to read *1066 passed, 3 skipped*, and the
+> server repository's own `README.md`, `TODO.md`, `docs/PROJECT_STATE.md`, `docs/RELEASE_REVIEW.md`
+> and the D6A7e2 commit message all read *1070 passed, 4 skipped*. Neither was right.
+>
+> `.venv/bin/python -m pytest -q` was run **twice**, read-only, at this exact unchanged HEAD, and
+> produced **1071 passed, 3 skipped** both times. `pytest -q -rs` shows the suite's only reachable
+> skip is `tests/test_connector_conformance.py:591` — *this platform requires no credential, so it
+> has no unconfigured state* — firing for the three harnesses that declare `unconfigured=None`
+> (lines 112, 165 and 435), so three skips is determined by the code rather than by the environment.
+> 1071 + 3 = **1074 collected**, which matches the recorded 1070 + 4 exactly, so the server's figure
+> miscounted one test between the two columns; 1066 + 3 = 1069 is five short of the collection, so
+> the old memory figure was simply wrong.
+>
+> **The server's own committed documents still carry 1070/4 and are owed a correction in the next
+> server milestone.** D6A7e3 was forbidden to move the server HEAD, so nothing in that repository
+> was edited, and nothing was deployed.
 
 ### The gap D6A7e1 left
 
