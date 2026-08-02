@@ -1,21 +1,82 @@
-# Private Media TV — F1C Handoff
+# Private Media TV — F1C.1 Handoff
 
 ## Identity
 
 | Field | Value |
 | --- | --- |
 | Application repository | `funzi7/private-media-tv` |
-| Completed milestone | F1C — TV Home UX, continue watching, removal, and full-screen Telegram account QR presentation |
-| Version | `0.3.1-f1c` (`versionCode` 4) |
+| Completed milestone | F1C.1 — full-screen credential-provisioning QR and phone APK timestamp correction |
+| Version | `0.3.2-f1c1` (`versionCode` 5) |
 | Branch / tracking branch | `main` / `origin/main` |
-| Starting application HEAD | `9241da8f7793d9a45341657b4e4d159b8e7cfaf6` |
-| F1C implementation and ending application HEAD | `580ea31637ecfd7a59d446bf61679a16053d9350` |
+| Starting application HEAD | `580ea31637ecfd7a59d446bf61679a16053d9350` |
+| Final application HEAD | `404d0c2daeda00c17041e828c4c9eccd945e353b` |
 
-The ending application HEAD was pushed without rewriting history, verified at `origin/main`, used by the successful Android CI run, and matched by the CI artifact delivered to canonical phone storage.
+The final application HEAD was pushed without rewriting history, fetched back from `origin/main`, used by the successful Android CI run, and matched by the CI artifact delivered to canonical phone storage.
 
-## Preserved foundation
+## Authoritative physical finding from final F1C
 
-F1C reused the verified official TDLib artifact and did not rebuild native code.
+The owner physically tested final F1C and reported:
+
+- the application installed and opened;
+- offline navigation worked;
+- Settings opened and the offline flow passed;
+- pressing **"הגדרה בטלפון באמצעות QR"** showed the credential-provisioning QR inline near the bottom of the scrollable Settings screen;
+- only part of that QR square was visible;
+- credential provisioning and therefore real Telegram login were blocked;
+- the later Telegram account-login QR could not be reached or physically tested.
+
+This was a real physical F1C failure, not an absence of physical testing. F1C had fixed the wrong presentation path: it moved the TDLib account-login `qrChallenge` to full screen, while the separate credential-provisioning `provisioningAddress` still rendered inside `CredentialProvisioningScreen`'s `LazyColumn`.
+
+## Actual F1C.1 fix
+
+### Credential-provisioning presentation
+
+- **"הגדרה בטלפון באמצעות QR"** now selects a dedicated `CREDENTIAL_PROVISIONING_QR` route before the local coordinator can publish an address.
+- The scrollable credential setup screen contains actions/status only and has no QR rendering branch.
+- The credential screen title is exactly **"הגדרת מפתחות Telegram"**.
+- The account-login screen title remains exactly **"התחברות לחשבון Telegram"**.
+- Both flows use one reusable non-scrollable full-screen TV layout container, but the container owns no state or lifecycle.
+- The pure layout policy reserves overscan margins, header space, and separate QR/control columns, then bounds the whole square and quiet zone against both landscape dimensions.
+- The QR retains ZXing's four-module quiet zone plus UI white padding.
+- Initial focus is on a non-secret cancel/alternative control; dismissing returns focus to the credential-provisioning action.
+
+### Flow isolation and cleanup
+
+- Provisioning keeps its local-server address/session owner; account login keeps its TDLib challenge owner.
+- Route gates prevent a provisioning value from entering account-login state and prevent an account challenge from entering provisioning state.
+- Back/cancel, timeout, success, navigation away, lifecycle stop, and ViewModel cleanup stop/clear provisioning.
+- Replacement listening updates replace only the currently active in-memory provisioning address.
+- Account-login request/refresh/replacement/phone-fallback behavior remains unchanged.
+- No provisioning URL, QR payload, one-time secret, credential, or account QR enters saved state, persistence, logs, exceptions, semantics, source, CI metadata, or this handoff.
+
+Principal implementation areas:
+
+- `app-tv/.../settings/SettingsModels.kt` — dedicated route, presentation selectors, flow isolation, cleanup/focus helpers, exact titles;
+- `app-tv/.../settings/SettingsViewModel.kt` — route selection and provisioning terminal/navigation/lifecycle cleanup;
+- `app-tv/.../ui/SettingsScreen.kt` — removal of inline QR plus two distinct full-screen presentations;
+- `app-tv/.../ui/TvFullScreenQrLayout.kt` — bounded TV layout policy;
+- app and provisioning focused tests — route, lifecycle, secrecy, isolation, update, and size behavior.
+
+F1C Home, **"המשך צפייה"**, long-press removal/re-entry, Progress de-emphasis, Settings management, TDLib authorization, disconnect/reset, and diagnostic playback behavior remain intact.
+
+## Phone APK timestamp correction
+
+Both local and CI publishers now perform this after successful atomic `latest` publication:
+
+1. touch the final `private-media-tv-latest.apk` without changing APK bytes;
+2. sync that file;
+3. capture exact path/size/modification time/epoch;
+4. require the epoch to be no earlier than publication start;
+5. reverify size, SHA-256, package, version name/code, and Development signer;
+6. print the exact final path and modification time.
+
+Rotation copies timestamps and explicitly reapplies/syncs the former `latest` epoch to `previous`. This extra step is required because the first real F1C.1 local publication showed that Android shared storage can preserve the replaced `previous` inode's older timestamp across rename. The nine-case harness passed after the hardening, and the final real CI rotation proved that `previous` retained the former local-latest epoch.
+
+Focused delivery tests cover fresh latest time, historical previous time, failed publication leaving latest content/time unchanged, unrelated content/time preservation, canonical-file safety, and caller integration.
+
+## Preserved native and signing foundation
+
+F1C.1 reused the verified official TDLib artifact and did not rebuild native code.
 
 | Property | Observed value |
 | --- | --- |
@@ -28,70 +89,11 @@ F1C reused the verified official TDLib artifact and did not rebuild native code.
 | `libtdjni.so` SHA-256 | `21d59ebfeba4edc62ea74cefaa79b08650e796530f3d5e57804105cc44cb65dc` |
 | Development signer SHA-256 | `2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0` |
 
-The secure credential-provisioning architecture, real TDLib QR/phone authorization state machine, disconnect/reset separation, signed ARM64 packaging, local/CI APK delivery scripts, tests, and CI structure remain intact. Raw TDLib Java/JNI types remain confined to `core-telegram`; `core-security` remains independent of TDLib. No third-party TDLib binary, wrapper, fork, gateway, or Bot API was introduced.
-
-## Approved UX and behavior
-
-F1C implements the owner-approved original hybrid direction: Netflix-like content-first hierarchy with selective Stremio-like information density. It copies no branded asset, logo, screenshot, font, layout, endpoint, code, dependency, or torrent behavior.
-
-Home now presents:
-
-1. a compact TV header;
-2. compact Settings and local-playback quick actions;
-3. a prominent horizontal **"המשך צפייה"** row;
-4. the existing fictional local media samples below the primary row.
-
-The former Progress action is absent from Home and details. Its route remains only as unreachable internal regression/debug continuity, not a top-level product path. Settings remains accessible for management and Telegram status/actions without acting as the content hub.
-
-### Continue watching
-
-The new app-private tracker:
-
-- creates a record only after a player callback reports that playback actually occurred;
-- filters completed content through the existing episode/movie completion policies;
-- projects all eligible stored records newest-first;
-- exposes an explicit empty state;
-- shows title, optional context, resume time, and a bounded progress bar when duration is reliable;
-- resumes the selected local item from its saved position;
-- supports D-pad navigation and visible focus;
-- uses D-pad center/OK long-press as the primary path to **"הסרה מהמשך צפייה"**;
-- removes only that item's local resume/history record;
-- leaves Telegram data, credentials, sessions, downloads, and other application state untouched;
-- permits the item to reappear after playback starts again.
-
-Persistence uses the existing app-private `private-media-tv-progress` preference domain with a versioned JSON record. Full application reset already deletes that domain. The current product wiring tracks the real local sample player; durable Telegram catalog targets remain deferred with the catalog itself. No unfinished catalog module or section was added.
-
-### Telegram account QR
-
-The prior account-login QR shared the scrollable Settings content and was physically reported low/cropped. F1C routes QR authorization states to a dedicated non-scrollable full-screen landscape presentation:
-
-- the QR square is bounded against both available height and width;
-- ZXing renders a four-module quiet zone and the UI adds white padding;
-- the code remains centered in its own column;
-- instructions, factual status, Back, and phone fallback occupy a separate column;
-- the fallback cannot push the code below the fold;
-- Back closes the route safely and clears the presentation value;
-- current TDLib refreshes replace the in-memory QR;
-- inactive routes and the phone method reject QR publication;
-- phone/code/email/password/registration challenges remain in the scrollable Settings presentation.
-
-The QR value is not logged, persisted, included in saved navigation state, or exposed through semantics. Credential-provisioning QR and Telegram account-login QR remain separate ephemeral secrets.
-
-## Principal implementation areas
-
-- `app-tv/.../continuewatching/`: projection, completion-policy integration, app-private storage, ViewModel wiring, removal, and focused tests;
-- `app-tv/.../ui/HomeScreen.kt`: content-first Home, quick actions, horizontal row, empty state, progress cards, resume, and long-press dialog;
-- `app-tv/.../ui/PlaybackDemoScreen.kt`, `SampleContent.kt`, `MainActivity.kt`, and `PrivateMediaTvApp.kt`: stable local media keys, playback-driven recording, resume, navigation, and focus restoration;
-- `core-designsystem/.../FocusableTvCard.kt`: optional D-pad-compatible combined click/long-click support;
-- `app-tv/.../settings/SettingsModels.kt`, `SettingsViewModel.kt`, and `ui/SettingsScreen.kt`: ephemeral presentation state, full-screen QR branch, safe dismissal, refresh replacement, and Settings spacing cleanup;
-- `.github/workflows/android-ci.yml` and APK delivery tests/scripts: F1C version metadata and artifact verification;
-- reconciled README, TODO, changelog, product, state, architecture, data, Telegram, security, UX, test, release, distribution, acceptance, and handoff documents.
-
-No backend, analytics, advertising, crash reporting, permanent channel allowlist, full catalog index, metadata service, subtitles, phone app, synchronization, production signing, or production deployment was added.
+Both required TDLib cache commands passed before Gradle work. Official source pin, NDK/CMake/OpenSSL inputs, artifact hashes, ARM64-only packaging, and Development identity are unchanged. Raw TDLib types remain confined to `core-telegram`; `core-security` remains independent.
 
 ## Local validation
 
-Observed toolchain: Gradle `9.5.0`, JDK `21.0.11`, Android Gradle Plugin `9.3.0`, Kotlin `2.2.10`, compile/target SDK 36, and minimum SDK 26.
+Observed toolchain: Gradle `9.5.0`, JDK `21.0.11`, Android Gradle Plugin `9.3.0`, Kotlin plugin `2.2.10`, compile/target SDK 36, minimum SDK 26.
 
 Commands actually run included:
 
@@ -101,9 +103,9 @@ Commands actually run included:
 ./gradlew --version
 ./gradlew projects
 ./gradlew test
+./gradlew :app-tv:testDebugUnitTest :core-provisioning:testDebugUnitTest
 ./gradlew lint
 ./gradlew :app-tv:assembleDebug
-./gradlew :app-tv:testDebugUnitTest
 bash -n scripts/*.sh
 bash -n scripts/lib/*.sh
 ./scripts/test-apk-phone-delivery.sh
@@ -119,102 +121,114 @@ git diff --check
 
 Results:
 
-- both TDLib verification commands passed against the existing cache;
-- Gradle project discovery, aggregate tests, focused app tests, full lint, and signed assembly passed;
-- JUnit XML records 217 tests, zero failures/errors, and three existing environment-assumption socket-test skips; all 39 app tests ran and passed;
-- the F1C behavior tests cover row population, ordering, empty state, long-press action visibility, remove, replay-driven re-entry, open-without-playback, QR entry, dismissal, replacement, inactive-state rejection, and full-screen-versus-scrollable presentation;
-- shell syntax passed for top-level and library scripts;
-- seven APK phone-delivery cases, eight CI-downloader rejection cases, and both offline browser verifiers passed;
-- `git diff --check` passed before commit;
-- static package-content review found no packaged credential, key, session, or private-media material.
+- Gradle project discovery, aggregate tests, focused app/provisioning tests, lint, and signed assembly passed.
+- Generated JUnit XML records 228 tests: app 49, model 15, playback 23, provider 2, provisioning 31, security 39, Telegram 69.
+- All 228 passed with zero failures, errors, or skips.
+- Shell syntax passed.
+- Nine phone-publication cases and eight CI-downloader rejection cases passed.
+- Both offline provisioning browser/crypto verifiers passed.
+- APK package/version/code/signer/ABI/native-payload and forbidden packaged-material checks passed.
+- `git diff --check` passed before the application commit.
+- `adb devices -l` listed no device.
+- `deploy-shield.sh` exited 3 and reported `SHIELD_IP` not configured/not attempted.
 
-The tests establish implementation behavior through JVM state/policy tests and compilation. They do not establish physical D-pad dispatch, focus traversal, overscan/cropping, QR scan success, Telegram networking, Android Keystore hardware behavior, or media playback on a Shield.
+These checks prove implementation and packaging behavior, not physical TV layout/scan success or real Telegram behavior.
 
-## Local APK and first phone delivery
+## Local APK and local phone delivery
 
 | Field | Value |
 | --- | --- |
 | Build path | `app-tv/build/outputs/apk/debug/app-tv-debug.apk` |
-| Package / version | `com.funzi7.privatemediatv` / `0.3.1-f1c` (4) |
-| Size | 56,980,970 bytes |
-| APK SHA-256 | `583e44462a5cb0293f95addd3951fbdaef8cf4cbcc5b77acc7b87865931ed171` |
+| Package / version | `com.funzi7.privatemediatv` / `0.3.2-f1c1` (5) |
+| Size | 56,997,354 bytes |
+| APK SHA-256 | `dde7341cbc7788fa854ed485aaad1c41b8c498ea08dcfdb51a358441a5db54d3` |
 | Signer | Expected Development certificate |
-| Native payload | `arm64-v8a` only; `libtdjni.so` present |
+| Native payload | only `arm64-v8a`; pinned `libtdjni.so` present |
 
-Package, version, version code, signer, ABI set, TDLib JNI presence, and forbidden packaged credential/session content checks passed. The mandatory local publisher copied this APK to the canonical latest slot, retained a distinct valid prior APK in the previous slot, preserved the offline provisioning HTML, and left exactly the three canonical regular files. This is verified file delivery, not installation or launch.
+The local publisher placed this APK at the canonical phone `latest` path and verified:
+
+```text
+path=/storage/emulated/0/Download/PrivateMediaTV/private-media-tv-latest.apk size=56997354 modified=2026-08-02 17:57:58.079141908 +0000 epoch=1785693478
+dde7341cbc7788fa854ed485aaad1c41b8c498ea08dcfdb51a358441a5db54d3
+```
+
+Exactly `private-media-tv-latest.apk`, `private-media-tv-previous.apk`, and `telegram-provisioning-file.html` remained. This was verified phone file delivery, not installation or launch.
 
 ## Pushed CI evidence
 
 | Field | Value |
 | --- | --- |
-| Android CI run | `30756766127` |
-| Event / branch / commit | `push` / `main` / `580ea31637ecfd7a59d446bf61679a16053d9350` |
+| Android CI run | `30760556774` |
+| Event / branch / commit | `push` / `main` / `404d0c2daeda00c17041e828c4c9eccd945e353b` |
 | Result | Completed successfully |
-| Gradle wrapper job | `91520158405`, passed |
-| TDLib/tests/lint/APK job | `91520193486`, passed |
-| Artifact ID | `8836229693` |
-| Artifact name | `private-media-tv-apk-580ea31637ecfd7a59d446bf61679a16053d9350` |
-| Archive size | 56,981,909 bytes |
-| Archive digest | `sha256:a7d1ea03fc749a6c7c778326f94954166d4b42295183bafe5159e1c5883596b1` |
-| Artifact expiry | `2026-09-01T16:36:00Z` |
+| Gradle wrapper job | `91530146167`, passed |
+| TDLib/tests/lint/APK job | `91530160498`, passed |
+| Artifact ID | `8837355662` |
+| Artifact name | `private-media-tv-apk-404d0c2daeda00c17041e828c4c9eccd945e353b` |
+| Archive size | 56,998,294 bytes |
+| Archive digest | `sha256:7f6991c5156f9a1b99496d69a608f691d4b05a8c70ef622ceb552e9d722da5b3` |
+| Artifact expiry | `2026-09-01T18:16:16Z` |
 
-The run passed Gradle-wrapper validation; pinned Java/Gradle/Android SDK/NDK setup; official TDLib cache restoration and verification; delivery/downloader and browser-crypto checks; Development signing reconstruction/fingerprint verification; aggregate and focused F1C tests; Android lint; signed ARM64 APK assembly; package/version/signer/native/forbidden-content inspection; checksum and non-sensitive metadata generation; artifact upload; signing-material deletion; and cleanup. The pull-request-only isolated signer was correctly skipped on a main push.
+The exact-HEAD run passed wrapper validation; pinned Java/Gradle/Android SDK/NDK setup; official TDLib cache restore/verification; downloader-rejection and LAN-browser crypto checks; Development signer reconstruction/fingerprint verification; aggregate and focused F1C.1 tests; lint; signed ARM64 assembly; package/version/signer/native/forbidden-content verification; checksum/metadata creation; artifact upload; and signing-material deletion. The main-push artifact contains no real Telegram credentials or account state.
 
-GitHub emitted a non-failing platform annotation that pinned actions declaring Node.js 20 were forced to Node.js 24. It did not affect the successful result but remains a future maintenance item.
+GitHub emitted a non-failing annotation that pinned actions declaring Node.js 20 were forced to Node.js 24. It did not affect the successful run and remains a future maintenance item.
 
-CI used no real Telegram credentials or account.
+## Final CI APK phone delivery
 
-## CI APK phone delivery
+After successful final-HEAD CI, the downloader selected only the exact push run/artifact, verified its commit metadata/checksum/package/version/ABI/signer, and performed canonical publication.
 
-After successful final-HEAD CI, `./scripts/download-latest-ci-apk-to-phone.sh` selected the exact successful run and unexpired artifact, then verified commit metadata, checksum, package, version, ABI, and signer before publication.
+Final `latest` observation:
+
+```text
+path=/storage/emulated/0/Download/PrivateMediaTV/private-media-tv-latest.apk size=56997354 modified=2026-08-02 18:18:09.703141446 +0000 epoch=1785694689
+d17e84550e69979a461d913a8c31cde6aaf03cbfd164a4e4f0587f0a456dd355
+```
+
+It verifies as package `com.funzi7.privatemediatv`, version `0.3.2-f1c1`/5, expected Development signer, and ARM64-only native payload with `libtdjni.so`.
 
 Final canonical phone directory:
 
 | File | Evidence |
 | --- | --- |
-| `private-media-tv-latest.apk` | CI F1C APK; 56,980,970 bytes; SHA-256 `74656909debd114c018181cce9103208a818ca596f3d57b2981d84f949c64fca` |
-| `private-media-tv-previous.apk` | distinct local F1C APK; 56,980,970 bytes; SHA-256 `583e44462a5cb0293f95addd3951fbdaef8cf4cbcc5b77acc7b87865931ed171` |
-| `telegram-provisioning-file.html` | 6,066 bytes; SHA-256 `ff56a206d462c5f1f1a71644e04814564f47b1d801b58e4af1dab2245602f26f` |
+| `private-media-tv-latest.apk` | final-HEAD CI APK; 56,997,354 bytes; SHA-256 `d17e84550e69979a461d913a8c31cde6aaf03cbfd164a4e4f0587f0a456dd355`; modification `2026-08-02 18:18:09.703141446 +0000`, epoch `1785694689` |
+| `private-media-tv-previous.apk` | distinct local F1C.1 APK; 56,997,354 bytes; SHA-256 `dde7341cbc7788fa854ed485aaad1c41b8c498ea08dcfdb51a358441a5db54d3`; retained modification `2026-08-02 17:57:58.000000000 +0000`, epoch `1785693478` |
+| `telegram-provisioning-file.html` | present; 6,066 bytes; SHA-256 `ff56a206d462c5f1f1a71644e04814564f47b1d801b58e4af1dab2245602f26f` |
 
-All three are regular files. Exactly these names remain; no unrelated phone file was removed. The CI APK verifies as F1C, uses the expected signer, contains only ARM64 native entries, and includes `libtdjni.so`. The downloader reported rotation performed and zero historical removals. This remains file delivery only, not installation or launch.
+Exactly these canonical names remain. Rotation was performed, zero historical APKs were removed, and no unrelated phone file was changed. This is file delivery only, not installation or launch.
 
-## Physical evidence and remaining blocker
+## Physical status and blocker
 
-Owner-reported prior offline physical evidence:
+F1C.1 itself has not been physically tested. No authorized device was listed during agent validation, and Shield deployment was not configured/attempted.
 
-- the application installed and opened;
-- navigation worked;
-- Settings opened;
-- the offline flow generally passed;
-- the old Telegram account QR appeared low/cropped and was not fully visible, which blocked real login.
+Therefore the following remain untested:
 
-This report is authoritative but distinct from agent-run F1C validation. For this milestone, `adb devices -l` listed no authorized device. `./scripts/deploy-shield.sh` exited 3 because no Shield address was configured and correctly reported not configured/not attempted.
+- visibility, overscan safety, D-pad focus, Back/cancel behavior, and scan readability of the new F1C.1 credential-provisioning QR;
+- real credential provisioning and Android Keystore behavior;
+- the separate account-login QR on hardware;
+- real Telegram login/session restoration;
+- channel discovery, Telegram playback, seeking, cleanup, and Shield behavior.
 
-Therefore no claim is made that F1C was installed or launched, that its D-pad/focus/RTL/overscan behavior passed, that the new QR was fully visible or scan-successful on a TV, or that real Telegram login, session restoration, channel discovery, playback, seek, or disconnect succeeded. The new QR presentation and real Telegram path remain physically untested.
-
-The blocker before broader catalog work is owner acceptance of F1C on an authorized NVIDIA Shield: verify the new Home/continue-watching interaction, long-press removal/re-entry, full-screen QR visibility and scanning, real Telegram login, and representative playback without recording private values.
+Do not reinterpret this as no physical testing: final F1C was physically tested and failed specifically at the inline/cropped credential-provisioning QR. The new F1C.1 correction is what still needs physical acceptance.
 
 ## Risks and limitations
 
-- Full-screen layout bounds and unit/state tests do not prove TV overscan or QR-camera readability.
-- Compose/JVM coverage does not prove physical long-press dispatch or focus restoration.
-- Continue watching currently has stable local sample targets; durable Telegram targets depend on the deferred catalog identity layer.
-- Local HTTP provisioning protects against passive observation but is not authenticated TLS and does not resist an actively compromised LAN/browser.
-- Keystore invalidation, process death, device filesystem behavior, and real TDLib lifecycle need physical validation.
-- The range-player window remains an unmeasured engineering default.
+- Pure layout tests cannot prove TV overscan or camera scan readability.
+- Compose/JVM tests cannot prove physical D-pad focus traversal.
+- Trusted-LAN provisioning is encrypted against passive observation but is not authenticated TLS and does not resist an actively compromised LAN/browser.
+- Real Keystore, process-death, TDLib session, codec, and range-playback behavior still require the authorized Shield.
+- Continue watching currently has stable local sample targets; durable Telegram targets depend on deferred catalog identity/indexing.
 - ARM64-only packaging excludes x86/x86_64 emulators and 32-bit devices.
-- Upgrade continuity depends on preserving the external Development signing identity.
-- Pinned CI actions declaring Node.js 20 should be refreshed in a scoped maintenance change before future platform enforcement.
+- Pinned CI actions declaring Node.js 20 should be refreshed in a separate scoped maintenance change before future platform enforcement.
 
-## Next milestone and continuation instructions
+## Exact next step
 
-The exact next milestone is physical F1C Shield acceptance before broader catalog/indexing work.
+Physical F1C.1 Shield acceptance remains the blocker before broader catalog work:
 
-1. Run both repository preflights and preserve unrelated work.
-2. Verify application HEAD `580ea31637ecfd7a59d446bf61679a16053d9350`, successful run `30756766127`, and the matching F1C artifact.
-3. Do not add real credentials, QR links, sessions, identifiers, private titles/filenames, screenshots, or sensitive logs to source, CI, issues, or public handoffs.
-4. On an authorized Shield, perform the updated acceptance procedure and record only sanitized pass/fail evidence.
-5. Validate Home D-pad traversal, visible focus, row empty/populated/order behavior, resume, center/OK long-press removal, and playback-driven re-entry.
-6. Validate that account QR opens full-screen, is fully visible without scrolling or cropping, remains readable after TDLib refresh, and closes safely; then validate real login and representative playback.
+1. Verify/install the final CI APK for application HEAD `404d0c2daeda00c17041e828c4c9eccd945e353b` on the authorized NVIDIA Shield.
+2. Open **"הגדרת מפתחות Telegram"**, press **"הגדרה בטלפון באמצעות QR"**, and confirm the dedicated full-screen presentation shows the complete square/quiet zone without scrolling or cropping.
+3. Verify focus, Back/cancel cleanup, timeout cleanup, and return focus without recording the QR or any private value.
+4. Perform real provisioning; confirm success closes/stops and Settings reports configured/no session.
+5. Open the separately titled **"התחברות לחשבון Telegram"** flow, validate its QR independently, then perform real login.
+6. Complete the preserved diagnostic playback/seek/disconnect acceptance with sanitized evidence.
 7. Fix any scoped physical defect before beginning permanent catalog indexing, metadata integration, or allowlist UX.
-8. Preserve the TDLib pin/artifact identity, secure credential architecture, Development signer, ARM64 packaging, and permanent local-build/local-phone/CI/CI-phone evidence workflow.
+8. Preserve the official TDLib pin/artifact, secure on-device architecture, Development signer, ARM64 packaging, and local-build/local-phone/CI/CI-phone evidence workflow.
