@@ -138,7 +138,8 @@ item, confirmation, ignore marker and deletion tombstone.
 ## 4. Current completed milestone
 
 **D6A7e5** — a corrective milestone opened by the first physical run of D6A7e4: a chain Android owns,
-a deletion that explains itself, and five presets you can reach.
+a deletion that explains itself, and five presets you can reach — **extended mid-milestone by a
+sixth device finding**, that an accepted schedule was being presented as started execution.
 
 > **Application only.** The server repository was **not edited and not deployed**; its HEAD and the
 > deployed HEAD both remain `eaeba836650f67245b0bd8265b46f6e03d2cd29d`. **Instagram was not
@@ -148,13 +149,13 @@ a deletion that explains itself, and five presets you can reach.
 
 | Field | Value |
 | --- | --- |
-| **Final application HEAD** | **`9fb66608faa7f344a2579e6df062796b838084bf`** — pushed |
+| **Final application HEAD** | **`79db54e4a1b87ba689e772cc9f7652793b2a5ec4`** — pushed |
 | **Final server HEAD** | **`eaeba836650f67245b0bd8265b46f6e03d2cd29d`** — unchanged |
 | Version | code 43 → **44**, name `0.13.18-d6a7e4` → **`0.13.19-d6a7e5`** |
 | Room schema | **16 → 17**, one additive table, no row rewritten, no destructive fallback |
-| Gate | **2685 Android unit tests, 0 failures, 0 errors, 0 skipped; lint 0 issues** — counted from the XML reports, every task `--rerun-tasks`, re-run in full after the last edit |
-| APK | `/sdcard/Download/TelegramTopicUploader-0.13.19-d6a7e5.apk`, SHA-256 `840a95f1e6c6ee51d1f83b4563f4af9065cf2e83de6f4ac5986834f565afa5d9` — hash verified identical, **not installed** |
-| Hardware | **Nothing verified.** `docs/D6A7E5_DEVICE_CHECKLIST.md`, 35 lines, all *not attempted* |
+| Gate | **2717 Android unit tests, 0 failures, 0 errors, 0 skipped; lint 0 issues** — counted from the XML reports, every task `--rerun-tasks`, re-run in full after the last edit |
+| APK | `/sdcard/Download/TelegramTopicUploader-0.13.19-d6a7e5.apk`, SHA-256 `8584e73d09815af5f4baae64f5d2fa38d36c7c3e86241e613316e141bc722ccb` — hash verified identical, **not installed** |
+| Hardware | **Nothing verified.** `docs/D6A7E5_DEVICE_CHECKLIST.md`, **50 lines** (lines 36–50 are the second device report’s hardware checks, to be done first), all *not attempted* |
 
 ### The five findings the handset produced, and the limit of what may be claimed
 
@@ -172,7 +173,28 @@ D6A7e4 was installed **over the existing application data** and used.
 4. **Only two of five schedule presets were visibly reachable** on the narrow RTL screen.
 5. **A nearly screen-high empty vertical block** in the expanded source editor.
 
-**None of the five is marked fixed by a test run.**
+**A sixth finding arrived against D6A7e5's own build and was integrated into the same milestone,
+not deferred.**
+
+6. **An accepted scheduling request was being presented too close to actual execution.** Pressing
+   *Send now* showed a message meaning *a request was sent to Android to upload in the background*.
+   Then: no upload began, no byte progress appeared, no Telegram post was created. Further taps added
+   further durable requests — the FIFO grew correctly — and **no runner ever drained it**.
+
+   **The application-level root cause IS established, and may be stated:** *acceptance was a terminal
+   state*. Three omissions, all in this repository. (a) A `startDeadlineAt` was written and **nothing
+   ever consumed it**. (b) `MainViewModel` computed an `ExplicitSendChainStatus` that **no composable
+   read**, so the one state that most needed a screen was the one state no screen could show. (c) On
+   Android 14+ there was **no second execution owner** — the UIDT job was treated as the only path
+   rather than the preferred one, so "the job never entered" had no next move. The only remedy that
+   existed was a manual *Start now* the user had no reason to know about.
+
+   **Do not state why the platform did not enter the job.** A network constraint the device could not
+   satisfy, an OEM background policy, a platform-side start refusal — all remain candidates and none
+   is asserted. That is durable backlog row **150**, and the diagnostic trail exists to answer it from
+   the device.
+
+**None of the six is marked fixed by a test run.**
 
 ### What it built
 
@@ -199,15 +221,39 @@ used to say *Source kept*.
 **One shared wrapping schedule selector** for Add and Edit with all five presets visible, and a
 rejected Instagram session that states its own repair.
 
+**For finding 6: four stages, a bounded deadline that something owns, and a trace.** Four ordered
+stages — `REQUEST_RECORDED`, `PLATFORM_SCHEDULE_ACCEPTED`, `RUNNER_ENTERED_AND_OWNS_CHAIN`,
+`MEDIA_UPLOAD_STARTED` — with `mayClaimUploading` true for the last and no other, enforced on the type
+and guarded in both locales. A **six-second** start deadline (not the old two minutes: it now triggers
+a foreground-service start, and Android only permits one while the app still qualifies) armed by
+acceptance and owned by `ExplicitSendStartWatchdog`. Within it exactly one of three things happens —
+the UIDT JobService enters and takes the lease, the immediate foreground-capable fallback is started
+while the visible tap still qualifies and takes the lease, or an **exact** sanitized refusal is
+recorded with a corrective *Start now* beside it on the Queue card **and** on the owning row. **Never
+a fourth case, and never a second tap.** The same `dataSync` service is now the fallback on Android
+14+ too; it and a late UIDT job compete for the one guarded `UPDATE`, and the loser sends nothing.
+Plus a closed-vocabulary `ExplicitSendDiagnosticEvent` trail across the whole path — request,
+schedule, pending, entry, notification, ownership, launcher, registration, first byte, settlement,
+stop — sanitized *by construction*: the recorder's one method takes an enum member and there is no
+overload that could take a string, an id or a throwable.
+
+**One real defect found while building it:** a runner that *lost* the ownership race used to cancel
+the chain's notification on its way out. One chain correctly has one notification id, so a loser could
+tear down the **winner's** required progress notification and leave a genuine transfer running
+invisibly and unstoppably. A loser now detaches and leaves it alone.
+
 ### The durable backlog, reconciled
 
 Row **124** (five schedule presets on hardware) **failed** at D6A7e4 and is re-opened; row **125** was
 untestable while it did. Row **130** (the Instagram viewing session) is confirmed rejected from a
 second, stronger source. Rows **111–119** and the remaining D6A7e4 rows stay device-unverified.
-Twelve rows were added, each naming the evidence that would close it — including two that say what
+Twenty rows were added, each naming the evidence that would close it — including three that say what
 they cannot say: **137**, the two previously undeleted videos, whose retention category is
-*unestablished* and must be reported as the exact on-screen sentence, and **141**, the empty layout
-block, which is *traced, not proven fixed*. The table is in the application's `TODO.md`.
+*unestablished* and must be reported as the exact on-screen sentence; **141**, the empty layout
+block, which is *traced, not proven fixed*; and **150**, *why Android accepted the explicit-send job
+and never entered its JobService on this handset*, which is **unknown**, is not claimed anywhere, and
+cannot be closed from this repository at all. Rows **143–149** are the second device report's
+hardware checks. The table is in the application's `TODO.md`.
 
 ### The rules those produced, which outlive the milestone
 
@@ -217,6 +263,15 @@ block, which is *traced, not proven fixed*. The table is in the application's `T
 - **Ownership settles a race; cancellation timing never does.** A pending platform job already on its
   way in passes straight through a cancel. One guarded durable `UPDATE` has no window.
 - **Acceptance is not a start**, and the two must be recorded separately or a stuck chain looks busy.
+- **A deadline nobody consumes is not a deadline**, and a status nothing renders is not a status.
+  D6A7e5's first build had both, and the chain still sat accepted for ever. Every bounded window needs
+  a named component whose job is to come back and look, and every state that can go wrong needs a
+  surface that shows it. This is the sharpest rule the milestone produced.
+- **One primary owner plus no fallback is a design that fails silently.** Preferring the platform path
+  is right; treating it as the only possible path is what turns "it did not arrive" into nothing at
+  all.
+- **A loser must cost the winner nothing.** Losing a race is normal and safe; tearing down the
+  winner's notification on the way out is not.
 - **Persist the user's tap before asking the platform**, so no scheduling outcome can lose it.
 - **The absence of a row is not a decision.** A missing deletion task is *repair pending*, never
   *kept by policy*.

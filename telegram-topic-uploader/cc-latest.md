@@ -11,18 +11,18 @@
 
 | Field | Value |
 | --- | --- |
-| Task | **D6A7e5** — a corrective milestone opened by the first physical run of D6A7e4: a chain Android owns, a deletion that explains itself, and five presets you can reach |
-| **Final application HEAD** | **`9fb66608faa7f344a2579e6df062796b838084bf`** — pushed |
+| Task | **D6A7e5** — a corrective milestone opened by the first physical run of D6A7e4: a chain Android owns, a deletion that explains itself, and five presets you can reach. **Extended mid-milestone by a sixth device finding:** an accepted schedule was being presented as started execution, so it also separates the four stages, gives the bounded start deadline an owner and an automatic foreground-capable fallback, and adds a sanitized end-to-end trace |
+| **Final application HEAD** | **`79db54e4a1b87ba689e772cc9f7652793b2a5ec4`** — pushed |
 | **Final server HEAD** | **`eaeba836650f67245b0bd8265b46f6e03d2cd29d`** (`eaeba83`) — **unchanged, not redeployed, not edited, not contacted for a change** |
 | Version | code 43 → **44**, name `0.13.18-d6a7e4` → **`0.13.19-d6a7e5`** |
 | Room schema | **16 → 17.** One additive migration, `MIGRATION_16_17`, creating one table (`explicit_send_runner`), rewriting no row, with no destructive fallback. Server: **`0006_session_connection`**, unchanged — none was needed and none was written |
-| Gate | **2685 Android unit tests, 0 failures, 0 errors, 0 skipped. Lint: 0 issues** (both counted from the XML reports, every task with `--rerun-tasks`, re-run in full after the last edit). Server: **not run — the repository was not touched** |
-| APK | `app-debug.apk`, 16,595,777 bytes, SHA-256 `840a95f1e6c6ee51d1f83b4563f4af9065cf2e83de6f4ac5986834f565afa5d9`. **Copied to Downloads with a matching hash. Not installed.** Built from the tree at `72dd6c1`; the final HEAD adds a documentation-only backlog commit, and the hash is unchanged because documentation is not a build input |
+| Gate | **2717 Android unit tests, 0 failures, 0 errors, 0 skipped. Lint: 0 issues** (both counted from the XML reports, every task with `--rerun-tasks`, re-run in full after the last edit). Server: **not run — the repository was not touched** |
+| APK | `app-debug.apk`, 16,618,342 bytes, SHA-256 `8584e73d09815af5f4baae64f5d2fa38d36c7c3e86241e613316e141bc722ccb`. **Copied to Downloads with a matching hash. Not installed.** Built from the tree at `ed501a7`; the final HEAD adds a documentation-only artefact-record commit, and the hash is unchanged because documentation is not a build input |
 | APK in Downloads | `/sdcard/Download/TelegramTopicUploader-0.13.19-d6a7e5.apk` — hash verified identical |
 | Production | **Untouched.** No server edit, no deployment. **Instagram was not contacted**: no validation, no check, no operator probe; no credential replaced or cleared; no source enabled or disabled. No Telegram content sent |
-| Hardware | **No line of D6A7e5 is verified.** `docs/D6A7E5_DEVICE_CHECKLIST.md`, 35 lines, all *not attempted*. **The D6A7e3 Preview checks are still owed in full** |
+| Hardware | **No line of D6A7e5 is verified.** `docs/D6A7E5_DEVICE_CHECKLIST.md`, **50 lines** (lines 36–50 are the second device report’s hardware checks, to be done first), all *not attempted*. **The D6A7e3 Preview checks are still owed in full** |
 
-### The five physical-device findings this milestone answers
+### The six physical-device findings this milestone answers
 
 D6A7e4 was installed **over the existing application data** on the handset and exercised.
 
@@ -43,8 +43,28 @@ D6A7e4 was installed **over the existing application data** on the handset and e
 5. **A nearly screen-high empty vertical block** in the expanded source editor, between the schedule
    controls and their explanatory text. A layout defect, not intentional spacing.
 
-**None of the five is marked fixed by a test run.** Findings 1, 2, 4 and 5 are addressed in code and
-re-checked on the handset; finding 3 is not this milestone's to close.
+6. **An accepted scheduling request was being presented too close to actual execution.** Reported
+   against **this milestone's own build** and integrated into it rather than deferred. Pressing *Send
+   now* showed a message meaning *a request was sent to Android to upload in the background*, and
+   then: no upload began, no byte progress appeared, no Telegram post was created. Further taps added
+   further durable requests — the FIFO grew correctly — and **no runner ever drained it**.
+
+   **This one's application-level root cause IS established and may be stated: acceptance was a
+   terminal state.** Three omissions, all in this repository. (a) A `startDeadlineAt` was written and
+   **nothing ever consumed it** — the only reader was a status a screen fetched on window focus.
+   (b) `MainViewModel` computed an `ExplicitSendChainStatus` that **no composable read**: the one
+   state that most needed a screen was the one state no screen could show. (c) On Android 14+ there
+   was **no second execution owner**, because the UIDT job was treated as the only possible path
+   rather than the preferred one. The only remedy that existed was a manual *Start now* the user had
+   no reason to know they needed.
+
+   **Do not state why the platform did not enter the job.** A network constraint the device could not
+   satisfy, an OEM background policy, a platform-side start refusal — all remain candidates and none
+   is asserted anywhere. Durable backlog row **150**, still open.
+
+**None of the six is marked fixed by a test run.** Findings 1, 2, 4, 5 and 6 are addressed in code and
+re-checked on the handset; finding 3 is not this milestone's to close, and the *platform's own reason*
+for finding 6 is not this repository's to answer.
 
 ### What shipped
 
@@ -71,9 +91,47 @@ never turns an uncertain outcome into a retryable one.
 **Persist first, then ask the platform.** A refusal, a missing notification permission, or a process
 death between the two never loses the tap, and the screen says which of those it was: starting,
 waiting for Android, active, waiting behind another explicit send, platform scheduling refused, or
-notification permission required. An accepted-but-never-entered job becomes a bounded two-minute state
-with **Start now** on it; a late system start loses the ownership race. Returning to the app reads the
-durable chain — never a second tap.
+notification permission required. Returning to the app reads the durable chain — never a second tap.
+
+**Four stages, and a bounded deadline that something owns** — the correction the sixth finding forced,
+replacing the two-minute window described above, which was recorded and then consumed by nothing.
+
+* **Four ordered stages**: `REQUEST_RECORDED` → `PLATFORM_SCHEDULE_ACCEPTED` →
+  `RUNNER_ENTERED_AND_OWNS_CHAIN` → `MEDIA_UPLOAD_STARTED`. `ExplicitSendStage.mayClaimUploading` is
+  true for the last and no other, and the rule lives on the type so no screen can inherit an older,
+  more optimistic sentence. A surface guard fails the build if the stage-2 sentence ever acquires a
+  word meaning *uploading*, in **either** locale.
+* **A six-second start deadline**, not two minutes. It is now the trigger for a foreground-service
+  start, and Android permits one only while the application still qualifies to make it — so a
+  minutes-long window would always arrive too late to use. `ExplicitSendStartWatchdog` owns it.
+* **Exactly one of three outcomes inside that window, and never a fourth:** the UIDT JobService enters
+  and takes the durable lease; or the immediate foreground-capable fallback is started while the
+  original visible tap still qualifies and takes it; or an **exact** sanitized refusal
+  (`RunnerDidNotStart`, `ForegroundStartNotAllowed`, or whatever the platform answered) is written to
+  the durable runner slot, shown on the Queue chain card **and** on the owning row, with a corrective
+  *Start now* beside it. **No second tap is ever required.**
+* **The same `dataSync` service is now also the Android 14+ fallback.** The UIDT job stays primary and
+  is still tried first. Non-exported, no intent filter, foreground immediately with the same required
+  notification, stops itself when the chain empties, no boot receiver, and it cannot start itself —
+  its only two callers are the pre-Android-14 scheduling path and the deadline a visible tap armed.
+* **Ten exact user-facing sentences, one per state, in both locales, never concatenated.** The old
+  *Android was asked to run this upload in the background* is replaced by *waiting for Android to
+  start the transfer*.
+* **The chain status is finally rendered.** It had been computed and read by nothing.
+
+**A sanitized end-to-end trace.** `ExplicitSendDiagnosticEvent` covers request → schedule attempted →
+accepted/refused → platform job pending → JobService entered → notification attached → ownership
+acquired/refused → start deadline exceeded → fallback attempted/accepted/refused → launcher called →
+transfer registered → upload started → settled → runner stopped. Sanitized **by construction**: the
+recorder is a `fun interface` whose one method takes an enum member, with no overload that could take
+a message, a throwable, a count or an identifier — so no file name, URI, hash, destination, Telegram
+id, token, package internal or `JobParameters` extra can pass through it. In-memory and bounded,
+because production logging is forbidden here and logcat is not reachable by the user.
+
+**One real defect found while building that.** A runner that *lost* the ownership race used to cancel
+the chain's notification on its way out. One chain correctly has one notification id, so a loser could
+tear down the **winner's** required progress notification and leave a genuine transfer running
+invisibly and unstoppably. A loser now detaches and leaves the posted notification alone.
 
 **One progress notification** on its own channel and id: ordinal, total, real byte progress,
 *waiting for Telegram to confirm* as its own phase, the exact waiting count, **Cancel current upload**
