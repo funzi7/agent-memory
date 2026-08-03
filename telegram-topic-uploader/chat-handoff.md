@@ -92,8 +92,13 @@ cp /root/work/telegram-topic-uploader/app/build/outputs/apk/debug/app-debug.apk 
 ```
 
 **Install over the existing app.** The debug certificate has not changed since D5A — at D6A7d it is
-still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`. **D6A7e2 (code 41,
-`0.13.16-d6a7e2`) supersedes every earlier build; no intermediate version needs installing first.**
+still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`. **D6A7e6 (code 45,
+`0.13.20-d6a7e6`) supersedes every earlier build; no intermediate version needs installing first.**
+
+**D6A7e6 does not move the Room schema — it stays at 17, and no migration runs on this install.**
+The foreground-first start fits the existing runner slot, and thumbnails and Preview staging are
+cache state, not Room state; anything missing after the install is therefore not a migration
+defect, because there was no migration.
 
 ### The permanent APK-to-Downloads rule — D6A7c1
 
@@ -136,6 +141,97 @@ build reads identically to one answered against this one.
 item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
+
+**D6A7e6** — a corrective milestone opened by the third physical run: a tap that starts its own
+service, a confirmed item that leaves Review, and a preview that can stage what it cannot seek.
+
+> **Application only.** The server repository was **not edited and not deployed**; its HEAD and the
+> deployed HEAD both remain `eaeba836650f67245b0bd8265b46f6e03d2cd29d`. **Instagram was not
+> contacted.** No Telegram content was sent. The application was **not installed** and **not run**
+> on any device or emulator.
+
+| Field | Value |
+| --- | --- |
+| **Final application HEAD** | **`dbead271995ea3cd9b414b85ad0542d414d9e1f8`** — pushed. The build tree is `bc38827`; the final HEAD adds a documentation-only artefact-record commit, and the hash is unchanged because documentation is not a build input |
+| **Final server HEAD** | **`eaeba836650f67245b0bd8265b46f6e03d2cd29d`** — unchanged |
+| Version | code 44 → **45**, name `0.13.19-d6a7e5` → **`0.13.20-d6a7e6`** |
+| Room schema | **17, unchanged — no migration runs on this install.** Server: `0006_session_connection`, unchanged |
+| Gate | **2805 Android unit tests, 0 failures, 0 errors, 0 skipped; lint 0 issues** — counted from the XML reports, every task `--rerun-tasks`, the whole gate re-run from the committed tree |
+| APK | `/sdcard/Download/TelegramTopicUploader-0.13.20-d6a7e6.apk`, SHA-256 `9fe6bcb6f07c8179af1ebfe565901520492278d12a37d26929f691fd2a86e13c`, 16,683,920 bytes — hash verified identical, **not installed** |
+| Hardware | **Nothing verified.** `docs/D6A7E6_DEVICE_CHECKLIST.md`, 42 items, all *not attempted*. Backlog rows **143–149 failed on hardware at D6A7e5 and are re-opened**; row **150** stays open and is now **non-blocking**; new rows **151–161** |
+
+### The four findings the third run produced, and the limit of what may be claimed
+
+D6A7e5 was installed **over the existing application data** and used.
+
+1. **Send now still did not start an upload.** The exact visible sentence was *הבקשה נרשמה. ממתין
+   ש־Android יפעיל את ההעלאה.* — no moving byte progress, no Telegram post, the item stayed
+   waiting. **A D6A7e5 hardware failure**: rows 143–149 are *not* completed. **Why the platform
+   never entered its UIDT JobService is still not established** (row 150) — D6A7e6's answer is to
+   make the question non-blocking, not to answer it.
+2. **A Telegram-confirmed file remained in active Review, offering pre-upload actions it could only
+   refuse** — pressing *Do not upload this* explained that Telegram had already confirmed the file.
+   Traced in the durable rows: a per-job projection served the media's evidence-free
+   `AWAITING_ROUTING` placeholder as routing work, the durable retirement ran only on startup and
+   other screens' refreshes, and the per-media ignore refused after the tap instead of before it.
+3. **Some Review cards showed אין תמונת פתיחה while siblings had thumbnails** — a per-media
+   failure: one `getFrameAtTime(0)` was the entire strategy and the sentence also showed while
+   still loading.
+4. **Preview said לא הצלחנו לקרוא את הקובץ הזה לצורך נגינה for a file the upload path could
+   carry** — the player needs a seekable descriptor, the upload reads a one-pass stream, and
+   *readable but not seekable* had no path at all.
+
+### What it built
+
+- **Send now means queue and start.** From the visible tap: **persist → start the `dataSync`
+  foreground service immediately → schedule the UIDT job as backup**. The six-second watchdog is
+  the verifier now, no longer the first mover; both owners share one repository, runner, durable
+  lease, launcher and notification; a refused start is its exact closed category with a corrective
+  *resume the send queue* action; the scheduler can no longer reach the service and `cancelPending`
+  no longer stops it.
+- **No user-facing "request recorded" state.** The condition vocabulary collapsed to the send
+  queue's language in both locales — *נוסף לתור השליחה*, *בתור לשליחה — מקום n*, *מתחיל העלאה…*,
+  *מעלה n מתוך m*, the exact refusals — and the forbidden sentences are pinned absent from every
+  string value by `D6A7E6SurfaceTest`. A queued-or-active row never re-offers its Send-now button.
+- **The diagnostics panel** — *פרטי אבחון*, collapsed under the send-queue card: which owner
+  entered, ownership, launcher, registration, bytes, the last recorded step with elapsed time, and
+  the last durable refusal. Closed members only; the foreground service records its own
+  `FOREGROUND_SERVICE_ENTERED` so the panel can finally say *which* owner arrived.
+- **Confirmed media leaves active Review reactively.** Both canonical projections carry a
+  sibling-confirmation `EXISTS`; the one classifier retires an evidence-free placeholder for
+  confirmed media into the same group the durable repair writes, so the row leaves the grid the
+  moment the confirmation commits. The ignore gate is media-level and the control disappears
+  before it could be refused; Preview over confirmed media shows the confirmation instead of
+  pre-upload controls; a genuinely distinct unresolved job stays actionable under its own id.
+- **Confirmed local deletion from History.** *מחקו את העותק המקומי לצמיתות* on the confirmed
+  KEEP-policy row, through the confirmed-source engine only — evidence demanded, exact SAF document
+  re-proved, no network, no resend — with *נסו שוב למחוק את העותק המקומי* after a failure.
+- **One shared seekable preview source.** Provider thumbnail → direct-descriptor frames at a
+  bounded deterministic ladder → one bounded private staged copy for the readable-but-unseekable
+  case (256 MiB/512 MiB/64 MiB margin/2 concurrent, opaque evidence-bearing keys, byte-count
+  verification, `.part` cleanup). Playback retries **once** from the staged copy under the
+  unchanged D6A7e3 rules; thumbnail failures classify into ten categories with a bounded retry;
+  one media viewport with the poster inside it. **The preview cache is never upload evidence** —
+  pinned structurally in both directions.
+
+### The rules worth carrying forward
+
+- **A user's verb is the contract.** *Send now* is a promise to queue and start, not to ask a
+  platform; every internal stage that leaks into a sentence will eventually stand over a dead
+  queue looking like success.
+- **A fallback that arrives through a deadline is still a fallback.** The third run proved the
+  deadline path can fail exactly like the primary; the primary had to become the thing the tap
+  itself does.
+- **Per-row projections need per-media evidence** wherever the *decision* is per-media — or the
+  control outlives the decision and can only refuse.
+- **A control must disappear before it can be refused**, not fail after being pressed.
+- **Presentation readability and upload readability are different capabilities** — bridge them
+  with a bounded private copy for presentation only, and pin the two worlds apart structurally.
+- **Re-scope a guard, never delete it.** Every D6A7e5 guard the renames turned red was re-pointed
+  at the new exact contract with its reason in the file; the platform-surface exemption list is
+  still exactly one file.
+
+## 4a00. Previous milestone: D6A7e5
 
 **D6A7e5** — a corrective milestone opened by the first physical run of D6A7e4: a chain Android owns,
 a deletion that explains itself, and five presets you can reach — **extended mid-milestone by a
