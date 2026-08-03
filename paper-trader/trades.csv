@@ -140,3 +140,4 @@ date,portfolio_id,strategy,ticker,side,shares,fill_price,commission,cash_after,e
 2026-07-31,rsi2_10k,rsi2,SPY,SELL,13.0,744.3077,1.0,10093.15,10093.15,close>5SMA (741.69>738.01)
 2026-07-31,swing_100,swing,T,SELL,3.0,23.1584,0.6948,93.46,93.46,המהלך נגמר — מתחת לממוצע 10
 2026-07-31,swing_100,swing,CMG,BUY,2.0,37.989,0.7598,16.73,91.17,"פריצה #2 +5.2% מעל הרף, RSI 69"
+2026-08-03,screener_track_10k,screener_track,RBLX,SELL,15.0,35.5622,1.0,4754.59,10436.91,סטופ הועלה לנקודת הכניסה — מתחת לכניסה
