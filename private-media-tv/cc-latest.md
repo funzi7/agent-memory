@@ -1,196 +1,172 @@
-# Private Media TV — F1D.4 Handoff
+# Private Media TV — F1D.5 Handoff
 
-## Identity
+## Identity and release state
 
 | Field | Value |
 | --- | --- |
 | Application repository | `funzi7/private-media-tv` |
-| Milestone | F1D.4 — adaptive Telegram streaming performance and approved TV catalog UX specification |
+| Milestone | F1D.5 — persistent TDLib media cache, warm resume, faster streaming, and complete player controls |
 | Branch / tracking branch | `main` / `origin/main` |
-| Starting application HEAD | `f90882cc28d3e88912347052b717f48808e8a9a9` |
-| Final application HEAD | `2c97790b08178658b8ca37c0d66832d94fd954dd` |
-| Application milestone commit | `2c97790b08178658b8ca37c0d66832d94fd954dd` |
-| Manager-verified starting agent-memory commit | `33f157c13317a37b609e4752a823038e45d70aec` |
-| Actual agent-memory parent after preserving newer unrelated work | `928782cd1e16647df007abd905fca83f90d55256` |
-| Mobile identity | `com.funzi7.privatemediatv.mobile`, `0.1.4-phone-test`, `versionCode` 5 |
-| TV identity | `com.funzi7.privatemediatv`, `0.3.7-f1c6`, `versionCode` 10 |
+| Starting application HEAD | `2c97790b08178658b8ca37c0d66832d94fd954dd` |
+| Final application HEAD | `cd0865762d3db304d265a0972a4c40731e9e4d56` |
+| Starting agent-memory HEAD / parent | `1cd7694a693919e8e60152ecc886ed7cbcd14462` |
+| Mobile identity | `com.funzi7.privatemediatv.mobile`, `0.1.5-phone-test`, `versionCode` 6 |
+| TV identity | `com.funzi7.privatemediatv`, `0.3.8-f1c7`, `versionCode` 11 |
 | Development signer SHA-256 | `2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0` |
 
-The application milestone commit was pushed without rewriting history. Final application `HEAD` and
-`origin/main`, exact-HEAD Android CI, both uploaded artifacts, and the downloaded CI mobile artifact
-all identify the final application SHA above.
+The application milestone commit was pushed without rewriting history. Application `HEAD` and
+`origin/main` both resolve to the final application SHA above. Exact-HEAD Android CI succeeded and
+the exact-HEAD mobile artifact was downloaded, reverified, and published only to the package-
+specific Mobile directory. The TV APK was built and inspected locally and in CI but was not
+exported, downloaded to shared storage, installed, or deployed.
+
+## Authoritative physical code-5 baseline
+
+The owner physically updated and tested mobile code 5 before F1D.5. Established facts are:
+
+- credentials and the authenticated Telegram session survived the update;
+- real Telegram media played with visible video and audible audio;
+- F1D.4 adaptive buffering performed better than the preceding build; and
+- performance and reopen reuse could still be improved.
+
+Those observations prove authorization, discovery, byte-range delivery, Media3 decoding, visible
+video, and audible audio. They do not prove code-6 cache retention, warm reattachment, controls,
+tracks, long-playback performance, process-death restoration, or Shield behavior. No native TDLib
+defect was present or repaired.
 
 ## Outcome
 
-F1D.4 replaces the fixed at-most-4-MiB Telegram request window with a bounded adaptive 8 → 16 →
-32 MiB policy, preserves the single effective per-file request supported by pinned TDLib, adds
-low-watermark read-ahead and stale-update protection, owns an explicit Media3 buffering profile, and
-adds non-sensitive in-memory performance instrumentation. It also records the approved future TV
-catalog requirements without implementing permanent indexing, TMDB networking, or the final TV
-redesign.
+F1D.5 makes TDLib's existing package-private downloaded file the authoritative persistent media-
+byte cache, adds a bounded one-player warm session and versioned resume state, advances range
+selection to 16 → 32 → 64 MiB, selects exact device-specific Media3 profiles, and introduces an
+always-left-to-right playback timeline. Provider-neutral player state now supports speed, scaling,
+safe embedded audio/subtitle selection, buffered state, loaded-list navigation, and original mobile
+and TV overlays.
 
-Mobile advances from code 4 to code 5 and TV advances from code 9 to code 10 with unchanged package,
-Development signer, protected-storage identities, TDLib paths, ARM64 packaging, and official native
-lineage. The TV APK was built and verified as a shared-code regression artifact only; it was not
-exported, delivered, installed, or deployed.
+Mobile advances from code 5 to code 6 and TV advances from code 10 to code 11 without changing
+package identity, Development signer, credential/database-key storage identities, authenticated
+TDLib database/session paths, existing complete or partial TDLib files, or unrelated app-private
+state. External Telegram subtitle matching and source aggregation remain F2D.
 
-## Authoritative physical code-4 baseline
+## Resource architecture
 
-The owner physically updated and tested mobile code 4 before F1D.4. Established facts are:
+| Resource | Owner and lifetime | Bound / persistence | Cleanup, upgrade, privacy, and failure behavior |
+| --- | --- | --- | --- |
+| Warm playback session | Process-scoped `WarmPlaybackSessionOwner`; retained for five minutes after route exit | At most one controller; no disk persistence; memory remains bounded by the selected Media3 profile | Exit pauses, detaches the surface, and stops speculative demand. Same opaque identity reattaches. Replacement, exact expiry, logout/disconnect/reset, process shutdown, memory pressure, or failure releases. A failed reattach is discarded and rebuilt. No provider ID is public. |
+| TDLib byte cache | Package-private `TdLibMediaCacheManager`; survives process death and ordinary APK update | TDLib's existing file is the only byte copy. Atomic versioned ledger is app-private metadata outside the TDLib files root | Ready-time maintenance adopts legacy files without rename, copy, deletion, or redownload. Eligible eviction is serialized LRU through TDLib `DeleteFile`; ledger state is removed only after confirmation and retained after failure. Active/warm/current/Continue Watching/user-pinned entries are never silently evicted. Reset follows the existing scoped app-data policy. Paths, filenames, and provider IDs never enter public state. |
+| Playback resume | `PlaybackResumeStore` plus per-attempt coordinator | Versioned app-private records, capped at 2,048; save at most every five seconds during active playback and at lifecycle boundaries | Survives restart/update. Restore rewinds five seconds, suppresses positions below 30 seconds and completed records, and isolates corrupt records. Progress is retained when cached bytes are cleared. Logout/full reset clears only after the destructive provider action succeeds; failure retains rollback state. |
+| Provider ranges and prefetch | Provider-neutral adaptive policy; TDLib runtime owns the one effective per-file request | Individual request cap 64 MiB; no complete-file eager conversion and no second request queue | Selects 16/32/64 MiB using seek, useful consumption, throughput, playback speed, buffer pressure, local coverage, and free-cache budget. Reuses/coalesces coverage, rejects stale generations, prioritizes foreground bytes, and stops speculation on pause, warm detach, or close. Low storage prevents growth. |
+| Media3 memory | `Media3PlaybackController` and named LoadControl profile selected from device class plus Android low-RAM capability | Mobile 128 MiB, TV 192 MiB, fallback 96 MiB target; 64 KiB allocator segments | No disk copy and no `SimpleCache`. Warm retention cannot exceed the active profile. Controller release, replacement, failure, process death, or memory pressure frees it. Screen size is not used as a memory signal. |
+| Controls, tracks, and preferences | Provider-neutral controller/state plus app-private preference store | One current runtime selection set; persisted values are speed, scaling, subtitle enabled state, and preferred audio/subtitle languages | Runtime Media3 handles are generation-bound and never persisted. New media resolves safe language preferences only against supported tracks and otherwise leaves Media3 defaults. Failures are sanitized and optional-track failure does not stop playback. Logout/reset behavior follows settings scope; no internal IDs or raw `Format` output cross the boundary. |
+| Presentation and queue | Shared timeline/overlay reducers with separate mobile and TV Compose presentations; route-scoped diagnostic queue | One active route queue; no invented episode relation and no queue persistence | Previous/next uses only loaded real items and saves the old item before switching. Mobile is touch-first; TV is D-pad-first. Back closes submenu, hides controls, then exits; TV focus returns to the invoking control. UI and accessibility semantics contain no provider identity. |
 
-- credentials, the TDLib database-key state, and the authenticated Telegram session survived the
-  update without reprovisioning or relogin;
-- Telegram remained connected and broadcast channels and real media were visible;
-- the same previously failing media opened;
-- the direct production probe read exactly 65,536 bytes from local cache at `LOCAL_FILE_READ`;
-- Media3 started playback, rendered visible video, produced audible audio, and consumed many
-  megabytes through the production provider; and
-- retry, typed diagnostics, and bounded cleanup remained available.
+## Cache policy
 
-This closes the basic range-delivery blocker and proves there was no native TDLib defect to repair.
-Code 4 still used fixed request windows no larger than 4 MiB. It did not establish code-5 startup,
-long-playback, rebuffer, cold-large-media, network-continuity, or Shield performance.
+TDLib's app-private file remains authoritative; Media3 `SimpleCache` and any other complete duplicate
+were not added.
 
-## Implemented streaming transaction
+- partial media expires seven days after last access;
+- complete media expires 30 days after last access;
+- unfinished Continue Watching media and explicit user pins are retained;
+- current, active, and warm media are eviction-ineligible;
+- mobile effective budget is `min(8 GiB, 20% of app-data filesystem capacity)`;
+- TV effective budget is `min(16 GiB, 25% of app-data filesystem capacity)`; and
+- both reserve at least `max(2 GiB, 10% of filesystem capacity)`.
 
-### Adaptive provider-neutral range policy
+If the reserve or cache budget cannot be maintained, new read-ahead growth stops and maintenance
+tries the oldest eligible unpinned entries. Existing readable bytes remain usable and playback is
+not crashed merely because growth is disabled. Maintenance runs lazily after Telegram reaches
+Ready, at most every 24 hours absent pressure. Legacy code-5 files are adopted by safe relative-path
+hash and later reconciled to the TDLib file operation identity; direct raw-file deletion is never
+used while TDLib owns the runtime.
 
-`core-provider` owns a pure adaptive selector. Its bounded outputs are:
+The player cache panel exposes only cached bytes, known total, partial/complete state, retention,
+pin/unpin, safe low-storage state, and confirmed clear. Clearing current media releases playback,
+asks TDLib to delete the cached file, retains resume progress, and permits later redownload.
 
-- 8 MiB for cold startup, parser-originated far demand, or a user/far seek;
-- 16 MiB after at least 4 MiB of continued sequential consumption;
-- 32 MiB after at least 12 MiB of useful sustained sequential consumption; and
-- the known remaining size when it is smaller than the selected window.
+## Resume and completion behavior
 
-No request is zero length or larger than 32 MiB. An unbounded Media3 `DataSpec` never becomes a
-whole-large-resource TDLib request. Verified complete files remain local, partial local bytes are
-reused first, and a seek resets sequential prediction to a focused 8 MiB window.
+The resume coordinator saves progress no more than every five seconds while active and also on
+pause, completed seek, player exit, Activity stop, controller release, and warm expiry. Records
+include duration and reliable completion state when known. Reopening unfinished media restores five
+seconds before the saved point, never below zero. Positions below 30 seconds and completed films do
+not resume.
 
-Policy input includes current position, known total size, sequential bytes consumed, seek state,
-locally available coverage, active request bounds, recent provider throughput, recent consumption
-rate, buffered duration, playback speed, and buffering/rebuffer pressure.
+The existing episode completion policy remains unchanged: a reliable final-segment result at or
+below exactly 30 seconds remaining, or the 90% fallback when final-segment information is
+unreliable, applies only when real provider-neutral episode context exists. Diagnostic-list items
+do not invent episode ordering; movies do not inherit episode automatic completion. A real Media3
+ended state marks completion for all media. No next episode is synthesized.
 
-### One-file ownership and read-ahead
+## Streaming and Media3 profiles
 
-Pinned TDLib has one effective user-initiated `DownloadFile` request slot per file; another call may
-alter that request rather than create an independent parallel range. The implementation therefore:
+The adaptive request policy is:
 
-- owns at most one active request for the file/session;
-- reuses active coverage and coalesces overlapping or adjacent demand;
-- suppresses duplicate effective requests;
-- binds responses and updates to current session/request generation;
-- rejects stale updates after seek or replacement;
-- replaces only obsolete coverage that cannot satisfy the new position;
-- cancels only an active request owned by that playback session; and
-- never cancels completed media.
+- 16 MiB for cold/startup demand and after a user or parser far seek;
+- 32 MiB after at least 8 MiB of useful sequential consumption;
+- 64 MiB after at least 24 MiB of sustained useful sequential consumption when observed throughput,
+  consumption, playback speed, buffer state, and storage headroom justify growth;
+- 64 MiB maximum, always clamped to known remaining size and never zero; and
+- 50% normal and 75% rebuffer-pressure read-ahead watermarks.
 
-Bounded low-watermark read-ahead starts before readable coverage reaches zero without delaying an
-already readable foreground range. Its ordinary threshold is one quarter of the selected window and
-its pressure threshold is one half. Pause/close stops unjustified prefetch, resume recalculates from
-actual state, and seek resets prediction. There is no parallel request queue or unbounded background
-download.
+Repeated no-progress pressure prevents unhelpful growth. One effective TDLib request remains in
+force, active coverage is reused/coalesced, stale updates are ignored, readable foreground bytes do
+not wait for speculative extension, and paused/warm-detached/closed sessions issue no speculative
+work.
 
-The final concurrency regression proves that a pause arriving during range-session construction and
-publication cannot be missed: `activeSession` is volatile, and adaptive/read-ahead decisions consume
-the latest source-level playback state.
+| Profile | Min / max forward | Initial / rebuffer | Back buffer | Target | Selection |
+| --- | --- | --- | --- | ---: | --- |
+| `MOBILE_FAST` | 20,000 / 90,000 ms | 1,500 / 5,000 ms | 20,000 ms | 128 MiB | Mobile unless Android reports low RAM |
+| `TV_FAST` | 30,000 / 120,000 ms | 2,000 / 6,000 ms | 30,000 ms | 192 MiB | TV unless a real memory-capability check requires fallback |
+| `LOW_MEMORY_FALLBACK` | 15,000 / 60,000 ms | 2,500 / 7,000 ms | 15,000 ms | 96 MiB | Real low-memory result |
 
-### Performance diagnostics
+Every profile uses a 64 KiB allocator segment and time priority. Screen size is never treated as a
+memory capability.
 
-Provider and playback instrumentation uses monotonic clocks and typed in-memory state. It covers:
+## Timeline, tracks, and overlays
 
-- provider and read bytes per second plus moving-average throughput;
-- read-consumption rate;
-- time to first provider byte;
-- time to Media3 `READY`;
-- time to first rendered frame;
-- current adaptive request size;
-- locally available bytes and network request count;
-- buffered duration;
-- rebuffer count and accumulated rebuffer duration;
-- local/network origin, delivered bytes, current stage, and stable safe failure code.
+`PlaybackTimeline` is explicitly LTR inside both RTL and LTR compositions: zero/current time is at
+the far left, duration/end at the far right, and progress increases left to right. Played and
+buffered fractions are distinct. Touch mapping, drag, TV D-pad Left/Right, time-label order, and
+accessibility semantics share the same model.
 
-The diagnostic state contains no title, channel, filename, path, Telegram identifier, account value,
-raw platform/TDLib error, exception, or stack trace. The mobile engineering block is secondary to
-ordinary playback controls and is not a default final-TV surface.
+The controller exposes the seven approved speeds from 0.5× through 2.0×, Fit/Fill/Zoom, play/pause,
+near and exact seek, buffered position/duration, safe video summary, previous/next availability,
+embedded audio tracks, embedded subtitle tracks, and subtitle Off. Track presentation is limited to
+sanitized language/label, channel count or codec summary when reliable, forced/default flags, and
+selected/supported state. Media3 internal IDs, group IDs, URLs, filenames, raw formats, and provider
+identifiers are excluded.
 
-### Exact Media3 buffer profile
-
-`TelegramProgressiveLoadControlProfile` owns one explicit profile:
-
-| Setting | Value |
-| --- | ---: |
-| Minimum forward buffer | 15,000 ms |
-| Maximum forward buffer | 60,000 ms |
-| Initial playback threshold | 2,500 ms |
-| Rebuffer playback threshold | 7,000 ms |
-| Back buffer | 15,000 ms |
-| Target buffer bytes | 96 MiB |
-| Allocator segment | 64 KiB |
-| Priority | Time before size |
-| Trim allocator on reset | Yes |
-| Retain back buffer from keyframe | No |
-
-Autoplay, ordinary `BUFFERING` recovery without source recreation, pause/resume buffer retention,
-10-second and far seeks, valid TDLib local-byte reuse, and terminal-only source retry remain intact.
-
-## State and update preservation
-
-Mobile code 5 keeps the code-4 package identity and must update it without uninstall, clear-data,
-downgrade, provisioning-file reimport, passphrase entry, Telegram relogin, database-key recovery, or
-reset. No F1D.4 migration clears or renames the API credential vault, TDLib database-key envelope or
-alias, authenticated TDLib database/session, complete or partial TDLib files, playback progress,
-continue-watching state, mobile settings, or unrelated application state.
-
-TV code 10 keeps the code-9 package, signer, private-state identities, D-pad behavior, and secure
-window policy. Local APK comparison proved update prerequisites, but no TV installation or physical
-TV state-continuity result is claimed.
-
-## Approved TV catalog UX requirement
-
-`docs/TV_CATALOG_UX_SPEC.md` is an approved product requirement, not a speculative proposal. It
-defines an original landscape, D-pad-first, 10-foot catalog experience with:
-
-- horizontal Home rows beginning with **המשך צפייה**;
-- progress-aware movie and episode cards with stable focus restoration;
-- locally indexed next-episode rollover without invented episodes;
-- metadata-rich movie, series, season, and episode pages;
-- every matching on-device source variant across allowed Telegram channels;
-- TMDB as the planned primary metadata provider while keeping rating providers separate and never
-  labeling a TMDB vote score as IMDb; and
-- TV-safe language, subtitle, audio, seek, autoplay, hardware, passthrough, buffering, cache, blur,
-  and about settings.
-
-No reference screenshot, copied brand asset, copied layout, third-party code, font, endpoint, or
-torrent behavior was added. F1D.4 does not implement permanent catalog indexing, TMDB networking, or
-the final visual redesign.
-
-Future product work is divided into:
-
-- **F2A:** local persistent Telegram catalog and source-variant identity;
-- **F2B:** TMDB matching, metadata cache, and provider abstraction;
-- **F2C:** TV Home rows, Continue Watching, and details/series pages; and
-- **F2D:** source picker, subtitle/audio preferences, and final playback integration.
+The original TV overlay is landscape, D-pad-first, and 10-foot-readable. It has Back/title/real
+previous-next context, central ±10 seconds and large play/pause, an always-LTR bottom timeline, and
+the six panels **תצוגה**, **מהירות**, **שמע**, **כתוביות**, **מטמון**, and **מידע**. The mobile
+presentation is touch-first in portrait or landscape and uses the same behavior. Paused/open-menu
+state remains visible; otherwise controls hide after four seconds. Interaction reveals controls,
+Back closes a submenu before controls before route exit, and TV restores focus. The diagnostic
+engineering panel remains secondary/collapsible. No engine chooser exists because Media3 is the
+only engine.
 
 ## Principal changed areas
 
-- `core-provider`: `AdaptiveRangePolicy`, performance estimator/state, and provider-neutral range
-  diagnostics.
-- `core-telegram`: one-slot adaptive `TdLibRangeSource`, ownership/coalescing, stale-generation
-  guards, read-ahead, pause/resume/seek coordination, and deterministic range tests.
-- `core-playback`: the named LoadControl profile, playback performance tracker/event relay, Media3
-  wiring, and behavior tests.
-- `app-mobile`: code-5 identity and secondary sanitized performance presentation.
-- `app-tv`: code-10 identity and shared playback regression build; no TV delivery.
-- CI and delivery scripts: code-5/code-10 identity, exact-HEAD artifacts, retained update pairs, and
-  mobile-only publication isolation.
-- Documentation: the approved TV catalog specification, physical performance procedure, ADR, and
-  reconciled architecture, security, Telegram, test, release, state, handoff, and distribution
-  records.
+- `core-provider`: opaque resource identity, cache presentation contracts, and the 16/32/64 MiB
+  adaptive selector.
+- `core-telegram`: atomic cache ledger/manager, legacy adoption, budget/reserve/LRU policy, confirmed
+  TDLib deletion, cache-aware range selection, and serialized active ownership.
+- `core-playback`: warm-session owner, resume and preference stores, named LoadControl profiles,
+  safe track/control state, route queue, timeline, overlay reducer, and Media3 wiring.
+- `app-mobile`: code-6 identity, always-LTR touch player, all six panels, queue navigation, and
+  secondary engineering diagnostics.
+- `app-tv`: code-11 identity, original D-pad overlay, submenu/focus/back behavior, and shared player
+  regression surface; no TV delivery.
+- CI and delivery scripts: code-6/code-11 identities, retained code-5 update baseline, same-version
+  code-6 refresh without losing the previous APK, and exact-HEAD artifact validation.
+- Documentation: cache/warm-player ADR, 23-step physical code-6 acceptance procedure, architecture,
+  security, Telegram, test, release, state, UX, distribution, and Shield-deferred records.
 
 ## Native artifact evidence
 
-No TDLib native build occurred. Both required verification-only commands passed in two observed
-local runs, and exact-HEAD CI verified its established cache without rebuilding TDLib.
+No TDLib native build occurred. Both mandatory verification-only commands passed locally, and
+exact-HEAD CI restored and verified its pre-existing official cache without rebuilding.
 
 | Native property | Observed value |
 | --- | --- |
@@ -202,61 +178,57 @@ local runs, and exact-HEAD CI verified its established cache without rebuilding 
 | Local Java JAR SHA-256 | `e39bb497b7eea1f33d7d3b5816591b7656259df29e0231c10287e514e3951a04` |
 | Local packaged JNI SHA-256 | `21d59ebfeba4edc62ea74cefaa79b08650e796530f3d5e57804105cc44cb65dc` |
 | CI packaged JNI SHA-256 | `790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f` |
-| Layout | 16 KiB-compatible ELF/APK placement |
+| Layout | ARM64 DYN, NDK r28c, `LOAD` alignment at least `0x4000`, stored and 16,384-byte APK aligned, expected system dependencies only |
 
-The local and CI JNI hashes are two pre-existing, separately verified cache lineages for the same
-pinned official source/build identity. They are not required to be byte-identical to each other;
-each packaged APK was verified against the cache that produced it. F1D.4 changed no source pin,
-native input, ABI, NDK, AAR/JAR identity, or native cache identity.
+The local and CI JNI hashes are the two pre-existing, separately verified cache lineages for the
+same pinned official source/build identity. F1D.5 changed neither lineage, source pin, native input,
+ABI, NDK, AAR/JAR identity, nor packaging policy.
 
 ## Local validation
 
-Both TDLib verification-only commands, Gradle 9.5/JDK 21 project discovery, every focused module
-test, aggregate tests, aggregate lint, and both assemblies passed. After the final pause-publication
-concurrency fix, aggregate tests, lint, both assemblies, native/package inspection, and the real
-retained mobile 4→5 and TV 9→10 upgrade comparisons reran and passed.
-
-Generated JUnit XML records 460 tests, all passed with zero failures, errors, or skips:
+Both required TDLib verification-only commands, Gradle 9.5/JDK 21 discovery, all focused module
+tests, aggregate tests, aggregate lint, and both signed assemblies passed. Generated JUnit XML
+records 513 tests with zero failures, errors, or skips:
 
 | Module | Tests |
 | --- | ---: |
 | `app-tv` | 74 |
-| `app-mobile` | 48 |
+| `app-mobile` | 49 |
 | `core-model` | 15 |
-| `core-playback` | 40 |
-| `core-provider` | 23 |
+| `core-playback` | 78 |
+| `core-provider` | 27 |
 | `core-provisioning` | 48 |
 | `core-security` | 96 |
-| `core-telegram` | 116 |
-| **Total** | **460** |
+| `core-telegram` | 126 |
+| **Total** | **513** |
 
-All 423 tests present at the start of F1D.4 remain. Added coverage includes adaptive startup and
-8 → 16 → 32 MiB sequential growth, seek reset, cap/clamp, one-slot reuse/coalescing/duplicate
-suppression, stale-update rejection, low-watermark read-ahead, pause/resume/close, pause racing
-session publication, throughput/timing/rebuffer state, exact LoadControl values and allocator bounds,
-warm/partial/cold/short/large media scenarios, near/far seek, no-progress recovery, terminal retry,
-diagnostic leakage, update compatibility, and mobile-only publication isolation.
+All 460 tests present at the start remain. Added coverage includes warm same-resource reattach,
+exact five-minute expiry, replacement, failed warm rebuild, no detached audio/read-ahead, lifecycle
+release, resume throttling/rewind/suppression/corruption isolation, legacy adoption, TTLs, pins,
+budgets/reserve/LRU/deletion retry, 16/32/64 growth and watermarks, stale/coalesced ranges, exact
+profiles and memory bounds, always-LTR input mapping, speed/scaling/tracks/preferences, overlay
+timing/back/focus, queue availability, sanitization, and upgrade/publication compatibility.
 
-Additional passed local evidence:
+Additional executable validation passed:
 
-- browser/WebCrypto/Kotlin interoperability checks;
+- browser/WebCrypto/Kotlin interoperability and negative checks;
 - provisioning inspector: 4 cases;
-- upgrade harness: 13 cases;
+- APK upgrade harness: 13 cases;
 - TV publication harness: 9 cases;
 - TV exact-HEAD downloader rejection harness: 8 cases;
 - mobile publication harness: 10 cases;
 - mobile downloader harness: 19 rejection cases and 1 success case;
-- native-layout verification with NDK r28c and 16 KiB requirements;
-- shell syntax checks; and
-- real retained mobile code 4→5 and TV code 9→10 update verification.
+- native-layout and APK identity/content verification;
+- shell syntax checks;
+- real retained mobile code 5→6 update verification; and
+- TV code 10→11 behavior fixture verification.
 
-No required local or CI check failed. `adb devices -l` returned an empty device list, so physical
-code-5 and Shield procedures were omitted rather than reported as passed.
+No retained real TV code-10 APK was available, so no real-pair TV APK comparison is claimed. The TV
+APK remained a non-delivered regression candidate.
 
 ### Commands actually run
 
-The observed command set included the mandatory preflights in both repositories and these
-milestone checks and delivery operations:
+The observed command set included both mandatory repository preflights and these milestone checks:
 
 ```bash
 ./scripts/bootstrap-tdlib-android.sh --verify-only
@@ -292,123 +264,106 @@ adb devices -l
 git diff --check
 ```
 
-The real retained APK pairs were also passed to `./scripts/verify-upgrade-apks.sh` for mobile
-code 4→5 and TV code 9→10. Final local and delivered APKs were passed to the package-specific APK
-and native-layout verifiers. Git fetch/status/diff/commit/push and exact-SHA `gh run` inspection were
-run in the required order. The TV exporter, TV CI downloader, installer, and Shield deployer were
-not run.
-
-The final locally assembled APKs were:
+The final locally assembled artifacts were:
 
 | Candidate | Size | SHA-256 | Modification time |
 | --- | ---: | --- | --- |
-| Mobile code 5 | 56,222,741 bytes | `ea9ed1e9e7562c1ddaf6b8eee20802be16b9ce66b32a0c36c24fcdd10fc083ae` | `2026-08-04 13:32:29.576450293 +0000` |
-| TV code 10 | 57,263,531 bytes | `7f79756f77b499e2c03ac2787ddb78e9cffa7766fc68935515679dc24f8530e5` | `2026-08-04 13:32:29.580450293 +0000` |
+| Mobile code 6 | 56,609,030 bytes | `234eceea423e0bfe19a8f4f6e337ee39e24c961d9f6911eb6f6acb1b885c05a5` | `2026-08-04 19:49:42.902609786 +0000` |
+| TV code 11 | 57,668,476 bytes | `1b086dcd3a2cd29f3712bfda450ebd0a0dde4d0ae2da1f7f5483fb3c2cdc6086` | `2026-08-04 19:49:44.558609785 +0000` |
 
-Both have the exact package/version/code, Development signer, ARM64-only payload, verified local JNI,
-and no credentials, keys, provisioning file, Telegram session/database, or private media. The local
-mobile-only exporter passed and left the parent TV APK files and provisioning tool unchanged. The TV
-exporter and Shield deployment did not run.
+Both passed package/version/code, Development signer, ARM64-only, local JNI, 16 KiB native layout,
+and forbidden-content inspection. The real retained mobile code-5 APK passed update verification
+against the final local code-6 build. The synthetic TV behavior fixture passed code 10→11. The TV
+exporter, TV CI downloader, installer, and Shield deployer were not run.
 
-`adb devices -l` listed no attached device. No code-5 installation, launch, state-preservation,
-streaming, performance, or Shield result is inferred from local validation.
+`adb devices -l` listed no attached device. Therefore no code-6 installation, launch, state
+preservation, Telegram behavior, playback performance, touch/track behavior, or Shield result is
+inferred from local or CI validation.
 
 ## Exact-final-HEAD Android CI
 
 | Field | Value |
 | --- | --- |
-| Run | `30915678822` |
+| Run | `30945616102` |
 | Event / branch | `push` / `main` |
-| Commit | `2c97790b08178658b8ca37c0d66832d94fd954dd` |
+| Commit | `cd0865762d3db304d265a0972a4c40731e9e4d56` |
 | Conclusion | success |
-| Wrapper job | `92013079559` — passed |
-| Android build job | `92013129636` — passed |
-| Mobile artifact | `private-media-tv-mobile-apk-2c97790b08178658b8ca37c0d66832d94fd954dd` |
-| TV artifact | `private-media-tv-apk-2c97790b08178658b8ca37c0d66832d94fd954dd` |
+| Wrapper job | `92114729524` — passed in 8 seconds |
+| Android build job | `92114776688` — passed in 6 minutes 20 seconds |
+| Mobile artifact | `private-media-tv-mobile-apk-cd0865762d3db304d265a0972a4c40731e9e4d56` (artifact `8907124757`) |
+| TV artifact | `private-media-tv-apk-cd0865762d3db304d265a0972a4c40731e9e4d56` (artifact `8907120083`) |
 
-The exact-HEAD run passed wrapper validation, official pinned-TDLib cache verification without a
-native rebuild, tests, lint, signed ARM64 TV/mobile assembly, package/version/signer/JNI/native-layout
-and forbidden-content verification, artifact metadata/checksum generation, and both package-specific
-artifact uploads.
+The exact-HEAD run passed wrapper validation, pinned official-TDLib cache verification without a
+native rebuild, artifact-selection rejection tests, browser crypto fallback, Development signer
+reconstruction/verification, aggregate and focused tests, lint, signed ARM64 TV/mobile assembly,
+package/version/signer/JNI/content inspection, metadata/checksum generation, and both artifact
+uploads. GitHub emitted a non-failing Node.js action-runtime deprecation annotation for the pinned
+cache/upload actions; the run conclusion remained success and no F1D.5 check failed.
 
 ## Final CI mobile-only delivery
 
-After exact-HEAD CI succeeded, `./scripts/download-latest-ci-mobile-apk-to-phone.sh` selected the
-successful push artifact for the final remote `main` SHA and reverified its metadata, checksum,
-package, version/code, signer, ABI, JNI, native layout, and contents before mobile-only publication.
+After CI succeeded, `./scripts/download-latest-ci-mobile-apk-to-phone.sh` selected only the exact-
+HEAD push artifact, verified its metadata and payload, and published it through the Mobile-specific
+rotation path. The distinct verified code-5 APK remains `previous`.
 
 | Field | Final CI mobile APK |
 | --- | --- |
 | Canonical path | `/storage/emulated/0/Download/PrivateMediaTV/Mobile/private-media-tv-mobile-latest.apk` |
-| Package/version | `com.funzi7.privatemediatv.mobile`, `0.1.4-phone-test` (`versionCode` 5) |
-| Size | 56,120,404 bytes |
-| APK SHA-256 | `c8ce516fad6ce8106df03929bb146da56182e483f403462365c61f4e60325b49` |
-| Fresh modification timestamp | `2026-08-04 14:00:57.903473774 +0000` |
-| Modification epoch | `1785852057` |
+| Package/version | `com.funzi7.privatemediatv.mobile`, `0.1.5-phone-test` (`versionCode` 6) |
+| Size | 56,251,476 bytes |
+| APK SHA-256 | `17c2d7f970ec260a7a9c47426ea8464da1fda53aa3a5ac2ca8a2fd969a25e542` |
+| Fresh modification timestamp | `2026-08-04 20:05:23.378609427 +0000` |
+| Modification epoch | `1785873923` |
 | Development signer SHA-256 | `2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0` |
 | ABI | ARM64 only |
 | Packaged JNI SHA-256 | `790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f` |
 
-The final canonical APK is a real copied file, not a symlink. Before/after verification proved the
-parent TV `latest` and `previous` APKs and the offline provisioning tool retained their exact hashes,
-sizes, and timestamps. The TV exporter, TV CI downloader, installation, launch, and Shield deployment
-did not run. Shared-storage delivery is not evidence of Android private-state preservation,
-Telegram/session behavior, playback, or performance.
+The final APK is a real copied file, not a symlink, and it passes a fresh real code-5→6 upgrade
+verification. Parent TV `latest`, `previous`, and the offline provisioning tool retained their exact
+pre-milestone hashes, sizes, timestamps, and inodes. No TV export, CI TV download, installation,
+launch, or deployment occurred. Shared-storage publication does not prove app-private state or
+physical playback behavior.
 
-## Security and architecture decisions
+## Security decisions
 
 - TDLib Java/JNI types remain confined to `core-telegram`; UI, `core-model`, `core-provider`, and
-  playback contracts remain provider-neutral. `core-security` remains TDLib-independent.
-- Telegram sessions, database, files, cache, and playback stay app-private. No backend holds a
-  Telegram session or relays Telegram media.
-- The API credential vault, database-key vault, native/runtime, and provider/playback diagnostics
-  remain distinct typed states.
-- No credential, key, phone number, authentication value, password, QR value, Telegram identifier,
-  channel/media name, private filename, session/database, private media, screenshot, signing secret,
-  raw exception, or private diagnostic path appears in this handoff, CI, or packaged APK.
-- Metrics are monotonic typed in-memory state only; no analytics, advertising, Firebase, or crash
-  reporting was introduced.
-- The isolated mobile harness keeps its explicitly approved ordinary capture behavior and warning.
-  TV secure-window handling was not weakened.
-- No third-party TDLib binary, wrapper, gateway, Bot API, public/local HTTP media proxy, torrent
-  integration, native rebuild, uninstall, clear-data action, TV delivery, or Shield deployment was
-  introduced.
+  `core-playback` remain provider-neutral. `core-security` remains independent of TDLib.
+- Cache/resume internals may keep the provider operation identity only in app-private storage.
+  Shared models, logs, exceptions, CI, UI diagnostics, accessibility semantics, and this public
+  handoff contain no Telegram file/chat/message identity, filename, path, or raw format.
+- Cache deletion uses only supported TDLib deletion and never directly removes a runtime-owned
+  downloaded file. Failure retains ledger state for retry.
+- Existing credential vault, database-key envelope/alias, authenticated database/session, TDLib
+  files, progress, Continue Watching, preferences, and unrelated state are preserved across update.
+- Neither APK contains credentials, keys, `.pmtprov`, Telegram session/database material, private
+  media, private captures, or signing secrets.
+- The mobile harness preserves the approved unrestricted screenshot/recording behavior and warning;
+  TV secure-window handling is unchanged.
 
-## Physical status and limitations
+## Limitations and pending physical acceptance
 
-Physically established from code 4: data-preserving update, retained credentials/session, connected
-Telegram content discovery, exact 65,536-byte local probe at `LOCAL_FILE_READ`, real Media3 playback,
-visible video, audible audio, and multi-megabyte provider reads.
+- Physical code-6 install-over-code-5 and all 23 acceptance steps remain pending.
+- Warm reattachment, five-minute expiry behavior, process-death disk reuse, timeline direction,
+  touch controls, scaling, every speed, embedded tracks, queue navigation, cache pin/clear/redownload,
+  cold-large-media comparison, and ten-minute continuity have behavior tests but no physical phone
+  result.
+- A real retained TV code-10 APK was unavailable; only behavior compatibility and the new code-11
+  build/CI inspections passed.
+- Shield D-pad, codec, memory, passthrough, and performance acceptance remains deferred. A phone
+  result would not prove any of those TV properties.
+- External Telegram subtitle matching and source aggregation remain F2D and were not simulated.
+- The CI Node.js action-runtime deprecation annotation should be addressed in a future maintenance
+  update after reviewing new immutable action pins; it did not affect this successful run.
 
-Still pending:
+## Continuation
 
-- installing code 5 over the authenticated code-4 mobile application without uninstall or data
-  clearing;
-- confirming retained vaults, database/session, complete/partial TDLib files, progress, settings,
-  and unrelated state after that physical update;
-- physical code-5 warm, partial, and cold media startup/first-frame measurements;
-- at least ten minutes of continuous playback with rebuffer count and duration;
-- pause/resume, 10-second forward/backward seek, far seek, reopen, and local-byte reuse;
-- a factual code-4 versus code-5 comparison where media/network conditions permit; and
-- every Shield-specific codec, D-pad, focus, thermal, performance, playback, and update result.
-
-JVM tests, successful CI, APK inspection, and shared-storage delivery do not prove physical network
-speed, Android Keystore/session continuity, installation, launch, playback, or Shield behavior.
-Physical code-5 performance acceptance remains pending, and Shield remains deferred.
-
-## Next phase and continuation
-
-The next product phase is **F2A — local persistent Telegram catalog and source-variant identity**.
-Before treating F1D.4 performance as physically accepted, use the exact procedure in
-`docs/MOBILE_ACCEPTANCE.md` to install code 5 over code 4 without uninstall/clear-data, then test
-warm/partial/cold media, continuous playback, rebuffer behavior, pause/resume, near/far seek, reopen,
-and cache reuse. Publish only sanitized numeric measurements and safe stage/code values.
-
-F2A should create the durable on-device Telegram catalog and stable source-variant identity required
-by the approved TV UX. It must not add TMDB work early (F2B), final Home/details/series pages early
-(F2C), or source/subtitle/audio integration early (F2D). Continue to preserve the official TDLib
-pin, one-file request ownership, provider boundaries, app-private state, update compatibility,
-Development signer, ARM64/16 KiB native identity, D-pad requirements, and the public privacy boundary.
-
-Do not rebuild TDLib, clear any vault/session/cache, deliver the TV APK, deploy to Shield, publish a
-private Telegram identity, or treat phone/CI success as Shield acceptance.
+1. On the authorized phone, follow `docs/MOBILE_ACCEPTANCE.md` in order: install code 6 over code 5
+   without uninstalling or clearing data, then perform all cache, warm-session, process-death,
+   timeline, controls, tracks, navigation, clear/redownload, performance, and ten-minute checks.
+2. Record only safe timing/rebuffer measurements. Do not publish private names, identifiers,
+   screenshots, or account/session information.
+3. Do not infer Shield results from phone acceptance and do not deliver the TV APK for this
+   milestone.
+4. After physical F1D.5 acceptance, continue with **F2A — local persistent Telegram catalog and
+   source-variant identity**, preserving the provider-neutral cache/player contracts. F2D remains
+   responsible for external Telegram subtitle/source aggregation.
