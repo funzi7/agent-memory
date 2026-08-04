@@ -92,8 +92,15 @@ cp /root/work/telegram-topic-uploader/app/build/outputs/apk/debug/app-debug.apk 
 ```
 
 **Install over the existing app.** The debug certificate has not changed since D5A — at D6A7d it is
-still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`. **D6A7e6 (code 45,
-`0.13.20-d6a7e6`) supersedes every earlier build; no intermediate version needs installing first.**
+still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`. **D6A7e6a (code 46,
+`0.13.21-d6a7e6a`) supersedes every earlier build; no intermediate version needs installing first.**
+
+**D6A7e6a does not move the Room schema — it stays at 17, and no migration runs on this install.**
+Notification lifecycle is process behaviour over the existing runner slot and request rows; no
+notification-lifecycle state was added to Room and no migration was created for one. With the send
+queue empty, **force-stop the application once before testing** — the old orphan notification
+predates this build and must be cleared once so anything seen afterwards is this build's own
+behaviour.
 
 **D6A7e6 does not move the Room schema — it stays at 17, and no migration runs on this install.**
 The foreground-first start fits the existing runner slot, and thumbnails and Preview staging are
@@ -141,6 +148,96 @@ build reads identically to one answered against this one.
 item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
+
+**D6A7e6a** — a hotfix opened by the fourth physical run: a notification that ends with its chain,
+a backup that stands down, and a launch that clears what nothing owns.
+
+> **Application only.** The server repository was **not edited and not deployed**; its HEAD and the
+> deployed HEAD both remain `eaeba836650f67245b0bd8265b46f6e03d2cd29d`. **Instagram was not
+> contacted.** No Telegram content was sent. The application was **not installed** and **not run**
+> on any device or emulator.
+
+| Field | Value |
+| --- | --- |
+| **Final application HEAD** | **`0fdd843082380ce3967062ef5cdee2a84720da27`** — pushed. The build tree is `7591cb5`; the final HEAD adds a documentation-only artefact-record commit, and the hash is unchanged because documentation is not a build input |
+| **Final server HEAD** | **`eaeba836650f67245b0bd8265b46f6e03d2cd29d`** — unchanged |
+| Version | code 45 → **46**, name `0.13.20-d6a7e6` → **`0.13.21-d6a7e6a`** |
+| Room schema | **17, unchanged — no migration runs on this install.** Server: `0006_session_connection`, unchanged |
+| Gate | **2839 Android unit tests, 0 failures, 0 errors, 0 skipped; lint 0 issues** — counted from the XML reports, every task `--rerun-tasks`, the whole gate re-run from the committed tree |
+| APK | `/sdcard/Download/TelegramTopicUploader-0.13.21-d6a7e6a.apk`, SHA-256 `81073d4e1a3799fc1d6a2e2c252b0ddc864be3e357c952ab13a25693fe39a33f`, 16,683,917 bytes — hash verified identical, **not installed** |
+| Hardware | **Nothing verified.** `docs/D6A7E6A_DEVICE_CHECKLIST.md`, 22 items, all *not attempted*. The fourth run's broad positive signal about D6A7e6 is recorded and closes nothing; new rows **162–167**; rows 143–161 stay open line by line; row 150 stays open and non-blocking |
+
+### The two findings the fourth run produced, and the limit of what may be claimed
+
+D6A7e6 was installed **over the existing application data** and used.
+
+1. **The principal D6A7e6 corrections appear to work.** The previously reported upload, Review,
+   thumbnail and Preview problems are reported corrected in use. **A broad physical smoke pass,
+   not evidence that any checklist line passed** — rows 143–161 record the signal and stay open on
+   their own evidence.
+2. **An orphan explicit-send notification.** An ongoing notification whose Hebrew title means
+   *Sending your media* stood by itself: no explicit send active, nothing in the upload queue,
+   nothing uploading, nothing in Review, and an application opened from the notification showing
+   no corresponding work. Tailscale was disabled on the phone at the time; the explicit-send path
+   is local and **the finding is not attributed to Tailscale**. The code-level cause is
+   established — the UIDT JobService attached its notification under
+   `JOB_END_NOTIFICATION_POLICY_DETACH` and finished without deciding its fate, so an empty chain,
+   an already-drained chain, a late backup and a lost ownership race could all leave a detached
+   copy — but **which lawful ending the handset actually hit is deliberately not claimed**.
+
+### What it built
+
+- **The notification invariant.** An explicit-send notification exists iff a live runner owns work
+  or a user-started transfer is genuinely entering that ownership path; an empty launch never
+  recreates one.
+- **One typed settle decision** — `ExplicitSendNotificationCleanupPolicy`, asked by both services:
+  a loser, and an owner with a live successor, detaches (one chain shares one notification id, and
+  a loser removing it would strip a running transfer's required notification); every other owned
+  ending removes, an internal failure with a reschedule included — a re-entered job posts its own
+  fresh notification, and *keep for reschedule* is deliberately not a case.
+- **The JobService settles its notification**: end policy swapped to the platform's own
+  `JOB_END_NOTIFICATION_POLICY_REMOVE` at an owned settle, plus a belt cancel of any detached copy
+  behind the same typed decision; DETACH stays the live-work policy.
+- **The obsolete backup stands down.** After a non-JobService drain: the durable platform request
+  is cleared — the call moved after the lease release, where its `ownerToken IS NULL` guard lets
+  it actually fire — and the pending explicit-send JobScheduler entry is withdrawn as a courtesy,
+  explicit job ID only, never the batch's. The durable lease remains the duplicate-safety
+  mechanism; a job passing through the cancellation loses it, sends nothing, and removes its own
+  notification.
+- **One bounded orphan reconciliation** — at process start and on the notification deep link. It
+  cancels only when durable facts prove no request, no live lease and no matching active transfer;
+  preserves on any sign of work; starts nothing, contacts nothing, clears nothing durable; and is
+  structurally connectivity-blind — no gate, network or Remote Sources type can even be consulted.
+  The deep link keeps routing to the Send Queue, never Review, and no fake Queue row explains a
+  removed notification.
+
+### The user-approved roadmap order after this hotfix — recorded, not implemented
+
+1. Reconnect the dedicated Instagram viewing session, with a conservative operating profile.
+2. Configure Reddit OAuth and validate one disposable source.
+3. Replace the phone's Tailscale dependency with a securely authenticated HTTPS access path,
+   retaining Tailscale for server administration.
+4. Validate/configure TikTok and X.
+5. Handle 9GAG separately — the deployed host currently receives an anti-bot challenge.
+
+### The rules worth carrying forward
+
+- **A notification is a claim about current work.** Attaching one is a platform requirement;
+  deciding its end is the application's, at every settle, or the user finds it lying over an empty
+  app.
+- **Detach-while-live and remove-at-settle are both right, in that order.** The loser rule and the
+  orphan rule are one typed policy, not two services' private conditionals.
+- **A recovery owner is not queued work.** A backup that outlives the chain it was scheduled for
+  wakes over nothing; stand it down on the drain, and keep the lease — never the cancellation — as
+  the duplicate guard.
+- **A guarded write that can never fire is a comment wearing SQL.** The in-lease
+  `clearPlatformRequest` had been a silent no-op behind its own `ownerToken IS NULL` guard;
+  moving the call is what made the code's claim true. Check the guard's reachability, not just its
+  presence.
+- **Do not attribute a local defect to a coincident network fact.** Tailscale was off; the
+  cleanup's inputs are pinned so it can never become one.
+
+## 4a000. Previous milestone: D6A7e6
 
 **D6A7e6** — a corrective milestone opened by the third physical run: a tap that starts its own
 service, a confirmed item that leaves Review, and a preview that can stage what it cannot seek.

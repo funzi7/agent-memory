@@ -11,6 +11,123 @@
 
 | Field | Value |
 | --- | --- |
+| Task | **D6A7e6a** — a hotfix opened by the fourth physical run: a notification that ends with its chain, a backup that stands down, and a launch that clears what nothing owns |
+| **Final application HEAD** | **`0fdd843082380ce3967062ef5cdee2a84720da27`** — pushed. The build tree is `7591cb5`; the final HEAD adds a documentation-only artefact-record commit, and the hash is unchanged because documentation is not a build input |
+| **Final server HEAD** | **`eaeba836650f67245b0bd8265b46f6e03d2cd29d`** (`eaeba83`) — **unchanged, not redeployed, not edited, not contacted for a change** |
+| Version | code 45 → **46**, name `0.13.20-d6a7e6` → **`0.13.21-d6a7e6a`** |
+| Room schema | **17, unchanged — no migration runs on this install.** Notification lifecycle is process behaviour over the existing `explicit_send_runner` slot and `explicit_send_requests` rows; nothing lifecycle-shaped was added to Room and no migration was created for it. `18.json` is pinned absent by `D6A7E6ASurfaceTest`. Server: **`0006_session_connection`**, unchanged |
+| Gate | **2839 Android unit tests, 0 failures, 0 errors, 0 skipped. Lint: 0 issues** (both counted from the XML reports, every task with `--rerun-tasks`, the whole gate re-run from the committed tree). Server: **not run — the repository was not touched** |
+| APK | `app-debug.apk`, 16,683,917 bytes, SHA-256 `81073d4e1a3799fc1d6a2e2c252b0ddc864be3e357c952ab13a25693fe39a33f`. **Copied to Downloads as `TelegramTopicUploader-0.13.21-d6a7e6a.apk` with a matching hash. Not installed.** Built from the tree at `7591cb5` |
+| Production | **Untouched.** No server edit, no deployment, no restart. **Instagram was not contacted**: no validation, no check, no operator probe; no credential replaced or cleared; no source enabled or disabled. No Telegram content sent |
+| Hardware | **No line of D6A7e6a is verified.** `docs/D6A7E6A_DEVICE_CHECKLIST.md`, 22 items, all *not attempted* — with the queue empty, one deliberate force-stop first clears the pre-this-build orphan notification. **The fourth run's broad positive signal about D6A7e6 is recorded and closes nothing; new rows 162–167; rows 143–161 stay open line by line; row 150 stays open and non-blocking** |
+
+### The two physical-device findings this hotfix answers
+
+D6A7e6 was installed **over the existing application data** on the handset and exercised.
+
+1. **The principal D6A7e6 corrections appear to work.** The previously reported upload, Review,
+   thumbnail and Preview problems are reported corrected in use. **A broad physical smoke pass,
+   not evidence that any checklist line passed** — rows 143–161 record the positive signal and
+   stay open on their own line-by-line evidence.
+2. **An orphan explicit-send notification.** An ongoing notification whose Hebrew title means
+   *Sending your media* appeared by itself while no explicit send was active, no item was in the
+   upload queue, nothing was uploading and nothing required Review — and opening the application
+   through it showed no corresponding work. The notification was not truthful about current work.
+   Tailscale was disabled on the phone at the time; the explicit-send path is local and **the
+   finding must not be attributed to Tailscale**. **Which lawful late ending produced the physical
+   occurrence is deliberately not claimed** — the established defect is that JobService completion
+   could leave its detached notification behind at all.
+
+**Neither finding is settled by a test run.** No private file name, identifier or screenshot
+content from the report is recorded anywhere.
+
+### What shipped
+
+**One typed settle decision for the shared notification.** `ExplicitSendNotificationCleanupPolicy`
+(domain, pure) is asked by both the UIDT JobService and the foreground service whenever a runner's
+run settles: `OWNERSHIP_REFUSED` — and any owned ending with a live successor on the chain —
+resolves to `DETACH_FOR_OTHER_OWNER`, because one chain shares one notification id and a loser
+removing it would strip the winner's required progress notification off a running transfer; every
+other owned ending resolves to `REMOVE_NOTIFICATION`, including an internal failure that asked for
+a reschedule — a reschedule is an acceptance, not an entry, and a re-entered job attaches its own
+fresh notification before any work. The JobService keeps `JOB_END_NOTIFICATION_POLICY_DETACH`
+while work is live, swaps the identical last-shown content to the platform's own
+`JOB_END_NOTIFICATION_POLICY_REMOVE` at an owned settle, finishes (rescheduling only when the
+typed outcome asks), and cancels any previously detached copy behind the same typed decision. The
+foreground service maps DETACH to `STOP_FOREGROUND_DETACH` and REMOVE to a cancel plus
+`STOP_FOREGROUND_REMOVE`; a run the platform stopped mid-flight still removes.
+
+**The obsolete UIDT backup stands down after the drain.** In the runner, for owners other than the
+JobService itself: the durable platform-request state is cleared — the call moved from inside the
+lease, where its own `ownerToken IS NULL` guard had silently refused it, to after the release,
+where it actually fires while the same guard still protects any successor's fresh request state —
+and the pending explicit-send JobScheduler entry is withdrawn as a best-effort courtesy on
+`EXPLICIT_SEND_JOB_ID` only, never the batch's. The JobService owner never issues the courtesy:
+`JobScheduler.cancel` on the running job's own id would stop the very runner doing the cancelling.
+Cancellation is not the duplicate-safety mechanism — the durable ownership lease is, and a job
+passing through the cancellation loses it, sends nothing, and now also removes its own
+notification. A new request after the drain schedules a fresh backup normally.
+
+**One bounded, idempotent, connectivity-blind orphan reconciliation.**
+`ExplicitSendNotificationReconciler` runs once at application process start and again when an
+explicit-send notification deep link opens the application. Preserve-first: durable work preserves,
+a live lease preserves, a live single-item transfer preserves; only provable emptiness cancels,
+through a remover port whose platform half is a single `NotificationManager` cancel of this
+application's own notification id. It never starts an upload, a runner, a job or a service; never
+contacts Telegram; never touches a job row, confirmation evidence, RESULT_UNKNOWN or a durable
+request. Its constructor takes exactly the three durable facts, the remover and a clock —
+`D6A7E6ASurfaceTest` pins the lifecycle file free of every gate, network and Remote Sources
+symbol. The deep link routes to the Send Queue, never Review, and no fake Queue row is shown to
+explain a removed notification.
+
+**The gate grew with the fix.** 34 new deterministic tests: the policy truth table; every
+previously-orphaning ending driven through the real runner; the two-owner races in both
+directions; the late backup entering after the drain; the courtesy withdrawal, its owner guard and
+its non-role in duplicate safety; the moved platform-request clear actually firing; the
+reconciliation's preserve/cancel table, idempotence and refusal to change anything durable; the
+deep-link halves on the ViewModel; and the structural pins. Every touched guard was re-scoped with
+its reason in the file, never deleted: the foreground service's `val lost =` slice re-pointed at
+the policy branches, D6A7E6SurfaceTest's exact version pin relaxed to the `>= 45` convention with
+`D6A7E6ASurfaceTest` owning the exact 46, `AppVersionTest` moved to the new declaration, and the
+in-app start's withdrawal count updated from one to two deliberate courtesies.
+
+### The rules worth carrying forward
+
+- **A notification is a claim about current work.** Attaching one is the platform's requirement;
+  ending one is the application's, at every settle — or the user eventually finds it standing over
+  an empty app.
+- **The loser rule and the orphan rule are one policy.** Detach-while-live and remove-at-settle
+  belong in a single typed decision both services ask, never in two private conditionals that can
+  drift.
+- **A recovery owner is not queued work.** Stand the backup down when the chain it was scheduled
+  for drains; keep the lease, never the cancellation, as the duplicate guard.
+- **A guarded write that can never fire is a comment wearing SQL.** Check a guard's reachability
+  from its call site, not just its presence — the in-lease `clearPlatformRequest` had never fired.
+- **Do not attribute a local defect to a coincident network fact.** The cleanup's inputs are
+  pinned connectivity-blind so the attribution cannot creep in later.
+
+### The user-approved roadmap order after this hotfix — recorded, not implemented
+
+1. Reconnect the dedicated Instagram viewing session, with a conservative operating profile.
+2. Configure Reddit OAuth and validate one disposable source.
+3. Replace the phone's Tailscale dependency with a securely authenticated HTTPS access path,
+   retaining Tailscale for server administration.
+4. Validate/configure TikTok and X.
+5. Handle 9GAG separately — the deployed host currently receives an anti-bot challenge.
+
+None of these server/network items is part of D6A7e6a; Instagram was not contacted.
+
+### Deployment verification
+
+**None was performed, because nothing was deployed.** The server repository was not edited, its
+HEAD is unchanged at `eaeba836650f67245b0bd8265b46f6e03d2cd29d`, and the deployed HEAD is the same
+value. Instagram was not contacted; the viewing session's repair remains the user's and the server
+operator's.
+
+### Previous milestone, for reference (D6A7e6)
+
+| Field | Value |
+| --- | --- |
 | Task | **D6A7e6** — a corrective milestone opened by the third physical run: a tap that starts its own service, a confirmed item that leaves Review, and a preview that can stage what it cannot seek |
 | **Final application HEAD** | **`dbead271995ea3cd9b414b85ad0542d414d9e1f8`** — pushed. The build tree is `bc38827`; the final HEAD adds a documentation-only artefact-record commit, and the hash is unchanged because documentation is not a build input |
 | **Final server HEAD** | **`eaeba836650f67245b0bd8265b46f6e03d2cd29d`** (`eaeba83`) — **unchanged, not redeployed, not edited, not contacted for a change** |
