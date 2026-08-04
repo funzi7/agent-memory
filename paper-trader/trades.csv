@@ -141,3 +141,17 @@ date,portfolio_id,strategy,ticker,side,shares,fill_price,commission,cash_after,e
 2026-07-31,swing_100,swing,T,SELL,3.0,23.1584,0.6948,93.46,93.46,המהלך נגמר — מתחת לממוצע 10
 2026-07-31,swing_100,swing,CMG,BUY,2.0,37.989,0.7598,16.73,91.17,"פריצה #2 +5.2% מעל הרף, RSI 69"
 2026-08-03,screener_track_10k,screener_track,RBLX,SELL,15.0,35.5622,1.0,4754.59,10436.91,סטופ הועלה לנקודת הכניסה — מתחת לכניסה
+2026-08-04,rotation_100,rotation,SPYM,BUY,1.0,89.5648,0.8956,9.54,100.33,rotate->SPY (5.4%)
+2026-08-04,rotation_10k,rotation,QQQ,SELL,13.0,707.8509,1.0,9762.81,9762.81,rotate->SPY (5.4%)
+2026-08-04,rotation_10k,rotation,SPY,BUY,12.0,761.0103,1.0,629.68,9885.64,rotate->SPY (5.4%)
+2026-08-04,momentum_scan_10k,momentum_scan,ON,SELL,28.0,84.2529,1.0,2670.42,7728.36,ירד מהדירוג — כעת מחוץ לטופ 10 (דירוג אחרון 14)
+2026-08-04,momentum_scan_10k,momentum_scan,AMD,BUY,5.0,504.4921,1.0,146.96,7797.8,"rank 5, 6-1 +140.5%"
+2026-08-04,screener_track_10k,screener_track,CELH,BUY,42.0,28.074,1.0,3574.49,10632.47,screener shortlist #2
+2026-08-04,screener_track_10k,screener_track,HOOD,BUY,12.0,92.7714,1.0,2460.23,10640.33,screener shortlist #3
+2026-08-04,screener_track_10k,screener_track,PAYX,BUY,10.0,115.1676,1.0,1307.55,10674.25,screener shortlist #5
+2026-08-04,screener_track_10k,screener_track,RBLX,BUY,32.0,36.6583,1.0,133.49,10684.19,screener shortlist #9
+2026-08-04,swing_10k,swing,HAS,SELL,16.0,90.5347,1.0,1521.24,9337.44,המהלך נגמר — מתחת לממוצע 10
+2026-08-04,swing_10k,swing,PCAR,SELL,12.0,129.7151,1.0,3076.82,9261.5,המהלך נגמר — מתחת לממוצע 10
+2026-08-04,swing_10k,swing,MTCH,BUY,38.0,40.06,1.0,1553.54,9305.34,"פריצה #2 +0.6% מעל הרף, RSI 64"
+2026-08-04,swing_10k,swing,RVTY,BUY,13.0,114.5572,1.0,63.3,9263.17,"פריצה #1 +1.5% מעל הרף, RSI 61"
+2026-08-04,twitter_track_100,twitter_track,ARDX,BUY,1.0,5.0225,0.0502,34.17,102.0,קנייה לפי @theaiportfolios
