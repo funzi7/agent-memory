@@ -1,222 +1,182 @@
-# Private Media TV — F1D.2 Handoff
+# Private Media TV — F1D.3 Handoff
 
 ## Identity
 
 | Field | Value |
 | --- | --- |
 | Application repository | `funzi7/private-media-tv` |
-| Milestone | F1D.2 — TDLib database-key startup repair and observable runtime retry |
+| Milestone | F1D.3 — physical Telegram range-source repair and observable playback diagnostics |
 | Branch / tracking branch | `main` / `origin/main` |
-| Starting application HEAD | `63bff9ccf5ba6a44bf8ccdf61b90a254f489d4af` |
-| Final application HEAD | `1f9f43593f75bf7a8e3131ec58959060e87c2207` |
-| Main milestone commit | `58365b7244e7ff3d999fd8950525f3b8d4067fc4` |
-| Scoped CI follow-up | `1f9f43593f75bf7a8e3131ec58959060e87c2207` |
-| Mobile identity | `com.funzi7.privatemediatv.mobile`, `0.1.2-phone-test`, `versionCode` 3 |
-| TV identity | `com.funzi7.privatemediatv`, `0.3.5-f1c4`, `versionCode` 8 |
+| Starting application HEAD | `1f9f43593f75bf7a8e3131ec58959060e87c2207` |
+| Final application HEAD | `f90882cc28d3e88912347052b717f48808e8a9a9` |
+| Application milestone commit | `f90882cc28d3e88912347052b717f48808e8a9a9` |
+| Mobile identity | `com.funzi7.privatemediatv.mobile`, `0.1.3-phone-test`, `versionCode` 4 |
+| TV identity | `com.funzi7.privatemediatv`, `0.3.6-f1c5`, `versionCode` 9 |
 | Development signer SHA-256 | `2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0` |
 
-Both application commits were pushed without rewriting history. Final local `HEAD`, `origin/main`,
+The application commit was pushed without rewriting history. Final local `HEAD`, `origin/main`,
 the successful exact-HEAD Android CI run, its artifacts, and the downloaded mobile artifact all
 identify the final application SHA above.
 
-## Authoritative physical trigger
+## Authoritative physical code-3 findings
 
-The owner physically updated and tested mobile code 2 on a Samsung Android 16 phone. Established
-facts are:
+The owner physically updated and tested mobile code 3 on an Android 16 phone. Established facts
+are:
 
-- the APK updated the existing installation without uninstalling or clearing data;
-- screenshots work throughout `app-mobile`;
-- the real provisioning document had already passed structural validation;
-- the correct passphrase was accepted;
-- production API credentials were stored and read back;
-- the dedicated Android API-credential vault self-test passed;
-- Telegram runtime startup then failed after credential storage;
-- Home incorrectly described API credentials as inaccessible/reset-required while TDLib remained
-  unavailable, authorization was closed, and no session was active;
-- the runtime-only retry appeared inert because it exposed no loading state, attempt number,
-  startup stage, safe code, navigation, or changed terminal result; and
-- phone-number login remained unavailable.
+- the APK updated without uninstalling or clearing application data;
+- stored API credentials remained accessible;
+- TDLib database-key startup and Telegram phone authorization succeeded;
+- the Telegram account was connected;
+- broadcast-channel discovery, recent-media discovery, and media selection succeeded;
+- selection of a real media item opened the playback screen;
+- the selected file exposed a known total size of approximately 24.5 MiB;
+- the player remained black at 00:00 with unknown duration and produced no audio or video;
+- provider diagnostics retained known total size, zero locally available bytes after closure, an
+  unbounded request beginning at zero, local-cache origin, and closed resource state;
+- Media3 reported its generic source-range failure; and
+- no media byte and no bounded network range request were observed.
 
-These observations prove API-credential success followed by a later TDLib startup failure. They do
-not prove the exact database-key, JNI, client, parameter, or native-runtime root cause.
+These findings prove authentication, connected-session restoration, content discovery, media
+mapping, and playback-screen navigation. They do not prove successful delivery of any media byte
+to Media3. The exact code-3 root cause was not physically isolated. Path-alias policy, local-file
+opening/reading, and completed-file prefix handling were strong code-based candidates, not proven
+causes.
 
 ## Implemented behavior
 
-### Independent security and runtime states
+### Typed provider-neutral range transaction
 
-Mobile presentation and runtime orchestration now retain three independent states:
+The provider-neutral contract now models the complete media-byte transaction with stable,
+non-sensitive stages for snapshot acquisition, prefix query, local path resolution and policy,
+local open/stat/read, bounded download request and progress, cancellation, Media3 open/read, and
+session cleanup.
 
-1. API credential vault;
-2. TDLib database-key vault; and
-3. TDLib native/runtime.
+Failures use a closed set of safe `PMTV-RANGE-*` codes. Diagnostics retain:
 
-Home exposes a row for each, plus provider-neutral Telegram authorization/session status. A
-database-key or runtime failure cannot mark the API vault inaccessible. Only an actual credential
-vault status/read failure does that. Existing stored credentials are read on startup; no
-version-triggered clearing, document reselection, passphrase re-entry, credential replacement, or
-full reset was added.
+- current stage and last terminal failure;
+- playback/source request attempt;
+- local-open and network-download counts;
+- total size and current requested position/length;
+- locally available bytes and local/new-request origin;
+- bytes delivered to Media3; and
+- cleanup completion independently of terminal outcome.
 
-### Typed startup transaction
+No diagnostic, UI message, or Media3-facing exception includes a filesystem path, filename,
+provider identifier, Telegram identifier, raw TDLib object, raw error text, exception, or stack
+trace.
 
-Startup is modeled as explicit non-sensitive stages:
+### Failure retention across cleanup
 
-1. API credential read;
-2. configuration validation;
-3. storage-path preparation;
-4. database-key acquisition;
-5. runtime-lease acquisition;
-6. gateway creation;
-7. TDLib Java-class check;
-8. JNI library load;
-9. actual leased client creation;
-10. TDLib parameter submission;
-11. native start; and
-12. first real authorization-state observation.
+Session cleanup no longer overwrites a failed terminal result with `CLOSED`. A failed open or read
+followed by successful cleanup remains a failure with its exact failed stage and safe code while
+also reporting that resources are closed. A clean user close can still terminate as closed without
+a failure. A new source attempt clears the old failure only after the new attempt actually begins.
 
-Terminal state retains the exact safe stage, category, stable safe code, typed database-key failure,
-and retryable/fatal disposition where applicable. Every existing database-key failure remains
-distinguishable through `core-security`, `core-telegram`, the mobile facade/ViewModel, mobile UI,
-and applicable TV Settings presentation:
+### Android local-file boundary
 
-- `PMTV-TDLIB-DBKEY-STORAGE`;
-- `PMTV-TDLIB-DBKEY-GENERATE`;
-- `PMTV-TDLIB-DBKEY-PROTECT`;
-- `PMTV-TDLIB-DBKEY-WRAPPING-KEY`;
-- `PMTV-TDLIB-DBKEY-ENVELOPE-CORRUPT`;
-- `PMTV-TDLIB-DBKEY-EXISTING-DATABASE-NO-KEY`; and
-- `PMTV-TDLIB-DBKEY-CONSUMER`.
+Direct production use of a Java NIO channel opened with mixed read/no-follow options was replaced
+by an injectable Android local-file access boundary.
 
-Runtime failures remain distinct for credential read, invalid configuration, storage preparation,
-database-key recoverability, active ownership, Java class, JNI load, client creation, parameter
-submission, native start, and authorization initialization. Timeout after parameter submission
-remains `PARAMETERS_SUBMISSION` / `PMTV-TDLIB-SET-PARAMETERS` rather than being relabeled as an
-authorization failure.
+Production behavior:
 
-### Observable retry and native ownership
+- resolves the configured TDLib files root and candidate to canonical identity;
+- accepts two standard Android app-private path aliases only when both resolve to the exact same
+  package-owned TDLib root;
+- rejects real root escape, intermediate-component escape, a symbolic-link final component,
+  missing files, and non-regular files;
+- prefers `android.system.Os` read-only, close-on-exec, no-follow descriptor opening;
+- verifies the opened descriptor with `fstat`, performs positioned reads, and closes once; and
+- uses a narrowly scoped app-private fallback only when the preferred platform operation is
+  unsupported, with canonical revalidation before and after opening.
 
-Every accepted press of the Telegram runtime retry:
+The boundary does not grant access to arbitrary application storage or shared storage.
 
-- increments a monotonic attempt number;
-- immediately displays loading and the current safe stage;
-- leaves the control visible but disabled while work runs;
-- blocks duplicate attempts;
-- rereads existing API credentials without reimport or passphrase entry;
-- releases only safely closable stale/failed ownership;
-- obtains or reuses the database key;
-- constructs a fresh runtime;
-- terminates with either the exact safe failure or success; and
-- moves to phone-number login only after real runtime startup succeeds.
+### Completed, partial, and uncached files
 
-The stale-owner release itself is an observable runtime-lease stage. If it fails, retry terminates
-at `PMTV-TDLIB-RUNTIME-LEASE` and preserves the previously observed database-key row instead of
-falsely resetting or upgrading it.
+A TDLib snapshot marked complete no longer depends exclusively on the downloaded-prefix query.
+After trusted-path and regular-file validation, physical file length may establish local
+availability when it is compatible with exact or expected size. Prefix zero on a valid complete
+file therefore remains locally readable.
 
-Java-class and JNI-load checks are safe standalone probes. Client capability is measured only
-through the production leased gateway. Cancellation before client creation safely closes genuinely
-unstarted ownership and permits lease reuse. Once native creator invocation makes ownership
-uncertain, copied database-key material is wiped, callbacks remain active, another client is
-blocked, and only a real TDLib Closed update releases ownership; close/cancellation cannot invent
-closure.
+Completed-file size mismatch is a typed failure, never successful content. Exact EOF, beyond EOF,
+shorter-than-declared, and larger-than-declared cases are explicit. Partial local prefixes are read
+only where they cover the requested position.
 
-### TDLib database-key envelope
+When local bytes do not cover the request, the source issues a bounded request of at most 4 MiB,
+updates diagnostics before sending it, handles immediate response/update ordering in either
+direction, distinguishes timeout from no progress, cancels only its active owned request, never
+cancels a completed file, and supports a fresh bounded request after seek.
 
-`FileEncryptedDatabaseKeyEnvelopeStore` remains distinct from the API credential envelope format,
-filename, codec, and Keystore alias. It now independently enforces:
+### Media3, autoplay, and retry
 
-- package-owned `noBackupFilesDir` confinement;
-- parent-component and symbolic-link escape rejection;
-- Android-compatible owner-only lock opening and cross-process acquisition;
-- encrypted same-directory staging;
-- complete write and descriptor `fsync`;
-- exact staged read-back and cryptographic verification before acceptance;
-- create-only conflict protection;
-- same-directory atomic move when available;
-- a reviewed lock-held same-directory fallback only when atomic move is unsupported;
-- final permanent exact and cryptographic read-back;
-- no hard-link publication;
-- no plaintext disk path; and
-- cleanup that cannot mask a verified committed success.
+`ProviderRangeDataSource` preserves the exact safe provider failure while exposing only redacted
+`IOException` text to Media3. Presentation reports failure stage/code, whether zero or some bytes
+reached Media3, open/read attempt, and retry availability.
 
-### Dedicated database-key self-test
+Selecting media remains an explicit playback action. A successfully prepared source starts
+automatically, shows buffering while waiting, and retains manual play/pause. After failure, the
+Hebrew retry action increments the playback-attempt counter, rejects duplicate concurrent retry,
+clears the prior Media3 error, closes the previous source session, reopens the same provider source,
+shows the current stage, and terminates with success or the exact safe range code. Successful retry
+starts playback without channel reload, Telegram relogin, or media reselection.
 
-Mobile exposes **"בדיקת מפתח מסד TDLib"** separately from the existing Android API-vault test. The
-new self-test composes the production database-key manager, encrypted envelope store/codec, Android
-Keystore protector, and session-storage boundary with only:
+### Direct 64 KiB physical range probe
 
-- a unique disposable app-private root;
-- a unique disposable wrapping alias;
-- empty disposable database/files/temp directories; and
-- random fake key material.
+The mobile playback screen includes the Hebrew action **"בדיקת 64KiB ראשונים"**. It uses the same
+production `ProviderRangeSource` without the Media3 parser, opens position zero for 65,536 bytes,
+reads until the first byte, EOF, or typed failure, and reports only byte count, local/new-request
+origin, stage, and safe code. It never displays or hashes content bytes and always cleans up an
+opened session, including coroutine cancellation.
 
-It proves missing initial state, first key generation, wrapping-key creation, protection,
-publication, read-back, unprotection, exact second-call reuse, scoped session/envelope/alias
-deletion, and final absence. Success and all failures clean only those disposable identities. UI
-state contains only passed or a stable failed stage/code.
+A successful probe followed by Media3 failure remains visibly distinct from a range-delivery
+failure.
 
-### Narrow database-key-only recovery
+### State and update preservation
 
-The confirmed **"תיקון מפתח מסד TDLib בלבד"** action is available only when all of the following
-are re-proven under serialized runtime ownership:
+Mobile code 4 preserves the mobile application ID, Development signer, API-credential vault,
+database-key envelope and alias, authenticated TDLib database/session, TDLib files, playback cache,
+settings, and unrelated application state. No uninstall, clear-data, version-triggered deletion,
+relogin requirement, provisioning-document reimport, or migration cleanup was added.
 
-- API credentials are accessible;
-- authorization never reached Ready;
-- no usable database or other session material exists; and
-- the typed failure is isolated to removable database-key envelope/alias material.
-
-Wrapping-key, corrupt/invalid-envelope, secure-storage, and key-protection failures may qualify.
-Generation, consumer, and existing-database-without-key failures never qualify. The action requires
-confirmation, retains API credentials and unrelated state, deletes only the mobile database-key
-material and empty never-authorized TDLib directories, verifies absence, and automatically retries
-startup once. Any real database, download, temporary file, symlink, unknown entry, or unavailable
-inspection hides recovery and fails closed.
+The shared production range repair also advances TV to code 9. The TV package, signer, app-private
+identities, D-pad behavior, and secure-window policy remain intact. No TV APK was exported,
+downloaded to shared storage, installed, or deployed for this milestone.
 
 ## Principal changed areas
 
-- `core-security`: `DatabaseKeyContracts.kt`, `FileSecurityStorage.kt`,
-  `TdlibDatabaseKeyManager.kt`, new `AndroidTdlibDatabaseKeySelfTest.kt`, Android composition, and
-  focused store/manager/self-test behavior tests.
-- `core-telegram`: `TelegramRuntimeHealth.kt`, `TelegramSessionController.kt`,
-  `TdLibClientGateway.kt`, new `TdLibNativeStartupBoundary.kt`, and failure/ownership/startup tests.
-- `app-mobile`: `MobileModels.kt`, `MobileRuntimeFacade.kt`, `MobileViewModel.kt`,
-  `MobileAcceptanceApp.kt`, code-3 build identity, and model/ViewModel/manifest tests.
-- `app-tv`: Settings models/ViewModel/screen, code-8 build identity, and Settings regression tests;
-  no TV APK delivery.
-- `.github/workflows/android-ci.yml` and scripts: code-3/code-8 artifact identities, deterministic
-  ARM64 JNI layout verifier, update/delivery continuity, and exact-HEAD artifact validation.
-- `README.md`, `TODO.md`, `CHANGELOG.md`, `AGENTS.md`, and the security, Telegram, provisioning,
-  test, release, state, distribution, mobile, Shield, UX, and handoff documents.
+- `core-provider`: typed range diagnostics and terminal-failure model, plus the production 64 KiB
+  probe and behavior tests.
+- `core-playback`: Media3 adapter diagnostics and the fresh playback-attempt/autoplay/retry runner,
+  with source-byte and retry tests.
+- `core-telegram`: Android local-file boundary and repaired TDLib range source, with alias,
+  descriptor, completed-file, bounded-download, race, timeout, cancellation, and seek tests.
+- `app-mobile`: code-4 identity, probe/retry/autoplay presentation, safe diagnostics, and ViewModel
+  tests.
+- `app-tv`: code-9 identity and shared playback diagnostics/retry regression presentation; no TV
+  delivery.
+- CI and delivery scripts: code-4/code-9 package expectations, update compatibility, native-layout
+  checks, exact-HEAD selection, and mobile-only publication isolation.
+- `README.md`, `TODO.md`, `CHANGELOG.md`, `AGENTS.md`, ADR 0008, and the architecture, security,
+  Telegram, test, release, project-state, handoff, distribution, mobile-acceptance, Shield, and UX
+  documents.
 
 ## Native artifact evidence
 
-No native build occurred. The exact canonical mobile code-2 APK was inspected before publication
-changed:
-
-| Property | Value |
-| --- | --- |
-| APK size | 55,989,332 bytes |
-| APK SHA-256 | `07ce528d06bc097c752a4f35d1fa75d4e894ba501530900e3302da37d647aafe` |
-| APK modification | `2026-08-03 16:56:04.852971303 +0000` |
-| Packaged `libtdjni.so` SHA-256 | `790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f` |
-| Phone-host page size | 4,096 bytes |
-
-The packaged JNI is ARM64 ELF64 `DYN`, identifies Android NDK r28c (`13676358`), has three `LOAD`
-segments all aligned to `0x4000`, is stored uncompressed at a 16,384-byte-aligned APK data offset,
-and depends only on `libc.so`, `libdl.so`, `liblog.so`, `libm.so`, and `libz.so`. Android SDK
-`zipalign -P 16` verification passed.
-
-The unchanged local official TDLib cache remains pinned to commit
-`022d60202e446ad1287b9fb68e687c8a0760788b`:
+No TDLib native build occurred. Both mandatory commands ran in verification-only mode. The official
+TDLib source remains pinned to commit
+`022d60202e446ad1287b9fb68e687c8a0760788b`.
 
 | Artifact | SHA-256 |
 | --- | --- |
-| Local AAR | `025313d2a7cdbf148e5c700e8ef6c9d384f2301aff043c844997e0c23eb9abd2` |
-| Local Java JAR | `e39bb497b7eea1f33d7d3b5816591b7656259df29e0231c10287e514e3951a04` |
-| Local `libtdjni.so` | `21d59ebfeba4edc62ea74cefaa79b08650e796530f3d5e57804105cc44cb65dc` |
-| CI-cache / code-2 `libtdjni.so` | `790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f` |
+| Verified local AAR | `025313d2a7cdbf148e5c700e8ef6c9d384f2301aff043c844997e0c23eb9abd2` |
+| Verified local Java JAR | `e39bb497b7eea1f33d7d3b5816591b7656259df29e0231c10287e514e3951a04` |
+| Verified local cached JNI | `21d59ebfeba4edc62ea74cefaa79b08650e796530f3d5e57804105cc44cb65dc` |
+| Packaged exact-HEAD CI JNI | `790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f` |
 
-The local and GitHub-runner caches are separately verified pre-existing lineages. Their JNI files
-have the same required layout; the observed byte difference is confined to the GNU build ID. F1D.2
-changed no TDLib source pin or native build input.
+The packaged JNI is ARM64, retains the existing NDK r28c identity, has 16 KiB-compatible load
+alignment and uncompressed APK placement, and matches the verified native dependency allowlist.
+The separately verified local and CI cache lineages retain their established byte identities; this
+milestone changed neither the TDLib source pin nor native build inputs.
 
 ## Local validation
 
@@ -233,15 +193,15 @@ Commands actually run included:
 ./gradlew :app-tv:assembleDebug
 ./gradlew :app-mobile:testDebugUnitTest
 ./gradlew :app-tv:testDebugUnitTest
-./gradlew :core-security:testDebugUnitTest
-./gradlew :core-provisioning:testDebugUnitTest
-./gradlew :core-telegram:testDebugUnitTest
+./gradlew :core-provider:test
 ./gradlew :core-playback:test
+./gradlew :core-telegram:testDebugUnitTest
+./gradlew :core-security:testDebugUnitTest
 ./scripts/verify-apk-native-layout.sh --apk MOBILE_APK
 ./scripts/verify-apk-native-layout.sh --apk TV_APK
 ./scripts/verify-mobile-apk.sh --apk MOBILE_APK
-./scripts/verify-upgrade-apks.sh MOBILE_CODE_2_APK MOBILE_CODE_3_APK
-./scripts/verify-upgrade-apks.sh TV_CODE_7_APK TV_CODE_8_APK
+./scripts/verify-upgrade-apks.sh MOBILE_CODE_3_APK MOBILE_CODE_4_APK
+./scripts/verify-upgrade-apks.sh TV_CODE_8_APK TV_CODE_9_APK
 ./scripts/test-inspect-pmtprov.sh
 ./scripts/test-verify-upgrade-apks.sh
 ./scripts/test-apk-phone-delivery.sh
@@ -258,181 +218,164 @@ adb devices -l
 git diff --check
 ```
 
-JUnit XML records 391 tests, all passed with zero skips, failures, or errors:
+JUnit XML records 423 tests, all passed with zero skips, failures, or errors:
 
 | Module | Tests |
 | --- | ---: |
 | `app-tv` | 74 |
-| `app-mobile` | 45 |
+| `app-mobile` | 47 |
 | `core-model` | 15 |
-| `core-playback` | 23 |
-| `core-provider` | 2 |
+| `core-playback` | 30 |
+| `core-provider` | 8 |
 | `core-provisioning` | 48 |
 | `core-security` | 96 |
-| `core-telegram` | 88 |
-| Total | 391 |
+| `core-telegram` | 105 |
+| Total | 423 |
 
-All starting 338 tests were preserved. The three environment-dependent provisioning listener cases
-that had skipped earlier ran successfully because the final host exposed an eligible private IPv4
-interface. JVM coverage is not physical Android Keystore, TDLib, or phone evidence.
+All 391 starting tests were preserved. Added tests cover source-open/local-read failure, failure
+retention after close, unbounded-to-bounded request diagnostics, Android app-private alias
+equivalence and real escape rejection, preferred descriptor opening and unsupported-operation
+fallback, complete prefix-zero files and size mismatch, partial/uncached ranges, immediate
+response/update races, timeout versus no progress, seek cancellation/replacement, actual Media3
+bytes and zero-byte failure, probe success/failure/cancellation, playback retry counting,
+duplicate blocking, source reopening, and autoplay after retry.
 
-Other local results:
+Additional passed evidence:
 
-- Gradle 9.5.0 / JDK 21.0.11 project discovery passed.
-- Full lint, focused module tasks, and both signed assemblies passed.
-- WebCrypto/Kotlin interoperability and all browser/crypto checks passed with fake inputs.
-- Provisioning inspector passed 4 cases; upgrade verifier passed 13; TV publication passed 9; TV
-  downloader rejection passed 8; mobile publication passed 9; mobile downloader passed 19
-  rejection cases plus 1 valid publication.
-- Shell syntax checks passed.
-- Real retained mobile code 2→3 and TV code 7→8 update checks passed with identical package/signer,
-  ARM64/JNI continuity, and update-only install policy.
-- `adb devices -l` listed no attached device. No installation or launch was claimed.
+- Gradle/JDK discovery, all focused module suites, aggregate tests, lint, and both signed debug
+  assemblies;
+- executable WebCrypto/Kotlin interoperability, browser-crypto checks, and the provisioning
+  inspector with fake inputs;
+- upgrade harness: 13 cases;
+- TV publication harness: 9 cases;
+- TV exact-HEAD downloader rejection harness: 8 cases;
+- mobile publication harness: 10 cases;
+- mobile downloader harness: 19 rejection cases and 1 successful publication case;
+- TDLib native-layout and shell-syntax harnesses;
+- retained real mobile code 3 to 4 and TV code 8 to 9 APK update compatibility; and
+- mobile-only delivery isolation, including proof that the canonical parent TV files were
+  unchanged.
 
-## Local APKs and mobile-only publication
+`adb devices -l` listed no attached device during this work. No code-4 installation, launch,
+Telegram operation, probe, playback, or Shield result is claimed. JVM tests validate deterministic
+contract behavior; they do not prove physical Android path behavior or real Telegram streaming.
 
-| Field | Local mobile candidate | Local TV regression candidate |
-| --- | --- | --- |
-| Package/version | `com.funzi7.privatemediatv.mobile`, `0.1.2-phone-test` (3) | `com.funzi7.privatemediatv`, `0.3.5-f1c4` (8) |
-| Size | 56,206,917 bytes | 57,179,081 bytes |
-| APK SHA-256 | `a798b842d821f02c4e6c3ead2a60a78b4b7618d07acf1e39c8ae271cc16ca492` | `1b67d5e07df377bf9fd46c6abef473361d73b17310f25cc70608a5d18acc8066` |
-| Signer/ABI | Development / ARM64 only | Development / ARM64 only |
-| Packaged JNI SHA-256 | `21d59ebfeba4edc62ea74cefaa79b08650e796530f3d5e57804105cc44cb65dc` | same |
+## Local APK and publication evidence
 
-Both passed package/version/code/signer, forbidden-content, update, native dependency/layout, and
-16KB `zipalign` verification. The mobile-only exporter published the local candidate at the
-canonical Mobile path with modification `2026-08-03 20:01:41.388967055 +0000`. No TV exporter,
-TV downloader, installation, or deployment was run.
+The locally assembled mobile code-4 candidate was 56,180,091 bytes with SHA-256
+`a5e7bf7deea8924baf16db99738411e69d4faae5f7bf04081f355b27759fcebf`. It passed package,
+version/code, Development signer, ARM64-only ABI, packaged JNI, forbidden-content, native layout,
+16 KiB alignment, and mobile code-3 update compatibility checks. The local mobile-only exporter
+succeeded without changing the canonical TV files.
 
-## CI history and scoped follow-up
-
-The first pushed application HEAD, `58365b7244e7ff3d999fd8950525f3b8d4067fc4`, produced Android CI
-run `30848932688`. Wrapper validation, aggregate/focused tests, lint, and signed assembly passed.
-Package verification then failed because the GitHub runner's `file(1)` rendering omitted NDK
-identity text even though the ELF `.note.android.ident` section contained the pinned `r28c` and
-`13676358` values. This was a verifier portability defect, not a native artifact defect.
-
-The scoped follow-up makes the deterministic verifier read `.note.android.ident` directly and adds
-a harness fixture whose `file(1)` output intentionally omits NDK text. Local native-layout checks
-and the mobile CI-downloader harness passed before the follow-up commit/push.
+The TV code-9 candidate was built and inspected locally and passed package/version/code,
+Development signer, ARM64/JNI, forbidden-content, native-layout, 16 KiB alignment, and TV code-8
+update compatibility checks. It was intentionally not exported, downloaded, installed, or
+deployed.
 
 ## Exact-final-HEAD Android CI
 
 | Field | Value |
 | --- | --- |
-| Run / event / branch | `30849912186` / `push` / `main` |
-| Commit | `1f9f43593f75bf7a8e3131ec58959060e87c2207` |
+| Run / event / branch | `30874285005` / `push` / `main` |
+| Commit | `f90882cc28d3e88912347052b717f48808e8a9a9` |
 | Conclusion | completed successfully |
-| Run interval | `2026-08-03T20:22:26Z` to `2026-08-03T20:28:41Z` |
-| Wrapper job | `91807133705`, passed |
-| TDLib/tests/lint/TV+mobile job | `91807213288`, passed |
-| TV artifact | ID `8870326065`, `private-media-tv-apk-1f9f43593f75bf7a8e3131ec58959060e87c2207`, archive 57,096,598 bytes |
-| Mobile artifact | ID `8870327314`, `private-media-tv-mobile-apk-1f9f43593f75bf7a8e3131ec58959060e87c2207`, archive 56,039,558 bytes |
-| Artifact expiry | TV `2026-09-02T20:28:25Z`; mobile `2026-09-02T20:28:27Z` |
+| Wrapper validation job | passed |
+| Official TDLib, tests, lint, and signed TV/mobile APK job | passed in 7m29s |
+| Mobile artifact | `private-media-tv-mobile-apk-f90882cc28d3e88912347052b717f48808e8a9a9` |
+| TV artifact | exact-HEAD package-specific TV artifact uploaded; not downloaded to the phone |
 
-The exact-final-HEAD run passed wrapper validation; official pinned-TDLib cache verification without
-rebuild; artifact-selection rejection checks; browser crypto; Development signer reconstruction;
-aggregate and focused F1D.2 tests; full lint; signed ARM64 TV/mobile assembly; package, version,
-signer, JNI, deterministic 16KB layout and content verification; metadata/checksum creation;
-separate artifact uploads; and signing-material deletion.
+The exact-HEAD run passed wrapper validation; official pinned-TDLib cache verification without a
+native rebuild; CI-downloader rejection tests; browser crypto; Development signer reconstruction;
+aggregate and focused tests; full lint; signed ARM64 TV/mobile assembly; package, version, signer,
+JNI, native dependency, 16 KiB layout, and forbidden-content verification; metadata/checksum
+generation; and separate artifact uploads. The pull-request-only signing identity check was
+appropriately skipped on this push run.
 
-## Final CI mobile delivery
+## Final CI mobile-only delivery
 
-After successful exact-HEAD CI,
+After the successful exact-HEAD run, the exact-SHA invocation of
 `./scripts/download-latest-ci-mobile-apk-to-phone.sh` selected only the unexpired mobile artifact
-for the exact remote `main` SHA and reverified metadata, checksum, package, version, signer, ARM64
-shape, JNI hash, and deterministic native layout before mobile-only publication.
+for remote `main`, then reverified its metadata, checksum, package, version,
+Development signer, ARM64-only shape, packaged JNI identity, native dependencies, and deterministic
+16 KiB layout before publishing it to the canonical package-specific Mobile shared-storage target.
 
-Final canonical evidence:
+| Field | Final CI mobile APK |
+| --- | --- |
+| Package/version | `com.funzi7.privatemediatv.mobile`, `0.1.3-phone-test` (4) |
+| Size | 56,087,636 bytes |
+| APK SHA-256 | `d72051203acfab14416ebbca64a238f09b237cbf77aec0740e65019e99cc80b6` |
+| Fresh modification timestamp | `2026-08-04 03:26:17.795681438 +0000` |
+| Development signer SHA-256 | `2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0` |
+| ABI | ARM64 only |
+| Packaged JNI SHA-256 | `790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f` |
 
-```text
-path=/storage/emulated/0/Download/PrivateMediaTV/Mobile/private-media-tv-mobile-latest.apk
-size=56038484
-modified=2026-08-03 20:30:36.844966393 +0000
-epoch=1785789036
-sha256=46e1d4a35befc93cd6304eb5cc3ba333b4a3e143ad555b049f3cb4fd1b5096f2
-```
+The canonical absolute device-storage path is intentionally omitted from this public handoff. The
+mobile publication was a real copied file, not a symlink. Before/after digest verification proved
+that no parent TV APK or offline tool was overwritten, rotated, retimestamped, or deleted. The TV
+exporter and TV CI downloader were not run.
 
-It reverified as mobile code 3, Development signer, ARM64 only, and CI-cache JNI SHA-256
-`790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f`. The JNI is NDK r28c ARM64
-`DYN`, every `LOAD` is `0x4000`, the uncompressed data offset is 16,384-byte aligned, dependencies
-match the allowlist, and Android SDK 16KB `zipalign` verification passed.
+Shared-storage delivery is not evidence of installation, launch, retained Android Keystore access,
+Telegram session behavior, byte delivery, playback, or Shield acceptance.
 
-The final CI mobile publication rotated the distinct local mobile candidate to `previous`. It did
-not overwrite, rotate, retimestamp, or delete any parent TV file:
+## Security and architecture decisions
 
-- TV `latest`: 57,030,122 bytes, SHA-256
-  `11bca1c3333cebcb5f08e10d5361b586cb7e7d8341b5aa0b4ff00908ba8f24aa`, modification
-  `2026-08-02 21:24:04.892998128 +0000`;
-- TV `previous`: 57,107,459 bytes, SHA-256
-  `48095b075917c756eece8689c3684780a083018e5c03bf0568ae1261aac18877`, modification
-  `2026-08-02 21:08:54.000000000 +0000`; and
-- offline provisioning tool: 6,066 bytes, SHA-256
-  `ff56a206d462c5f1f1a71644e04814564f47b1d801b58e4af1dab2245602f26f`, modification
-  `2026-07-30 13:04:11.779997138 +0000`.
-
-Shared-storage publication is file delivery only. It is not installation, launch, Android Keystore,
-database-key, Telegram runtime, login, session, content, playback, or Shield evidence.
-
-## Security and preservation decisions
-
-- API credential and database-key envelopes, formats, filenames, and aliases remain separate.
-- No credential, database key, passphrase, phone number, authentication value, QR value, Telegram
-  identifier, session/database, private media, screenshot, signing secret, or private diagnostic
-  path was committed or packaged.
-- Stable failures expose no exception type/message, filesystem path, alias, raw TDLib result, or
-  internal identifier.
-- TDLib Java/JNI types remain inside `core-telegram`; `core-security` remains TDLib-independent.
-- No native rebuild, third-party TDLib binary, hosted gateway, Bot API, analytics, advertising,
-  Firebase, crash reporting, or plaintext fallback was added.
-- Existing mobile package/signer/storage identities and production credential data are preserved.
-- TV package/signer continuity passed, but no TV artifact was delivered or installed.
+- TDLib Java/JNI types remain confined to `core-telegram`; `core-provider`, `core-model`, UI, and
+  playback contracts remain provider-neutral. `core-security` remains TDLib-independent.
+- The API credential vault, TDLib database-key vault, authenticated TDLib database/session, and
+  downloaded files were not migrated, cleared, renamed, exposed, or repackaged.
+- Range diagnostics expose only stable stages, safe codes, numeric counts/sizes, coarse origin,
+  bytes-delivered status, retry availability, and cleanup state.
+- No credential, key, phone number, authentication value, QR value, Telegram identity, private
+  title or filename, session/database, private media, screenshot, signing secret, raw exception, or
+  private path was committed, logged, displayed, or packaged.
+- Mobile keeps its explicitly approved ordinary capture behavior and warning. TV secure-window
+  handling was not weakened.
+- No third-party TDLib binary, wrapper, hosted gateway, Bot API, media relay, analytics,
+  advertising, Firebase, crash reporting, or broad storage access was introduced.
+- No native rebuild, source-pin change, uninstall, clear-data action, TV export, TV installation,
+  or Shield deployment occurred.
 
 ## Physical status, limitations, and risks
 
-Physically established only from code 2: update continuity, unrestricted screenshots, structural
-document validation, accepted passphrase, production API-vault storage/read-back, passing Android
-API-vault self-test, later runtime-start failure, incorrect API-vault conflation, and retry that
-appeared inert because it exposed no progress or exact repeated result.
+Physically established on code 3: update continuity without data clearing, API-vault retention,
+database-key startup, Telegram authorization and connected account, channel/media discovery,
+selection/navigation, known total size, and a zero-byte source failure before any observed bounded
+download request.
 
 The following remain pending and must not be inferred from JVM tests, APK inspection, CI, or file
 delivery:
 
-- code 2→3 update on the existing phone without uninstall or clear-data;
-- retained accessibility of the already stored production API credentials after update;
-- the disposable TDLib database-key self-test on the physical Android Keystore/filesystem;
-- exact typed database-key/runtime startup result;
-- observable numbered retry on the physical phone;
-- narrow-recovery eligibility and behavior, only if the app proves it safe;
-- phone-number login, authorization continuation, session restoration, content, range reads,
-  codecs, seeking, playback, disconnect, and reset.
+- installing code 4 over the existing code-3 application without uninstall or clear-data;
+- automatic restoration of the connected account and retained vault/session/files/settings;
+- the exact safe range stage/code on the formerly failing media;
+- a physical 64 KiB probe through the production source;
+- actual byte delivery into Media3, duration discovery, video, audio, pause/resume, near/far seek,
+  source reopen, and a newly bounded request for uncached media;
+- physical validation of Android path-alias/descriptor behavior and real TDLib response/update
+  ordering; and
+- TV/Shield codecs, D-pad, focus, performance, update continuity, Telegram, and playback.
 
-The precise physical startup root cause remains unproven. A typed code-3 result may isolate it; a
-successful code-3 startup validates the repaired path but does not retroactively prove which old
-substage failed. ARM64-only packaging excludes x86/x86_64 emulators and 32-bit devices.
-
-Shield delivery, installation, update continuity, D-pad focus, overscan, QR, Telegram, codec,
-performance, and playback acceptance remain deferred. Phone success cannot establish any Shield
-result.
+The exact code-3 source failure remains unproven. A code-4 typed result may isolate the stage; a
+successful code-4 probe or playback validates the repair but does not retroactively prove which
+candidate caused the code-3 failure. ARM64-only packaging excludes x86/x86_64 emulators and 32-bit
+devices. Phone playback success would still not prove any Shield result.
 
 ## Exact next milestone and continuation
 
-The exact next milestone is **F1D.2 physical mobile code-3 database-key/runtime/login acceptance**:
+The exact next milestone is **F1D.3 physical mobile code-4 range probe and playback acceptance**:
 
-1. Update the existing installed mobile code 2 with the final exact-HEAD code-3 CI APK. Do not
-   uninstall, downgrade, clear data, or replace credentials.
-2. Verify package/version/signer and confirm the existing API credentials remain accessible without
-   provisioning-document reselection or passphrase entry.
-3. Confirm Home independently reports API vault, TDLib database key, and TDLib runtime.
-4. Run **"בדיקת מפתח מסד TDLib"** and record only passed or the stable failed stage/code.
-5. Press runtime retry and verify visible loading, disabled duplicate action, increasing attempt
-   number, current safe stage, and exact terminal result.
-6. Use **"תיקון מפתח מסד TDLib בלבד"** only if the application offers it after proving every safe
-   eligibility condition; confirm before execution and verify API credentials remain retained.
-7. On startup success, continue to phone-number login and the remaining procedure in
-   `docs/MOBILE_ACCEPTANCE.md` without retaining or publishing private values or captures.
-8. Keep TV delivery and every Shield action deferred.
+1. Install mobile code 4 over code 3 without uninstalling, downgrading, or clearing data.
+2. Confirm Telegram remains connected without relogin or provisioning reimport.
+3. Open the same previously failed media and record only its safe range stage/code.
+4. Run **"בדיקת 64KiB ראשונים"** and record only byte count, coarse origin, stage, and safe code.
+5. If the probe passes, start playback and verify duration, video, and audio.
+6. Verify pause/resume, ten-second forward/back seek, far seek, return/reopen, and playback retry.
+7. Select different previously uncached media and verify that diagnostics show a bounded new range
+   request; test MP4 first and MKV when available.
+8. Publish no private identity, title, identifier, screenshot, or diagnostic path.
+9. Keep all TV delivery and Shield actions deferred until separate owner-directed acceptance.
 
-Do not rebuild native code, weaken TV secure routes, merge the two vault formats/aliases, clear an
-existing database whose key is unavailable, log unrestricted diagnostic detail, or infer the old
-root cause without direct physical evidence.
+Do not rebuild TDLib, clear a vault/session/cache, broaden storage access, replace safe diagnostics
+with raw errors, infer a root cause without typed physical evidence, or treat a phone pass as Shield
+acceptance.
