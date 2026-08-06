@@ -92,8 +92,15 @@ cp /root/work/telegram-topic-uploader/app/build/outputs/apk/debug/app-debug.apk 
 ```
 
 **Install over the existing app.** The debug certificate has not changed since D5A — at D6A7d it is
-still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`. **D6A7e7 (code 47,
-`0.13.22-d6a7e7`) supersedes every earlier build; no intermediate version needs installing first.**
+still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`. **D6A7e7a (code 48,
+`0.13.23-d6a7e7a`) supersedes every earlier build; no intermediate version needs installing first.**
+
+**D6A7e7a does not move the Room schema — it stays at 17, and no migration runs on this install.**
+Process-start ownership is runtime orchestration; the dispatch error vocabulary was already stored
+as text in the existing error column, so naming a new code cost no schema change; the same-attempt
+confirmation writes job, attempt and evidence columns that already exist; and the last-send summary
+is a presentation aggregate in its own `last_send_summary` private preference file. Anything missing
+after the install is therefore not a migration defect, because there was no migration.
 
 **D6A7e7 does not move the Room schema — it stays at 17, and no migration runs on this install.**
 The transport selection and the derived public endpoint live in the existing `remote_server`
@@ -153,6 +160,101 @@ build reads identically to one answered against this one.
 item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
+
+**D6A7e7a** — a recovery that knows which process it is in, an answer that outranks a guess, and a
+send that says how it ended.
+
+> **Android only.** The server was **not** edited, not deployed, not restarted and not contacted for
+> a change; `SERVER_HEAD` and `DEPLOYED_HEAD` are both unchanged. **Instagram was not contacted**: no
+> validation, no check, no operator probe; no credential replaced or cleared; no source enabled or
+> disabled. No Telegram content was sent. The application was **not installed** and **not run** on
+> any device or emulator.
+
+| Field | Value |
+| --- | --- |
+| **Final application HEAD** | **`c1cc465f873dd6b1d034de2d7d28ca03116a366f`** — pushed. The build tree is `19b6ee4`; the final HEAD adds a documentation-only artefact-record commit, and the hash is unchanged because documentation is not a build input |
+| **Final server HEAD** | **`c7536bf64f23b80feb92f9eac2e1e2c915c0d0fd`** (`c7536bf`) — **unchanged**, and equal to `DEPLOYED_HEAD` |
+| Version | code 47 → **48**, name `0.13.22-d6a7e7` → **`0.13.23-d6a7e7a`** |
+| Room schema | **17, unchanged — no migration runs on this install.** Process-start ownership is runtime orchestration; the dispatch error vocabulary was already text in `lastErrorCode`; the same-attempt confirmation writes columns that already exist; and the last-send summary is a presentation aggregate in its own `last_send_summary` preference file. `18.json` is pinned absent by `D6A7E7ASurfaceTest` |
+| Gate | **2986 Android unit tests, 0 failures, 0 errors, 0 skipped; lint 0 issues** — counted from the XML reports, every task `--rerun-tasks`, the whole gate re-run from the committed tree. Server: **not run — the repository was not touched** |
+| APK | `/sdcard/Download/TelegramTopicUploader-0.13.23-d6a7e7a.apk`, SHA-256 `2c0912cbc9d72ba10b79eb47ecbf8cb92de544fe21a2c9522f64a9962556f1e5`, 16,795,676 bytes — hash verified identical, **not installed** |
+| Hardware | **No line of D6A7e7a is verified.** `docs/D6A7E7A_DEVICE_CHECKLIST.md`, 46 items, all *not attempted*. New rows **179–191**. D6A7e7's rows **171–172 closed on the user's report**; **168–170, 173–178 and 143–167 all stay open on their own line-by-line evidence** |
+
+### What the fifth device run reported
+
+**The public transport works.** Installed over the existing data, the handset reports that the secure
+public transport connection works, the authenticated public connection test succeeds, Public HTTPS is
+selected and displayed as verified, and ordinary Remote Sources access works **with Tailscale off on
+the phone**. Specific positive evidence for the probe and the selected transport — and for nothing
+else.
+
+**And a local upload became uncertain, every time.** A media upload to Telegram moved to *requires
+review* whenever the user left Preview or the application while it ran and came back, with the
+application saying it did not know whether Telegram had received the file. The user was explicit that
+the upload itself continued and appeared to finish. **Not a cancelled request**, and **not
+attributable to Tailscale or the transport** — the local upload path never used a Remote Sources
+endpoint.
+
+### What it is
+
+**Process start is not Activity start, and that was the defect.** Every operation only valid after a
+real process death ran from `MainViewModel.init`, which Android runs whenever it builds an Activity.
+Recovery now has one owner invoked from `Application.onCreate`, once per operating-system process,
+and its entitlement is structural: a brand-new process cannot hold the media-operation slot, the
+registered transfer, or the runner that held them. It checks anyway, because Android creates a
+process for a service too.
+
+**The repair a screen can reach keeps every evidence repair and has lost claim reconciliation.**
+D6A7a's reachability is kept — only the owner changed. Settling an abandoned dispatch now requires a
+stated `DispatchRecoveryAuthority` and a `LiveTransferSnapshot`; a caller that cannot prove
+abandonment changes nothing and reports `ACTIVE_OWNER_PRESENT` or `ABANDONMENT_NOT_PROVEN`.
+
+**Positive Telegram evidence outranks a local uncertainty, for the same attempt.** The coordinator
+captures a returned message id at the statement that produces it, so a cancellation unwinding a
+moment later cannot throw the proof away; and `confirmSameAttemptAfterUnknown` corrects an
+already-uncertain row when that same attempt's answer arrives afterwards. **Not a retry**: no second
+request, no second attempt, nothing asked of Telegram about what it holds, and the audit survives.
+
+**A cancellation names its own origin**, and Android stopping the execution owner stores
+`EXECUTION_OWNER_STOPPED` rather than sharing `PROCESS_INTERRUPTED` with a worker that vanished.
+**No screen scope owns a transfer** — bulk *Send selected* was the last one and now hands each job to
+the durable chain. **A durable last-send summary** — a timestamp, six counts and two closed states in
+its own private preference file, written only after each durable outcome commits, dismissible, with
+authority over nothing.
+
+**Every uncertain-outcome write attempt is traced**, refusals included, in a closed vocabulary with
+no field a job id, attempt id, owner token, file name, URI, hash, destination, Telegram identifier or
+exception text could travel in. That trace is what will name the exact writer on the next device run;
+this milestone deliberately does **not** claim to know in advance which of the two fired.
+
+### The rules worth carrying forward
+
+- **Process start is not Activity start.** A ViewModel is built whenever Android builds an Activity,
+  so anything that is only valid after a real process death does not belong there. `Application.onCreate`
+  is the one callback that runs once per process, and the entitlement it confers is structural rather
+  than procedural.
+- **A repair reachable from a gesture may not decide the fate of a live transfer.** Reachability and
+  authority are separate questions, and D6A7a answered only the first one.
+- **A proof, never a timeout.** A longer lease makes a wrong answer rarer and leaves it possible, and
+  for "did Telegram get my video" that is not an improvement worth having.
+- **Evidence outranks the absence of evidence, for the same attempt.** State the precedence once,
+  where it can be read, instead of leaving it implicit in a dozen `WHERE` clauses.
+- **Capture an answer where it arrives, not where you intend to use it.** `coroutineScope` discards
+  its result when its own job dies; the message id had to be recorded at the gateway's return
+  statement or it was gone.
+- **A recorded outcome and a rendered one are different things.** The chain's settled events were
+  always transient and always correct to be; what was missing was anybody writing the fact down for
+  a person who was elsewhere.
+- **Re-scope a guard, never delete it.** Four went: D6A7a's claim-reconciliation assertion was
+  *inverted* and its positive half moved to the new owner; D2B2B's exact method set gained and lost
+  a name with a note saying where; D4B's "one upload engine" was re-pointed at the chain and
+  strengthened; D6A7e7's exact version pin became a floor.
+- **A guard can go vacuous mechanically, not only by anchoring.** Two of this milestone's own new
+  guards did: one had not accounted for the Compose compiler's synthetic `${'$'}stable` field, and one
+  filtered paths on `/src/main/` against paths that have no leading slash and therefore matched an
+  empty set.
+
+## 4a00000. Previous milestone: D6A7e7
 
 **D6A7e7** — a public edge that forwards almost nothing, an endpoint the phone derives instead of
 typing, and a marker it demands before trusting.
@@ -1319,6 +1421,27 @@ connector most likely to need maintenance**, since that payload is front-end dat
 ## 8. Hardware-validation ledger
 
 **Confirmed by the user, and only this:**
+
+- **D6A7e7 reports (2026-08-06), on the installed D6A7e7 build — the fifth physical run:**
+  - ✅ **The secure public transport connection works**, the **authenticated public connection test
+    succeeds**, **Public HTTPS is selected and displayed as verified**, and **ordinary Remote Sources
+    access works without Tailscale running on the phone.** The supplied screen states, in its own
+    words, that secure public transport is in use, that the public connection was verified, that
+    ordinary use works without Tailscale on the phone, and that private Tailscale remains available
+    for pairing and recovery. This closes backlog rows **171 and 172 and nothing else** — the exact
+    sentence of checklist line 9 was not transcribed, and the individual thumbnail, Remote Review and
+    Remote History sub-paths were not separately exercised.
+  - 🔴 **A local media upload to Telegram became *requires review* every single time** the user left
+    the Preview or the application while it was running and came back, with the application saying it
+    did not know whether Telegram had received the file. The user clarified explicitly: **the upload
+    itself continued and appeared to finish; the problem is only that it becomes requires review.**
+    That is **not** evidence of a cancelled request — it is an independent lifecycle or reconciliation
+    path writing an uncertain outcome while the real transfer owner carried on. **It must not be
+    attributed to Tailscale or to the transport**: the local upload path never used a Remote Sources
+    endpoint. Answered by D6A7e7a; **device-unverified**, backlog rows 179–191.
+  - ⏳ Nothing else on the D6A7e7 checklist was reported. Rows **168–170 and 173–178** stay open on
+    their own lines, and silence on a row never means completion.
+
 
 - **D6A7e4 (2026-08-01): nothing.** No line of `docs/D6A7E4_DEVICE_CHECKLIST.md` has been
   attempted, and **the whole of the D6A7e3 checklist is still owed** — D6A7e4 changed nothing in

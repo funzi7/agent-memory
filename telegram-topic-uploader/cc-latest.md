@@ -11,6 +11,129 @@
 
 | Field | Value |
 | --- | --- |
+| Task | **D6A7e7a** — a recovery that knows which process it is in, an answer that outranks a guess, and a send that says how it ended |
+| **Final application HEAD** | **`c1cc465f873dd6b1d034de2d7d28ca03116a366f`** — pushed. The build tree is `19b6ee4`; the final HEAD adds a documentation-only artefact-record commit (it touches only `docs/PROJECT_STATE.md` and `docs/RELEASE_REVIEW.md`), and the hash is unchanged because documentation is not a build input |
+| **Final server HEAD** | **`c7536bf64f23b80feb92f9eac2e1e2c915c0d0fd`** (`c7536bf`) — **unchanged, not redeployed, not edited, not contacted for a change.** `DEPLOYED_HEAD` equals it exactly |
+| Version | code 47 → **48**, name `0.13.22-d6a7e7` → **`0.13.23-d6a7e7a`** |
+| Room schema | **17, unchanged — no migration runs on this install.** Process-start ownership is runtime orchestration; the dispatch error vocabulary was already stored as text in `lastErrorCode`, so naming a new code cost no schema change; the same-attempt confirmation writes job, attempt and evidence columns that already exist; and the last-send summary is a presentation aggregate in its own `last_send_summary` private preference file. `18.json` is pinned absent by `D6A7E7ASurfaceTest`. Server: **`0006_session_connection`**, unchanged |
+| Gate | **2986 Android unit tests, 0 failures, 0 errors, 0 skipped. Lint: 0 issues** (both counted from the XML reports, every task with `--rerun-tasks`, the whole gate re-run from the committed tree). Server: **not run — the repository was not touched** |
+| APK | `app-debug.apk`, 16,795,676 bytes, SHA-256 `2c0912cbc9d72ba10b79eb47ecbf8cb92de544fe21a2c9522f64a9962556f1e5`. **Copied to Downloads as `TelegramTopicUploader-0.13.23-d6a7e7a.apk` with a verified-identical hash. Not installed.** Built from the tree at `19b6ee4` |
+| Production | **Untouched.** No server edit, no deployment, no restart, no Funnel/Serve/edge/firewall change. **Instagram was not contacted**: no validation, no check, no operator probe; no credential replaced or cleared; no source enabled or disabled. No Telegram content sent |
+| Hardware | **No line of D6A7e7a is verified.** `docs/D6A7E7A_DEVICE_CHECKLIST.md`, 46 items, all *not attempted*. New backlog rows **179–191**. D6A7e7's rows **171–172 close on the user's report**; rows **168–170, 173–178 and 143–167 all stay open on their own line-by-line evidence** |
+
+### What this milestone is, and what opened it
+
+**The fifth physical run**, on the installed D6A7e7 build, reported two things.
+
+*Working.* The secure public transport connection works, the authenticated public connection test
+succeeds, **Public HTTPS** is selected and displayed as verified, and ordinary Remote Sources access
+works **with Tailscale off on the phone**. Specific positive evidence for the public probe and the
+selected transport — and for nothing else.
+
+*Broken.* A local media upload to Telegram became **requires review every single time** the user left
+Preview or the application while it ran and came back, with the application saying it did not know
+whether Telegram had received the file. The user clarified explicitly: **the upload itself continued
+and appeared to finish; the problem is only that it becomes requires review.** That is not a
+cancelled request, and it is **not attributable to Tailscale or to the transport** — the local upload
+path never used a Remote Sources endpoint.
+
+### The writers, established rather than guessed
+
+Exactly two production statements can move a started attempt to `RESULT_UNKNOWN`, and the report's own
+detail distinguishes them. The upload coordinator's cancellation boundary fires while that attempt's
+owner token is still live and its lease unexpired — the only shape consistent with an upload that was
+healthy a moment earlier. `markAbandonedDispatchResultUnknown`, via `reconcileAbandonedClaimsLocked`,
+cannot fire against a live renewed claim at all: its guard requires an expired lease or an absent
+owner.
+
+What made the second dangerous is not a guess. It ran from `MainViewModel.init` — which Android runs
+whenever it builds an Activity — and from the Dashboard, Queue and History pull-to-refresh gestures,
+**with no live-owner check of any kind**, resting entirely on a ten-minute execution lease whose
+renewal loop is tied to observed byte movement. That loop stops renewing while the client waits for
+Telegram's answer, and its `delay` does not advance while the device is suspended. A live upload can
+therefore genuinely lose its lease, and the routine that then settles it is one a gesture reaches.
+
+Both are closed, and both now record a sanitized closed-vocabulary trace at every write attempt,
+refusals included. **Which one fired on the handset is deliberately not claimed** — the trace is what
+will say on the next run.
+
+### What shipped
+
+**Process start is not Activity start.** `ApplicationStartupRecoveryCoordinator` runs from
+`Application.onCreate`, at most once per operating-system process behind an `AtomicBoolean`, and is
+the only owner entitled to sweep abandoned dispatches. The entitlement is structural: a brand-new
+process cannot hold the media-operation slot, a registered transfer, or the runner that held them. It
+checks anyway, because Android creates a process for a *service* too, and a process created to carry
+an upload must never settle the work it was created to do. It starts no ordinary queued upload,
+resumes only durable requests a person already tapped, contacts Telegram never, and deletes nothing.
+
+**The repair a screen can reach keeps every evidence repair and has lost claim reconciliation.**
+D6A7a put it there so a stranded row could be repaired from a gesture rather than from the actions
+that row disabled; **the reachability is kept** and only the owner changed.
+
+**A proof obligation, not a longer timeout.** `ProcessDeathDispatchRecovery` requires a stated
+`DispatchRecoveryAuthority` and a `LiveTransferSnapshot`. `ProcessStart` sweeps everything and only
+where no in-memory owner exists; `BeforeClaim` acts on one named job and only while the caller holds
+the single media-operation slot with its own registration standing. A caller that cannot prove
+abandonment changes nothing and reports `ACTIVE_OWNER_PRESENT` or `ABANDONMENT_NOT_PROVEN`.
+
+**Positive Telegram evidence outranks a local uncertainty, for the same attempt.**
+`DispatchSettlementAuthority` states the precedence once. The coordinator captures a returned message
+id at the statement the gateway produces it — `coroutineScope` discards its result when its own job
+dies, so the proof had to be recorded there or it was gone — and `confirmSameAttemptAfterUnknown`
+corrects an already-uncertain row when that same attempt's answer arrives afterwards, guarded on the
+same job, attempt id, frozen destination and a strictly positive identifier. **Not a retry**: no
+second request, no second attempt, nothing asked of Telegram about what it holds, and `attemptCount`
+stays outside the `SET` clause so the audit survives.
+
+**A cancellation names its own origin.** `DispatchCancellationOrigin` is closed and carries no
+payload; Android stopping the execution owner stores `EXECUTION_OWNER_STOPPED` rather than sharing
+`PROCESS_INTERRUPTED` with a worker that simply vanished. The conservative rule is untouched: after
+dispatch, a real cancellation may still be uncertain.
+
+**No screen scope owns a transfer.** Bulk *Send selected* was the last surface running the launcher
+inside `viewModelScope`; it now hands each routed job to the one durable chain, which drains serially
+through the same launcher under an Android execution owner.
+
+**A durable last-send summary.** A timestamp, six counts and two closed states in its own
+`last_send_summary` private preference file, written only after each item's durable outcome commits,
+surviving ViewModel recreation, leaving and returning, process death and an upgrade. Dismissible, and
+dismissing it removes a card and nothing else. It has authority over nothing, and a stored value that
+contradicts what a summary can possibly be is discarded without touching a single upload row.
+
+**Rows an earlier build got wrong.** The first start after the upgrade normalizes any `RESULT_UNKNOWN`
+row that already carries a positive message id **and** a confirmation timestamp. A row without that
+pair stays unresolved: Telegram is not contacted, nothing is resent, and delivery is inferred from no
+file disappearance, elapsed time, notification, byte count, batch row or recollection.
+
+### The rules worth carrying forward
+
+- **Process start is not Activity start.** A ViewModel is built whenever Android builds an Activity,
+  so anything only valid after a real process death does not belong there.
+- **Reachability and authority are different questions.** D6A7a answered the first correctly and left
+  the second unasked, and the fifth device report is what that costs.
+- **A proof, never a timeout.** A longer lease makes a wrong answer rarer and leaves it possible.
+- **Evidence outranks the absence of evidence, for the same attempt** — stated once, where it can be
+  read, instead of implied by a dozen `WHERE` clauses.
+- **Capture an answer where it arrives, not where you intend to use it.** A cancelled
+  `coroutineScope` throws its result away.
+- **A recorded outcome and a rendered one are different things.** The chain's settled events were
+  always transient and correct to be; nobody was writing the fact down for a person who was elsewhere.
+- **A guard can go vacuous mechanically, not only by anchoring.** Two of this milestone's own new
+  guards did: one had not accounted for the Compose compiler's synthetic `${'$'}stable` field, and one
+  filtered on `/src/main/` against paths with no leading slash, matching an empty set.
+
+### Deployment verification
+
+**None was performed, because nothing was deployed.** The server repository was not edited, its HEAD
+is unchanged at `c7536bf64f23b80feb92f9eac2e1e2c915c0d0fd`, and the deployed HEAD is the same value.
+Instagram was not contacted; the viewing session's repair remains the user's and the server
+operator's.
+
+## Previous milestone: D6A7e7
+
+| Field | Value |
+| --- | --- |
 | Task | **D6A7e7** — a public edge that forwards almost nothing, an endpoint the phone derives instead of typing, and a marker it demands before trusting |
 | **Final application HEAD** | **`2d54c1d739500ff2aeb308a8e739e3212b405fc0`** — pushed. The build tree is `cbbcaa4`; the final HEAD adds a documentation-only artefact-record commit (verified: it touches only `docs/PROJECT_STATE.md` and `docs/RELEASE_REVIEW.md`), and the hash is unchanged because documentation is not a build input |
 | **Final server HEAD** | **`c7536bf64f23b80feb92f9eac2e1e2c915c0d0fd`** (`c7536bf`) — **changed, deployed and verified**, from `eaeba83`. The code commit `07fd920` was deployed first; `c7536bf` adds the deployment record and was redeployed so **`DEPLOYED_HEAD` equals `SERVER_HEAD` exactly** |
