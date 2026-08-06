@@ -11,17 +11,128 @@
 
 | Field | Value |
 | --- | --- |
-| Task | **D6A7e6a** — a hotfix opened by the fourth physical run: a notification that ends with its chain, a backup that stands down, and a launch that clears what nothing owns |
-| **Final application HEAD** | **`0fdd843082380ce3967062ef5cdee2a84720da27`** — pushed. The build tree is `7591cb5`; the final HEAD adds a documentation-only artefact-record commit, and the hash is unchanged because documentation is not a build input |
-| **Final server HEAD** | **`eaeba836650f67245b0bd8265b46f6e03d2cd29d`** (`eaeba83`) — **unchanged, not redeployed, not edited, not contacted for a change** |
-| Version | code 45 → **46**, name `0.13.20-d6a7e6` → **`0.13.21-d6a7e6a`** |
-| Room schema | **17, unchanged — no migration runs on this install.** Notification lifecycle is process behaviour over the existing `explicit_send_runner` slot and `explicit_send_requests` rows; nothing lifecycle-shaped was added to Room and no migration was created for it. `18.json` is pinned absent by `D6A7E6ASurfaceTest`. Server: **`0006_session_connection`**, unchanged |
-| Gate | **2839 Android unit tests, 0 failures, 0 errors, 0 skipped. Lint: 0 issues** (both counted from the XML reports, every task with `--rerun-tasks`, the whole gate re-run from the committed tree). Server: **not run — the repository was not touched** |
-| APK | `app-debug.apk`, 16,683,917 bytes, SHA-256 `81073d4e1a3799fc1d6a2e2c252b0ddc864be3e357c952ab13a25693fe39a33f`. **Copied to Downloads as `TelegramTopicUploader-0.13.21-d6a7e6a.apk` with a matching hash. Not installed.** Built from the tree at `7591cb5` |
-| Production | **Untouched.** No server edit, no deployment, no restart. **Instagram was not contacted**: no validation, no check, no operator probe; no credential replaced or cleared; no source enabled or disabled. No Telegram content sent |
-| Hardware | **No line of D6A7e6a is verified.** `docs/D6A7E6A_DEVICE_CHECKLIST.md`, 22 items, all *not attempted* — with the queue empty, one deliberate force-stop first clears the pre-this-build orphan notification. **The fourth run's broad positive signal about D6A7e6 is recorded and closes nothing; new rows 162–167; rows 143–161 stay open line by line; row 150 stays open and non-blocking** |
+| Task | **D6A7e7** — a public edge that forwards almost nothing, an endpoint the phone derives instead of typing, and a marker it demands before trusting |
+| **Final application HEAD** | **`2d54c1d739500ff2aeb308a8e739e3212b405fc0`** — pushed. The build tree is `cbbcaa4`; the final HEAD adds a documentation-only artefact-record commit (verified: it touches only `docs/PROJECT_STATE.md` and `docs/RELEASE_REVIEW.md`), and the hash is unchanged because documentation is not a build input |
+| **Final server HEAD** | **`c7536bf64f23b80feb92f9eac2e1e2c915c0d0fd`** (`c7536bf`) — **changed, deployed and verified**, from `eaeba83`. The code commit `07fd920` was deployed first; `c7536bf` adds the deployment record and was redeployed so **`DEPLOYED_HEAD` equals `SERVER_HEAD` exactly** |
+| Version | code 46 → **47**, name `0.13.21-d6a7e6a` → **`0.13.22-d6a7e7`** |
+| Room schema | **17, unchanged — no migration runs on this install.** The transport selection and the derived public endpoint live in the existing `remote_server` preference file (keys `selected_transport`, `public_base_url`); a URL and an enum are not a reason to move the database. `18.json` is pinned absent by `D6A7E7SurfaceTest`. Server: **`0006_session_connection`**, unchanged — none was needed and none was written |
+| Gate | **2892 Android unit tests, 0 failures, 0 errors, 0 skipped. Lint: 0 issues** (both counted from the XML reports, every task with `--rerun-tasks`, the whole gate re-run from the committed tree). Server: **1202 passed, 3 skipped** (1205 collected; 1143/3 at D6A7e4), from the committed tree |
+| APK | `app-debug.apk`, 16,737,706 bytes, SHA-256 `bb52ee932de6b511913dc5360061470dceb08dc1316206dad9ee544a816bfa31`. **Copied to Downloads as `TelegramTopicUploader-0.13.22-d6a7e7.apk` with a verified-identical hash. Not installed.** Built from the tree at `cbbcaa4` |
+| Production | **The server was deployed and verified, and a restricted public edge is live.** Tailscale Funnel HTTPS 8443 → host loopback 8100 → a digest-pinned nginx edge → the API. Private Serve 443 unchanged and re-verified end to end. **Instagram was not contacted**: no validation, no check, no operator probe; no credential replaced or cleared; no source enabled or disabled. No Telegram content sent. No authenticated mutation during the deployment |
+| Hardware | **No line of D6A7e7 is verified.** `docs/D6A7E7_DEVICE_CHECKLIST.md`, all items *not attempted*. New backlog rows **168–178**; rows **143–167 stay open on their own line-by-line evidence** and nothing is closed by this milestone |
 
-### The two physical-device findings this hotfix answers
+### What this milestone is, and what opened it
+
+**Not a device report.** This is roadmap item 3, which the user approved: replace the phone's
+Tailscale dependency with a securely authenticated public HTTPS path, **retaining Tailscale on the
+VPS** for administration, recovery and any future private pairing. The server half was built,
+gated, deployed and verified first; the Android half followed against a live public edge.
+
+### The server half, deployed and verified
+
+Private path unchanged — Serve, HTTPS 443, tailnet-only, straight to the loopback API, and pairing
+lives there and only there. New public path — Funnel, HTTPS 8443, into a **stateless nginx edge**
+on host loopback 8100, pinned by immutable digest, read-only rootfs, all capabilities dropped, no
+database and no credential, forwarding only `/api/v1/*` to the API over the internal compose
+network. Neither 8099 nor 8100 is published beyond loopback; the firewall opens none of
+8099/8100/8443; tailscaled is the only process presenting a public port; Funnel on 443 is
+forbidden and verified absent.
+
+The **Funnel URL is treated as fully public and discoverable.** Pairing, readiness, health, the
+OpenAPI document and every unknown path answer one fixed 404, byte-identical to each other. A
+plausible bearer header is required before anything is forwarded. Client forwarding identity and
+`Cookie` are stripped; one fixed internal marker is injected. There is **no access log at all**, so
+an `Authorization` value has nowhere to be logged. Every response carries
+`X-Remote-Sources-Ingress: public-v1` and a closed security-header set. `PublicIngressMiddleware`
+repeats the contract in-process so an edge regression fails **closed**; public 401s lose their
+machine `reason` while private ones keep it; rate limiting is bounded process memory keyed by a
+SHA-256 digest, never the raw token.
+
+**Two invariants:** a public client without a valid active device token can neither read nor mutate
+any application state, and **public ingress can never mint a device token**.
+
+Verified from an ordinary off-tailnet internet client, unauthenticated — root, unknown paths,
+health, readiness, OpenAPI, a well-formed pairing exchange, TRACE, DELETE and PUT all 404;
+tokenless and malformed-token 401; a 300 000-byte mutation 413; spoofed forwarding headers and a
+forged marker changed nothing; the marker and all five security headers present; both refusal
+bodies sanitized. And confirmed **live in-process**: with the marker set by hand over host
+loopback, the deployed application answered 404 for health, readiness, OpenAPI and pairing while
+the same requests unmarked answered 200, 200, 200 and 422.
+
+### The Android half
+
+**Two transports, one selected at a time.** The public endpoint is **derived** from the endpoint
+the user already proved by pairing — same hostname, HTTPS, port 8443, no credentials, no path, no
+query, no fragment — and **there is no field, argument or code path that accepts a typed one**. A
+non-HTTPS private endpoint derives nothing; an IP-address substitution is refused, because the edge
+presents a certificate for a name.
+
+**Nothing is saved until an authenticated probe proves it:** `GET /api/v1/device` with the token
+the device already holds, requiring HTTP 200, the exact `X-Remote-Sources-Ingress: public-v1`
+marker — checked *before* the body is read — and a device-shaped answer. Health is deliberately
+not the probe: over public ingress it does not exist, and a transport that cannot carry an
+authenticated request is not one worth switching to. Redirects stay disabled outright, so a bearer
+token cannot cross an origin; a `3xx` is its own refusal.
+
+**Proving an endpoint and choosing to use it are two decisions, and the second is the user's.** A
+probe that fails saves nothing, switches nothing, clears nothing, and never reports a working
+pairing as unpaired. A public selection with no proven endpoint **refuses rather than falling back**
+to the private endpoint the user chose to stop depending on. No racing: one action produces one
+request to one origin, through the single `activeBaseUrl` seam every authenticated request and
+every thumbnail already goes through.
+
+**Pairing and recovery stay private-only**, on both sides. If the token is ever lost or revoked:
+enable Tailscale on the phone, select the private transport, pair over private 443, then switch
+back.
+
+### The one narrowing that was load-bearing
+
+Both endpoints share a hostname **by design**, so the "check Tailscale" hint — keyed on host shape
+since D6A — would have fired for a *public* failure and sent the user to look at a VPN they had
+deliberately turned off. The public port now answers that question, and a test pins it.
+
+### The rules worth carrying forward
+
+- **A public URL is not a secret, so nothing may be load-bearing on it.** Design as if the hostname
+  is known, because it is discoverable.
+- **Two lines of defence, because a configuration file is a place a policy can regress.** A marker
+  that only ever *restricts* is safe to trust without knowing the peer.
+- **Absence cannot be misconfigured.** No access log at all beats a carefully-formatted one.
+- **A refusal that maps the routes is a leak.** Every blocked public path answers the same bytes.
+- **Derive what the user already proved; never ask them to retype it.** A second typed copy of a
+  hostname is a second chance to get it wrong, and a place somebody could be talked into putting
+  an attacker's host.
+- **Prove, then switch — never in one step.** A probe that switched by itself would move the app
+  off a transport that is currently working, without being asked.
+- **Two endpoints that differ only by port need a discriminator that is the port.** Anything keyed
+  on the host will answer the same for both and say the wrong thing about one of them.
+- **Re-scope a guard, never delete it.** The exact version pin moved to `D6A7E7SurfaceTest` and
+  `D6A7E6ASurfaceTest` became the `>= 46` floor; the server's "Funnel is off" check became "no
+  Funnel on 443" and its old PCRE lookahead under `grep -E` — which could never fire — was replaced
+  by parsed JSON.
+- **A guard sliced on a comment anchor is a guard that can go vacuous.** Three of this milestone's
+  own new guards did exactly that: `codeOf` strips comments, so a `// -- section` anchor sliced to
+  end-of-file and the assertion silently widened. They are anchored on code now.
+
+### Deployment verification
+
+Deployed HEAD exact and 40 characters, equal to `SERVER_HEAD`; migration head unchanged in both the
+script directory and the database; both containers healthy; 8099 and 8100 loopback-only; no
+firewall rule for any guarded port; private Serve 443 verified end to end through tailscaled with
+pairing still reachable. Tailscale 1.98.9 — the node already carried the `funnel` attribute with
+`ports=443,8443,10000` plus MagicDNS and HTTPS certificates, so **no approval was required and no
+tailnet policy was changed or broadened**.
+
+**Instagram was not contacted, and the clock proves it.** Read-only before and after, printing no
+source identity: one enabled source, preset `daily`, Stories off, the second source still disabled,
+session state `connected`, the previous credential's `authentication_expired` still the historical
+`last_signal`. The next check was **395 minutes** away before and **389 minutes** after — it
+advanced only by the wall clock that elapsed, and a check would have reset it. Row counts identical
+throughout.
+
+## Previous milestone: D6A7e6a
+
+### The two physical-device findings that hotfix answered
 
 D6A7e6 was installed **over the existing application data** on the handset and exercised.
 

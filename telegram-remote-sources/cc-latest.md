@@ -42,12 +42,105 @@ hash — and nothing added to it ever may.
 | **Head after D6A7e5, unchanged** | **`eaeba836650f67245b0bd8265b46f6e03d2cd29d`** (`eaeba83`) — **unchanged. This repository was not edited, not deployed, not restarted and not contacted for a change.** D6A7e5 was an Android-only corrective milestone; migration head **`0006_session_connection`**, unchanged; **Instagram was not contacted** |
 | **Head after D6A7e6, unchanged** | **`eaeba836650f67245b0bd8265b46f6e03d2cd29d`** (`eaeba83`) — **unchanged. This repository was not edited, not deployed, not restarted and not contacted for a change.** D6A7e6 was an Android-only corrective milestone (the third physical run's four findings); migration head **`0006_session_connection`**, unchanged; **Instagram was not contacted**: no validation, no check, no operator probe, no credential touched, no source enabled or disabled. The viewing session's repair remains the user's and the operator's, exactly as recorded below |
 | **Head after D6A7e6a, unchanged** | **`eaeba836650f67245b0bd8265b46f6e03d2cd29d`** (`eaeba83`) — **unchanged. This repository was not edited, not deployed, not restarted and not contacted for a change.** D6A7e6a was an Android-only hotfix (the fourth physical run's orphan explicit-send notification); migration head **`0006_session_connection`**, unchanged; **Instagram was not contacted**: no validation, no check, no operator probe, no credential touched, no source enabled or disabled. Tailscale was off on the phone during the fourth run — recorded as a coincidence, not a cause, and the local notification cleanup is pinned connectivity-blind |
+| **Head after D6A7e7** | **`c7536bf64f23b80feb92f9eac2e1e2c915c0d0fd`** (`c7536bf`) — **deployed and verified**; migration head **`0006_session_connection`**, unchanged — none was needed and none was written. The first commit `07fd920` carried the code and was deployed first; `c7536bf` adds the deployment record and was redeployed so the deployed HEAD equals this one exactly. **A restricted public edge is live**: Tailscale Funnel HTTPS 8443 → host loopback 8100 → a digest-pinned nginx edge → the API. Private Serve 443 unchanged and re-verified. **Instagram was not contacted** |
 | Host | A DigitalOcean droplet, Ubuntu 24.04.4, amd64, 1 vCPU, ~2 GiB RAM, ~48 GB disk |
 | Deploy path on host | `/opt/remote-sources` |
 | State path on host | `/var/lib/remote-sources` |
 
 The VPS address, its Tailscale hostname and the tailnet name are **deliberately not recorded
 anywhere**. They live in the operator's shell and in the Android app's settings.
+
+## D6A7e7 — the public edge, and the phone that no longer carries Tailscale
+
+**HEAD `c7536bf64f23b80feb92f9eac2e1e2c915c0d0fd`, deployed and verified. Migration head
+`0006_session_connection`, unchanged.** Server tests: **1202 passed, 3 skipped** (1205 collected;
+1143/3 at D6A7e4). 59 new tests across `tests/test_d6a7e7_public_ingress.py`,
+`tests/test_d6a7e7_edge_config.py` and `tests/test_d6a7e7_deployment.py`.
+
+### What it is
+
+The private path is untouched: Tailscale Serve, HTTPS 443, tailnet-only, straight to the loopback
+API — pairing, health, readiness and the OpenAPI document live there and only there. The new
+public path is Tailscale Funnel, HTTPS 8443, terminating TLS in the host tailscaled and handing
+plaintext to `127.0.0.1:8100`, where a **stateless nginx edge** — pinned by immutable image
+digest, read-only rootfs, all capabilities dropped, non-root, no database, no credential —
+forwards only `/api/v1/*` to the API over the internal compose network.
+
+**Neither 8099 nor 8100 is published beyond host loopback, the firewall opens none of
+8099/8100/8443, and tailscaled is the only process presenting a public port.** Funnel on 443 is
+forbidden and two scripts verify its absence rather than assuming it.
+
+### The rules that make a public URL safe to have
+
+The Funnel URL is treated as **fully public and discoverable** — the hostname is not the boundary.
+The edge answers pairing, readiness, health, the OpenAPI document and every unknown path with one
+fixed 404 that is byte-identical to each other, so no public response reveals which routes exist
+or whether a pairing challenge does. It requires a syntactically plausible bearer header before
+forwarding a byte; strips `Forwarded`, `X-Forwarded-For`, `X-Forwarded-Host`, `X-Forwarded-Proto`,
+`X-Real-IP` and `Cookie`; injects one fixed internal marker; bounds bodies to the application's own
+ceiling, plus headers, connections, request rates (mutations stricter) and upstream time; keeps
+**no access log at all**, so an `Authorization` value has nowhere to be logged; and stamps every
+response with the fixed `X-Remote-Sources-Ingress: public-v1` marker and a closed security-header
+set.
+
+`PublicIngressMiddleware` repeats the whole contract in-process, so an edge regression fails
+**closed**. Trusting the marker is fail-safe by construction: only the edge can set it on a public
+request, and forging it on a private connection buys **fewer** capabilities, never more. Public
+401s lose their machine `reason`; private ones keep it. Rate limiting is bounded process memory —
+480/min global, 30/min invalid-auth, 240/min per credential, 60 mutations/min, 1024 keys with LRU
+— keyed by SHA-256 of the header, never the raw token, never persisted, and changing nothing
+durable.
+
+**The two invariants:** a public internet client without a valid active device token can neither
+read nor mutate any application state; and **public ingress can never mint a device token**.
+
+### What the deployment proved
+
+Deployed HEAD exact and 40 characters; migration head unchanged in script directory and database;
+both containers healthy; 8099 and 8100 loopback-only; no firewall rule for any guarded port;
+private Serve 443 verified end to end through tailscaled (health 200, readiness 200, protected
+route 401, **pairing exchange still reachable**).
+
+From an ordinary off-tailnet internet client, unauthenticated: root, unknown paths, health,
+readiness, OpenAPI, a well-formed pairing exchange, TRACE, DELETE and PUT all **404**; tokenless
+and malformed-token requests **401**; a 300 000-byte mutation **413** at the edge; spoofed
+forwarding headers and a forged ingress marker changed nothing; every response carried the fixed
+marker and all five security headers; both refusal bodies were the sanitized envelopes with no
+version, database, migration, staging, secret, source or device detail. The in-process defence was
+confirmed **live**: over host loopback with the marker set by hand, the deployed application
+answered 404 for health, readiness, OpenAPI and pairing, while the same requests unmarked answered
+200, 200, 200 and 422.
+
+Tailscale **1.98.9**. The node already carried the `funnel` attribute with
+`ports=443,8443,10000`, MagicDNS and HTTPS certificates, so **no interactive approval was required
+and no tailnet policy was changed or broadened**.
+
+### Instagram, and what the clock proves
+
+Read-only before and after, printing no source identity: one enabled Instagram source, preset
+`daily`, Stories off, the second source still disabled, session connection state `connected`, the
+previous credential's `authentication_expired` still the historical `last_signal`. The next check
+was **395 minutes** away before the deployment — far outside the window plus a conservative
+90-minute margin — and **389 minutes** away afterwards. It advanced only by the wall clock that
+elapsed, which is the evidence that **no Instagram request occurred**: a check would have reset
+it. Row counts identical throughout. Nothing was sent to Telegram, and no authenticated mutation
+was performed during the deployment.
+
+### The rules worth carrying forward
+
+- **A public URL is not a secret, so it must not be load-bearing.** Everything is designed as if
+  the hostname is known, because it is discoverable.
+- **Two lines of defence, because a configuration file is a place a policy can regress.** The edge
+  enforces the route policy and the application enforces it again; a marker that only ever
+  restricts is safe to trust without knowing the peer.
+- **Absence cannot be misconfigured.** No access log at all beats a carefully-formatted one.
+- **A refusal that maps the routes is a leak.** Every blocked public path answers the same bytes.
+- **Re-scope a guard, never delete it.** `70-serve.sh`'s "Funnel is off" check became "no Funnel on
+  443" — and its old PCRE lookahead under `grep -E` could never fire, so it was replaced by parsed
+  JSON. Same for the deployment's non-loopback-listener sentence guard, which now covers the edge
+  port too.
+- **Verify the network premises read-only before deploying, not during.** The preflight checks the
+  firewall, the private Serve and the absence of Funnel on 443 before the backup is even taken.
 
 ## D6A7e5 — the server was not touched, and the viewing session is rejected on the handset too
 
