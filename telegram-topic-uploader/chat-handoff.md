@@ -92,8 +92,14 @@ cp /root/work/telegram-topic-uploader/app/build/outputs/apk/debug/app-debug.apk 
 ```
 
 **Install over the existing app.** The debug certificate has not changed since D5A — at D6A7d it is
-still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`. **D6A7e7a (code 48,
-`0.13.23-d6a7e7a`) supersedes every earlier build; no intermediate version needs installing first.**
+still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`. **D6A7e8 (code 50,
+`0.13.25-d6a7e8`) supersedes every earlier build; no intermediate version needs installing first.**
+
+**D6A7e8 does not move the Room schema — it stays at 17, and no migration runs on this install.**
+The identity field's canonical value is **form state**: it has no column, is not persisted, is not
+sent as a separate field, and what reaches the server is the ordinary identity string it always was.
+There is deliberately no schema 18. Anything missing after the install is therefore not a migration
+defect, because there was no migration.
 
 **D6A7e7a does not move the Room schema — it stays at 17, and no migration runs on this install.**
 Process-start ownership is runtime orchestration; the dispatch error vocabulary was already stored
@@ -160,6 +166,99 @@ build reads identically to one answered against this one.
 item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
+
+**D6A7e8** — a link that says what it is, and the URL a connector should have asked for.
+
+> **Two repositories, and both changed.** The **server** was edited, gated, deployed and verified —
+> `SERVER_HEAD` and `DEPLOYED_HEAD` are both `b0ed4f04…`. The **application** gained one pure
+> presentation policy and was rebuilt. **No agent contacted any platform: `LIVE_PROBES_USED=0`.**
+> The one live TikTok request in this milestone's evidence is the **user's**, from the handset,
+> before the milestone began. Instagram was not contacted, not validated, not checked and not
+> re-scheduled. Nothing was sent to Telegram. The application was **not installed** and **not run**
+> on any device or emulator.
+
+| Field | Value |
+| --- | --- |
+| **Final application HEAD** | **`2bbf253530099d7aa93f3d0fc66cc7146c574f28`** — pushed. The build tree is `f9d190c0b1ac7316b9e59247899d64bdb14989ac`; the final HEAD adds a documentation-only artefact-record commit, and the hash is unchanged because documentation is not a build input |
+| **Final server HEAD** | **`b0ed4f0407a089b5cf567c78a3c4f7a055197638`** — **deployed and verified**; `DEPLOYED_HEAD` equals it exactly. Code commit `b38f8ebe1d8bb33ad961cf4af0a5709621cb9f1b`, deployed first; the docs commit was redeployed so the two match |
+| Version | code 49 → **50**, name `0.13.24-d6a7e7b` → **`0.13.25-d6a7e8`** |
+| Room schema | **17, unchanged — no migration runs on this install.** The canonical identity value is form state: no column, not persisted, not sent as a separate field. `18.json` stays absent. Server: **`0006_session_connection`**, unchanged |
+| Gate | **3187 Android unit tests across 205 suites, 0 failures, 0 errors, 0 skipped. Lint: 0 issues** (counted from the XML reports, every task `--rerun-tasks`, the whole gate re-run from the committed tree). Server: **1243 passed, 3 skipped**, plus ruff, mypy, `bash -n`, `release-preflight`, `git diff --check` |
+| APK | `/sdcard/Download/TelegramTopicUploader-0.13.25-d6a7e8.apk`, SHA-256 `4ebd0498e6c5977c5db1b745e39f226b27f065861dcbd91e7fc16feccfa595b8`, 16,850,766 bytes — hash verified identical to the build output, **not installed**. Built from the tree at `f9d190c`. Every earlier APK left in place |
+| Hardware | **The seventh run closed rows 193 and 194** — TikTok visible, chips wrap, selectable, form appears. **Nothing else in D6A7e7b was reported and nothing else is marked.** No line of D6A7e8 is verified: `docs/D6A7E8_DEVICE_CHECKLIST.md`, 18 items, all *not attempted*. New backlog rows **220–227**; **row 220 is the acceptance test and only the user can run it** |
+
+### What opened it
+
+The seventh physical run confirmed the D6A7e7b platform-chooser fix on hardware and then performed
+the **first live TikTok source validation this project has ever done**. It reached TikTok and the app
+displayed *the platform returned content the server could not read; the connector must be updated.*
+
+**The sentence was correct, and the truthful mapping is the whole reason the fix was findable.** The
+classification travelled unchanged and the app rendered it rather than collapsing it into a generic
+error, so the next question was *which* connector and *why*.
+
+### What shipped — the server half
+
+The connector was asking gallery-dl for `https://www.tiktok.com/@<handle>`, which in gallery-dl
+**1.32.8** routes to `TiktokUserExtractor` — a `Dispatch` that enumerates **nothing** and prints only
+queue entries handing the work to its sub-extractors. `--dump-json` records a queue entry and never
+descends. So a healthy profile produced queue records and zero members, and `classify_dump` refused
+it as `tiktok_not_enumerated` — **by the same rule that stopped an Instagram source being baselined
+at zero in D6A7b. The guard worked; the URL was wrong.**
+
+* Discovery asks **`…/@<handle>/posts`**, the extractor that actually enumerates.
+* **Not `--resolve-json`**, which is exactly how D6A7b fixed Instagram — because it resolves every
+  queued sub-extractor and the first is the **avatar**, whose `id` is the *user's* numeric id in the
+  same shape a post id has. It would have parsed as a post, sorted first, and become the cursor:
+  the profile picture stored as the newest post. The asymmetry is written down in `CONNECTORS.md`.
+* **`-o tiktok-range=1-N`**, the extractor's own listing bound, because `--range` bounds *files* and
+  cannot stop pagination that happens before the first record exists. **Derived from
+  `InitialImport`, never a literal** — the first draft used `12`, which would have capped a
+  `last_25` import at twelve and then baselined, silently discarding the requested history.
+* A photo carousel's **background track** — an `mp3` at `num: 0` carrying the post's own id — would
+  have sorted ahead of every image and been delivered as a photograph. Dropped on the extractor's own
+  `type` field. Newly reachable: before the URL fix no carousel had ever reached the parser.
+* **`vm.`/`vt.`/`tiktok.com/t/` are refused by name.** `_strip_url` had been stripping the
+  short-link host like any other spelling of the site, leaving the redirect token standing exactly
+  where a username stands — and it matched. A share link silently became a **profile source for an
+  account nobody had named**.
+
+### What shipped — the application half
+
+A pasted profile link becomes the clean canonical source URL in the field, immediately, with no
+request of any kind. `RemoteSourceUrlCleaner` is one pure object with no client, no coroutine, no
+`Context`, no WebView and no redirect resolution — and a test that **reads its source file** and
+fails if any of those appears. The rule is not a list of parameter names but *a source identity URL
+carries no query and no fragment.* It acts only on a complete `http(s)` URL on a host the selected
+platform is known by, so a bare `@name`, a half-typed URL and an unknown host are left as typed.
+
+Meaning survives and only tracking goes: Reddit's `u/` versus `r/`, a 9GAG Interest's slug and its
+**explicit** feed mode — and a feed mode the user has not chosen is never invented.
+
+### The safety argument that matters most
+
+**Cleaning cannot become fetching.** A short link's target is knowable only by following it, and
+neither the phone nor the server will. Both refuse instead, decided from the text alone, because a
+component whose contract is that it never fetches must not acquire the ability to.
+
+### Guards re-scoped, none weakened — one
+
+`D6A7E4SurfaceTest`'s literal-anchored *only an answer about the current form may fill the name*
+went **red** when the comparison widened, correctly. It was re-scoped to assert the new call, **and
+a second guard added** that pins the property making the widening safe: built on `describes(...) ||`,
+widened only by `RemoteSourceUrlCleaner.isSameSource`, platform and source type still exact.
+
+### The brief's premise that production contradicted
+
+The milestone brief said the failed validation had recorded a TikTok platform signal. **It had
+not.** `platform_health` holds exactly two rows, `instagram` and `ninegag`.
+`_record_validation_signal` writes only *setup-shaped* classifications and `malformed_upstream` is
+not one — correctly, because a connector defect has no operator action attached and a TikTok row
+reading *setup required* would send somebody to import a cookie that fixes nothing. Nothing was
+erased and nothing was manufactured. **Always verify a brief's production claims read-only before
+acting on them.**
+
+## 4a0000000. Previous milestone: D6A7e7b
 
 **D6A7e7b** — a platform that fits on the phone, a history that says when, and an icon that is
 actually an icon.
@@ -1529,10 +1628,16 @@ run in their own SSH shell.
 | **Reddit** | implemented (`u/…` and `r/…`) | **required** — anonymous is 403 | **no** |
 | **X** | implemented (gallery-dl + cookies) | **required** | **no** |
 | **Instagram** | **implemented at D6A5** | **required — D6A7e1 removed the compromised session; D6A7e2 imported a dedicated one and the server verified it `connected`. Every Instagram source is still paused (`enabled: 0`)** | live-proven for feed, Stories and Story deduplication (D6A7b–D6A7e); one bounded D6A7e2 validation succeeded; **otherwise dormant, by decision** |
-| **TikTok** | **implemented at D6A5** (gallery-dl + yt-dlp) | **required** | **no** |
+| **TikTok** | **implemented at D6A5** (gallery-dl + yt-dlp); **the discovery URL was wrong until D6A7e8** and is now the profile's *posts listing* | **optional** — never required; the D6A7e8 failure was not a refusal and no cookie was imported | **yes, once, pre-fix, and it failed** — the seventh physical run returned `malformed_upstream` / `tiktok_not_enumerated`. Corrected and deployed; **the post-fix validation is backlog row 220 and only the user can run it** |
 
 All five are selectable in the Android app since D6A5, each with its own state sentence. **Being
 selectable is not being live-tested**, and the two must never be conflated in a report.
+
+*(Corrected at D6A7e8: this table said TikTok's credentials were **required**. They are not, and
+never were — the adapter has advertised `requires_credentials=False, optional_credentials=True`
+since D6A5. The distinction matters, because it is what makes a TikTok refusal with no session
+`setup_required` rather than `authentication_expired`, and it is why the D6A7e8 failure was
+correctly never treated as a credential problem.)*
 
 **9GAG has two source types since D6A6**, and they are never interchangeable: an account feed at
 `/u/<name>/posts` and an Interest feed at `/interest/<slug>/<mode>`. Each is refused **by name** when
@@ -1559,6 +1664,24 @@ connector most likely to need maintenance**, since that payload is front-end dat
 ## 8. Hardware-validation ledger
 
 **Confirmed by the user, and only this:**
+
+- **D6A7e7b reports (2026-08-07), on the installed D6A7e7b build — the seventh physical run:**
+  - ✅ **TikTok is visible in *Remote Sources → Add source*** on the narrow Hebrew/RTL handset, and
+    **the platform chips wrap onto another line.** This closes the sixth run's reported defect and
+    backlog row **193**. The D6A7e7b `RemoteChipFlow` fix is device-proven.
+  - ✅ **TikTok can be selected and its TikTok-specific identity form appears.** Backlog row **194**.
+  - 🔴 **The first live TikTok source validation failed.** One public profile, the explicit
+    *Check source* control pressed **once**, and the app displayed the `malformed_upstream`
+    sentence: *the platform returned content the server could not read; the connector must be
+    updated.* **It was correct.** The classification travelled from the server unchanged, the app
+    rendered it truthfully, and it named the right component. **No source was created.** The cause
+    was the server connector's discovery URL, fixed and deployed in D6A7e8 — the post-fix validation
+    is backlog row **220** and is **still owed from the device**.
+  - ⚪ **Everything else in D6A7e7b produced no evidence and is not marked.** The launcher icon, the
+    Remote and local History times and details, the Archive, the incremental launch scan and the
+    install-over survival lines were not reported on. Rows 192 and 195–210 stay open.
+  - 🗒️ Public HTTPS was evidently working — the validation reached the server — but nothing about
+    the transport was exercised deliberately, so rows 168–178 stay open on their own evidence.
 
 - **D6A7e7a reports (2026-08-07), on the installed D6A7e7a build — the sixth physical run:**
   - 🔴 **TikTok was not visible or reachable in *Remote Sources → Add source*** on the narrow
@@ -2129,12 +2252,17 @@ the table is the whole of it.
 `/root/work/telegram-topic-uploader/TODO.md`** — 219 rows after D6A7e7b, each with an owner, a state and the
 evidence required to close it. This list is the ordering; that table is the record.
 
-**Newest first, as of D6A7e7b.** `docs/D6A7E7B_DEVICE_CHECKLIST.md` (71 lines, rows 192–219) is the
-current checklist and nothing in it has been attempted. Its lines 8–14 are the highest-value single
-block available: they say whether all five platforms are actually on the screen on the handset that
-reported only four. Lines 42–46 answer the launcher icon, 47–58 the incremental scan, 59–68 the
-Archive, and 69–71 ask for continued opportunistic observation of the D6A7e7a false-*Requires
-review* fix during ordinary use — which is watching, not evidence, and closes nothing.
+**Newest first, as of D6A7e8.** `docs/D6A7E8_DEVICE_CHECKLIST.md` (18 lines, rows 220–227) is the
+current checklist and nothing in it has been attempted. **Line 14 is the highest-value single line
+in the whole backlog**: one *Check source* against a real TikTok profile, on the deployed connector
+correction. It is the acceptance test for the server's D6A7e8, it is row 220, and no agent may
+perform it. Lines 5–8 answer the pasted-link cleaning on TikTok, 9–10 on Instagram, 11–12 whether
+meaningful path components survive, and 13 whether a short share link is left alone.
+
+`docs/D6A7E7B_DEVICE_CHECKLIST.md` (71 lines, rows 192–219) is **partly reported**: the seventh run
+answered lines 9, 14, 15 and 16, closing rows 193 and 194. **Everything else in it remains
+unattempted** — lines 42–46 (the launcher icon), 47–58 (the incremental scan), 59–68 (the Archive),
+21–39 (the History times and details) and 1–5 (install-over survival) produced no evidence at all.
 `docs/D6A7E7A_DEVICE_CHECKLIST.md` (46 lines, rows 179–191) remains entirely unattempted beneath it.
 
 **Recorded as future product shape, not as work in progress:** the official Meta Instagram publisher

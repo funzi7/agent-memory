@@ -45,12 +45,92 @@ hash — and nothing added to it ever may.
 | **Head after D6A7e7** | **`c7536bf64f23b80feb92f9eac2e1e2c915c0d0fd`** (`c7536bf`) — **deployed and verified**; migration head **`0006_session_connection`**, unchanged — none was needed and none was written. The first commit `07fd920` carried the code and was deployed first; `c7536bf` adds the deployment record and was redeployed so the deployed HEAD equals this one exactly. **A restricted public edge is live**: Tailscale Funnel HTTPS 8443 → host loopback 8100 → a digest-pinned nginx edge → the API. Private Serve 443 unchanged and re-verified. **Instagram was not contacted** |
 | **Head after D6A7e7a, unchanged** | **`c7536bf64f23b80feb92f9eac2e1e2c915c0d0fd`** (`c7536bf`) — **unchanged. This repository was not edited, not deployed, not restarted and not contacted for a change**, and the deployed HEAD is the same value. D6A7e7a was an **Android-only** corrective milestone: the fifth physical run reported that a local upload to Telegram became *requires review* every time the user left the application while it ran and came back. **That defect is local and is not attributable to this server, to the public edge or to Tailscale** — the local upload path never used a Remote Sources endpoint, and a structural guard now pins the fix's own sources free of every Remote Sources, transport and Tailscale symbol. Migration head **`0006_session_connection`**, unchanged. **No Funnel, Serve, public-edge, rate-limit or firewall configuration was changed.** **Instagram was not contacted**: no validation, no check, no operator probe, no credential touched, no source enabled or disabled. The same run also reported the **public HTTPS transport working on the handset** — the authenticated probe succeeds and ordinary Remote Sources use works with Tailscale off, which is positive device evidence for the D6A7e7 edge deployed from here |
 | **Head after D6A7e7b, unchanged** | **`c7536bf64f23b80feb92f9eac2e1e2c915c0d0fd`** (`c7536bf`) — **unchanged. This repository was not edited, not deployed, not restarted, not migrated and not contacted for a change**, and the deployed HEAD is the same value. D6A7e7b is **Android-only**. The sixth physical run reported that **TikTok was not visible in the phone's *Add source* platform chooser** — and that is emphatically **not a server finding**: this server already supports TikTok (`Platform.TIKTOK`, `SourceType.TIKTOK_PROFILE`, in `SUPPORTED_PLATFORMS`, with a real adapter advertising `profile_discovery=True`, `requires_credentials=False`, `optional_credentials=True`, exactly one source type and no feed modes), and `/system/status` has advertised all of it for eight milestones. The phone clipped the fifth chip out of a non-wrapping row. **No platform request occurred**: TikTok was not contacted, no source was created, validated, enabled, disabled or checked, and no credential was touched. The milestone's server work was a **read-only audit** of `schemas.py`, `routes.py`, `db/models.py`, `delivery/operations.py`, `delivery/telegram.py` and `adapters/registry.py`, which confirmed that Remote History already exposes **both** `created_at` and `confirmed_at` and that Android already parses both — so **no API change, no migration and no deployment was needed or made**. Migration head **`0006_session_connection`**, unchanged. **No Funnel, Serve, public-edge, nginx, rate-limit or firewall configuration was changed.** **Instagram was not contacted** |
+| **Head after D6A7e8** | **`b0ed4f0407a089b5cf567c78a3c4f7a055197638`** (`b0ed4f0`) — **deployed and verified**; migration head **`0006_session_connection`**, unchanged — none was needed and none was written. The code commit `b38f8ebe1d8bb33ad961cf4af0a5709621cb9f1b` (`b38f8eb`) was deployed first; `b0ed4f0` adds the deployment record and was redeployed so the deployed HEAD equals this one exactly. **The TikTok connector was asking gallery-dl for a URL that enumerates nothing** — see the section below. **`LIVE_PROBES_USED=0`**: no agent made a live request to any platform. **Instagram was not contacted**; its enabled source's `next_check_at` is unchanged to the microsecond across both deployments |
 | Host | A DigitalOcean droplet, Ubuntu 24.04.4, amd64, 1 vCPU, ~2 GiB RAM, ~48 GB disk |
 | Deploy path on host | `/opt/remote-sources` |
 | State path on host | `/var/lib/remote-sources` |
 
 The VPS address, its Tailscale hostname and the tailnet name are **deliberately not recorded
 anywhere**. They live in the operator's shell and in the Android app's settings.
+
+## D6A7e8 — the profile URL that was never a feed
+
+**What opened it.** The user performed the first live TikTok source validation this project has ever
+done, from the handset, on D6A7e7b. It reached TikTok and the app displayed
+`MALFORMED_UPSTREAM` — *the platform returned content the server could not read; the connector must
+be updated.* It was right.
+
+**The root cause, established with zero live probes.** The route has written one sanitized warning
+per refused validation since D6A3 — connector, classification, reason, and deliberately nothing else.
+Reading a narrow window of production logs around the reported time gave the whole answer:
+
+```
+2026-08-07T07:48:33+0000  connector=tiktok  classification=malformed_upstream  reason=tiktok_not_enumerated
+```
+
+That detail is authored by exactly one statement: `classify_dump`'s `queue_count and not
+url_records`. The structural condition it needs is a dump with at least one `Message.Queue` record
+and **zero** `Message.Url` records. The installed extractor's own source says why:
+
+* `gallery-dl` **1.32.8**, `yt-dlp` **2026.07.04** (read from the deployed container).
+* `https://www.tiktok.com/@<handle>` matches `TiktokUserExtractor`, which is a `Dispatch`. Its
+  `items()` returns *only* queue tuples — the avatar and the posts listing — and enumerates nothing.
+* `DataJob.resolve` is **false** by default, so `handle_queue` records a queue entry and never
+  descends. `--resolve-json` is the mode that would.
+
+Confirmed offline, by pattern matching alone with a synthetic handle: the profile URL resolves to
+`TiktokUserExtractor`, `…/posts` resolves to `TiktokPostsExtractor`. **No TikTok request was made by
+any agent at any point.** The user's approved allowance of one bounded diagnostic probe was not
+spent.
+
+**The correction.** Discovery asks `https://www.tiktok.com/@<handle>/posts`.
+
+**Why not `--resolve-json`, which is exactly how D6A7b fixed Instagram.** It resolves *every* queued
+sub-extractor, and the first is the **avatar** — one `Message.Url` whose `id` is the **user's**
+numeric id, in the same 6–25 digit shape a post id has. It would have parsed as a post, sorted
+first, and become the source's cursor: the profile picture stored as the newest post. Asking the
+enumerating extractor directly cannot produce it, and it leaves the queue guard meaning what it says
+so a future TikTok extractor that queues again is still reported loudly. **This asymmetry with
+Instagram is deliberate and is written down in `docs/CONNECTORS.md`.**
+
+**A second bound, because there were two things to bound.** `--range` bounds *files* and the job
+evaluates it on records the extractor has already produced, so it cannot stop the listing paginating
+a whole profile before the first record exists. `-o tiktok-range=1-N` is the extractor's own listing
+bound. **It is derived from `InitialImport`, never a literal** — the first draft used `12`, which
+would have capped a `last_25` import at twelve posts and then baselined, silently discarding the
+requested history. That is the D6A7b failure by a new route, and no existing test would have caught
+it because the conformance harness stubs the extractor and ignores argv.
+
+**Two more, both proven and both newly reachable.**
+
+* A photo carousel's **background track** is printed as another file of the same post — an `mp3`
+  carrying the post's own id at `num: 0`. `kind_for_extension` has no rule for `mp3`, so the member
+  kind fell to `IMAGE`, and `num: 0` sorted it **ahead of every photograph**. Dropped on the
+  extractor's own `type` field. It could only surface now: before the URL fix nothing was enumerated,
+  so no carousel had ever reached the parser.
+* `_strip_url` stripped `vm.tiktok.com/` like any other spelling of the site, leaving a share link's
+  **redirect token** standing exactly where a username stands — and it is letters and digits, so it
+  matched `_TIKTOK_USER`. `vm.tiktok.com/<token>` normalised to a **profile source for an account
+  nobody had named**, checked on a schedule from then on. `vm.`, `vt.` and `tiktok.com/t/` are
+  refused by name now, decided from the text alone.
+
+**The premise the brief got wrong, corrected from production.** The milestone brief stated the failed
+validation had recorded a TikTok platform signal. It had not, and `platform_health` still holds
+exactly two rows, `instagram` and `ninegag`. `_record_validation_signal` writes only *setup-shaped*
+classifications, and `malformed_upstream` is not one — correctly, because a connector defect has no
+operator action attached and a TikTok row reading *setup required* would have sent somebody to import
+a cookie that fixes nothing. **Nothing was erased and nothing was manufactured.**
+
+**The gate and the deployment.** 1243 passed, 3 skipped (1202/3 at D6A7e7); ruff, mypy, `bash -n`,
+`release-preflight` and `git diff --check` all clean, from the committed tree. Deployed twice —
+`b38f8eb` then `b0ed4f0` — each time with the read-only Instagram maintenance guard run immediately
+before: the enabled source was due in 483 minutes, far outside the deployment plus a conservative
+ninety-minute margin. Row counts identical across both. Its `next_check_at` is unchanged to the
+microsecond; only the countdown moved, which is what proves nothing contacted Instagram.
+
+**What is not proven.** That TikTok discovery works live. Deployment proves the code is on the host.
+Only the user's next *Check source* from the handset is evidence about the product, and no agent may
+perform it or claim it. No TikTok source was created, enabled or scheduled.
 
 ## D6A7e7 — the public edge, and the phone that no longer carries Tailscale
 

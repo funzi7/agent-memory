@@ -11,6 +11,102 @@
 
 | Field | Value |
 | --- | --- |
+| Task | **D6A7e8** — a link that says what it is, and the URL a connector should have asked for. **Two repositories**: the Android source-URL canonicaliser, and the server's TikTok connector correction |
+| **Final application HEAD** | **`2bbf253530099d7aa93f3d0fc66cc7146c574f28`** — pushed. The build tree is `f9d190c0b1ac7316b9e59247899d64bdb14989ac`; the final HEAD adds a documentation-only artefact-record commit (it touches only `TODO.md`, `docs/PROJECT_STATE.md` and `docs/RELEASE_REVIEW.md`), and the hash is unchanged because documentation is not a build input |
+| **Final server HEAD** | **`b0ed4f0407a089b5cf567c78a3c4f7a055197638`** (`b0ed4f0`) — **changed, deployed and verified.** `DEPLOYED_HEAD` equals it exactly. The code commit is `b38f8ebe1d8bb33ad961cf4af0a5709621cb9f1b` (`b38f8eb`), deployed first; the docs commit was redeployed so the two match |
+| Version | code 49 → **50**, name `0.13.24-d6a7e7b` → **`0.13.25-d6a7e8`** |
+| Room schema | **17, unchanged — no migration runs on this install.** The canonical identity value is **form state**: no column, not persisted, not sent as a separate field, and what reaches the server is the ordinary identity string it always was. There is deliberately no schema 18 and `18.json` stays absent. Server: **`0006_session_connection`**, unchanged |
+| Gate | **3187 Android unit tests across 205 suites, 0 failures, 0 errors, 0 skipped. Lint: 0 issues** (both counted from the XML reports, every task with `--rerun-tasks`, the whole gate re-run from the committed tree). Server: **1243 passed, 3 skipped**, plus ruff, mypy, `bash -n`, `release-preflight` and `git diff --check`, all from its committed tree |
+| APK | `app-debug.apk`, 16,850,766 bytes, SHA-256 `4ebd0498e6c5977c5db1b745e39f226b27f065861dcbd91e7fc16feccfa595b8`. **Copied to Downloads as `TelegramTopicUploader-0.13.25-d6a7e8.apk` with a verified-identical hash. Not installed.** Built from the tree at `f9d190c`. Every earlier APK left in place |
+| Production | **The server was deployed twice** (`b38f8eb`, then `b0ed4f0` so HEAD and DEPLOYED_HEAD match); migration head unchanged; row counts identical across both. **No agent contacted any platform: `LIVE_PROBES_USED=0`.** The one live TikTok request in the evidence is the **user's**, from the handset, before this milestone began. Instagram was not contacted — its enabled source's `next_check_at` is unchanged to the microsecond |
+| Hardware | **The seventh run closed backlog rows 193 and 194** (TikTok visible, chips wrap, selectable, form appears). Nothing else in D6A7e7b was reported and nothing else is marked. **No line of D6A7e8 is verified.** `docs/D6A7E8_DEVICE_CHECKLIST.md`, 18 items, all *not attempted*. New backlog rows **220–227**, of which **220 is the acceptance test and only the user can run it** |
+
+### What this milestone is, and what opened it
+
+**The seventh physical run did two things.** It confirmed the D6A7e7b platform-chooser fix on
+hardware — TikTok visible, chips wrapping, selectable, its identity form appearing — and it then
+performed the first live TikTok source validation this project has ever done. That failed, showing
+*the platform returned content the server could not read; the connector must be updated.*
+
+**The sentence was correct, and the Android mapping is why the milestone had a starting point.** The
+classification travelled from the server unchanged and the app rendered it truthfully instead of
+collapsing it into a generic error, so the next question was *which* connector and *why*. **No
+Android production code was changed for it, and none needed to be.** The server half is recorded in
+`telegram-remote-sources/cc-latest.md`; in one line, the connector was asking gallery-dl for a
+profile URL that routes to a dispatch extractor and enumerates nothing.
+
+**The product request, taken beside that run.** Pasting a profile link pastes whatever the platform's
+*Share* button produced. Nobody can confirm at a glance which account they are about to follow, and
+the share token travels to the server for no reason.
+
+### What shipped
+
+* **`RemoteSourceUrlCleaner`, one pure object in `domain/remote`.** No client, no coroutine, no
+  repository, no `ViewModel`, no `Context`, no WebView, no redirect resolution — and
+  `D6A7E8IdentityFieldPolicyTest` **reads the source file** and fails if any of those appears,
+  because "this class has no client" is the kind of claim that stays in a docstring while an import
+  grows underneath it.
+* **The rule is not an allowlist of parameter names**, which would need maintaining. It is *a source
+  identity URL carries no query and no fragment*, so whatever a platform invents next is already
+  discarded. Query and fragment are cut in the parser before any per-platform rule sees the text, so
+  no share token reaches form state, a log, a diagnostic or the server.
+* **Conservative by construction.** It acts only when the whole current value is a complete `http(s)`
+  URL on a host the selected platform is known by. A bare `@name`/`r/name`/`u/name`, a half-typed
+  URL, a scheme-less URL and an unknown host all come back as typed — which is what stops the field
+  being rewritten mid-keystroke.
+* **Per platform, never generic.** TikTok `/@name` only. Instagram one segment, never `p`, `reel`,
+  `stories` and the rest. X onto canonical `x.com` from any of its five spellings. Reddit keeps `u/`
+  versus `r/` and presents `user/` as `u/`. 9GAG keeps a profile's shape, an Interest's slug and an
+  explicit `hot`/`fresh` — and **never invents a feed mode the user has not chosen**.
+* **`describesSameSource`.** Because the field can now be rewritten, a verdict must not be discarded
+  when the text is merely tidied. It compares the identity **as a source**, is built on `describes`
+  so it is a strict superset, still requires platform and source type to match exactly, and widens
+  only on a pair `isSameSource` can prove names one source — which is false whenever it cannot
+  canonicalise both sides.
+
+### The safety argument that matters most
+
+**Cleaning cannot become fetching.** A short share link carries no identity readable without asking
+the platform what it points at, so the phone leaves it as pasted and never invents a username from
+its redirect token. Looking for that on the phone is what found it **on the server**: `_strip_url`
+had been stripping `vm.tiktok.com/` like any other spelling of the site, leaving the token standing
+exactly where a username stands — and made of exactly the characters a TikTok username is made of.
+A share link silently became a **profile source for an account nobody had named**, checked on a
+schedule from then on. Refused by name now, in both places, decided from the text alone.
+
+### Guards re-scoped, never deleted — one of them
+
+`D6A7E4SurfaceTest`'s *only an answer about the current form may fill the name* asserted the literal
+`it.describes(platform, identity, sourceType)` in `RemoteScreens.kt`, and widening the comparison
+turned it **red** — correctly. It was not deleted. It now asserts the new call, **and a second guard
+was added beside it** that reads the widened function and fails unless it is built on
+`describes(...) ||`, unless the only widening is `RemoteSourceUrlCleaner.isSameSource`, and unless
+platform and source type still match exactly. The guard went from pinning a spelling to pinning the
+property that makes the widening safe. `AppVersionTest` was updated to 50 / `0.13.25-d6a7e8`, which
+is what that test exists for.
+
+### One flake, recorded rather than hidden
+
+`TelegramMediaRepairGatewayTest`'s *a body that did not finish is incomplete* failed once
+mid-milestone under load — a `MockWebServer` disconnect during a two-megabyte request body, whose
+outcome depends on socket buffering. Re-run three times in isolation, passed each time; passed in
+the committed-tree gate; lives in a transport this milestone does not touch. **Not weakened, not
+retried-until-green, not annotated away.** Noted so the next person knows it is not new.
+
+### Deployment verification
+
+**The server was deployed and verified**, unlike every Android-only milestone since D6A7e2. Deployed
+commit reported as the full 40 characters, migration head `0006_session_connection`, both containers
+healthy, private health and readiness 200, a protected route 401, 8099/8100 loopback-only, no
+firewall rule for any application port, Funnel still 8443-only with the private Serve on 443 intact.
+Row counts identical: 2 sources, 3 destinations, 4 devices with 1 active, 17 check runs, 71 items,
+74 media, 71 delivery operations. The read-only Instagram maintenance guard ran immediately before
+each deployment; the enabled source was due in 483 minutes and its `next_check_at` never moved.
+
+## Previous milestone: D6A7e7b
+
+| Field | Value |
+| --- | --- |
 | Task | **D6A7e7b** — a platform that fits on the phone, a history that says when, and an icon that is actually an icon |
 | **Final application HEAD** | **`7ad6d2bcd615cdcae0975635ca8661766575900e`** — pushed. The build tree is `f3991ed49be4ed0e7b2d5767f3028059e1e1cdc5`; the final HEAD adds a documentation-only artefact-record commit (it touches only `TODO.md`, `docs/PROJECT_STATE.md` and `docs/RELEASE_REVIEW.md`), and the hash is unchanged because documentation is not a build input |
 | **Final server HEAD** | **`c7536bf64f23b80feb92f9eac2e1e2c915c0d0fd`** (`c7536bf`) — **unchanged, not redeployed, not edited, not migrated, not contacted for a change.** `DEPLOYED_HEAD` equals it exactly. The server audit that opened this milestone was **read-only** |
@@ -437,7 +533,7 @@ session state `connected`, the previous credential's `authentication_expired` st
 advanced only by the wall clock that elapsed, and a check would have reset it. Row counts identical
 throughout.
 
-## Previous milestone: D6A7e6a
+### Previous milestone, for reference (D6A7e6a)
 
 ### The two physical-device findings that hotfix answered
 
