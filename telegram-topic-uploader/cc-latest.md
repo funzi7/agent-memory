@@ -11,6 +11,190 @@
 
 | Field | Value |
 | --- | --- |
+| Task | **D6A7e7b** — a platform that fits on the phone, a history that says when, and an icon that is actually an icon |
+| **Final application HEAD** | **`7ad6d2bcd615cdcae0975635ca8661766575900e`** — pushed. The build tree is `f3991ed49be4ed0e7b2d5767f3028059e1e1cdc5`; the final HEAD adds a documentation-only artefact-record commit (it touches only `TODO.md`, `docs/PROJECT_STATE.md` and `docs/RELEASE_REVIEW.md`), and the hash is unchanged because documentation is not a build input |
+| **Final server HEAD** | **`c7536bf64f23b80feb92f9eac2e1e2c915c0d0fd`** (`c7536bf`) — **unchanged, not redeployed, not edited, not migrated, not contacted for a change.** `DEPLOYED_HEAD` equals it exactly. The server audit that opened this milestone was **read-only** |
+| Version | code 48 → **49**, name `0.13.23-d6a7e7a` → **`0.13.24-d6a7e7b`** |
+| Room schema | **17, unchanged — no migration runs on this install.** Every timestamp rendered here was already a column: `upload_jobs.telegramConfirmedAt`, `.dispatchStartedAt` and `.completedAt` have existed since schema 5 or earlier, and the History query already selected the first and third — only the domain projection dropped them. The Archive filters on a **computed** `DashboardGroup`; there is deliberately no `archived` column. The incremental scan reads `sha256`, `hashedAt`, `hashedSizeBytes`, `documentLastModifiedAt` and `sizeBytes`, all pre-existing. Detail expansion is transient composition state. `18.json` stays absent. Server: **`0006_session_connection`**, unchanged |
+| Gate | **3134 Android unit tests across 203 suites, 0 failures, 0 errors, 0 skipped. Lint: 0 issues** (both counted from the XML reports, every task with `--rerun-tasks`, the whole gate re-run from the committed tree). Server: **not run — the repository was not touched** |
+| APK | `app-debug.apk`, 16,850,760 bytes, SHA-256 `e9d9cf3ab0ee33073b5d76a0071afd1317dfd76f970d4b414b9c3e45143eafa9`. **Copied to Downloads as `TelegramTopicUploader-0.13.24-d6a7e7b.apk` with a verified-identical hash. Not installed.** Built from the tree at `f3991ed` |
+| Production | **Untouched.** No server edit, no deployment, no restart, no Funnel/Serve/edge/firewall change. **No platform was contacted** — not TikTok, not Instagram, not X, not Reddit, not 9GAG: no source created, validated, enabled, disabled or checked. No Telegram content sent, no Telegram history queried |
+| Hardware | **No line of D6A7e7b is verified.** `docs/D6A7E7B_DEVICE_CHECKLIST.md`, 71 items, all *not attempted*. New backlog rows **192–219**. Every D6A7e7a row (**179–191**) stays open: the sixth run reported a different screen and produced no evidence about any of them |
+
+### What this milestone is, and what opened it
+
+**The sixth physical run**, on the installed D6A7e7a build, reported two defects and carried four
+product decisions.
+
+*Defect one, and the milestone's headline.* In **Remote Sources → Add source**, on the narrow
+Hebrew/RTL handset, the platform chooser showed **Instagram, 9GAG, X and Reddit — and TikTok was not
+there at all.** Not disabled, not greyed, not explained: absent.
+
+**It was never a product gap, and this matters for how it was fixed.** `RemotePlatform.selectable`
+has contained `TIKTOK` since D6A5. The TikTok tab exists. The TikTok profile source type exists in
+this build *and* in the deployed server's own enum. The server's adapter registry lists TikTok as
+supported, advertises exactly `tiktok_profile`, and advertises no feed modes for it. Every TikTok
+label, identity hint and setup sentence has been in both locales for eight milestones. The Add
+Source form drew the server-supplied `selectablePlatforms` as chips inside a plain `Row` — no
+wrapping, no scrolling — so the fifth chip was measured past the edge of the viewport and clipped.
+Under RTL that edge is the left one, which is precisely why the four that survived were those four.
+
+**TikTok was not contacted.** No source was created and no validation attempted, because the control
+that would have started one was unreachable. Nothing about this finding is evidence about TikTok's
+availability, its adapter, its cookies, or whether the deployed host can read a TikTok profile.
+
+*Defect two.* The launcher icon renders as a **blank white shape**. The manifest pointed both
+`android:icon` and `android:roundIcon` directly at `@drawable/ic_launcher_foreground`, a white-only
+vector with no background layer of any kind. That is not a launcher icon.
+
+*And this is one defect occurring twice.* D6A7e5 found three of five schedule presets unreachable
+behind a horizontal scroll. Same failure — a control outside the viewport — different group, eight
+days later. Fixing one more `Row` would have invited a third occurrence, so the layout rule stopped
+being a decision each chip group makes for itself.
+
+### What shipped
+
+- **`RemoteChipFlow`, and seven groups drawing through it.** A `FlowRow` that fills its width, spaces
+  both directions identically, declares no height, inserts no spacer, clips nothing and **counts
+  nothing** — no caller tells it how many chips exist, so a sixth platform a future server advertises
+  wraps onto the next line instead of disappearing. The platform, source-type, feed-mode,
+  review-mode (Add *and* editor) and initial-import choosers, the source card's two read-only chips,
+  and the D6A7e5 schedule selector all use it. The platform tab strip keeps its own horizontal scroll
+  and remains the only horizontally scrolling row in the file, still pinned by count.
+- **TikTok's form was already correct.** One advertised source type, so no source-type chooser is
+  drawn; no feed-mode chooser; a TikTok-specific truthful identity hint; preselection from the TikTok
+  tab. **No cookie UI, no Cobalt UI and no credential field of any kind was added.**
+- **`RemoteHistoryTimelinePolicy` — one rule about which time a delivery may claim.** A *sent and
+  confirmed on Telegram* sentence requires **both** the server's own `CONFIRMED` state **and** a
+  renderable `confirmed_at`. Each half rules out a real case: a state without a timestamp is an older
+  server and states its status while inventing nothing; a timestamp without the state is
+  contradictory server data and the state wins.
+- **The server semantics were verified read-only, not assumed.** `confirmed_at` is assigned in
+  exactly one place in the whole server — the positive-confirmation settlement path — and is null for
+  every other outcome. Critically, it is **also null for a `result_unknown` operation a human later
+  resolved as delivered**, because that resolution is recorded against the *item* and never against
+  the operation. Such a row therefore states no send time, which is correct: a person reading a topic
+  is not Telegram. `created_at` is stamped by the column default when the operation row is inserted,
+  **before any request is made**, which is exactly why it is the dangerous field — it is always
+  present. It now appears only under *the send operation was created*.
+- **`LocalMoment` — one formatter, two History screens.** Exact local date and clock time from the
+  platform's own locale-aware patterns, with **no timezone constant anywhere in the application**. It
+  replaced three copies of the same expression (the schedule section, the Telegram setup screen, and
+  the one local History was about to grow). **`RenderableMoment`** rejects an absent, zero or
+  implausibly early epoch — a floor rather than `> 0`, because a truncated parse or a
+  seconds-for-milliseconds mistake also yields a positive number that renders as 1970 — so **no card
+  can print 1 January 1970** and an omitted moment produces no text at all.
+- **Remote History Details**, read-only: source, platform, content kind, frozen destination, media
+  count, message count, state, both times under separate labels, and a translated failure reason.
+  Expanding fetches nothing and writes nothing. **No operation, item, source, destination, chat,
+  thread, message or post identifier is rendered** — the message *count* is shown, the message *ids*
+  are not.
+- **`RemoteDeliveryFailureCode`** matches the thirteen literals the server's sender and settlement
+  paths author, one translated sentence each, exhaustive by `when` so a future code fails the build
+  rather than falling into a generic clause. The stored string is never printed.
+- **"Sent to X" stopped being said about deliveries that were not sent.** A confirmed row keeps that
+  wording; a failed, unresolved or in-flight row names the destination it was *aimed at*.
+- **Local History carries the real confirmation moment.** The column has existed since the first
+  release and the query always selected it; the mapping collapsed it into a boolean and dropped the
+  moment. It is now exposed **only** when the whole positive pair is present — a message id above
+  zero **and** a confirmation stamp — gated once at the entity mapping so no future screen can reach
+  the ungated value. Dispatch-start and operation-ended joined the Details block that already
+  existed, each under its own name, and it stays read-only. **No migration.**
+- **Remote Review** states the platform's own publish time and the server's discovery time as two
+  separate sentences, the first omitted entirely when the platform's metadata carried none.
+- **A real launcher icon** — adaptive, opaque blue field, white play-and-arrow mark (*media, sent
+  onward*, and deliberately not a picture of any one platform), a monochrome layer for themed
+  launchers, and a self-contained vector in `mipmap-anydpi` for the Android 6 and 7 devices `minSdk
+  23` still covers. Without that fallback the blank-icon report would have moved to older hardware
+  instead of being fixed. Every drawn point lies within 33 units of the centre of the 108-unit
+  viewport, inside the mask's guaranteed 72-unit safe circle. No raster bundle, no downloaded
+  artwork, no third-party mark, no text, no initials.
+- **An Archive that hides nothing durable.** `HistoryMode` splits `HISTORY_GROUPS` **by
+  subtraction**, so the two halves are provably disjoint and provably exhaustive: no row can appear
+  in both and none can fall out of both. `SOURCE_MISSING` and `CANCELLED_OR_RETIRED` lost their
+  primary tiles and gained one compact entry beneath the grid, hidden at zero. Neither was folded
+  into `FAILED` or `COMPLETED`, no status was rewritten, no row was copied to another table, **no
+  `archived` column was added**, and nothing was deleted. Opening it performs no scan, upload,
+  deletion or state repair.
+- **An incremental launch scan.** `ScanEvidenceReusePolicy` grants reuse only on a full conjunction —
+  same owning tree, same provider authority and document id, same media kind, a complete canonical
+  SHA-256 with a complete hashing record, stored evidence that agrees with itself, and a size and a
+  modification time both known, both non-zero and both exactly equal. **A display name is not an
+  input to the policy at all.** No sampling, no prefix hash, no *probably unchanged*. A row ever
+  declared `SOURCE_MISSING` is always re-read — stricter than the conjunction requires, deliberately.
+  Providers that report no size or a zero modification time never qualify, and their files are read
+  in full every time, which is the correct outcome rather than a gap.
+
+### The safety argument that matters most
+
+**Missing-file detection is untouched, structurally rather than by promise.** The presence marker
+`lastSeenScanRunId` is written by `persistDiscovery` — **before any stream is opened** — so a
+document that skips its hash has already been recorded as seen by this run. Only an exhaustive
+completed traversal may still infer absence, and nothing on the fast path can clear the coverage
+flag or change the outcome classification. A reused document is finalized through the **same** call
+the hashed path uses, so routing, duplicate reservation, the already-confirmed guard, the ignore
+re-judgement and every counter behave identically. `ScanFinalizeRequest.reusedHashedAtEpochMillis`
+carries the moment the digest was genuinely computed, so `hashedAt` keeps meaning *when the bytes
+were read* instead of quietly becoming *when the digest was last affirmed*.
+
+**No visible scan counter was added.** Distinguishing *reused* from *new* on screen would need a new
+column on both `scan_runs` and `source_directories`, and the instruction was to keep the optimization
+internal rather than migrate a schema for a number.
+
+### Guards re-scoped, never deleted — three of them
+
+- D6A7e5's *the schedule selector wraps* now asserts it delegates to the shared container, with a
+  **second** test proving that container is a genuine `FlowRow` that never scrolls and fixes no
+  height. Left matching `FlowRow(` it would have gone silently vacuous the moment the refactor landed.
+- D6A7e's *a local moment is formatted for the device* now reads the shared formatter, bans an
+  explicit zone inside it, and bans hand-rolled formatting across **all three** files that render a
+  moment.
+- `DashboardTilesTest` now pins **six** tiles, and a new test asserts both archived groups are absent
+  from the work grid **and** still present in the model and in `HISTORY_GROUPS`.
+- And, for the fourth time in this project's history, **an exact-version pin became a floor**:
+  `D6A7E7ASurfaceTest` asserted `versionCode = 48` literally, which made it a statement about which
+  milestone is current rather than about D6A7e7a. It now asserts the build never goes backwards, plus
+  the install-identity invariants that genuinely belong to it.
+
+### The Instagram publisher — recorded, not built
+
+Rows 213–219 record the future official Meta publisher as **multi-account from day one**: an
+`InstagramPublisherAccount` keyed by an opaque internal id and **never by a username**, with its own
+label, Meta-reported type, connection state, authorization generation, per-account encrypted token
+material and Meta-derived capabilities; independent authorization, disconnection and
+reauthorization, so one account needing attention never stops the others unless Meta's own response
+proves the condition is app-wide; a chosen default; a target account **frozen onto a publication at
+queue or schedule time**, never redirected by a later default change and never automatically retried
+onto another; per-account history that keeps its frozen safe label after a rename or a
+disconnection; duplicate protection scoped to the exact target account; and a personal account Meta
+cannot publish to represented as **unsupported** rather than coerced into a professional state.
+Tokens, app secrets and refresh secrets never reach Android.
+
+**None of it is implemented. Meta was not contacted and no credential was configured.** The existing
+local `ACTION_SEND` route is untouched: it hands media to the Instagram application through Android
+sharing, and **proves no publication whatsoever** — the application never learns whether anything was
+posted. It is not retired.
+
+**The distinction that must not blur.** An **Instagram viewing session** is the server's read-only
+credential for Remote Sources discovery. An **Instagram publishing authorization** is a Meta account
+grant for posting. They are separate concerns and **neither may ever substitute for the other**. The
+first exists and is currently disconnected (row 130); the second does not exist at all.
+
+### Deliberately future, and said so
+
+- **Safe archive pruning** (row 211): a historical row may be permanently removed only once it is
+  proved that no duplicate-prevention, upload-evidence, deletion-evidence, retry-history,
+  destination-history or recorded user decision still depends on it. D6A7e7b purges nothing and
+  offers no control that could.
+- **An explicit full-integrity rescan** (row 212): the incremental path is the default and the only
+  path today. There is no hidden full-hash mode, and if one is wanted it must be a visible,
+  user-started action.
+
+## Previous milestone: D6A7e7a
+
+
+| Field | Value |
+| --- | --- |
 | Task | **D6A7e7a** — a recovery that knows which process it is in, an answer that outranks a guess, and a send that says how it ended |
 | **Final application HEAD** | **`c1cc465f873dd6b1d034de2d7d28ca03116a366f`** — pushed. The build tree is `19b6ee4`; the final HEAD adds a documentation-only artefact-record commit (it touches only `docs/PROJECT_STATE.md` and `docs/RELEASE_REVIEW.md`), and the hash is unchanged because documentation is not a build input |
 | **Final server HEAD** | **`c7536bf64f23b80feb92f9eac2e1e2c915c0d0fd`** (`c7536bf`) — **unchanged, not redeployed, not edited, not contacted for a change.** `DEPLOYED_HEAD` equals it exactly |

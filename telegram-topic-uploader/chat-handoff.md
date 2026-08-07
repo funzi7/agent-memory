@@ -161,6 +161,144 @@ item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
 
+**D6A7e7b** — a platform that fits on the phone, a history that says when, and an icon that is
+actually an icon.
+
+> **Android only.** The server was **not** edited, not deployed, not restarted, not migrated and not
+> contacted for a change; `SERVER_HEAD` and `DEPLOYED_HEAD` are both unchanged. The server audit that
+> opened this milestone was **read-only**. **No platform was contacted** — not TikTok, not Instagram,
+> not X, not Reddit, not 9GAG: no source created, validated, enabled, disabled or checked. No Telegram
+> content was sent and no Telegram history was queried. The application was **not installed** and
+> **not run** on any device or emulator.
+
+| Field | Value |
+| --- | --- |
+| **Final application HEAD** | **`7ad6d2bcd615cdcae0975635ca8661766575900e`** — pushed. The build tree is `f3991ed49be4ed0e7b2d5767f3028059e1e1cdc5`; the final HEAD adds a documentation-only artefact-record commit, and the hash is unchanged because documentation is not a build input |
+| **Final server HEAD** | **`c7536bf64f23b80feb92f9eac2e1e2c915c0d0fd`** — **unchanged, not redeployed, not edited, not contacted for a change.** `DEPLOYED_HEAD` equals it exactly |
+| Version | code 48 → **49**, name `0.13.23-d6a7e7a` → **`0.13.24-d6a7e7b`** |
+| Room schema | **17, unchanged — no migration runs on this install.** Every timestamp this milestone renders was already a column, and the History query already selected the confirmation one; only the domain projection dropped it. The Archive filters on a **computed** `DashboardGroup` — there is deliberately no `archived` column. The incremental scan reads digest, hashed-at, hashed-size, modification-time and size columns that all already exist. Server: `0006_session_connection`, unchanged |
+| Gate | **3134 Android unit tests across 203 suites, 0 failures, 0 errors, 0 skipped. Lint: 0 issues** (both counted from the XML reports, every task with `--rerun-tasks`, the whole gate re-run from the committed tree). Server: **not run — the repository was not touched** |
+| APK | `/sdcard/Download/TelegramTopicUploader-0.13.24-d6a7e7b.apk`, SHA-256 `e9d9cf3ab0ee33073b5d76a0071afd1317dfd76f970d4b414b9c3e45143eafa9`, 16,850,760 bytes — hash verified identical to the build output, **not installed**. Built from the tree at `f3991ed` |
+| Hardware | **No line of D6A7e7b is verified.** `docs/D6A7E7B_DEVICE_CHECKLIST.md`, 71 items, all *not attempted*. New backlog rows **192–219**. Every D6A7e7a row (**179–191**) stays open — the sixth run reported a different screen and produced no evidence about any of them |
+
+### What opened it
+
+**The sixth physical run.** In *Remote Sources → Add source*, on the narrow Hebrew/RTL handset, the
+platform chooser showed **Instagram, 9GAG, X and Reddit — and TikTok was not there at all.** Not
+disabled, not greyed, not explained: absent.
+
+**It was never a product gap.** `RemotePlatform.selectable` has contained `TIKTOK` since D6A5, the
+TikTok tab exists, the TikTok profile source type exists in this build *and* in the deployed
+server's own enum, the server's adapter registry lists TikTok as supported and advertises
+`tiktok_profile` with no feed modes, and every TikTok label and identity hint has been in both
+locales for eight milestones. The form drew the server-supplied `selectablePlatforms` as chips
+inside a plain `Row` — no wrapping, no scrolling — so the fifth chip was measured past the edge of
+the viewport and clipped. Under RTL that edge is the left one, which is why those four survived.
+
+**TikTok was not contacted.** No source was created and no validation attempted, because the control
+that would have started one was unreachable. Nothing about this is evidence about TikTok's
+availability, its adapter or whether the deployed host can read a TikTok profile.
+
+**And this is the second occurrence of one defect.** D6A7e5 found three of five schedule presets
+unreachable behind a horizontal scroll. Same failure — a control outside the viewport — different
+group, eight days later.
+
+**Plus four product decisions**, all taken beside the report: History should say *when* a delivery
+actually happened; the launcher icon renders as a blank white shape and should be a real icon; the
+*Source missing* and *Cancelled / retired* Dashboard tiles are historical records and should stop
+looking like current work **without deleting anything**; and the future official Instagram publisher
+must be multi-account from the beginning.
+
+### What shipped
+
+- **One wrapping container, and no group left deciding for itself.** `RemoteChipFlow` is a `FlowRow`
+  that fills its width, spaces both directions identically, declares no height, inserts no spacer,
+  clips nothing and **counts nothing** — so a sixth platform wraps rather than disappearing. Seven
+  groups draw through it, including the D6A7e5 schedule selector that contributed the original
+  `FlowRow`. The platform tab strip keeps its own horizontal scroll and is still the only one.
+- **TikTok's form was already correct and is now reachable.** One advertised source type, so no
+  source-type chooser; no feed-mode chooser; a TikTok-specific identity hint; preselection from the
+  tab. No cookie UI, no Cobalt UI, no credential field of any kind was added.
+- **One rule about which time a delivery may claim.** `RemoteHistoryTimelinePolicy` grants a *sent
+  and confirmed on Telegram* sentence only on **both** halves — the server's own `CONFIRMED` state
+  **and** a renderable `confirmed_at`. A read-only server audit confirmed the semantics rather than
+  assuming them: `confirmed_at` is assigned in exactly one place, the positive-confirmation
+  settlement path, and is null for every other outcome — **including a `result_unknown` operation a
+  human later resolved as delivered**, because that resolution is recorded against the item and never
+  against the operation. `created_at` is stamped by the column default at row insert, before any
+  request, and now appears only under *the send operation was created*.
+- **One formatter, two History screens.** `LocalMoment` gives an exact local date and clock time from
+  the platform's own locale-aware patterns, with **no timezone constant anywhere**. It replaced three
+  copies of the same expression. `RenderableMoment` rejects an absent, zero or implausibly early
+  epoch, so **no card can print 1 January 1970** and an omitted moment produces no text.
+- **Remote History Details**, read-only, carrying only already-loaded facts, each under its own
+  label, with two times under two labels and **no operation, item, source, destination, chat, thread
+  or message identifier**. The message count is shown; the message ids are not. Expanding fetches
+  nothing.
+- **`RemoteDeliveryFailureCode`** matches the thirteen literals the server's sender and settlement
+  paths author, one translated sentence each; an unrecognised value names itself as unrecognised and
+  the stored string is never printed.
+- **"Sent to X" stopped being said about deliveries that were not sent.** A confirmed row keeps it;
+  every other row names the destination it was *aimed at*.
+- **Local History carries the real confirmation moment**, gated once at the entity mapping on the
+  whole positive pair (message id > 0 **and** a stamp), so half-evidence can never render as proof.
+  Dispatch-start and operation-ended joined the Details block that already existed, each under its
+  own name. **No migration** — every column already existed.
+- **Remote Review** states the platform's own publish time and the server's discovery time as two
+  separate sentences, the first omitted when the platform's metadata carried none.
+- **A real launcher icon** — adaptive, opaque blue field, white play-and-arrow mark, monochrome layer
+  for themed launchers, and a self-contained vector for the Android 6/7 devices `minSdk 23` covers.
+  Every drawn point is inside the mask's guaranteed safe circle. No downloaded artwork, no borrowed
+  logo, no text.
+- **An Archive that hides nothing durable.** `HistoryMode` splits `HISTORY_GROUPS` **by
+  subtraction**, so the halves are provably disjoint and provably exhaustive. The two groups lost
+  their tiles and gained one compact entry, hidden at zero. Nothing folded, rewritten, copied,
+  flagged or deleted; opening it performs no scan, upload, deletion or repair.
+- **An incremental launch scan.** `ScanEvidenceReusePolicy` grants reuse only on a full conjunction:
+  same owning tree, same authority and document id, same media kind, complete canonical digest with a
+  complete hashing record, internally consistent stored evidence, and size and modification time both
+  known, both non-zero and both exactly equal. A display name is **not an input**. No sampling, no
+  prefix hash, no *probably unchanged*. A previously-missing row is always re-read.
+
+### The safety argument that matters most
+
+**Missing-file detection is untouched, structurally rather than by promise.** The presence marker
+`lastSeenScanRunId` is written by `persistDiscovery` — **before any stream is opened** — so a
+document that skips its hash has already been recorded as seen by this run. Only an exhaustive
+completed traversal may still infer absence, and nothing on the fast path can clear the coverage
+flag or change the outcome classification. A reused document is finalized through the *same* call
+the hashed path uses, so routing, duplicate reservation, the already-confirmed guard, the ignore
+re-judgement and every counter behave identically. `hashedAt` carries the moment the digest was
+genuinely computed, so the column keeps meaning *when the bytes were read*.
+
+### Three guards re-scoped, none weakened
+
+D6A7e5's "the schedule selector wraps" now asserts it delegates to the shared container, with a
+second test proving that container is a real `FlowRow` that never scrolls and fixes no height.
+D6A7e's "a local moment is formatted for the device" now reads the shared formatter and bans
+hand-rolled formatting across all three files that render one. `DashboardTilesTest` now pins six
+tiles, and a new test asserts both archived groups are absent from the work grid **and** still
+present in the model and in `HISTORY_GROUPS`. Each would have gone silently vacuous if left matching
+its old literal. **D6A7e7a's exact-version pin became a floor**, for the same reason D4A's did.
+
+### The Instagram publisher, recorded and not built
+
+Rows 213–219 record it as **multi-account from day one**: `InstagramPublisherAccount` keyed by an
+opaque internal id and never a username; independent authorization, disconnection and
+reauthorization; a chosen default; a target account **frozen onto a publication at queue or schedule
+time**, never redirected and never automatically retried onto another; per-account history keeping
+its frozen safe label after a rename or disconnection; duplicate protection scoped to the exact
+target account; a personal account Meta cannot publish to represented as **unsupported**. Tokens,
+app secrets and refresh secrets never reach Android.
+
+None of it is implemented. **Meta was not contacted and no credential was configured.** The existing
+local `ACTION_SEND` route is untouched and still proves no publication. **An Instagram viewing
+session and an Instagram publishing authorization are separate concerns and neither may substitute
+for the other** — the first exists and is currently disconnected (row 130), the second does not exist
+at all.
+
+## 4a000000. Previous milestone: D6A7e7a
+
 **D6A7e7a** — a recovery that knows which process it is in, an answer that outranks a guess, and a
 send that says how it ended.
 
@@ -1422,6 +1560,30 @@ connector most likely to need maintenance**, since that payload is front-end dat
 
 **Confirmed by the user, and only this:**
 
+- **D6A7e7a reports (2026-08-07), on the installed D6A7e7a build — the sixth physical run:**
+  - 🔴 **TikTok was not visible or reachable in *Remote Sources → Add source*** on the narrow
+    Hebrew/RTL handset. The chooser showed **Instagram, 9GAG, X and Reddit** and the fifth platform
+    was absent — not disabled, not greyed, not explained. **This is a physical Android layout
+    failure, not a product gap**: the platform, its `tiktok_profile` source type, its tab, its
+    translated labels and the deployed server's adapter have all existed since D6A5. The chooser drew
+    its chips in a non-wrapping `Row` and the fifth was clipped outside the viewport; under RTL that
+    edge is the left one. **TikTok was not contacted**: no source created, no validation attempted,
+    because the control that would have started one could not be reached. Fixed by D6A7e7b, which is
+    **device-unverified** — rows 193–196.
+  - 🔴 **The launcher icon renders as a blank white shape.** The manifest pointed both icon
+    attributes at a white-only foreground vector, which is not a launcher icon. Fixed by D6A7e7b,
+    device-unverified — row 202.
+  - ⚪ **No evidence of any kind about D6A7e7a's own corrections.** The run reported a different
+    screen. Rows **179–191 all stay open**; the false *Requires review* fix remains under
+    opportunistic observation during ordinary use (checklist lines 69–71), which is watching, not
+    evidence.
+  - 🗒️ **Four product decisions taken beside the report**, all now recorded: History must say *when*
+    a delivery actually happened; the *Source missing* and *Cancelled / retired* Dashboard tiles must
+    stop presenting themselves as current work **without deleting the records**; the launch scan must
+    stop re-reading and re-hashing known unchanged media; and the future official Instagram publisher
+    must be **multi-account from day one**. The first three shipped in D6A7e7b, device-unverified;
+    the fourth is roadmap only (rows 213–219).
+
 - **D6A7e7 reports (2026-08-06), on the installed D6A7e7 build — the fifth physical run:**
   - ✅ **The secure public transport connection works**, the **authenticated public connection test
     succeeds**, **Public HTTPS is selected and displayed as verified**, and **ordinary Remote Sources
@@ -1964,8 +2126,22 @@ the table is the whole of it.
 ## 11. Roadmap
 
 **The authoritative, itemised backlog is the table in
-`/root/work/telegram-topic-uploader/TODO.md`** — 120 rows after D6A7e3, each with an owner, a state and the
+`/root/work/telegram-topic-uploader/TODO.md`** — 219 rows after D6A7e7b, each with an owner, a state and the
 evidence required to close it. This list is the ordering; that table is the record.
+
+**Newest first, as of D6A7e7b.** `docs/D6A7E7B_DEVICE_CHECKLIST.md` (71 lines, rows 192–219) is the
+current checklist and nothing in it has been attempted. Its lines 8–14 are the highest-value single
+block available: they say whether all five platforms are actually on the screen on the handset that
+reported only four. Lines 42–46 answer the launcher icon, 47–58 the incremental scan, 59–68 the
+Archive, and 69–71 ask for continued opportunistic observation of the D6A7e7a false-*Requires
+review* fix during ordinary use — which is watching, not evidence, and closes nothing.
+`docs/D6A7E7A_DEVICE_CHECKLIST.md` (46 lines, rows 179–191) remains entirely unattempted beneath it.
+
+**Recorded as future product shape, not as work in progress:** the official Meta Instagram publisher
+is **multi-account from day one** (rows 213–219), safe archive pruning needs proof that nothing
+depends on a row before it may be removed (row 211), and an explicit full-integrity rescan is a
+visible user action if it is ever wanted (row 212). None of the three is implemented, and the
+existing local `ACTION_SEND` Instagram route is untouched and still proves no publication.
 
 1. **Device-validate D6A7e3 first — `docs/D6A7E3_DEVICE_CHECKLIST.md`, 21 lines.** It repairs the
    three defects the first physical run of D6A7e2 found, and none of them may be called fixed until

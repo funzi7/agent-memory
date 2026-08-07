@@ -44,6 +44,7 @@ hash — and nothing added to it ever may.
 | **Head after D6A7e6a, unchanged** | **`eaeba836650f67245b0bd8265b46f6e03d2cd29d`** (`eaeba83`) — **unchanged. This repository was not edited, not deployed, not restarted and not contacted for a change.** D6A7e6a was an Android-only hotfix (the fourth physical run's orphan explicit-send notification); migration head **`0006_session_connection`**, unchanged; **Instagram was not contacted**: no validation, no check, no operator probe, no credential touched, no source enabled or disabled. Tailscale was off on the phone during the fourth run — recorded as a coincidence, not a cause, and the local notification cleanup is pinned connectivity-blind |
 | **Head after D6A7e7** | **`c7536bf64f23b80feb92f9eac2e1e2c915c0d0fd`** (`c7536bf`) — **deployed and verified**; migration head **`0006_session_connection`**, unchanged — none was needed and none was written. The first commit `07fd920` carried the code and was deployed first; `c7536bf` adds the deployment record and was redeployed so the deployed HEAD equals this one exactly. **A restricted public edge is live**: Tailscale Funnel HTTPS 8443 → host loopback 8100 → a digest-pinned nginx edge → the API. Private Serve 443 unchanged and re-verified. **Instagram was not contacted** |
 | **Head after D6A7e7a, unchanged** | **`c7536bf64f23b80feb92f9eac2e1e2c915c0d0fd`** (`c7536bf`) — **unchanged. This repository was not edited, not deployed, not restarted and not contacted for a change**, and the deployed HEAD is the same value. D6A7e7a was an **Android-only** corrective milestone: the fifth physical run reported that a local upload to Telegram became *requires review* every time the user left the application while it ran and came back. **That defect is local and is not attributable to this server, to the public edge or to Tailscale** — the local upload path never used a Remote Sources endpoint, and a structural guard now pins the fix's own sources free of every Remote Sources, transport and Tailscale symbol. Migration head **`0006_session_connection`**, unchanged. **No Funnel, Serve, public-edge, rate-limit or firewall configuration was changed.** **Instagram was not contacted**: no validation, no check, no operator probe, no credential touched, no source enabled or disabled. The same run also reported the **public HTTPS transport working on the handset** — the authenticated probe succeeds and ordinary Remote Sources use works with Tailscale off, which is positive device evidence for the D6A7e7 edge deployed from here |
+| **Head after D6A7e7b, unchanged** | **`c7536bf64f23b80feb92f9eac2e1e2c915c0d0fd`** (`c7536bf`) — **unchanged. This repository was not edited, not deployed, not restarted, not migrated and not contacted for a change**, and the deployed HEAD is the same value. D6A7e7b is **Android-only**. The sixth physical run reported that **TikTok was not visible in the phone's *Add source* platform chooser** — and that is emphatically **not a server finding**: this server already supports TikTok (`Platform.TIKTOK`, `SourceType.TIKTOK_PROFILE`, in `SUPPORTED_PLATFORMS`, with a real adapter advertising `profile_discovery=True`, `requires_credentials=False`, `optional_credentials=True`, exactly one source type and no feed modes), and `/system/status` has advertised all of it for eight milestones. The phone clipped the fifth chip out of a non-wrapping row. **No platform request occurred**: TikTok was not contacted, no source was created, validated, enabled, disabled or checked, and no credential was touched. The milestone's server work was a **read-only audit** of `schemas.py`, `routes.py`, `db/models.py`, `delivery/operations.py`, `delivery/telegram.py` and `adapters/registry.py`, which confirmed that Remote History already exposes **both** `created_at` and `confirmed_at` and that Android already parses both — so **no API change, no migration and no deployment was needed or made**. Migration head **`0006_session_connection`**, unchanged. **No Funnel, Serve, public-edge, nginx, rate-limit or firewall configuration was changed.** **Instagram was not contacted** |
 | Host | A DigitalOcean droplet, Ubuntu 24.04.4, amd64, 1 vCPU, ~2 GiB RAM, ~48 GB disk |
 | Deploy path on host | `/opt/remote-sources` |
 | State path on host | `/var/lib/remote-sources` |
@@ -1235,6 +1236,66 @@ exception left the composition root, passed through the route, and became a gene
 - [ ] **Do not ask the user to export any cookies** until evidence shows the configured session is
       itself missing or rejected. It was not, and asking was the wrong action the whole time.
 - [ ] 9GAG automatic discovery remains **platform-blocked** by the anti-bot challenge from D6A6a.
+
+## D6A7e7b — no server change, and the roadmap it did add
+
+**This repository was not touched.** `SERVER_HEAD` and `DEPLOYED_HEAD` are both
+`c7536bf64f23b80feb92f9eac2e1e2c915c0d0fd`. D6A7e7b is Android-only, and the only server work was a
+**read-only audit**.
+
+**What the audit established, and why the app needed no new endpoint.** Remote History has exposed
+**both** `created_at` and `confirmed_at` since `history.v1`, and Android has parsed both since D6A7c.
+`confirmed_at` is assigned in **exactly one place in `src/`** — `_settle_confirmed`, reached only
+from the `SendOutcome.CONFIRMED` branch — so it is null for `FAILED_BEFORE_DISPATCH`,
+`FAILED_AFTER_DISPATCH`, `RESULT_UNKNOWN` and every still-running operation. `created_at` is the
+column default, stamped when `create_operation` inserts the row, **before any Telegram request is
+made**. So the two are the start and the end of one delivery, and no field was missing: the phone
+simply had no rule about which one a sentence may quote. It has one now, and it requires both the
+`confirmed` state and the timestamp.
+
+**One edge worth remembering for any future History work.** Resolving a `RESULT_UNKNOWN` item as
+*delivered* sets the **item** to `CONFIRMED` and deliberately leaves the **operation** at
+`RESULT_UNKNOWN` with `confirmed_at` still null (`routes.py`, the resolve-unknown route). The phone
+therefore states no send time for such a row, which is correct — a person reading a topic is not
+Telegram — but it means "the user considers it delivered" and "Telegram confirmed it" are genuinely
+different rows on that screen, and neither may be rendered as the other.
+
+**TikTok, since the report named it.** This server already supports TikTok fully:
+`Platform.TIKTOK`, `SourceType.TIKTOK_PROFILE`, membership in `SUPPORTED_PLATFORMS`, and a real
+adapter advertising `profile_discovery=True`, `requires_credentials=False`,
+`optional_credentials=True`, exactly one source type and **no** feed modes. `/system/status`
+advertises all of it. **The reported failure was a phone layout defect** — the fifth chip clipped out
+of a non-wrapping row — and **no platform request occurred** during the milestone.
+
+### Recorded here as future server shape only — the multi-account Instagram publisher
+
+Not implemented, not designed in code, not configured, and **Meta was not contacted**. The
+Android-side roadmap rows are 213–219 in the application's `TODO.md`; what belongs to *this*
+repository when it is eventually built:
+
+- An `InstagramPublisherAccount` entity with an **opaque internal id as its primary key — never the
+  username**, plus a user-facing label, a Meta-reported account type, a connection state, an
+  authorization generation, encrypted token material **per account**, expiry/refresh metadata where
+  applicable, connected and revoked timestamps, and capabilities derived from Meta's own response.
+- **Several accounts authorised independently.** Disconnecting one, or one needing
+  reauthorization, must not disturb the others; one account's failure or backoff must not silently
+  stop every other unless Meta's response proves the condition is app-wide.
+- **Tokens, app secrets and refresh secrets never leave this server.** Android receives safe account
+  metadata and connection state only — the same boundary the viewing-session credentials already sit
+  behind.
+- **A publication's target account is frozen at queue or schedule time** and is never redirected by
+  a later default change, never fallen back from, and never automatically retried onto a different
+  account. Publication history keeps the frozen safe label even after a rename or a disconnection.
+- Idempotency and duplicate protection are scoped to the exact target publishing account.
+- Revoking one account deletes only that account's usable token material.
+- Server-side scheduling continues with the phone closed.
+- A personal account Meta cannot publish to is represented as **unsupported**, never coerced into a
+  professional-account state.
+
+**And the separation that must never blur here of all places.** The **Instagram viewing session**
+this server already holds is a read-only credential for Remote Sources *discovery*. An **Instagram
+publishing authorization** would be a Meta account grant for *posting*. Two different credentials,
+two different purposes, and **neither may ever substitute for the other**.
 
 ## Next action
 
