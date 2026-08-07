@@ -12,15 +12,45 @@
 | Field | Value |
 | --- | --- |
 | Task | **D6A7f** — the phone stops being a Telegram client. **Three repositories**: the server gained one authoritative Telegram transport, a durable `RETRY_WAIT`, durable asynchronous validation runs and resumable chunked uploads; the application stopped talking to Telegram at all; agent-memory records both |
-| **Final application HEAD** | **`375681ef1da41388356666fd73e73b0ae7258f21`** — pushed. The build tree is `6507f1fea760dd6f15c8a24682575107e751bfc0`; the final HEAD adds a documentation-only artefact-record commit (it touches only `TODO.md`, `docs/PROJECT_STATE.md` and `docs/RELEASE_REVIEW.md`), and the hash is unchanged because documentation is not a build input |
-| **Final server HEAD** | **`c7cbb58bf12eb97628c86515cc70e31082661585`** (`c7cbb58`) — pushed and **not deployed**. The code commit is `ee561241b5501d09f7cb52ddb2604ac2a2148a10` (`ee56124`). `DEPLOYED_HEAD` is unchanged at `b0ed4f0407a089b5cf567c78a3c4f7a055197638` — the host still runs D6A7e8 |
-| **Deployment** | **refused, and by a rule rather than a fault: `OPERATOR_ACTION_REQUIRED=INSTAGRAM_MAINTENANCE_WINDOW`.** Read read-only at `2026-08-07T16:50:45Z`, the enabled Instagram source's next check was due `2026-08-07T17:13:35Z` — **22.8 minutes away**, inside the 90-minute window in which this service may not be restarted. Nothing was uploaded, promoted, migrated or restarted. The probe read two rows and wrote none |
+| **Final application HEAD** | **`675eaffc1e12bb39cbbfd15f4cbaccb11b7e117b`** — pushed. The build tree is `6507f1fea760dd6f15c8a24682575107e751bfc0`; the two commits after it are documentation only — the artefact record, then the server's deployment — so the APK hash is unchanged, because documentation is not a build input |
+| **Final server HEAD** | **`df194a011b1733741380144d337976d026ad172f`** (`df194a0`) — **deployed and verified**, and `DEPLOYED_HEAD` equals it exactly. The code commit is `ee561241b5501d09f7cb52ddb2604ac2a2148a10` (`ee56124`); `8771552` and `01ae156` fix deployment tooling the deployment itself exposed, and `df194a0` records the deployment |
+| **Deployment** | **done, CLOUD gateway mode, on the third attempt.** Migration `0007_d6a7f_transport` applied and verified as the database head; backend `cloud`, `max_upload_bytes` 52,428,800; **no `logOut`**; Local Bot API not running; no `api_id`/`api_hash` stored. Legacy 429 repair: examined 5, **repaired 5**. Every row count identical across the deployment; Instagram untouched to the microsecond |
 | Version | code 50 → **51**, name `0.13.25-d6a7e8` → **`0.14.0-d6a7f`**. The **minor** moves, not the patch: a different transport is not a bug fix |
-| Room schema | **17, unchanged — no migration runs on this install.** The active-sibling evidence is a computed `EXISTS` inside the two canonical projections, not a stored column, so there is no schema 18 and `18.json` stays absent. Server migration head is **`0007_d6a7f_transport`** in the repository and **not applied to production**; the host is still on `0006_session_connection` |
-| Gate | **3246 Android unit tests across 209 suites, 0 failures, 0 errors, 0 skipped. Lint: 0 issues** (both counted from the XML reports, every task with `--rerun-tasks`, the whole gate re-run from the committed tree). Server: **1410 passed, 4 skipped**, plus `ruff format --check`, `ruff check`, `mypy` (121 files), `bash -n`, `release-preflight` (60 first-party modules) and `git diff --check` |
+| Room schema | **17, unchanged — no migration runs on this install.** The active-sibling evidence is a computed `EXISTS` inside the two canonical projections, not a stored column, so there is no schema 18 and `18.json` stays absent. Server migration head **`0007_d6a7f_transport`**, applied to production |
+| Gate | **3246 Android unit tests across 209 suites, 0 failures, 0 errors, 0 skipped. Lint: 0 issues** (both counted from the XML reports, every task with `--rerun-tasks`, the whole gate re-run from the committed tree). Server: **1413 passed, 4 skipped** at the deployed tree — 1410/4 at the milestone commit, before the deployment's tooling fixes — plus `ruff format --check`, `ruff check`, `mypy` (121 files), `bash -n`, `release-preflight` (60 first-party modules) and `git diff --check` |
 | APK | `app-debug.apk`, 16,934,184 bytes, SHA-256 `75352a81a1e70a09d0f6776487483534c56dd5ff0ff6e2bd1e2bd6c2e8b17d35`. **Copied to Downloads as `TelegramTopicUploader-0.14.0-d6a7f.apk` with a verified-identical hash. Not installed.** Built from the tree at `6507f1f`. Every earlier APK left in place |
-| Production | **Untouched.** `LIVE_PROBES_USED=0`: no agent contacted any platform, no Telegram message was sent, and no Instagram source was validated, checked, rescheduled or altered. The only production access in the whole milestone was read-only |
+| Production | **Deployed, and nothing else was touched.** `LIVE_PROBES_USED=0`: no agent contacted any platform, no Telegram message was sent, and no Instagram source was validated, checked, rescheduled or altered. The 17:13:52Z Instagram check was the scheduler's own and failed as its predecessors had; its `next_check_at` was read, never written |
 | Hardware | **Nothing in D6A7f is device-verified.** `docs/D6A7F_DEVICE_CHECKLIST.md` is the gate and every item is *not attempted*. The milestone stops deliberately at `OPERATOR_ACTION_REQUIRED=D6A7F_PRE_MIGRATION` |
+
+
+### The deployment, and the four defects it found
+
+**Deployed in CLOUD gateway mode on the third attempt.** Migration `0007_d6a7f_transport` applied,
+backend `cloud`, no `logOut`, Local Bot API not running. Row counts identical across the deployment;
+Instagram identical to the microsecond with no deployment-triggered check; 8099/8100 loopback-only,
+Funnel 8443, Serve 443, firewall unchanged, no Local Bot API listener.
+
+**The legacy 429 repair: examined 5, repaired 5** — same operations, no duplicates, no fabricated
+confirmation, items back in the queue, and absent from History while waiting. **The automatic retry
+then ran by itself and all five failed to download**: `failed_before_dispatch` / `download_failed`,
+because the source media has expired. Nothing reached Telegram and the five items are in **Review**.
+The repair corrected a misclassification; it could not make expired media downloadable, and saying
+otherwise would be the round-up this project does not do.
+
+**Why it took three attempts, and why it matters beyond this milestone:**
+
+1. the Instagram maintenance window refused the first (22.8 minutes to the next check);
+2. the edge never re-read its route policy — a bind-mounted template rendered at container start,
+   and `docker compose up -d` leaves a matching running container alone;
+3. an unquoted `{8,64}` in an nginx `location` regex, which nginx reads as the start of a block, so
+   the container refused to start — **and three separate guards had agreed with it**, each pinning
+   the string that had been written rather than one nginx would accept;
+4. found while those failed: `remote-sources-ctl` had no `verify-backup`, the subcommand the rollback
+   calls before restoring the database — so every rollback needing a restore refused, and reported
+   *the backup no longer verifies* about a command that never ran. The rollback tests had stubbed the
+   wrapper with a fake that implemented it.
+
+All four are fixed, each with a guard that reads the real file rather than a stub.
 
 ### The architecture this milestone makes permanent
 
@@ -96,7 +126,8 @@ is drawn.
 * **Do not perform the Local Bot API `logOut` migration** until the user has installed D6A7f and
   confirmed the new gateway works. This was absolute in D6A7f and remains the gate.
 * **Do not deploy while the enabled Instagram source is within 90 minutes of its next check.**
-  Re-read it read-only immediately before deploying, every time.
+  Re-read it read-only immediately before deploying, every time. It refused a deployment on
+  2026-08-07 and was right to.
 * **Do not ask the user to re-press TikTok *Check source*** before the async validation is deployed
   and installed.
 

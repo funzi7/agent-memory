@@ -181,14 +181,69 @@ outlives the screen that asked for it.
 
 | Field | Value |
 | --- | --- |
-| **Final application HEAD** | **`375681ef1da41388356666fd73e73b0ae7258f21`** — pushed. The build tree is `6507f1fea760dd6f15c8a24682575107e751bfc0`; the final HEAD adds a documentation-only artefact-record commit, and the hash is unchanged because documentation is not a build input |
-| **Final server HEAD** | **`c7cbb58bf12eb97628c86515cc70e31082661585`** — pushed, **not deployed**. Code commit `ee561241b5501d09f7cb52ddb2604ac2a2148a10`. `DEPLOYED_HEAD` is still `b0ed4f0407a089b5cf567c78a3c4f7a055197638` (D6A7e8) |
-| **Deployment** | **refused, by a rule rather than a fault.** `OPERATOR_ACTION_REQUIRED=INSTAGRAM_MAINTENANCE_WINDOW`. Read read-only at `2026-08-07T16:50:45Z`, the enabled Instagram source was due `2026-08-07T17:13:35Z` — **22.8 minutes**, inside the 90-minute window in which this service may not be restarted. Nothing on the host was uploaded, promoted, migrated or restarted |
+| **Final application HEAD** | **`675eaffc1e12bb39cbbfd15f4cbaccb11b7e117b`** — pushed. The build tree is `6507f1fea760dd6f15c8a24682575107e751bfc0`; the two later commits are documentation only (the artefact record, then the server's deployment), and the APK hash is unchanged because documentation is not a build input |
+| **Final server HEAD** | **`df194a011b1733741380144d337976d026ad172f`** — **deployed and verified**; `DEPLOYED_HEAD` equals it exactly. Code commit `ee561241b5501d09f7cb52ddb2604ac2a2148a10`; two later commits fix deployment tooling the deployment itself exposed, and one records the deployment |
+| **Deployment** | **done, in CLOUD gateway mode**, on the third attempt. Migration `0007_d6a7f_transport` applied, backend `cloud`, no `logOut`, Local Bot API not running. Legacy 429 repair: **5 repaired**. Details below |
 | Version | code 50 → **51**, name `0.13.25-d6a7e8` → **`0.14.0-d6a7f`**. The *minor* moves: a different transport is not a patch |
-| Room schema | **17, unchanged — no migration runs on this install.** The active-sibling evidence is a computed `EXISTS` in the two canonical projections, not a stored column, so there is no `18.json`. Server migration head **`0007_d6a7f_transport`** in the repository, **not applied to production**; the host is still on `0006_session_connection` |
-| Gate | **3246 Android unit tests across 209 suites, 0 failures, 0 errors, 0 skipped. Lint: 0 issues** (counted from the XML reports, every task `--rerun-tasks`, the whole gate re-run from the committed tree). Server: **1410 passed, 4 skipped**, plus ruff format/check, mypy (121 files), `bash -n`, `release-preflight` (60 modules), `git diff --check` |
+| Room schema | **17, unchanged — no migration runs on this install.** The active-sibling evidence is a computed `EXISTS` in the two canonical projections, not a stored column, so there is no `18.json`. Server migration head **`0007_d6a7f_transport`**, **applied to production** and verified as the database head |
+| Gate | **3246 Android unit tests across 209 suites, 0 failures, 0 errors, 0 skipped. Lint: 0 issues** (counted from the XML reports, every task `--rerun-tasks`, the whole gate re-run from the committed tree). Server: **1413 passed, 4 skipped** at the deployed tree (1410/4 at the milestone commit, before the deployment's tooling fixes), plus ruff format/check, mypy (121 files), `bash -n`, `release-preflight` (60 modules), `git diff --check` |
 | APK | `/sdcard/Download/TelegramTopicUploader-0.14.0-d6a7f.apk`, SHA-256 `75352a81a1e70a09d0f6776487483534c56dd5ff0ff6e2bd1e2bd6c2e8b17d35`, 16,934,184 bytes — hash verified identical to the build output, **not installed**. Built from the tree at `6507f1f`. Every earlier APK left in place |
 | Hardware | **Nothing in D6A7f is device-verified.** `docs/D6A7F_DEVICE_CHECKLIST.md` is the gate, all items *not attempted*. The milestone deliberately **stops** at `OPERATOR_ACTION_REQUIRED=D6A7F_PRE_MIGRATION` |
+
+
+### The deployment — three attempts, and what production actually did
+
+**Deployed and verified in CLOUD gateway mode.** `SERVER_HEAD` and `DEPLOYED_HEAD` are both
+`df194a011b1733741380144d337976d026ad172f`; the service reports that commit; migration head is
+`0007_d6a7f_transport`; backend is `cloud` with `max_upload_bytes` 52,428,800; **no `logOut`**; the
+Local Bot API service is **not running** and no `api_id`/`api_hash` is stored.
+
+**Nothing was lost and nothing was contacted.** Devices 4/1, destinations 3/3, sources 2/1, items 71,
+media 74, delivery operations 71, check runs 18, reservations 68 — identical before and after. Every
+Instagram field matches to the microsecond, including `next_check_at`, `updated_at` and the check-run
+count, so **no check was triggered by the deployment**, and the session connection state was not
+mutated. 8099 and 8100 stay loopback-only, Funnel stays on 8443, private Serve stays on 443, the
+firewall is unchanged, and there is **no Local Bot API listener at all**.
+
+**The legacy 429 repair: examined 5, repaired 5.** Total operations unchanged at 71, so no second
+operation; original attempt count, destination and chat preserved; no confirmation and no message id
+fabricated; items returned to `queued`; and `retry_wait` being non-terminal, they were absent from
+History while waiting (66 listed, not 71).
+
+**Then the ordinary retry ran by itself, and the honest result is that it did not deliver.** Sixty
+seconds later all five settled `failed_before_dispatch` / `download_failed` — the source media has
+expired. **Nothing reached Telegram**, so no duplicate post is possible, and the five items are in
+**Review** for the user. The repair corrected a *misclassification*; it never promised to make expired
+media downloadable. No retry was triggered by hand.
+
+**Three attempts, because the deployment tooling had defects the milestone's own code did not.**
+
+1. **Refused by the Instagram maintenance window** at `16:50:45Z` — the enabled source was due
+   `17:13:35Z`, 22.8 minutes. Nothing touched. The check then ran naturally at `17:13:52Z`, failed as
+   its predecessors had, and moved the next check to `2026-08-08T00:32:40Z`, which opened the window.
+2. **The edge served the previous route policy.** Its config is a bind-mounted template rendered by
+   nginx's entrypoint *at container start*, and `docker compose up -d` leaves a running container
+   alone when its image and definition are unchanged — a file's contents changing is neither. Now
+   force-recreated every deployment.
+3. **A location regex nginx could never parse.** `{8,64}` unquoted: nginx reads `{` in a location as
+   the start of a block, so the directive ended mid-regex and the container refused to start.
+   **Three separate guards had agreed with it** — each pinned the string that had been written rather
+   than one nginx would accept. All three fixed, plus a general rule test, plus `nginx -t` in the
+   deployment before anything restarts.
+
+**A fourth defect, found while those failed and fixed in the same pass:** `remote-sources-ctl` had no
+`verify-backup`, which the rollback calls before restoring the database. The call fell through to
+`usage`, so the rollback read a good backup as unverifiable, refused to restore, and printed *the
+pre-deployment backup no longer verifies* — a false reason about a command that never ran. It
+survived because the rollback tests stub the wrapper with a fake that implements it. Fixed, and a
+guard now asserts every operator-CLI subcommand the deployment invokes exists in the real wrapper.
+
+Both failed attempts left the service stopped with the schema at `0007` and the previous tree
+restored. `0007` is purely additive — verified directly against the live database — so the previous
+release ran against it unharmed and was restarted each time. Downtime was minutes; no row was lost.
+
+**What is still open:** the device gate. Android 51 is built and **not installed**, and the Local Bot
+API migration has not begun. The >50 MB ceiling is **not** active.
 
 ### The architecture this milestone makes permanent
 

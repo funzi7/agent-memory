@@ -46,7 +46,7 @@ hash — and nothing added to it ever may.
 | **Head after D6A7e7a, unchanged** | **`c7536bf64f23b80feb92f9eac2e1e2c915c0d0fd`** (`c7536bf`) — **unchanged. This repository was not edited, not deployed, not restarted and not contacted for a change**, and the deployed HEAD is the same value. D6A7e7a was an **Android-only** corrective milestone: the fifth physical run reported that a local upload to Telegram became *requires review* every time the user left the application while it ran and came back. **That defect is local and is not attributable to this server, to the public edge or to Tailscale** — the local upload path never used a Remote Sources endpoint, and a structural guard now pins the fix's own sources free of every Remote Sources, transport and Tailscale symbol. Migration head **`0006_session_connection`**, unchanged. **No Funnel, Serve, public-edge, rate-limit or firewall configuration was changed.** **Instagram was not contacted**: no validation, no check, no operator probe, no credential touched, no source enabled or disabled. The same run also reported the **public HTTPS transport working on the handset** — the authenticated probe succeeds and ordinary Remote Sources use works with Tailscale off, which is positive device evidence for the D6A7e7 edge deployed from here |
 | **Head after D6A7e7b, unchanged** | **`c7536bf64f23b80feb92f9eac2e1e2c915c0d0fd`** (`c7536bf`) — **unchanged. This repository was not edited, not deployed, not restarted, not migrated and not contacted for a change**, and the deployed HEAD is the same value. D6A7e7b is **Android-only**. The sixth physical run reported that **TikTok was not visible in the phone's *Add source* platform chooser** — and that is emphatically **not a server finding**: this server already supports TikTok (`Platform.TIKTOK`, `SourceType.TIKTOK_PROFILE`, in `SUPPORTED_PLATFORMS`, with a real adapter advertising `profile_discovery=True`, `requires_credentials=False`, `optional_credentials=True`, exactly one source type and no feed modes), and `/system/status` has advertised all of it for eight milestones. The phone clipped the fifth chip out of a non-wrapping row. **No platform request occurred**: TikTok was not contacted, no source was created, validated, enabled, disabled or checked, and no credential was touched. The milestone's server work was a **read-only audit** of `schemas.py`, `routes.py`, `db/models.py`, `delivery/operations.py`, `delivery/telegram.py` and `adapters/registry.py`, which confirmed that Remote History already exposes **both** `created_at` and `confirmed_at` and that Android already parses both — so **no API change, no migration and no deployment was needed or made**. Migration head **`0006_session_connection`**, unchanged. **No Funnel, Serve, public-edge, nginx, rate-limit or firewall configuration was changed.** **Instagram was not contacted** |
 | **Head after D6A7e8** | **`b0ed4f0407a089b5cf567c78a3c4f7a055197638`** (`b0ed4f0`) — **deployed and verified**; migration head **`0006_session_connection`**, unchanged — none was needed and none was written. The code commit `b38f8ebe1d8bb33ad961cf4af0a5709621cb9f1b` (`b38f8eb`) was deployed first; `b0ed4f0` adds the deployment record and was redeployed so the deployed HEAD equals this one exactly. **The TikTok connector was asking gallery-dl for a URL that enumerates nothing** — see the section below. **`LIVE_PROBES_USED=0`**: no agent made a live request to any platform. **Instagram was not contacted**; its enabled source's `next_check_at` is unchanged to the microsecond across both deployments |
-| **Head after D6A7f** | **`c7cbb58bf12eb97628c86515cc70e31082661585`** (`c7cbb58`) — pushed and **NOT deployed.** The code commit is `ee561241b5501d09f7cb52ddb2604ac2a2148a10` (`ee56124`); the docs commit `c7cbb58` records the refusal. **`DEPLOYED_HEAD` is still `b0ed4f0407a089b5cf567c78a3c4f7a055197638`** and the host still runs D6A7e8. Migration head in the repository is **`0007_d6a7f_transport`**; the host is **still on `0006_session_connection`**, because the migration never ran. The deployment was refused by the Instagram maintenance rule: read read-only at `2026-08-07T16:50:45Z`, the enabled Instagram source was due `2026-08-07T17:13:35Z` — **22.8 minutes**, inside the 90-minute window — so the answer is `OPERATOR_ACTION_REQUIRED=INSTAGRAM_MAINTENANCE_WINDOW` and nothing on the host was uploaded, promoted, migrated or restarted. **`LIVE_PROBES_USED=0`**; no Telegram message was sent; **Instagram was not contacted** and its `next_check_at` was read, never written |
+| **Head after D6A7f** | **`df194a011b1733741380144d337976d026ad172f`** (`df194a0`) — **deployed and verified**; `DEPLOYED_HEAD` equals it exactly. Migration head **`0007_d6a7f_transport`**, applied. The code commit is `ee561241b5501d09f7cb52ddb2604ac2a2148a10` (`ee56124`); `8771552` and `01ae156` fix deployment tooling that the deployment itself exposed, and `df194a0` records the deployment. Backend **`cloud`**, `max_upload_bytes` 52,428,800, **no `logOut`**, Local Bot API not running, no `api_id`/`api_hash` stored. It took **three attempts**: the Instagram maintenance window refused the first (22.8 minutes to the next check), an edge that never re-read its bind-mounted route policy failed the second, and an unquoted `{8,64}` in an nginx `location` regex — which nginx reads as the start of a block — failed the third. Legacy 429 repair: **examined 5, repaired 5**; the automatic retry then ran by itself and all five settled `failed_before_dispatch`/`download_failed` because the source media has expired, so **nothing reached Telegram** and the five items are in Review. **`LIVE_PROBES_USED=0`**; no Telegram message sent; **Instagram untouched to the microsecond**, its 17:13:52Z check being the scheduler's own |
 | Host | A DigitalOcean droplet, Ubuntu 24.04.4, amd64, 1 vCPU, ~2 GiB RAM, ~48 GB disk |
 | Deploy path on host | `/opt/remote-sources` |
 | State path on host | `/var/lib/remote-sources` |
@@ -55,6 +55,56 @@ The VPS address, its Tailscale hostname and the tailnet name are **deliberately 
 anywhere**. They live in the operator's shell and in the Android app's settings.
 
 ## D6A7f — one transport, a 429 that waits, and a validation that outlives the request
+
+### The deployment, and the four defects it found
+
+Every one of these was in **deployment tooling**, not in the milestone's application code, and each
+is now guarded by a test that reads the real file rather than a stub.
+
+1. **The Instagram maintenance window refused the first attempt** — the enabled source was 22.8
+   minutes from its next check. Nothing on the host was touched; the probe read two rows and wrote
+   none. The check then ran naturally at `17:13:52Z`, failed as its predecessors had, and moved the
+   next one to `2026-08-08T00:32:40Z`, which is what opened the window.
+2. **The edge served the previous route policy.** Its configuration is a bind-mounted template that
+   nginx's entrypoint renders **at container start**, and `docker compose up -d` leaves a running
+   container alone when its image and service definition are unchanged — a file's contents changing
+   is neither. The new chunk route was on disk and had never been read, so the edge verification
+   correctly reported 413 where 401 was expected, and a deployment was rolled back for a policy that
+   had in fact shipped. The edge is now force-recreated on every deployment.
+3. **A location regex nginx could never parse.** `{8,64}` and `{1,3}` unquoted: nginx reads `{` in a
+   location as the start of a block, so the directive ended mid-regex, the remainder became
+   `unknown directive`, and the container refused to start. **Three separate guards passed on it** —
+   the deployment's pre-upload check, the committed-shape constant, and every test built on that
+   constant all pinned the string that had been written rather than a string nginx would accept.
+   A guard that agrees with the defect reports the property as proved. All three now carry the quoted
+   form, a new test asserts the general rule, and the deployment renders the template and runs
+   `nginx -t` before restarting anything.
+4. **The rollback could never restore the database.** It calls `remote-sources-ctl verify-backup`
+   before restoring; that subcommand did not exist, so the call fell through to `usage`, a good
+   backup was read as unverifiable, the restore was refused, and it printed *the pre-deployment
+   backup no longer verifies* — a false reason about a command that never ran, in the one path D6A4
+   rewrote this script to make honest. It survived because the rollback tests stub the wrapper with a
+   fake that does implement it. Fixed, plus a guard asserting every operator-CLI subcommand the
+   deployment invokes exists in the wrapper the host installs.
+
+Both failed attempts left the service stopped with the schema at `0007` and the previous code tree
+restored. Because `0007` is purely additive — verified directly against the live database — the
+previous release runs against it unharmed, and it was restarted on it each time before the next
+attempt. Downtime was minutes and no row was lost.
+
+### What production looks like now
+
+Row counts identical across the deployment: devices 4/1, destinations 3/3, sources 2/1, items 71,
+media 74, delivery operations 71, check runs 18, reservations 68. Instagram identical to the
+microsecond including `next_check_at`, `updated_at` and the check-run count, and its session
+connection state was not mutated. 8099 and 8100 loopback-only, Funnel on 8443, private Serve on 443
+tailnet-only, firewall unchanged, **no Local Bot API listener**. The four gateway routes, both
+source-validation routes and all five local-upload routes are in the deployed OpenAPI document. The
+pacing row exists and is live; the validation-run and local-upload tables exist and are empty.
+
+`backend_verified` is `false`, which is correct and not a fault: it means the active backend has not
+answered `getMe` since the row was created, and no agent called one. Nothing gates dispatch on it —
+the phone's first bot-identity call will set it.
 
 **The architecture this makes permanent.**
 
