@@ -46,6 +46,7 @@ hash — and nothing added to it ever may.
 | **Head after D6A7e7a, unchanged** | **`c7536bf64f23b80feb92f9eac2e1e2c915c0d0fd`** (`c7536bf`) — **unchanged. This repository was not edited, not deployed, not restarted and not contacted for a change**, and the deployed HEAD is the same value. D6A7e7a was an **Android-only** corrective milestone: the fifth physical run reported that a local upload to Telegram became *requires review* every time the user left the application while it ran and came back. **That defect is local and is not attributable to this server, to the public edge or to Tailscale** — the local upload path never used a Remote Sources endpoint, and a structural guard now pins the fix's own sources free of every Remote Sources, transport and Tailscale symbol. Migration head **`0006_session_connection`**, unchanged. **No Funnel, Serve, public-edge, rate-limit or firewall configuration was changed.** **Instagram was not contacted**: no validation, no check, no operator probe, no credential touched, no source enabled or disabled. The same run also reported the **public HTTPS transport working on the handset** — the authenticated probe succeeds and ordinary Remote Sources use works with Tailscale off, which is positive device evidence for the D6A7e7 edge deployed from here |
 | **Head after D6A7e7b, unchanged** | **`c7536bf64f23b80feb92f9eac2e1e2c915c0d0fd`** (`c7536bf`) — **unchanged. This repository was not edited, not deployed, not restarted, not migrated and not contacted for a change**, and the deployed HEAD is the same value. D6A7e7b is **Android-only**. The sixth physical run reported that **TikTok was not visible in the phone's *Add source* platform chooser** — and that is emphatically **not a server finding**: this server already supports TikTok (`Platform.TIKTOK`, `SourceType.TIKTOK_PROFILE`, in `SUPPORTED_PLATFORMS`, with a real adapter advertising `profile_discovery=True`, `requires_credentials=False`, `optional_credentials=True`, exactly one source type and no feed modes), and `/system/status` has advertised all of it for eight milestones. The phone clipped the fifth chip out of a non-wrapping row. **No platform request occurred**: TikTok was not contacted, no source was created, validated, enabled, disabled or checked, and no credential was touched. The milestone's server work was a **read-only audit** of `schemas.py`, `routes.py`, `db/models.py`, `delivery/operations.py`, `delivery/telegram.py` and `adapters/registry.py`, which confirmed that Remote History already exposes **both** `created_at` and `confirmed_at` and that Android already parses both — so **no API change, no migration and no deployment was needed or made**. Migration head **`0006_session_connection`**, unchanged. **No Funnel, Serve, public-edge, nginx, rate-limit or firewall configuration was changed.** **Instagram was not contacted** |
 | **Head after D6A7e8** | **`b0ed4f0407a089b5cf567c78a3c4f7a055197638`** (`b0ed4f0`) — **deployed and verified**; migration head **`0006_session_connection`**, unchanged — none was needed and none was written. The code commit `b38f8ebe1d8bb33ad961cf4af0a5709621cb9f1b` (`b38f8eb`) was deployed first; `b0ed4f0` adds the deployment record and was redeployed so the deployed HEAD equals this one exactly. **The TikTok connector was asking gallery-dl for a URL that enumerates nothing** — see the section below. **`LIVE_PROBES_USED=0`**: no agent made a live request to any platform. **Instagram was not contacted**; its enabled source's `next_check_at` is unchanged to the microsecond across both deployments |
+| **Head after D6A7f1** | **`4fdd3abee47061573642aaa762f5c1ddb064b1c5`** — **deployed and verified**; `DEPLOYED_HEAD` equals it exactly. Migration head **`0008_d6a7f1_media_metadata`**, applied. The code commit is `76a2fbd0b1d98417c94062f491fb740a3b422687`; `9cdac61` is the milestone documentation and was deployed first, `a61c007` records the deployment, and `4fdd3ab` records the live ladder evidence — each redeployed so `DEPLOYED_HEAD` and `SERVER_HEAD` never diverge. Backend **`cloud`**, `max_upload_bytes` 52,428,800, **no `logOut`**, Local Bot API not active, no `api_id`/`api_hash` stored. **First attempt, no rollback.** The Instagram clock was re-read read-only immediately beforehand and the enabled source's next check was **212 minutes** out. **Every row count identical across the deployment and across the re-arm** — 17 tables, unchanged. The evidence-gated `rearm-initial-imports --apply` moved **1** source: `next_check_at` from 24 hours out to 15 minutes, `initial_import_empty_attempts` 0 → 1, and **no run was created, nothing was imported and nothing was sent**. Both Instagram sources untouched to the microsecond. **`LIVE_PROBES_USED=0`** |
 | **Head after D6A7f** | **`df194a011b1733741380144d337976d026ad172f`** (`df194a0`) — **deployed and verified**; `DEPLOYED_HEAD` equals it exactly. Migration head **`0007_d6a7f_transport`**, applied. The code commit is `ee561241b5501d09f7cb52ddb2604ac2a2148a10` (`ee56124`); `8771552` and `01ae156` fix deployment tooling that the deployment itself exposed, and `df194a0` records the deployment. Backend **`cloud`**, `max_upload_bytes` 52,428,800, **no `logOut`**, Local Bot API not running, no `api_id`/`api_hash` stored. It took **three attempts**: the Instagram maintenance window refused the first (22.8 minutes to the next check), an edge that never re-read its bind-mounted route policy failed the second, and an unquoted `{8,64}` in an nginx `location` regex — which nginx reads as the start of a block — failed the third. Legacy 429 repair: **examined 5, repaired 5**; the automatic retry then ran by itself and all five settled `failed_before_dispatch`/`download_failed` because the source media has expired, so **nothing reached Telegram** and the five items are in Review. **`LIVE_PROBES_USED=0`**; no Telegram message sent; **Instagram untouched to the microsecond**, its 17:13:52Z check being the scheduler's own |
 | Host | A DigitalOcean droplet, Ubuntu 24.04.4, amd64, 1 vCPU, ~2 GiB RAM, ~48 GB disk |
 | Deploy path on host | `/opt/remote-sources` |
@@ -53,6 +54,105 @@ hash — and nothing added to it ever may.
 
 The VPS address, its Tailscale hostname and the tailnet name are **deliberately not recorded
 anywhere**. They live in the operator's shell and in the Android app's settings.
+
+## D6A7f1 — three numbers a blank card is missing, and a setup that is not a cadence
+
+**Opened by one physical send.** A ~11 MB phone video went through the D6A7f transport, arrived with
+a positive message id and an exact digest, and Telegram drew a white media surface with a download
+icon and a duration of `0:00`. Perfect bytes, wrong presentation — nothing failed, so nothing
+retried.
+
+### The forensics, from the database and not from prose
+
+Read read-only before anything changed, no identity printed:
+
+* source created `2026-08-07 18:45:03Z`; first check ran `18:45:09Z` — **six seconds**, so creation
+  did **not** wait a day;
+* the run settled `succeeded` / `success_no_new_posts` / `initial_import_found_nothing`, 0 discovered,
+  0 inserted;
+* `baseline_established` still false, `initial_import_accepted` still null — `_apply_first_scan`
+  behaving **correctly**;
+* `next_check_at` set to `2026-08-08 18:45:09Z` — exactly 24 hours, the Daily preset;
+* exactly one `local_upload_sessions` row: `confirmed`, one part, `kind = video`, `as_document = 0`,
+  `expected_bytes = 11,624,337`, and **nowhere to record a duration or dimensions**, because those
+  columns did not exist. That row is the blank card seen from this side.
+
+### What changed here
+
+* **`local_upload_parts` gains `duration_seconds`, `width`, `height`** — nullable, never defaulted to
+  zero, because a server default of `0` is a positive-looking value that is exactly the blank-card
+  shape. Persisted because the phone is free to leave the moment its bytes are staged.
+* They reach **`sendVideo`, `InputMediaVideo` and `editMessageMedia`**. `supports_streaming` is still
+  never sent — its documented meaning is a claim about container layout that nothing here probes.
+* **An inline video with no positive metadata is refused** at `create_session`, and again before
+  dispatch (reachable only for a session staged before this milestone).
+* **`as_document` finally has a client that sets it.** It had existed since D6A7f and no phone could
+  say it, so `SEND_DOCUMENT` was re-derived from the MIME type on the Android side.
+* **`DELIVERED_WRONG_SHAPE`** on both `SendOutcome` and `LocalUploadState`. The post exists and its
+  ids are real, so it is **not** `RESULT_UNKNOWN`. Terminal, nothing resends it, staged bytes
+  retained because an in-place `editMessageMedia` is the only safe repair. Opt-in per member
+  (`OutgoingMedia.verify_shape`) — Remote Sources' own deliveries never opt in, because their media
+  came from a platform that already described it and carries no measured metadata.
+* **`domain/initial_import_retry.py`** — a bounded, durable setup ladder: 15 min, 30 min, 1 h, 2 h,
+  4 h, 6 h. It starts **below** `scheduling.MINIMUM_INTERVAL_SECONDS` deliberately: that floor is the
+  promise that an *ordinary* source is never polled more than hourly, and a source being set up is
+  not making an ordinary check. The position is a **column** (`initial_import_empty_attempts`),
+  because a process counter returns a repeatedly-empty source to the shortest rung on every restart.
+* **A platform signal always wins**, including the case that is easy to miss: a strong signal on the
+  **Story** half of a check whose feed succeeded. That still blocks the whole platform.
+* **`SourceResponse`** gains `initial_import_pending`, `initial_import_empty_attempts`,
+  `next_check_is_initial_import_retry` — all from the one policy module, so no client re-implements
+  the scheduler.
+* **`remote-sources rearm-initial-imports [--apply]`** and its ctl wrapper — schedule only, dry run
+  by default, count-only output, and every clause read from durable evidence including *no live
+  check* and *no platform backoff*. It never moves a check later.
+
+### The test double that was lying — worth carrying forward
+
+`FakeBotApi` answered **every** send method with a bare `message_id`, a `chat` and a thread. No
+`photo`, no `video`, no `document`. So "Telegram confirmed it" was provable without Telegram ever
+agreeing what it had posted — which is exactly the check the server-backed transport had lost, and
+exactly why the suite could not see the defect. It also never listed `sendDocument` as a send method,
+so every "nothing was sent" assertion in that file was blind to it.
+
+It now returns the shape it was asked for, and **the video shape is echoed from the request**: a
+`sendVideo` supplying no duration is answered with zeros. The suite therefore fails if the server
+ever stops sending the three fields — an assertion about the request rather than about a constant the
+test wrote for itself.
+
+### Migration `0008_d6a7f1_media_metadata`
+
+Purely additive: three nullable columns on `local_upload_parts`, one defaulted counter on
+`remote_sources`. No `UPDATE`, no drop, no rebuild. The single pre-existing session reads back with
+`NULL` metadata, which honestly means *this predates the contract*, and it is never auto-redispatched.
+
+### The ladder, live-verified in production
+
+Not predicted, then observed. The scheduler ran the re-armed check **on its own initiative** at
+`21:20:40Z` — one second after the `21:20:39Z` the re-arm wrote — settled
+`success_no_new_posts` / `initial_import_found_nothing` again, advanced
+`initial_import_empty_attempts` 1 → 2, and set `next_check_at` to `21:50:40Z`.
+
+**Exactly +30 minutes: the ladder's second rung**, where D6A7f's code would have written another
+twenty-four hours. That is the correction proved in production, and it upgrades the scheduling half
+from *deployed* to **`live-verified`**.
+
+What it does **not** fix: the requested history is still not imported, because the extractor returns
+no posts for that profile. The ladder changes *when* the next attempt happens, never whether the
+posts exist. That stays open, and it is a question about TikTok.
+
+### The absolute rules this milestone kept
+
+No `logOut`. No Local Bot API activation. No `api_id` or `api_hash` requested, entered, printed or
+stored. Backend `cloud`, ceiling 52,428,800 bytes. **No platform was contacted by anything**,
+including the forensics. No Telegram message was sent. No TikTok probe was made — the source's next
+ordinary scheduler run is the next live evidence.
+
+### Gate
+
+**1479 passed, 4 skipped** (1413/4 at D6A7f), `ruff format --check`, `ruff check`, `mypy` (124
+files), `bash -n scripts/remote-sources-ctl`, `scripts/release-preflight` (60 first-party modules),
+`git diff --check` — all clean.
 
 ## D6A7f — one transport, a 429 that waits, and a validation that outlives the request
 

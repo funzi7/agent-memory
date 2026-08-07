@@ -11,17 +11,100 @@
 
 | Field | Value |
 | --- | --- |
-| Task | **D6A7f** — the phone stops being a Telegram client. **Three repositories**: the server gained one authoritative Telegram transport, a durable `RETRY_WAIT`, durable asynchronous validation runs and resumable chunked uploads; the application stopped talking to Telegram at all; agent-memory records both |
-| **Final application HEAD** | **`675eaffc1e12bb39cbbfd15f4cbaccb11b7e117b`** — pushed. The build tree is `6507f1fea760dd6f15c8a24682575107e751bfc0`; the two commits after it are documentation only — the artefact record, then the server's deployment — so the APK hash is unchanged, because documentation is not a build input |
-| **Final server HEAD** | **`df194a011b1733741380144d337976d026ad172f`** (`df194a0`) — **deployed and verified**, and `DEPLOYED_HEAD` equals it exactly. The code commit is `ee561241b5501d09f7cb52ddb2604ac2a2148a10` (`ee56124`); `8771552` and `01ae156` fix deployment tooling the deployment itself exposed, and `df194a0` records the deployment |
-| **Deployment** | **done, CLOUD gateway mode, on the third attempt.** Migration `0007_d6a7f_transport` applied and verified as the database head; backend `cloud`, `max_upload_bytes` 52,428,800; **no `logOut`**; Local Bot API not running; no `api_id`/`api_hash` stored. Legacy 429 repair: examined 5, **repaired 5**. Every row count identical across the deployment; Instagram untouched to the microsecond |
-| Version | code 50 → **51**, name `0.13.25-d6a7e8` → **`0.14.0-d6a7f`**. The **minor** moves, not the patch: a different transport is not a bug fix |
-| Room schema | **17, unchanged — no migration runs on this install.** The active-sibling evidence is a computed `EXISTS` inside the two canonical projections, not a stored column, so there is no schema 18 and `18.json` stays absent. Server migration head **`0007_d6a7f_transport`**, applied to production |
-| Gate | **3246 Android unit tests across 209 suites, 0 failures, 0 errors, 0 skipped. Lint: 0 issues** (both counted from the XML reports, every task with `--rerun-tasks`, the whole gate re-run from the committed tree). Server: **1413 passed, 4 skipped** at the deployed tree — 1410/4 at the milestone commit, before the deployment's tooling fixes — plus `ruff format --check`, `ruff check`, `mypy` (121 files), `bash -n`, `release-preflight` (60 first-party modules) and `git diff --check` |
-| APK | `app-debug.apk`, 16,934,184 bytes, SHA-256 `75352a81a1e70a09d0f6776487483534c56dd5ff0ff6e2bd1e2bd6c2e8b17d35`. **Copied to Downloads as `TelegramTopicUploader-0.14.0-d6a7f.apk` with a verified-identical hash. Not installed.** Built from the tree at `6507f1f`. Every earlier APK left in place |
-| Production | **Deployed, and nothing else was touched.** `LIVE_PROBES_USED=0`: no agent contacted any platform, no Telegram message was sent, and no Instagram source was validated, checked, rescheduled or altered. The 17:13:52Z Instagram check was the scheduler's own and failed as its predecessors had; its `next_check_at` was read, never written |
-| Hardware | **Nothing in D6A7f is device-verified.** `docs/D6A7F_DEVICE_CHECKLIST.md` is the gate and every item is *not attempted*. The milestone stops deliberately at `OPERATOR_ACTION_REQUIRED=D6A7F_PRE_MIGRATION` |
+| Task | **D6A7f1** — a pre-migration **corrective** milestone. D6A7f's transport reached Telegram and lost two contracts on the way; a source still owing its requested history was being scheduled as though it were finished; and validation's four states were indistinguishable on screen. All three are corrected |
+| **Final application HEAD** | **`82375dece6d0f4ed9f25ddc6cb383ff78c697a75`** — pushed. The build tree is `ea753c6463cbe2554e8d3c50e5d793350b8bd332`; the commit after it is documentation only (the artefact record), so the APK hash is unchanged — documentation is not a build input |
+| **Final server HEAD** | **`4fdd3abee47061573642aaa762f5c1ddb064b1c5`** — **deployed and verified**, and `DEPLOYED_HEAD` equals it exactly |
+| **Deployment** | **done, CLOUD gateway mode, first attempt, no rollback.** Migration head `0007` → **`0008_d6a7f1_media_metadata`**, applied and verified. Backend `cloud`, 52,428,800 bytes, **no `logOut`**, Local Bot API not active, no `api_id`/`api_hash` stored. **All 17 table row counts identical** across the deployment *and* across the re-arm. Instagram untouched; its enabled source's next check was re-read read-only immediately beforehand at **212 minutes** out |
+| **Initial-import re-arm** | **1 source, schedule only.** `next_check_at` 24 h → **15 min**; counter 0 → 1. No check started, no run created, nothing imported, nothing sent. **Then it was live-verified:** the scheduler ran the re-armed check on its own at `21:20:40Z` — one second after the due time — found nothing again, and moved the source to `21:50:40Z`, **+30 minutes, the ladder's second rung**, where D6A7f would have written another 24 hours |
+| Version | code 51 → **52**, name `0.14.0-d6a7f` → **`0.14.1-d6a7f1`**. The **patch** moves: the transport is unchanged, and what changed is that it now says what it was always supposed to say |
+| Room schema | **17, unchanged — no migration runs on this install.** No schema 18 and no new export: the validation presentation is UI/SavedState, the declaration's new fields are wire data, and local work evidence already carried `VideoUploadMetadata` before dispatch |
+| Gate | **3287 Android unit tests, 0 failures, 0 errors, 0 skipped** (3246 before, **all retained**); **lint 0 issues** — both counted from the XML reports, every task `--rerun-tasks`, whole gate re-run from the committed tree. `assembleDebug` and `assembleDebugAndroidTest` both succeed; **instrumentation compiles and was not run**. Server: **1479 passed, 4 skipped** (1413/4 at D6A7f), plus ruff format/check, mypy (124 files), `bash -n`, `release-preflight` (60 modules), `git diff --check` |
+| APK | `/sdcard/Download/TelegramTopicUploader-0.14.1-d6a7f1.apk`, SHA-256 `c4b47edbdf309c1e91792fb23b70f5763ab865909239b52cabb4a4c65e0e2a89`, 16,947,804 bytes — hash verified identical to the build output, **not installed**. Built from the tree at `ea753c6463cbe2554e8d3c50e5d793350b8bd332`. Every earlier APK left in place |
+| Production | **Deployed, and nothing else touched.** `LIVE_PROBES_USED=0`: no agent contacted any platform, no Telegram message was sent, **no TikTok probe was made**, and the forensic read of the 01:45 check was a read-only database query with no identity printed |
+| Hardware | **The blocking gate is open.** `docs/D6A7F1_DEVICE_CHECKLIST.md`, nothing pre-marked. **The Local Bot API migration stays blocked** until the next ordinary inline-video send arrives with a real non-zero duration and normal presentation |
 
+### Why this milestone exists — the D6A7f device session
+
+**It proved a lot.** Async source validation is live on the handset: a TikTok validation showed a
+running state, disabled its control while active, survived leaving the screen, and settled
+successfully showing the validated profile. That is positive hardware evidence for durable validation
+runs, for the D6A7e8 TikTok connector correction, and for source-URL cleaning. The D6A7f transport
+also reaches Telegram over public HTTPS with no Tailscale: one video was **positively delivered**
+with a positive message id.
+
+**And it failed its own acceptance gate.** That video rendered as a blank white media card with a
+download icon and a duration of `0:00`, for ~11 MB of real content. **Transport reachability and
+presentation fidelity are different claims**, and D6A7f proved only the first.
+
+### The two contracts, both visible in committed code before this opened
+
+1. **Video metadata.** `TelegramMediaUploadApiGateway` attaches `duration`, `width` and `height` to
+   every `sendVideo`, and its own KDoc says those three prevent the blank card. `RemoteUploadPart`
+   carried position, kind, filename, size, digest, caption — and nothing about the video. **The
+   contract was never overridden; there was no field for it.**
+2. **Transfer method.** The server had carried `as_document` since D6A7f and **no client could set
+   it**, so `SEND_DOCUMENT` — chosen precisely *because* the container cannot be confidently
+   identified — was re-derived from the MIME type. A `video/mp4` the application had deliberately
+   declined to present as a video was presented as one.
+
+**The lesson to carry forward:** when a transport moves, the contracts that had nowhere to travel
+fail *silently*, and the tests keep passing — because they were asserting on the response.
+
+### What shipped in the application
+
+* `RemoteUploadPart` gains `asDocument` (written unconditionally — an omitted `false` is
+  indistinguishable from a client that never heard of the field) and `durationSeconds` / `width` /
+  `height` (non-null for exactly one transfer method).
+* **`RemoteUploadDeclaration`** — one pure, directly testable object owning the declaration rule for
+  all three gateways. It was three inline expressions, which is how a single upload, an album member
+  and a repair came to disagree about what a declaration is.
+* A `SEND_VIDEO` without three positive numbers is **refused before a byte is staged**, which is
+  where the direct gateway refused it and where the check stopped happening when the transport moved.
+* **`RemoteValidationStatus`** + a `ValidationPresentation` enum: four states, each with an icon, a
+  heading, a body, a screen-reader sentence and a tint. The enum makes "all four are answered" a
+  property of the type. Colour is never the only carrier. The control disables **and relabels**
+  itself while its own run is live.
+* **The source card's three facts get three sections** — last check, initial import, regular
+  schedule. An outstanding import says so prominently with the time of the next *actual* attempt, and
+  the chosen cadence stops claiming to govern a source that is still being set up.
+* `RemoteSource` reads `initial_import_pending`, `initial_import_empty_attempts` and
+  `next_check_is_initial_import_retry`; `RemoteValidationRun` reads `started_at` / `finished_at`,
+  which the server had always sent and D6A7f never read.
+
+### The highest-consequence line, found by auditing my own change
+
+`delivered_wrong_shape` is new on the server. The Android session mappings all end in an `else`
+branch that reports **`BodyIncomplete`** — *the body provably never finished, nothing was accepted,
+a retry is safe* — and the dispatch coordinator acts on that by retrying. An unrecognised delivered
+state would therefore have **posted the user's media a second time**, for a message that already
+exists with a real id.
+
+All three mappings name the value and share the `STATE_CONFIRMED` branch: single → `Sent(id)`,
+album → `Sent(ids)`, repair → `Repaired(targetId)`. D6A7e7a's rule, unchanged — positive Telegram
+evidence outranks local doubt.
+
+**Carry this forward:** when a server adds a terminal state, check what every client's default
+branch says about it. A default that means *nothing happened* is safe for a state that means
+nothing happened, and catastrophic for one that means *it happened, differently*.
+
+### Guards re-scoped, none weakened — three, plus one new
+
+1. `AppVersionTest` — the version pin, as intended.
+2. `D6A4SurfaceTest` pinned `RemoteBackoffReason.fromWire(state.run.outcome)`; the expression moved
+   into a composable binding the run as `run`. Rewritten **structurally** — every `fromWire` feeds a
+   label function, no `.outcome` is rendered or interpolated. It had already gone quiet twice on
+   variable renames.
+3. `D6A7E7BPlatformChooserTest` asserted *exactly one* `onValidate` call site. There are now two
+   legitimate ones (the button, and Retry). A count would have to be relaxed to 2, then 3, losing
+   meaning by degrees — so it asserts the property instead: **every** call site is an
+   `onClick`/`onRetry` body, none reachable from `LaunchedEffect`, `onValueChange`,
+   `DisposableEffect` or `produceState`.
+4. **New:** `D6A7F1SourceStatusTest` asserts every region it slices is **bounded and smaller than
+   half the file**, and every anchor unique. A `substringAfter`/`substringBefore` slice **fails
+   open** — a renamed anchor makes the region the whole remainder, and every `contains` keeps passing
+   while asserting nothing.
+
+## Previous milestone: D6A7f — the phone stops being a Telegram client
 
 ### The deployment, and the four defects it found
 

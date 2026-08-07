@@ -167,29 +167,121 @@ item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
 
-**D6A7f** — the phone stops being a Telegram client, a rate limit becomes a wait, and a check that
-outlives the screen that asked for it.
+**D6A7f1** — the three numbers a blank card is missing, a document that stays one, and a setup that
+does not wait a day.
 
-> **Three repositories changed and one did not move: production.** Both application repositories were
-> edited, gated, committed and pushed. **The server was NOT deployed** — see the row below; the host
-> is untouched and still runs the D6A7e8 release. **No agent contacted any platform:
-> `LIVE_PROBES_USED=0`.** No Telegram message was sent. No Instagram source was validated, checked,
-> rescheduled or altered — the only production access was one read-only query that read two rows and
-> wrote none. The application was **not installed** and **not run** on any device or emulator.
-> **The Local Bot API `logOut` migration was NOT performed**, which was an absolute rule of this
-> milestone.
+> **A corrective milestone, opened by hardware.** D6A7f was installed and exercised on the handset.
+> It proved a great deal — async validation is live, the TikTok connector correction works, URL
+> cleaning works, and the transport reaches Telegram over public HTTPS with no Tailscale. It also
+> **failed its own acceptance gate**: the one video it delivered arrived as a blank white card with a
+> download icon and a duration of `0:00`.
+>
+> **Three repositories changed and production was deployed.** `LIVE_PROBES_USED=0` — no agent
+> contacted any platform, no Telegram message was sent, no TikTok probe was made, and the forensic
+> read of the 01:45 check was a read-only database query with no identity printed. The application
+> was **not installed**. **No `logOut`, no Local Bot API activation, no `api_id`/`api_hash`** — the
+> absolute rule of this milestone, kept.
 
 | Field | Value |
 | --- | --- |
-| **Final application HEAD** | **`675eaffc1e12bb39cbbfd15f4cbaccb11b7e117b`** — pushed. The build tree is `6507f1fea760dd6f15c8a24682575107e751bfc0`; the two later commits are documentation only (the artefact record, then the server's deployment), and the APK hash is unchanged because documentation is not a build input |
-| **Final server HEAD** | **`df194a011b1733741380144d337976d026ad172f`** — **deployed and verified**; `DEPLOYED_HEAD` equals it exactly. Code commit `ee561241b5501d09f7cb52ddb2604ac2a2148a10`; two later commits fix deployment tooling the deployment itself exposed, and one records the deployment |
-| **Deployment** | **done, in CLOUD gateway mode**, on the third attempt. Migration `0007_d6a7f_transport` applied, backend `cloud`, no `logOut`, Local Bot API not running. Legacy 429 repair: **5 repaired**. Details below |
-| Version | code 50 → **51**, name `0.13.25-d6a7e8` → **`0.14.0-d6a7f`**. The *minor* moves: a different transport is not a patch |
-| Room schema | **17, unchanged — no migration runs on this install.** The active-sibling evidence is a computed `EXISTS` in the two canonical projections, not a stored column, so there is no `18.json`. Server migration head **`0007_d6a7f_transport`**, **applied to production** and verified as the database head |
-| Gate | **3246 Android unit tests across 209 suites, 0 failures, 0 errors, 0 skipped. Lint: 0 issues** (counted from the XML reports, every task `--rerun-tasks`, the whole gate re-run from the committed tree). Server: **1413 passed, 4 skipped** at the deployed tree (1410/4 at the milestone commit, before the deployment's tooling fixes), plus ruff format/check, mypy (121 files), `bash -n`, `release-preflight` (60 modules), `git diff --check` |
-| APK | `/sdcard/Download/TelegramTopicUploader-0.14.0-d6a7f.apk`, SHA-256 `75352a81a1e70a09d0f6776487483534c56dd5ff0ff6e2bd1e2bd6c2e8b17d35`, 16,934,184 bytes — hash verified identical to the build output, **not installed**. Built from the tree at `6507f1f`. Every earlier APK left in place |
-| Hardware | **Nothing in D6A7f is device-verified.** `docs/D6A7F_DEVICE_CHECKLIST.md` is the gate, all items *not attempted*. The milestone deliberately **stops** at `OPERATOR_ACTION_REQUIRED=D6A7F_PRE_MIGRATION` |
+| **Final application HEAD** | **`82375dece6d0f4ed9f25ddc6cb383ff78c697a75`** — pushed. The build tree is `ea753c6463cbe2554e8d3c50e5d793350b8bd332`; the commit after it is documentation only (the artefact record), so the APK hash is unchanged — documentation is not a build input |
+| **Final server HEAD** | **`4fdd3abee47061573642aaa762f5c1ddb064b1c5`** — **deployed and verified**; `DEPLOYED_HEAD` equals it exactly |
+| **Deployment** | **done, CLOUD gateway mode, first attempt.** Migration `0007` → **`0008_d6a7f1_media_metadata`** applied and verified as the database head. Backend `cloud`, `max_upload_bytes` 52,428,800, **no `logOut`**, Local Bot API not active, no `api_id`/`api_hash` stored. **Every row count identical across the deployment and across the re-arm.** Instagram untouched to the microsecond; the enabled source's next check was 212 minutes out when the clock was re-read immediately beforehand |
+| **Initial-import re-arm** | **1 source re-armed**, schedule only: `next_check_at` 24 h → 15 min, counter 0 → 1, nothing else written. **Then live-verified.** The scheduler ran the re-armed check on its own at `21:20:40Z`, one second after its due time, settled `initial_import_found_nothing` again, and moved the source to `21:50:40Z` — **+30 minutes, the ladder's second rung**, where D6A7f would have written another 24 hours. The scheduling half is `live-verified`, not merely deployed. The **import itself is still outstanding** — the extractor genuinely returns no posts for that profile, which is a fact about TikTok and not about scheduling |
+| Version | code 51 → **52**, name `0.14.0-d6a7f` → **`0.14.1-d6a7f1`**. The **patch** moves this time: the transport is the same transport, now saying what it was always supposed to say |
+| Room schema | **17, unchanged.** No schema 18 and no new export — nothing durable was added: the validation presentation is UI/SavedState, the declaration's new fields are wire data, and the local work evidence already held `VideoUploadMetadata` before dispatch |
+| Gate | **3287 Android unit tests, 0 failures, 0 errors, 0 skipped** (3246 before, all retained); **lint 0 issues**; `assembleDebug` and `assembleDebugAndroidTest` both succeed — instrumentation **compiles and was not run**. Server: **1479 passed, 4 skipped** (1413/4 at D6A7f), plus ruff format/check, mypy (124 files), `bash -n`, `release-preflight` (60 modules), `git diff --check` |
+| APK | `/sdcard/Download/TelegramTopicUploader-0.14.1-d6a7f1.apk`, SHA-256 `c4b47edbdf309c1e91792fb23b70f5763ab865909239b52cabb4a4c65e0e2a89`, 16,947,804 bytes — hash verified identical to the build output, **not installed**. Every earlier APK left in place |
+| Hardware | **The blocking gate is still open.** The next ordinary inline-video send must arrive with a real non-zero duration and normal presentation. `docs/D6A7F1_DEVICE_CHECKLIST.md`, nothing pre-marked. **The Local Bot API migration stays blocked until it passes.** |
 
+### What the D6A7f device session actually established
+
+**Proved, and not to be re-asked:**
+
+* async source validation is live — a TikTok validation showed a running state, disabled its control,
+  survived leaving the screen, and settled successfully showing the validated profile;
+* the deployed D6A7e8 TikTok connector correction validates a real public profile;
+* source-URL canonicalisation works on the handset;
+* the D6A7f transport reaches Telegram: one video was **positively delivered**, positive message id.
+
+**Disproved:**
+
+* **presentation fidelity.** That video rendered as a blank white card, download icon, `0:00`, for
+  ~11 MB of real content. Transport reachability and presentation fidelity are different claims and
+  D6A7f proved only the first;
+* a source created asking for initial history ran its first check **immediately** — six seconds — and
+  found nothing, then went onto its ordinary 24-hour cadence with the history still unimported;
+* validation's four states were not visually distinguishable.
+
+### The two contracts D6A7f lost in transit
+
+**Both were visible in committed code before this milestone opened.**
+
+1. **The video metadata.** `TelegramMediaUploadApiGateway` attaches `duration`, `width` and `height`
+   to every `sendVideo`, and its own KDoc says those three are what prevent the blank `0:00` card.
+   `RemoteUploadPart` carried position, kind, filename, size, digest, caption — and nothing about the
+   video. **The contract was never overridden; there was no field for it.**
+2. **The transfer method.** The server had carried `as_document` since D6A7f and **no client could
+   set it**, so `SEND_DOCUMENT` — chosen precisely *because* the container cannot be confidently
+   identified — was re-derived from the MIME type. A `video/mp4` the application had deliberately
+   declined to present as a video was presented as one. **A media kind is not a transfer method.**
+
+The general lesson, worth carrying forward: *when a transport moves, the contracts that had nowhere
+to travel fail silently and the tests keep passing, because they were asserting on the response.*
+
+### The third defect: setup work is not a cadence
+
+The forensics, read from the database rather than from prose: the source was created `18:45:03Z`,
+its first check ran `18:45:09Z` — **six seconds**, so creation did **not** wait — and settled
+`succeeded` / `success_no_new_posts` / `initial_import_found_nothing`, 0 discovered, 0 inserted,
+baseline still false. `_apply_first_scan` was **correct**. Then the scheduler read
+`SUCCESS_NO_NEW_POSTS`, saw a success, and applied the Daily preset: `next_check_at` moved exactly 24
+hours out with the import still owed.
+
+Every step individually right, outcome wrong — which is why the correction is in the scheduler, not
+in discovery. `domain/initial_import_retry.py` is a bounded, **durable** setup ladder: 15 min, 30
+min, 1 h, 2 h, 4 h, 6 h. The position is a **column**, because a counter in the process returns a
+repeatedly-empty source to the shortest rung on every restart. A platform signal always outranks it —
+including a strong signal on the **Story** half of a check whose feed succeeded.
+
+### A delivered message that is not the requested shape
+
+`DELIVERED_WRONG_SHAPE`, a state of its own on both `SendOutcome` and `LocalUploadState`. The post
+exists and its ids are real, so it is **not** `RESULT_UNKNOWN` — describing a delivered message as
+*possibly not sent* is the exact dishonesty this vocabulary exists to prevent. It is terminal,
+**nothing resends it**, and its staged bytes are retained because an in-place `editMessageMedia` is
+the only safe repair direction. Opt-in per member, so Remote Sources' own deliveries are unaffected.
+
+### Guards re-scoped, none weakened — four, and one new
+
+1. `AppVersionTest` — the version pin, updated as intended.
+2. `D6A4SurfaceTest` pinned `RemoteBackoffReason.fromWire(state.run.outcome)`; the expression moved
+   into a composable where the run is bound as `run`. Rewritten **structurally**: every `fromWire`
+   feeds a label function and no `.outcome` is rendered or interpolated. It had already gone quiet
+   twice on variable renames.
+3. `D6A7E7BPlatformChooserTest` asserted *exactly one* `onValidate` call site. There are now two
+   legitimate ones — the button and Retry. A count would have to be relaxed to 2, then 3, losing
+   meaning by degrees, so it now asserts the property: **every** call site is an `onClick`/`onRetry`
+   body, none reachable from `LaunchedEffect`, `onValueChange`, `DisposableEffect` or `produceState`.
+4. **New, and the reason it exists:** `D6A7F1SourceStatusTest` asserts every region it slices is
+   bounded and smaller than half the file, and every anchor unique. A
+   `substringAfter`/`substringBefore` slice **fails open** — a renamed anchor makes the region the
+   whole remainder and every `contains` keeps passing while asserting nothing.
+
+### The test double that was lying
+
+Worth recording as a pattern. The server's `FakeBotApi` answered **every** send method with a bare
+`message_id`, a `chat` and a thread — no `photo`, no `video`, no `document`. So "Telegram confirmed
+it" was provable in that suite without Telegram ever agreeing what it had posted, which is precisely
+the check the server-backed transport had lost. It also never listed `sendDocument` as a send method,
+so every "nothing was sent" assertion in that file was blind to the one method the restored
+`as_document` contract routes to.
+
+It now returns the shape it was asked for, and the video shape is **echoed from the request**: a
+`sendVideo` supplying no duration is answered with zeros — the blank card as a real client would draw
+it — so the suite fails if the server ever stops sending the three fields.
+
+## 4a. Previous milestone: D6A7f — the phone stops being a Telegram client
 
 ### The deployment — three attempts, and what production actually did
 
