@@ -167,7 +167,101 @@ item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
 
-**D6A7e8** — a link that says what it is, and the URL a connector should have asked for.
+**D6A7f** — the phone stops being a Telegram client, a rate limit becomes a wait, and a check that
+outlives the screen that asked for it.
+
+> **Three repositories changed and one did not move: production.** Both application repositories were
+> edited, gated, committed and pushed. **The server was NOT deployed** — see the row below; the host
+> is untouched and still runs the D6A7e8 release. **No agent contacted any platform:
+> `LIVE_PROBES_USED=0`.** No Telegram message was sent. No Instagram source was validated, checked,
+> rescheduled or altered — the only production access was one read-only query that read two rows and
+> wrote none. The application was **not installed** and **not run** on any device or emulator.
+> **The Local Bot API `logOut` migration was NOT performed**, which was an absolute rule of this
+> milestone.
+
+| Field | Value |
+| --- | --- |
+| **Final application HEAD** | **`375681ef1da41388356666fd73e73b0ae7258f21`** — pushed. The build tree is `6507f1fea760dd6f15c8a24682575107e751bfc0`; the final HEAD adds a documentation-only artefact-record commit, and the hash is unchanged because documentation is not a build input |
+| **Final server HEAD** | **`c7cbb58bf12eb97628c86515cc70e31082661585`** — pushed, **not deployed**. Code commit `ee561241b5501d09f7cb52ddb2604ac2a2148a10`. `DEPLOYED_HEAD` is still `b0ed4f0407a089b5cf567c78a3c4f7a055197638` (D6A7e8) |
+| **Deployment** | **refused, by a rule rather than a fault.** `OPERATOR_ACTION_REQUIRED=INSTAGRAM_MAINTENANCE_WINDOW`. Read read-only at `2026-08-07T16:50:45Z`, the enabled Instagram source was due `2026-08-07T17:13:35Z` — **22.8 minutes**, inside the 90-minute window in which this service may not be restarted. Nothing on the host was uploaded, promoted, migrated or restarted |
+| Version | code 50 → **51**, name `0.13.25-d6a7e8` → **`0.14.0-d6a7f`**. The *minor* moves: a different transport is not a patch |
+| Room schema | **17, unchanged — no migration runs on this install.** The active-sibling evidence is a computed `EXISTS` in the two canonical projections, not a stored column, so there is no `18.json`. Server migration head **`0007_d6a7f_transport`** in the repository, **not applied to production**; the host is still on `0006_session_connection` |
+| Gate | **3246 Android unit tests across 209 suites, 0 failures, 0 errors, 0 skipped. Lint: 0 issues** (counted from the XML reports, every task `--rerun-tasks`, the whole gate re-run from the committed tree). Server: **1410 passed, 4 skipped**, plus ruff format/check, mypy (121 files), `bash -n`, `release-preflight` (60 modules), `git diff --check` |
+| APK | `/sdcard/Download/TelegramTopicUploader-0.14.0-d6a7f.apk`, SHA-256 `75352a81a1e70a09d0f6776487483534c56dd5ff0ff6e2bd1e2bd6c2e8b17d35`, 16,934,184 bytes — hash verified identical to the build output, **not installed**. Built from the tree at `6507f1f`. Every earlier APK left in place |
+| Hardware | **Nothing in D6A7f is device-verified.** `docs/D6A7F_DEVICE_CHECKLIST.md` is the gate, all items *not attempted*. The milestone deliberately **stops** at `OPERATOR_ACTION_REQUIRED=D6A7F_PRE_MIGRATION` |
+
+### The architecture this milestone makes permanent
+
+```
+Android → authenticated public HTTPS → Remote Sources application server → one authoritative
+Telegram transport (Cloud now / Local after a migration that has not happened)
+```
+
+**Android needs no Tailscale for uploads, and the Local Bot API service must never be publicly
+exposed.** This supersedes the earlier D6A7f sketch in which the phone spoke to a Local Bot API
+server directly over the tailnet. The phone no longer holds a Bot API endpoint at all.
+
+### The four things it changes
+
+**One backend authority.** `delivery/backend.py` is the only place that answers *which Bot API am I
+speaking to, and what will it accept*. **There is no fallback between backends** — a silent fallback
+is how the same media is posted twice. The ceilings are byte-exact and read from official source
+rather than from the documented "MB": cloud **52,428,800**, local **2,097,152,000** (the constants
+are `50 << 20` and `2000 << 20`; 2²⁰ was proved, not assumed). The application compiles in neither
+number any more.
+
+**A 429 is a wait, not a failure.** `OperationState.RETRY_WAIT` is durable and non-terminal, carries
+Telegram's own `retry_after`, and is **absent from `/history`, because history means finished**. The
+same operation is parked — same identity, same frozen destination — so no second delivery and no
+second history row can appear. Pacing counters are rows, not process memory, so a restart cannot
+burst through them.
+
+**A validation is a row, not a request.** A profile extraction can take ten minutes; a phone will not
+hold a request open for ten minutes, and that mismatch is exactly what the user saw as *the server
+did not answer in time*. Runs are durable, one live per normalised identity, recovered after a
+restart. **Nothing can cancel one** — leaving a screen is not a reason to throw away work already
+being done — and a poll that fails never restarts anything, because a retry there would be a second
+extractor.
+
+**One media item, one active work surface.** A media whose routed sibling is prepared, queued,
+uploading or retry-waiting is no longer *also* active Review work. `SHADOWED_BY_ACTIVE_JOB` is
+temporary and reversible; it is not the durable retirement positive confirmation writes.
+
+### Two device findings, and what became of them
+
+* **A — a Telegram rate-limit refusal is shown as a failure.** Confirmed in production: **five**
+  delivery operations were turned into false terminal failures by a 429. The repair exists —
+  `remote-sources repair-rate-limited --apply`, evidence-gated, expects 5 — and **has not run**,
+  because the code that implements it is not deployed. This is the first thing to do after a
+  deployment.
+* **B — the TikTok *Check source* that timed out.** Forensics proved **the request never reached the
+  application**; the five edge 413s in the same window were the deployment's own probe. So it neither
+  proves nor disproves the D6A7e8 connector correction. **Do not ask the user to press it again**
+  until D6A7f is deployed and installed — the whole point of durable validation is that the answer no
+  longer has to arrive inside one request.
+
+### Guards re-scoped, none weakened — six
+
+`D3ASurfaceTest` (the ceiling now comes from `transportCeiling.currentCeilingBytes()`),
+`D3B2SurfaceTest` (a count became "every `OkHttpClient.Builder()` disables replay"), `D6A4SurfaceTest`
+(classification now via `RemoteBackoffReason.fromWire`), `D6A7E7APreviewLifecycleSurfaceTest`
+(renamed the transport's method rather than widening the guard), `ConfirmedReviewProjectionTest` and
+`DashboardGroupingTest` (the placeholder is now shadowed *while* the sibling works, and retired only
+on confirmation — a stronger assertion than the one it replaced). Each carries its reason beside it.
+
+### Defects found by the milestone's own verification, and fixed
+
+* The server's `record_rate_limit` accepted a JSON `true` as a seconds value, because
+  `isinstance(True, int)` is true in Python.
+* A confirmed upload session reported a message **count** but no message **ids**, which would have
+  made every successful upload `RESULT_UNKNOWN` — the state that must never be retried. The ids now
+  travel end to end.
+* A non-terminal validation answer with no run id stranded the screen; it is now a malformed
+  response.
+* The validation run id did not survive process death while the documentation claimed it did. It now
+  does — four strings in saved state, resumed before anything is drawn, and never a second start.
+
+## 4a00000000. Previous milestone: D6A7e8 — a link that says what it is, and the URL a connector should have asked for
 
 > **Two repositories, and both changed.** The **server** was edited, gated, deployed and verified —
 > `SERVER_HEAD` and `DEPLOYED_HEAD` are both `b0ed4f04…`. The **application** gained one pure

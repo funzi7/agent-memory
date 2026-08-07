@@ -46,12 +46,114 @@ hash — and nothing added to it ever may.
 | **Head after D6A7e7a, unchanged** | **`c7536bf64f23b80feb92f9eac2e1e2c915c0d0fd`** (`c7536bf`) — **unchanged. This repository was not edited, not deployed, not restarted and not contacted for a change**, and the deployed HEAD is the same value. D6A7e7a was an **Android-only** corrective milestone: the fifth physical run reported that a local upload to Telegram became *requires review* every time the user left the application while it ran and came back. **That defect is local and is not attributable to this server, to the public edge or to Tailscale** — the local upload path never used a Remote Sources endpoint, and a structural guard now pins the fix's own sources free of every Remote Sources, transport and Tailscale symbol. Migration head **`0006_session_connection`**, unchanged. **No Funnel, Serve, public-edge, rate-limit or firewall configuration was changed.** **Instagram was not contacted**: no validation, no check, no operator probe, no credential touched, no source enabled or disabled. The same run also reported the **public HTTPS transport working on the handset** — the authenticated probe succeeds and ordinary Remote Sources use works with Tailscale off, which is positive device evidence for the D6A7e7 edge deployed from here |
 | **Head after D6A7e7b, unchanged** | **`c7536bf64f23b80feb92f9eac2e1e2c915c0d0fd`** (`c7536bf`) — **unchanged. This repository was not edited, not deployed, not restarted, not migrated and not contacted for a change**, and the deployed HEAD is the same value. D6A7e7b is **Android-only**. The sixth physical run reported that **TikTok was not visible in the phone's *Add source* platform chooser** — and that is emphatically **not a server finding**: this server already supports TikTok (`Platform.TIKTOK`, `SourceType.TIKTOK_PROFILE`, in `SUPPORTED_PLATFORMS`, with a real adapter advertising `profile_discovery=True`, `requires_credentials=False`, `optional_credentials=True`, exactly one source type and no feed modes), and `/system/status` has advertised all of it for eight milestones. The phone clipped the fifth chip out of a non-wrapping row. **No platform request occurred**: TikTok was not contacted, no source was created, validated, enabled, disabled or checked, and no credential was touched. The milestone's server work was a **read-only audit** of `schemas.py`, `routes.py`, `db/models.py`, `delivery/operations.py`, `delivery/telegram.py` and `adapters/registry.py`, which confirmed that Remote History already exposes **both** `created_at` and `confirmed_at` and that Android already parses both — so **no API change, no migration and no deployment was needed or made**. Migration head **`0006_session_connection`**, unchanged. **No Funnel, Serve, public-edge, nginx, rate-limit or firewall configuration was changed.** **Instagram was not contacted** |
 | **Head after D6A7e8** | **`b0ed4f0407a089b5cf567c78a3c4f7a055197638`** (`b0ed4f0`) — **deployed and verified**; migration head **`0006_session_connection`**, unchanged — none was needed and none was written. The code commit `b38f8ebe1d8bb33ad961cf4af0a5709621cb9f1b` (`b38f8eb`) was deployed first; `b0ed4f0` adds the deployment record and was redeployed so the deployed HEAD equals this one exactly. **The TikTok connector was asking gallery-dl for a URL that enumerates nothing** — see the section below. **`LIVE_PROBES_USED=0`**: no agent made a live request to any platform. **Instagram was not contacted**; its enabled source's `next_check_at` is unchanged to the microsecond across both deployments |
+| **Head after D6A7f** | **`c7cbb58bf12eb97628c86515cc70e31082661585`** (`c7cbb58`) — pushed and **NOT deployed.** The code commit is `ee561241b5501d09f7cb52ddb2604ac2a2148a10` (`ee56124`); the docs commit `c7cbb58` records the refusal. **`DEPLOYED_HEAD` is still `b0ed4f0407a089b5cf567c78a3c4f7a055197638`** and the host still runs D6A7e8. Migration head in the repository is **`0007_d6a7f_transport`**; the host is **still on `0006_session_connection`**, because the migration never ran. The deployment was refused by the Instagram maintenance rule: read read-only at `2026-08-07T16:50:45Z`, the enabled Instagram source was due `2026-08-07T17:13:35Z` — **22.8 minutes**, inside the 90-minute window — so the answer is `OPERATOR_ACTION_REQUIRED=INSTAGRAM_MAINTENANCE_WINDOW` and nothing on the host was uploaded, promoted, migrated or restarted. **`LIVE_PROBES_USED=0`**; no Telegram message was sent; **Instagram was not contacted** and its `next_check_at` was read, never written |
 | Host | A DigitalOcean droplet, Ubuntu 24.04.4, amd64, 1 vCPU, ~2 GiB RAM, ~48 GB disk |
 | Deploy path on host | `/opt/remote-sources` |
 | State path on host | `/var/lib/remote-sources` |
 
 The VPS address, its Tailscale hostname and the tailnet name are **deliberately not recorded
 anywhere**. They live in the operator's shell and in the Android app's settings.
+
+## D6A7f — one transport, a 429 that waits, and a validation that outlives the request
+
+**The architecture this makes permanent.**
+
+```
+Android → authenticated public HTTPS → this server → one authoritative Telegram transport
+(Cloud now / Local after a migration that has not happened)
+```
+
+It supersedes the earlier sketch in which the phone spoke to a Local Bot API server over the tailnet.
+**Android needs no Tailscale for uploads, and the Local Bot API service must never be publicly
+exposed.** This server owns the bot token and owns which Bot API server is spoken to.
+
+### One backend authority — `delivery/backend.py`
+
+The only place that answers *which Bot API am I speaking to, and what will it accept*. **There is no
+fallback between backends**: a transport that is not verified is not used, because a silent fallback
+is how the same media is posted twice. The ceilings are byte-exact and taken from official source
+rather than from the documented "MB" — cloud **52,428,800** (`50 << 20`), local **2,097,152,000**
+(`2000 << 20`). The 2²⁰ semantics were proved from `Client.h`, not assumed. `TelegramTransportState`
+is one row; `enter_maintenance` / `clear_maintenance` is how an operator stops dispatch during a
+migration, and `record_verification` is what makes a backend usable at all.
+
+### A rate limit is a durable wait — `OperationState.RETRY_WAIT`
+
+Non-terminal, and **absent from `/history`, because history means finished**. The *same* operation is
+parked — same identity, same frozen destination, same attempt count — with `retry_not_before` set
+from Telegram's own `retry_after` and **no failure code**, so no second operation and no second
+history row can appear. `GET /review/pending-send` is deliberately **not** an action list: a Send
+button offered while an automatic retry is armed is a duplicate waiting to be tapped.
+
+`delivery/pacing.py` keeps the bot inside the documented ceilings *before* a send instead of
+discovering them afterwards — 1 message/s per chat, 20/min in a group, ~30/s bot-wide. The counters
+are **rows**, not process memory, so a restart cannot burst through them and a `retry_after` outlives
+the process that learned it. Ordinary spacing is waited out (≤15 s); a bot-wide block is never waited
+on — it parks.
+
+**Finding A, confirmed in production:** five delivery operations had been turned into false terminal
+failures by a 429. `remote-sources repair-rate-limited --apply` repairs exactly those, is
+evidence-gated by seven blocking conditions, and **has not run** because the code is not deployed. It
+is the first thing to do after a deployment, and it should report 5.
+
+### A validation is a row — `validation.py`
+
+A profile extraction can take ten minutes; a phone will not hold an HTTP request open for ten
+minutes. That mismatch is what the user saw as *the server did not answer in time*. Runs are durable,
+**one live run per normalised identity** (a partial unique index), recovered after a restart, pruned
+on age. **Nothing can cancel one** — there is no route that could, deliberately: leaving a screen is
+not a reason to throw away work already being done.
+
+**Finding B:** the user's TikTok *Check source* that timed out **never reached this application**. The
+five edge 413s in the same window were the deployment's own probe. So it neither proves nor disproves
+the D6A7e8 connector correction, and **the user must not be asked to press it again** until D6A7f is
+deployed and installed.
+
+### Resumable, verified uploads — `delivery/local_uploads.py`
+
+Server-authoritative offsets, idempotent same-offset retry, and a 409 that **states the offset it
+wanted**. Size and SHA-256 are recomputed over the whole staged file before anything is dispatched,
+so *the file that arrived is the file that was promised* is a comparison rather than a hope, and a
+mismatch sends nothing and never touches the device's own file. Every route is **GET or POST,
+deliberately not PUT**, so the public edge's `GET|POST|PATCH` allowlist did not have to widen.
+
+### The gateway is four named routes, not a Bot API proxy
+
+`GET /telegram/transport`, `POST /telegram/bot-identity`, `POST /telegram/test-message`,
+`POST /telegram/updates`. **No route takes a method name and no route forwards an opaque body.** No
+request carries a bot token; what the phone sends when it names the bot is the **public numeric bot
+id**, so a server configured with a different bot is a hard refusal rather than a silent rebind.
+
+### Migration `0007_d6a7f_transport`
+
+Purely additive: two nullable columns on `delivery_operations` and five new tables. No `UPDATE`, no
+drop, no rebuild. **Not applied to production.**
+
+### The Local Bot API service — prepared, not started
+
+`deploy/telegram-bot-api/Dockerfile` pins the official build by revision. **It was not built**: the
+production host is 1 vCPU / ~2 GiB and cannot compile TDLib, and the Dockerfile says so explicitly.
+The compose service sits behind a `telegram-local` profile so it ships without starting, and it
+publishes no port. `TELEGRAM_LOCAL_API_ID` / `TELEGRAM_LOCAL_API_HASH` have an interactive no-echo
+operator command; **no credential was requested, entered, printed or stored** in this milestone.
+
+### The absolute rule this milestone kept
+
+**No `logOut` was called and the bot is still on the Telegram cloud Bot API.** The migration waits
+until the user has installed D6A7f and confirmed the new gateway works. The documented 10-minute
+cloud cooldown after `logOut` is why it is a deliberate operator step and not a deployment side
+effect.
+
+### Defect found and fixed by the milestone's own verification
+
+`record_rate_limit` accepted a JSON `true` as a seconds value, because `isinstance(True, int)` is
+true in Python. Now guarded with `and not isinstance(retry_after_seconds, bool)`.
+
+### Gate
+
+`ruff format --check src tests` and `ruff check src tests` clean, `mypy` no issues in 121 source
+files, `pytest -q` **1410 passed, 4 skipped**, `bash -n` clean on every changed shell script,
+`scripts/release-preflight` 60 first-party modules all present, `git diff --check` clean.
 
 ## D6A7e8 — the profile URL that was never a feed
 

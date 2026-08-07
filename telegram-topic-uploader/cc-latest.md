@@ -11,6 +11,101 @@
 
 | Field | Value |
 | --- | --- |
+| Task | **D6A7f** — the phone stops being a Telegram client. **Three repositories**: the server gained one authoritative Telegram transport, a durable `RETRY_WAIT`, durable asynchronous validation runs and resumable chunked uploads; the application stopped talking to Telegram at all; agent-memory records both |
+| **Final application HEAD** | **`375681ef1da41388356666fd73e73b0ae7258f21`** — pushed. The build tree is `6507f1fea760dd6f15c8a24682575107e751bfc0`; the final HEAD adds a documentation-only artefact-record commit (it touches only `TODO.md`, `docs/PROJECT_STATE.md` and `docs/RELEASE_REVIEW.md`), and the hash is unchanged because documentation is not a build input |
+| **Final server HEAD** | **`c7cbb58bf12eb97628c86515cc70e31082661585`** (`c7cbb58`) — pushed and **not deployed**. The code commit is `ee561241b5501d09f7cb52ddb2604ac2a2148a10` (`ee56124`). `DEPLOYED_HEAD` is unchanged at `b0ed4f0407a089b5cf567c78a3c4f7a055197638` — the host still runs D6A7e8 |
+| **Deployment** | **refused, and by a rule rather than a fault: `OPERATOR_ACTION_REQUIRED=INSTAGRAM_MAINTENANCE_WINDOW`.** Read read-only at `2026-08-07T16:50:45Z`, the enabled Instagram source's next check was due `2026-08-07T17:13:35Z` — **22.8 minutes away**, inside the 90-minute window in which this service may not be restarted. Nothing was uploaded, promoted, migrated or restarted. The probe read two rows and wrote none |
+| Version | code 50 → **51**, name `0.13.25-d6a7e8` → **`0.14.0-d6a7f`**. The **minor** moves, not the patch: a different transport is not a bug fix |
+| Room schema | **17, unchanged — no migration runs on this install.** The active-sibling evidence is a computed `EXISTS` inside the two canonical projections, not a stored column, so there is no schema 18 and `18.json` stays absent. Server migration head is **`0007_d6a7f_transport`** in the repository and **not applied to production**; the host is still on `0006_session_connection` |
+| Gate | **3246 Android unit tests across 209 suites, 0 failures, 0 errors, 0 skipped. Lint: 0 issues** (both counted from the XML reports, every task with `--rerun-tasks`, the whole gate re-run from the committed tree). Server: **1410 passed, 4 skipped**, plus `ruff format --check`, `ruff check`, `mypy` (121 files), `bash -n`, `release-preflight` (60 first-party modules) and `git diff --check` |
+| APK | `app-debug.apk`, 16,934,184 bytes, SHA-256 `75352a81a1e70a09d0f6776487483534c56dd5ff0ff6e2bd1e2bd6c2e8b17d35`. **Copied to Downloads as `TelegramTopicUploader-0.14.0-d6a7f.apk` with a verified-identical hash. Not installed.** Built from the tree at `6507f1f`. Every earlier APK left in place |
+| Production | **Untouched.** `LIVE_PROBES_USED=0`: no agent contacted any platform, no Telegram message was sent, and no Instagram source was validated, checked, rescheduled or altered. The only production access in the whole milestone was read-only |
+| Hardware | **Nothing in D6A7f is device-verified.** `docs/D6A7F_DEVICE_CHECKLIST.md` is the gate and every item is *not attempted*. The milestone stops deliberately at `OPERATOR_ACTION_REQUIRED=D6A7F_PRE_MIGRATION` |
+
+### The architecture this milestone makes permanent
+
+```
+Android → authenticated public HTTPS → Remote Sources application server → one authoritative
+Telegram transport (Cloud now / Local after a migration that has not happened)
+```
+
+**This supersedes the earlier D6A7f sketch** in which the phone talked to a Local Bot API server
+directly over the tailnet. Android needs no Tailscale for uploads, and the Local Bot API service must
+never be publicly exposed. The phone no longer holds a Bot API endpoint at all: there is no field for
+a host, a port, a token, an `api_id` or an `api_hash` — absent, not redacted, so no screen can start
+showing one.
+
+### What the application half actually does now
+
+**Every Telegram operation goes through this application's own server**, over the same public HTTPS
+the Remote Sources feature already uses, with the same device bearer token. The four direct Bot API
+transports still exist — they are the rollback path, and deleting them would delete the record of how
+the previous transport behaved — but **the composition root binds none of them**, and a surface guard
+asserts that about the dependency graph rather than about a string.
+
+**The size ceiling is the server's to report.** `TransportCeilingSource` is the single place that
+answers *how large a file may be*; it is persisted, so a queued item stays eligible across a restart
+rather than flickering in and out of the queue on every cold start. Neither 50 MB nor 2000 MB is
+compiled in any more: an item that was too large yesterday becomes sendable the moment the number
+changes — **no rescan, no new media row, no replacement job**.
+
+**The bot token is never transmitted.** The ports still pass a `CharArray`, because that parameter is
+also this device's own setup guard, and the server-backed adapters accept it without reading its
+value. What travels is the **public numeric bot id**, so a server configured with a different bot is
+a hard refusal rather than a silent rebind of bindings that belong to the device.
+
+**One media item, one active work surface.** A media whose routed sibling is prepared, queued,
+uploading or retry-waiting is no longer *also* active Review work: it is `SHADOWED_BY_ACTIVE_JOB`,
+which is temporary and reversible, and is not the durable retirement that positive confirmation
+writes. Both canonical projections carry the same correlated `EXISTS`, and the fake DAO the unit
+tests run against carries it clause for clause — so the rule is asserted against exactly what
+production computes.
+
+**A source check outlives the screen.** *Check source* starts a durable run on the server and the app
+only ever reads it. Leaving the screen cancels nothing, because there is no route that could. A poll
+that fails is one read that did not arrive and never restarts anything — a retry there would become a
+second extractor, which is the defect this replaces. Rotation keeps the ViewModel; **process death
+restores the run's identity and the request it belongs to from saved state**, resumed before anything
+is drawn.
+
+### The two device findings
+
+* **A — a Telegram rate-limit refusal shown as a failure.** Confirmed in production: **five**
+  delivery operations were turned into false terminal failures by a 429. `RETRY_WAIT` prevents new
+  ones; the existing five are repaired by `remote-sources repair-rate-limited --apply`, which is
+  evidence-gated and expects exactly 5. **It has not run**, because the code is not deployed. It is
+  the first thing to do after a deployment.
+* **B — the TikTok *Check source* that timed out.** Forensics proved **the request never reached the
+  application**, and the five edge 413s in the same window were the deployment's own probe. It
+  therefore neither proves nor disproves the D6A7e8 connector correction. **Do not ask the user to
+  press it again until D6A7f is deployed and installed** — durable validation exists precisely so the
+  answer no longer has to arrive inside one request.
+
+### Four defects the milestone's own verification found, and fixed
+
+* `record_rate_limit` accepted a JSON `true` as a seconds value, because `isinstance(True, int)`.
+* A confirmed upload session reported a message **count** and no message **ids**, which would have
+  made every successful upload `RESULT_UNKNOWN` — the state that must never be retried.
+* A non-terminal validation answer carrying no run id stranded the screen; it is a malformed response
+  now.
+* The validation run id did not survive process death while the documentation said it did. Four
+  strings in saved state now make the claim true.
+
+### What the next session must not do
+
+* **Do not perform the Local Bot API `logOut` migration** until the user has installed D6A7f and
+  confirmed the new gateway works. This was absolute in D6A7f and remains the gate.
+* **Do not deploy while the enabled Instagram source is within 90 minutes of its next check.**
+  Re-read it read-only immediately before deploying, every time.
+* **Do not ask the user to re-press TikTok *Check source*** before the async validation is deployed
+  and installed.
+
+## Previous milestone: D6A7e8
+
+### D6A7e8 task and repository state
+
+| Field | Value |
+| --- | --- |
 | Task | **D6A7e8** — a link that says what it is, and the URL a connector should have asked for. **Two repositories**: the Android source-URL canonicaliser, and the server's TikTok connector correction |
 | **Final application HEAD** | **`2bbf253530099d7aa93f3d0fc66cc7146c574f28`** — pushed. The build tree is `f9d190c0b1ac7316b9e59247899d64bdb14989ac`; the final HEAD adds a documentation-only artefact-record commit (it touches only `TODO.md`, `docs/PROJECT_STATE.md` and `docs/RELEASE_REVIEW.md`), and the hash is unchanged because documentation is not a build input |
 | **Final server HEAD** | **`b0ed4f0407a089b5cf567c78a3c4f7a055197638`** (`b0ed4f0`) — **changed, deployed and verified.** `DEPLOYED_HEAD` equals it exactly. The code commit is `b38f8ebe1d8bb33ad961cf4af0a5709621cb9f1b` (`b38f8eb`), deployed first; the docs commit was redeployed so the two match |
