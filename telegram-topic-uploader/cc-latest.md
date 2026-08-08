@@ -7,6 +7,108 @@
 > **When the user supplies SHAs, read agent-memory before responding**, verify each against
 > `origin/main`, and only then answer. A supplied SHA is a claim to verify, never a fact to repeat.
 
+## D6A7f2 — the Local Bot API migration, performed once
+
+**The bot is on the official Telegram Local Bot API server.** `logOut` calls: **1**. The
+cloud-verified bot id was frozen before the call and the local server answered `getMe` with exactly
+that id. Backend `local`, verified, maintenance clear, queue released. `max_upload_bytes`
+**2,097,152,000**. **No Telegram message was sent by any agent** — the only methods this milestone
+called are `logOut` and `getMe`, and neither creates a post.
+
+| Field | Value |
+| --- | --- |
+| **Final server HEAD** | `11c98184d89c5d494e39ec800e9321a93b1159e2` — pushed |
+| **DEPLOYED_HEAD** | `f3609c3ca524cbbd3c856af09f168844f4966e1b` — **differs from HEAD, and deliberately.** The two commits after it are documentation only. A docs-only redeploy restarts the api container and the freshly migrated local Bot API server, and the enabled Instagram source's next check was inside the 90-minute deployment window by then. The brief's own rule applies: do not risk active Telegram work merely to make two SHAs equal |
+| **Final Android HEAD** | `649131c473ff4b25ad889d9fea702c99bd3cb7ea` — pushed, **documentation only** |
+| Android code commit | `2afcedb9ade9480e5c78f2c3144f268aa3a9027d`, unchanged. APK `b3705d52…` unchanged and **not rebuilt**. Version 53 / `0.14.2-d6a7f1a`, Room schema 17 |
+| Database migration | **none introduced.** Head is still `0009_d6a7f1a_video_poster` |
+| Row counts | **identical** before and after, all fourteen tables. Schedules untouched |
+| Server gate | 1586 passed, 4 skipped (1529/4 at D6A7f1a); ruff, mypy 127 files, `bash -n`/`sh -n`, release-preflight 61 modules, `git diff --check` — clean |
+
+### The D6A7f1a gate closed on hardware, and there is no 10 MB rule
+
+The user tested **both** classes of video on code 53 — the control class and the previously
+blank/white card class. Both now show a useful poster, normal video presentation, a real non-zero
+duration, and exactly one message. The suspected ~10 MB boundary is **not** a rule and is encoded
+nowhere: the user's Telegram client auto-plays the smaller video and requires a tap on the larger
+one, so the missing poster was conspicuous on one and nearly invisible on the other. The defect was
+identical in both. **Inline videos carry explicit poster evidence, independent of file size.**
+
+### Five things the previous milestone wrote down that were not true
+
+1. **`env_file` was a leak, not a mitigation.** Compose's `env_file` is read by the docker CLI on the
+   host and its values become the container's own configuration — `docker inspect` returns them and
+   the daemon writes them to disk. Shredding the tmpfs file afterwards protected nothing. Replaced by
+   two mode-0600 files on tmpfs, mounted **read-only**, read by the image's own entrypoint, which
+   validates them, exports them into its own process and `exec`s the official binary.
+2. **The credential directory was root-owned.** `/run/remote-sources-local` was `drwxr-xr-x root
+   root` — created by the docker daemon, because a short-syntax bind mount whose source is missing is
+   created by the daemon root-owned and 0755. The writer is the api container as uid 10001.
+3. **There was no reboot recovery.** `/run` is tmpfs; a reboot erased the material and the container
+   restart-looped forever. A systemd oneshot now reads the durable backend and does nothing unless it
+   is `local`.
+4. **The migration accepted any bot.** It required a positive id and nothing more.
+5. **It could call `logOut` twice.**
+
+### And eight an adversarial read of the finished diff found, before the door closed
+
+Reviewers whose only job was to break it, and skeptics whose only job was to refute them. Eight
+survived; six were invisible to a green suite.
+
+* **Maintenance did not stop the scheduler.** `accepts_dispatch` had one reader — the device-facing
+  route — so the migration's own safety window did not cover the retry pass or the auto-send drain.
+* **A `logOut` whose answer was lost left no durable record**, so the documented retry called the
+  irreversible thing again and left the deployment permanently stuck. There is now a **write-ahead
+  marker** set before the call, and an ambiguity is resolved with **evidence**: one `getMe` against
+  the cloud, which creates nothing. `401` means it took effect; a success means it did not.
+* **Nothing serialised the command.** The same marker is a conditional-`UPDATE` lock.
+* **A rollback left `cloud_logged_out_at` set**, so a later migration would skip `logOut` entirely.
+* **Boot recovery aborted on its first poll** — a pipeline under `pipefail` in an assignment `set -e`
+  acts on. The one moment it exists for is the one moment the API is down.
+* **`telegram-verify` could overwrite the frozen expectation** — the first command an operator
+  reaches for when debugging a mismatch.
+
+### The image, and what its provenance actually rests on
+
+Built on a GitHub-hosted **amd64** runner, manually dispatched; **never on the production host**
+(1 vCPU, ~1,967 MB). `telegram-bot-api` `adfd7f6a8e990272851777eeb3ae0def4216f161` — which is also the
+**current head** of the official repository, so the pin is exact rather than lagging — with `td`
+`a9966eb3704a3351568c28013fed67d797c17828`. The binary reports `Bot API 10.2`.
+
+**The image id changed across `docker save` / `docker load`** (`7a54e53d…` on the runner,
+`7df49461…` on production). Docker does not promise it survives the round trip and it does not, so
+the id is not the provenance chain. What holds is the export SHA-256
+`8ca32f329567bd1ce1641fa7697de9ad013292b23ea733a8c94120434c41a3dd` (46,889,733 bytes), identical when
+computed on the runner, on the development machine and on the host — and then asking the **loaded**
+image what it contains.
+
+### Proved on the running container, not asserted
+
+`docker inspect` on the local Bot API container contains **zero** occurrences of `TELEGRAM_API`, and
+so do all of the daemon's on-disk container configs — exactly where the old `env_file` would have put
+them. Its `Cmd` carries no `--api-id`. It publishes **no host port at all**; no listener on 8081
+exists anywhere on the host; the firewall still allows only SSH and Tailscale; Serve 443 and Funnel
+8443 are unchanged; its view of staged media is read-only.
+
+Two residual exposures, written down rather than glossed: the running process's own environment is
+readable by root through `/proc`, which is the floor for any design where the official binary reads
+`getenv`; and tmpfs is swap-backed on a host that has a swap file, so "never touches a disk" is a
+weaker claim than it sounds.
+
+### What is still open
+
+The user's first physical test over the local backend: Tailscale off, transport says **Local** and
+shows the larger ceiling, an existing >50 MB item becomes sendable **in place**, one disposable video
+above 50 MB sent **once**. `docs/D6A7F2_DEVICE_CHECKLIST.md` in the Android repository.
+
+The line that matters most is a **look, not an assertion**: poster sharpness in local mode. The main
+video travels as a path, so `thumbnail`'s documented guarantee lapses and the poster travels as
+`cover` as well; a client may render a cover larger than a 320 px image flatters. If it reads soft
+that is a later cosmetic decision — raise the poster's dimensions, or drop `cover` — and **never** a
+reason to resend a message that arrived.
+
+---
+
 ## Task and repository state
 
 | Field | Value |

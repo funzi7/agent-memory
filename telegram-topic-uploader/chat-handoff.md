@@ -167,6 +167,33 @@ item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
 
+**D6A7f2** — the Local Bot API migration, performed once.
+
+> **The bot is on the official Telegram Local Bot API server.** One `logOut`; the cloud-verified bot
+> id was frozen before the call and the local server answered `getMe` with exactly that id. Backend
+> `local`, verified, maintenance clear, queue released, `max_upload_bytes` **2,097,152,000**. No
+> database migration; every row count identical before and after; every schedule untouched.
+> **No Telegram message was sent by any agent.**
+>
+> **Android was not rebuilt and did not need to be** — code commit `2afcedb9…`, APK `b3705d52…`,
+> version 53 / `0.14.2-d6a7f1a`, Room schema 17, all unchanged. The application learns the ceiling by
+> asking the server, which is what D6A7f built it to do.
+>
+> **The D6A7f1a two-class device gate closed on hardware.** Both the control class and the previously
+> blank/white card class now show a useful poster, a real duration and exactly one message.
+> **There is no 10 MB rule** and there never was: the user's client auto-plays the smaller video and
+> requires a tap on the larger one, which is what made the missing poster conspicuous on one and
+> nearly invisible on the other.
+>
+> **HEADs.** Server `11c98184d89c5d494e39ec800e9321a93b1159e2`; `DEPLOYED_HEAD` `f3609c3ca524cbbd3c856af09f168844f4966e1b` — deliberately different, the two
+> commits between them being documentation only, because a docs-only redeploy would have restarted a
+> freshly migrated backend inside the Instagram deployment window. Android `649131c473ff4b25ad889d9fea702c99bd3cb7ea`.
+>
+> **Still open:** the user's first physical >50 MB send over the local backend, and one deliberate
+> *look* at poster sharpness in local mode. `docs/D6A7F2_DEVICE_CHECKLIST.md`.
+
+### The milestone this one completes
+
 **D6A7f1a** — the picture the phone always made and never sent.
 
 > **A corrective milestone, and the second half of D6A7f1's.** D6A7f1 restored the video metadata
