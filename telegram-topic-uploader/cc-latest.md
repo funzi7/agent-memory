@@ -7,6 +7,124 @@
 > **When the user supplies SHAs, read agent-memory before responding**, verify each against
 > `origin/main`, and only then answer. A supplied SHA is a claim to verify, never a fact to repeat.
 
+## D6A7f2b — the state nothing owned, and the four rows that closed a phone's upload path
+
+**Android production change: yes.** `55` / `0.14.4-d6a7f2b`, Room schema **17**, no migration.
+**Server production change: yes, and deployed** — see
+`/root/work/agent-memory/telegram-remote-sources/cc-latest.md`.
+
+### The forensics came first, and they changed the answer
+
+The brief's own instruction was to establish where each of the two >50 MB attempts stopped **before**
+designing anything, and it was the right instruction: the obvious hypothesis was wrong.
+
+Read read-only from production, no identity printed:
+
+* the api access log for `13:25`–`13:55Z` contains exactly **two** phone-originated mutations —
+  `POST /api/v1/local-uploads` at `13:37:34Z` and `13:38:04Z`, **both 422**;
+* each was preceded in the same second by a `getMe` through the active local backend, and the
+  transport row's `verified_at` reads `2026-08-08 13:38:04.363838Z` — the second attempt's own call,
+  to the microsecond. That correlation is what identified them, and it also proves both requests
+  **reached the route body**: `_verify_bot` runs after Pydantic validation, so a schema-level 422
+  could not have produced a `getMe`;
+* **no `LocalUploadSession` row exists for either.** The newest row in the whole table is
+  `06:27:11Z`; sessions created after `07:00Z` — zero; parts with `expected_bytes > 52,428,800` —
+  zero; largest part ever staged — 33,443,444 bytes.
+
+So neither attempt uploaded a byte, and Telegram was never contacted for either.
+
+**Proved rather than inferred.** The deployed `create_session` was replayed against a `VACUUM INTO`
+copy of the production database — writes nothing to production, throwaway staging root, no network:
+
+```
+ACTIVE_SESSIONS_FOR_DEVICE = 4
+77 MB, cap=4 (production)      -> REFUSED  too_many_active_sessions
+60 MB, cap=4 (production)      -> REFUSED  too_many_active_sessions
+ 4 MB, cap=4 (control)         -> REFUSED  too_many_active_sessions   <- size is irrelevant
+77 MB, cap=4, reserve 0        -> REFUSED  too_many_active_sessions
+77 MB, cap=5, all else equal   -> ACCEPTED                            <- the cap is the only refuser
+```
+
+Storage played no part: 32,269,179 bytes staged of an 8,589,934,592-byte quota, 41,186,807,808 free
+against a 4,294,967,296-byte reserve. The cap check precedes both.
+
+**ATTEMPT_A_BUCKET = I (OTHER_PROVEN). ATTEMPT_B_BUCKET = I (OTHER_PROVEN).**
+Bucket A was considered and rejected in writing: it presumes a session with
+`received_bytes < expected_bytes` and prescribes a chunk/resume/edge/timeout repair. No session
+existed and no chunk was ever sent, so bucket A would have sent the milestone in the wrong direction.
+Root cause: `local_upload_retry_wait_has_no_driver_and_saturates_active_session_cap`.
+
+### D6A7f2a is positively verified and is not to be reopened
+
+Three `GET /telegram/transport` calls at `13:37:16Z`, `13:37:29Z` and `13:37:34Z` — the synchronizer
+working. The ceiling reached the phone, the local 50 MB block was gone, and both >50 MB items reached
+the server's create route. **The stale-50-MB defect is closed.**
+
+### What the Android half changes
+
+**The queue card was naming a party that had not been contacted.** `retry_wait` and `dispatching`
+both mapped to `RATE_LIMITED`, whose sentence is *"Telegram asked this bot to slow down"*. The
+server has distinguished `telegram_delivery_paced` (its own pacing gate) from `telegram_rate_limited`
+(Telegram's 429) since D6A7f, and this device never read the field.
+
+* **Four new codes**, on both `TelegramFailureCode` and `DispatchErrorCode`:
+  `SERVER_STAGED_AWAITING_TELEGRAM`, `SERVER_SENDING_TO_TELEGRAM`, `PHONE_TO_SERVER_INTERRUPTED`,
+  `TRANSPORT_GENERATION_CHANGED`. An **unrecognised** park reason takes the server-owned branch
+  deliberately — it is the weaker claim, and understating a Telegram throttle is harmless where
+  inventing one is the defect being fixed.
+* **`UploadTransferPhase`** — one canonical ten-member user-facing model, **derived** from durable
+  columns and never stored. A stored phase would be a second copy of facts the row already holds,
+  free to disagree with them.
+* **`nextAttemptAt` finally reaches a screen.** Durable since schema 1, dropped by the summary
+  projection ever since — which is why the app could promise a scheduled retry and never say when.
+  Four files, no migration.
+* **One generic notice became six.** Every `RetryScheduled` produced *"The upload failed. A retry was
+  scheduled; nothing starts on its own."* Both halves are false for most of the codes that reach it.
+* **No Send button while the server owns the delivery**, and the two server-owned codes are
+  deliberately **absent** from `PROVED_NOT_ACCEPTED_CODES`. Retirement releases the reservation, and
+  the server is about to post the media that reservation protects. The omission is named in the
+  source as a rule rather than left to be read as an oversight.
+* **`MediaRepairCoordinator.permanentCodeFor` is gone**, replaced by the exhaustive
+  `UploadFailureClassifier`. D6A7f2a wrote a comment predicting that this map's `else` would silently
+  mislabel a new code, updated its sibling for all six application-server codes, and updated this one
+  for exactly one of them — so a repair refused by the session cap settled `FAILED_PERMANENT` with
+  `UNKNOWN`, which is not in `PROVED_NOT_ACCEPTED_CODES`, so the user could not even remove it. The
+  comment predicted the defect and the map still had it. **Removing the map removes the class.**
+
+### Guards: three re-scoped, none deleted — and two of them were already vacuous
+
+* `D3ASurfaceTest`'s post-confirmation guard forbade the *word* `UploadStatus.COMPLETED` anywhere in
+  the upload package. `UploadTransferPhasePolicy` **reads** it. Re-scoped to forbid the **assignment**
+  — which is what a transition actually looks like — plus an exact-set assertion naming the one file
+  permitted to read it, so the exemption cannot spread quietly. Stronger than before:
+  `status=UploadStatus.COMPLETED` written without spaces passed the old marker and fails this one.
+* `D5ASurfaceTest:141` sliced `.substringBefore("// A manual deletion that has not settled")` — a
+  comment its own `codeOf` strips first. **Region measured at 13,755 of 30,686 characters**, spanning
+  a second `when (media.state)` block, so the assertions could be satisfied from the wrong branch.
+* `D6A7E7SurfaceTest:271` sliced between two comments. **Its "block" was the entire 43,573-character
+  file**, and the nested failure branch was the first of eighteen candidates, the probe's own by
+  coincidence.
+
+Both are code-anchored now and both carry a **measured-size assertion**. So does every slice in the
+new `D6A7F2BSurfaceTest`: a guard cannot notice its own vacuity, so it has to be checked from
+outside. That is the lesson worth carrying — a comment-anchored slice does not go red, it goes
+**vacuous**, and a vacuous guard also stops anybody writing a real one.
+
+### Gate
+
+**3467 tests, 0 failures, 0 errors, 0 skipped, 222 suites; lint 0 issues** (3425 / 219 at D6A7f2a),
+counted from the XML report files rather than from console prose. `assembleDebug` and
+`assembleDebugAndroidTest` both build; the instrumentation tests **compile and were not run**.
+
+### What is still open
+
+The physical run of build 55 — `docs/D6A7F2B_DEVICE_CHECKLIST.md`. One server upload session remains
+`open` for this device (a video at 0 of 33,443,444 bytes received): Android resumes it in place on a
+rejoin, and it expires by itself at `2026-08-09 06:25Z` if nobody does. The three parked sessions are
+already settled and are not actionable.
+
+---
+
 ## D6A7f2a — the synchronizer D6A7f designed and never wired
 
 **Android production change: yes.** `54` / `0.14.3-d6a7f2a`, Room schema **17**, no migration.

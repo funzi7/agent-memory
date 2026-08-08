@@ -177,6 +177,58 @@ item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
 
+**D6A7f2b** — the state nothing owned, and the four rows that closed a phone's upload path.
+
+> **The forensics came first and they changed the answer.** The user pressed Send on two videos above
+> the old 50 MB ceiling. **D6A7f2a's ceiling fix worked**: the handset synchronized the transport
+> three times and both files cleared preflight and reached the server — the stale-50-MB defect is
+> closed and must not be reopened. Both requests were then refused **HTTP 422
+> `too_many_active_sessions`** at `13:37:34Z` and `13:38:04Z`, **no session row was created for
+> either**, and **Telegram was never contacted**. A 4 MB file would have been refused identically:
+> the refusal reads no byte count.
+>
+> **The cause was a state with no owner.** The server's per-device cap is four and the device held
+> exactly four, three of them parked by ordinary pacing at `06:14`–`06:27` with `attempt_count = 0`.
+> Nothing could ever release them: `LocalUploadDispatcher.dispatch` had one caller, the device's own
+> `finalize`; `due_dispatch_sessions` — written for the pass that would have driven them — had **no
+> production caller at all**, only a unit test; `finalize` answers `session_not_open` for a parked
+> session, so the phone could not finish one either; and `expire_sessions` swept `open` and only
+> `open`. `RETRY_WAIT` was a terminal state that was not marked terminal.
+>
+> **Both attempts are bucket `I` (OTHER_PROVEN).** Bucket A was considered and rejected: it presumes
+> a session with `received_bytes < expected_bytes` and prescribes a chunk/resume repair, and no
+> session existed. Root cause code
+> `local_upload_retry_wait_has_no_driver_and_saturates_active_session_cap`.
+>
+> **The server correction is deployed and verified live.** The scheduler now drives due sessions;
+> retention reclaims every unfinished state, derived from the enum rather than a written list, with
+> `DISPATCHING` deliberately excluded; and the transport generation is finally compared to something —
+> `LocalUploadSession.backend` had asserted its own rule since D6A7f and no code had ever read it
+> back. Within a minute of deployment the three parked sessions settled
+> `failed_before_dispatch` / `transport_generation_changed` with `attempt_count = 0`,
+> `request_started_at` null and no message ids — **nothing was sent** — and the device's active
+> sessions went from four to one. **The cap was not raised**: a cap that admits work nobody will ever
+> finish is not a cap that was too small.
+>
+> **The Android half stops the queue lying about which leg failed.** `retry_wait` and `dispatching`
+> both became `RATE_LIMITED`, whose card sentence is *"Telegram asked this bot to slow down"* — said
+> about sessions Telegram had never heard of. The server has distinguished `telegram_delivery_paced`
+> from `telegram_rate_limited` since D6A7f and the phone never read the field. Four new codes, a
+> ten-member `UploadTransferPhase` derived from durable columns, `nextAttemptAt` finally reaching a
+> screen after existing unshown since schema 1, six notices carved out of one generic sentence, and
+> **no Send button while the server owns the delivery**.
+>
+> **HEADs.** Server `d5cd04c1d5d827f8b129b1af8f427d56518a0b06`, and `DEPLOYED_HEAD` equals it
+> exactly; migration head `0009_d6a7f1a_video_poster`, unchanged — none was written. Android
+> **55 / `0.14.4-d6a7f2b`**, Room schema **17**, no migration: every new durable value is text in a
+> column that already existed.
+>
+> **Still open:** the physical run of build 55 — `docs/D6A7F2B_DEVICE_CHECKLIST.md` — and one server
+> upload session still `open` for this device, a video at 0 of 33,443,444 bytes received, which
+> Android resumes in place or which expires by itself at `2026-08-09 06:25Z`.
+
+## 4a. Previous milestone
+
 **D6A7f2** — the Local Bot API migration, performed once.
 
 > **The bot is on the official Telegram Local Bot API server.** One `logOut`; the cloud-verified bot

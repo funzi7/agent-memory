@@ -11,6 +11,110 @@ hash — and nothing added to it ever may.
 
 ---
 
+## D6A7f2b — the state nothing owned, and the pass that did not exist
+
+**Server production change: yes, committed and deployed.**
+
+| Field | Value |
+| --- | --- |
+| Server HEAD | `d5cd04c1d5d827f8b129b1af8f427d56518a0b06` |
+| `DEPLOYED_HEAD` | `d5cd04c1d5d827f8b129b1af8f427d56518a0b06` — **equal, deliberately this time** |
+| Migration head | `0009_d6a7f1a_video_poster`, unchanged — **none was written and none was needed** |
+| Gate | **1606 passed, 4 skipped** (1586/4 before); ruff format/check, mypy 128 source files, `bash -n`, release-preflight 61 modules, `git diff --check` — clean |
+| Backend after deploy | `local`, verified, `max_upload_bytes` 2,097,152,000, Local Bot API healthy |
+| `logOut` calls | **0.** No backend change, no rollback, no credential touched |
+
+### What opened it
+
+Two >50 MB sends from the handset, at `13:37:34Z` and `13:38:04Z`. Both reached this server. Both
+were refused **HTTP 422 `too_many_active_sessions`** by `POST /local-uploads`, **no session row was
+created for either**, and **Telegram was never contacted**. The size was a coincidence: a 4 MB file
+would have been refused identically, which was proved by replaying the deployed `create_session`
+against a `VACUUM INTO` copy of the live database.
+
+The device already held exactly four sessions in `{open, staged, retry_wait}`, and four is
+`local_upload_max_active_sessions`. Three were `retry_wait` with `telegram_delivery_paced`,
+`attempt_count = 0` and `request_started_at` null — parked by the ordinary pacing gate at
+`06:14`–`06:27`, due since `06:15:30Z` and `06:28:42Z`, over eight hours earlier.
+
+### The defect: a state with no driver, no reclaimer, and a permanent slot
+
+`finalize_local_upload`'s own docstring said *"This server owns the completion, the retry after flood
+control, and the confirmation."* **No code implemented that sentence.**
+
+* `LocalUploadDispatcher.dispatch` had exactly one production caller — the device-facing `finalize`
+  route.
+* `due_dispatch_sessions`, written for precisely this pass and documenting itself as *"sessions that
+  are staged, or whose retry-wait has expired"*, had **no production caller at all**. Its only
+  references were in one unit test. The query was correct, was tested, and was asked by nobody.
+* The device could not drive one either: `finalize` calls `verify_and_stage` first, which accepts
+  only `OPEN`, so a returning phone was answered `session_not_open`.
+* `expire_sessions` swept `state == OPEN` and only that, so a `retry_wait` row held one of the four
+  slots for as long as it existed.
+
+`RETRY_WAIT` was a terminal state that was not marked terminal, and enough of them closed a device's
+upload path permanently. No elapsed time could release it, because nothing was counting.
+
+**This is the D6A7f2a lesson again, on the other side of the wire.** That milestone found a value
+with three readers and no writer; this one found a query with no caller and a docstring that
+described the caller as though it existed. *A guard on the consumers of a value cannot see that
+nothing produces it* — and a docstring is not a mechanism.
+
+### The three corrections
+
+* **`Scheduler.dispatch_due_local_uploads`** — the pass that did not exist, on the tick beside
+  `dispatch_due_retries`, behind the same two guards, because the hazard is the same one: an
+  operator's maintenance window must stop *all* new Telegram dispatch, and a bot-wide flood-control
+  block is a fact about the whole bot rather than about one session. It creates no session and can
+  produce no second post.
+* **`expire_sessions` covers every unfinished state**, derived from the enum rather than from a
+  written list, so a state added later is swept instead of silently forgotten. Reclaiming a `STAGED`
+  or `RETRY_WAIT` session is as safe as reclaiming an `OPEN` one and for the same reason: neither has
+  ever had a Telegram request made for it. **`DISPATCHING` is excluded and always will be** — it is
+  the one state that may have created a post, and its only lawful settlement is the `RESULT_UNKNOWN`
+  the start-up recovery writes.
+* **The transport generation is finally compared to something.** `LocalUploadSession.backend` has
+  said since D6A7f that "a session may not be dispatched by a different backend" and no code had ever
+  read it back. Harmless while only a device request could reach the dispatcher; load-bearing the
+  moment a scheduler drives parked sessions, because the rows this milestone was opened by are all
+  frozen on `cloud` and the bot has since called `logOut` there. Refused rather than migrated:
+  `FAILED_BEFORE_DISPATCH` / `transport_generation_changed`, which is honest because
+  `request_started_at` is still null.
+
+Both dispatcher call sites now build through one factory, so the generation guard and
+`supports_local_path` cannot drift into two answers.
+
+**The cap was not raised.** A cap that admits work nobody will ever finish is not a cap that was too
+small.
+
+### Verified live, after deployment rather than predicted before it
+
+Within a minute of the deployment the three parked sessions settled `failed_before_dispatch` /
+`transport_generation_changed` at `15:42:14`–`15:42:15Z`, each with `attempt_count = 0`,
+`request_started_at` null, `response_completed_at` null and **no message ids** — so **nothing was
+sent**. The device's active sessions went from **4 to 1**. Total sessions still **44**: no row
+created, none deleted, evidence preserved. `verified_at` unchanged at `13:38:04.363838Z`, which is
+the proof the deployment made no `getMe` of its own.
+
+One session remains `open` for that device — a video at 0 of 33,443,444 bytes received, with an
+orphaned 27,033,598-byte `.chunk` temporary beside it from a write the process did not survive. It is
+resumable in place by the phone and is reclaimed by the retention sweep at `2026-08-09 06:25Z`
+otherwise; the directory-level discard removes the temporary with it.
+
+### The deployment guard, read immediately before deploying
+
+0 `LocalUploadSession` dispatching, 0 `DeliveryOperation` dispatching, 0 live source-validation runs,
+and the enabled Instagram source's next check **99.4 minutes** away — outside the deployment window
+plus the conservative 90-minute margin. **Instagram was not contacted**: the countdown was 130.9
+minutes at `15:09Z` and 99.4 at `15:41Z`, which is the wall clock elapsing and nothing else. Edge
+verification re-ran clean: loopback-only 8099/8100, no firewall rule for any guarded port, every
+blocked public path 404, chunk ceiling 413, private Serve 443 intact and no Funnel on 443.
+
+**`LIVE_PROBES_USED = 0`.** No Telegram message was sent by any agent; no `logOut`; no backend
+change; no platform was contacted.
+
+---
+
 ## D6A7f2a — the server was already right, and was not touched
 
 **No server change. No commit, no deployment, no restart, no migration.** Recorded here because a
@@ -145,6 +249,7 @@ reason to resend a message that arrived.
 | Field | Value |
 | --- | --- |
 | Repository | `https://github.com/funzi7/telegram-remote-sources` (private) |
+| **Head after D6A7f2b** | **`d5cd04c1d5d827f8b129b1af8f427d56518a0b06`** — **deployed and verified**; `DEPLOYED_HEAD` equals it exactly. Migration head **`0009_d6a7f1a_video_poster`**, unchanged — none was written and none was needed. Backend **`local`**, verified, `max_upload_bytes` **2,097,152,000**, **no `logOut`**, Local Bot API healthy. **First attempt, no rollback.** It gave `RETRY_WAIT` an owner: the scheduler now drives due phone uploads, retention reclaims every unfinished state, and the transport generation is compared at dispatch. **The active-session cap was not raised.** Within a minute the three permanently parked sessions settled `failed_before_dispatch` / `transport_generation_changed` with `attempt_count = 0` and no request ever started — **nothing was sent** — and the device's active sessions went from 4 to 1. Total sessions **44**, unchanged: no row created, none deleted. The Instagram clock was re-read read-only immediately beforehand and the enabled source's next check was **99.4 minutes** out, outside the 90-minute margin. **`LIVE_PROBES_USED=0`** |
 | Local path | `/root/work/telegram-remote-sources` |
 | Branch | `main`, tracking `origin/main` |
 | First commit | D6A (`308b4c0`). The repository was genuinely empty before it. |
