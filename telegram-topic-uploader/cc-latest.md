@@ -11,7 +11,14 @@
 
 **Android production change: yes.** `55` / `0.14.4-d6a7f2b`, Room schema **17**, no migration.
 **Server production change: yes, and deployed** — see
-`/root/work/agent-memory/telegram-remote-sources/cc-latest.md`.
+`/root/work/agent-memory/telegram-remote-sources/cc-latest.md`. Server `SERVER_HEAD`
+`4abe3c7ae194e836f0802277c265ef6c57104c9c`, `DEPLOYED_HEAD`
+`d5cd04c1d5d827f8b129b1af8f427d56518a0b06` — the difference is documentation only and deliberate.
+
+Android code commit `7de9325fbc30222224e21d52dff71ba0a071f89d`. APK
+`/sdcard/Download/TelegramTopicUploader-0.14.4-d6a7f2b.apk`, 17,037,198 bytes, SHA-256
+`be3f589528d45014e4759c873451c77dfbb69bb6ba9e985d69ddcd8ff7733ec3`, source and destination identical,
+**not installed**.
 
 ### The forensics came first, and they changed the answer
 

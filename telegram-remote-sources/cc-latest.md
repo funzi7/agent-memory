@@ -18,7 +18,7 @@ hash — and nothing added to it ever may.
 | Field | Value |
 | --- | --- |
 | Server HEAD | `d5cd04c1d5d827f8b129b1af8f427d56518a0b06` |
-| `DEPLOYED_HEAD` | `d5cd04c1d5d827f8b129b1af8f427d56518a0b06` — **equal, deliberately this time** |
+| `DEPLOYED_HEAD` | `d5cd04c1d5d827f8b129b1af8f427d56518a0b06` — the **code** commit. The documentation commits after it were deliberately not redeployed: the Instagram clock was re-read immediately afterwards and the enabled source's next check was **35.6 minutes** away, inside the 90-minute margin. Same decision, same reason, as D6A7f2 |
 | Migration head | `0009_d6a7f1a_video_poster`, unchanged — **none was written and none was needed** |
 | Gate | **1606 passed, 4 skipped** (1586/4 before); ruff format/check, mypy 128 source files, `bash -n`, release-preflight 61 modules, `git diff --check` — clean |
 | Backend after deploy | `local`, verified, `max_upload_bytes` 2,097,152,000, Local Bot API healthy |
