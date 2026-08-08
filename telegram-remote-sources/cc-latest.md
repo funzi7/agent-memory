@@ -11,6 +11,33 @@ hash — and nothing added to it ever may.
 
 ---
 
+## D6A7f2a — the server was already right, and was not touched
+
+**No server change. No commit, no deployment, no restart, no migration.** Recorded here because a
+future conversation reading only the Android side could reasonably assume otherwise.
+
+| Field | Value |
+| --- | --- |
+| Server HEAD | `11c98184d89c5d494e39ec800e9321a93b1159e2`, unchanged |
+| `DEPLOYED_HEAD` | `f3609c3ca524cbbd3c856af09f168844f4966e1b`, unchanged |
+| Migration head | `0009_d6a7f1a_video_poster`, unchanged |
+| Verification | read-only `remote-sources-ctl telegram-status` only |
+
+The verified live answer at the start of D6A7f2a: `backend=local`, `backend_verified=true`,
+`max_upload_bytes=2097152000`, local credentials set and readable, `maintenance_reason=null`,
+0 deliveries waiting, no rate-limit block.
+
+**The active ceiling was already correct and the device-facing contract was already complete.**
+`GET /api/v1/telegram/transport` returns `backend`, `verified`, `max_upload_bytes` and
+`maintenance_reason` to a paired device, and has since D6A7f. Nothing was missing from it.
+
+D6A7f2a is **Android-side synchronization and presentation work**: the phone had never called that
+endpoint and had never recorded its answer, so it went on enforcing the compiled-in 50 MB cloud
+default while this server accepted 2,000 MB. No Telegram method was called by any agent during the
+milestone — no `getMe`, no `logOut`, and nothing that could create a post.
+
+---
+
 ## D6A7f2 — the Local Bot API migration, performed once
 
 **The bot is on the official Telegram Local Bot API server.** `logOut` calls: **1**. The

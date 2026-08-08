@@ -7,6 +7,89 @@
 > **When the user supplies SHAs, read agent-memory before responding**, verify each against
 > `origin/main`, and only then answer. A supplied SHA is a claim to verify, never a fact to repeat.
 
+## D6A7f2a — the synchronizer D6A7f designed and never wired
+
+**Android production change: yes.** `54` / `0.14.3-d6a7f2a`, Room schema **17**, no migration.
+Code commit `602976dea98195190881ee75f1cddd14073103a4`, HEAD `a50ab0be423a6aaaed61c1d097f514d210e3e517`.
+APK `/sdcard/Download/TelegramTopicUploader-0.14.3-d6a7f2a.apk`, SHA-256
+`478268982aec7f084f31c1894a177b77345f4598e94a432863065bdd054a6eca`.
+
+**Server: read-only. No commit, no deployment, and none was needed.** It was already correct.
+
+### The defect, and why no test could see it
+
+D6A7f made the upload ceiling "a fact the server reports" and built every part of that sentence
+except the verb.
+
+* `TransportCeilingSource` — persisted, Hilt-bound, read by the dispatch gate, the queue claim and
+  the batch snapshot.
+* `RemoteTelegramTransport.transportStatus()` — present, correct, parsing `max_upload_bytes`.
+* **Production callers of either: zero.** `record(...)` had five call sites and all five were in one
+  unit test. `transportStatus()` had none anywhere, not even a test.
+
+So the recorded ceiling could never leave 52,428,800, and the handset refused a ~77 MB queued video
+with *"exceeds the current Telegram 50.0 MB limit"* for hours after the server reported
+`backend=local` and `max_upload_bytes=2,097,152,000`.
+
+Every existing test passed throughout, because every one of them was about the **readers**. The
+lesson is general and worth carrying: *a guard on the consumers of a value cannot see that nothing
+produces it.* The new guard asserts that exactly one production file **writes** the ceiling, and
+that there is one.
+
+### What shipped
+
+* `ActiveTelegramTransportSynchronizer` — one authenticated read, single-flight, recorded exactly.
+  Boundaries: cold start, foreground return, Queue entry, transport-screen entry, explicit refresh
+  (including Queue pull-to-refresh), and **immediately before an explicit send's size preflight**.
+  No timer. The shared read runs on the application scope, so a screen leaving mid-flight cannot
+  discard an answer other callers are waiting on.
+* A failure records nothing, invents nothing and clears no pairing. The ceiling moves **both**
+  directions — a smaller server figure is recorded exactly like a larger one.
+* The live ceiling threaded into the three readers still using the default: the Queue's eligibility
+  projection, the card that prints the limit, and the album plan.
+* Stale `MEDIA_TOO_LARGE` withheld while untrue; the code and the attempt stay on the row.
+* A size-blocked row states the **active** limit, offers *Refresh the upload limit*, and can be
+  withdrawn again — the size branch used to short-circuit the pending-send controls.
+* A Telegram transport card: backend, verification, ceiling, maintenance. No endpoint, host, port,
+  token, `api_id` or `api_hash`, and no field one could occupy.
+* **Six application-server failure codes**, separated from Telegram's. `RemoteFailure.ServerError`
+  is the user's own deployment's 5xx and had been reported as *"Telegram answered with a server
+  error"*, along with maintenance, quota, disk and session-cap refusals. The legacy `SERVER_FAILURE`
+  is now party-neutral, because a row written before this milestone cannot say which server failed.
+  A 429 still says Telegram; `RESULT_UNKNOWN` is still never retried automatically.
+* Review scroll anchoring by item **key** — the D5B saveable state could not survive the rows
+  arriving late, which is what was actually resetting the position — plus a transient back-to-top
+  control (appears on upward movement far from the top, auto-hides after 3 s, never flashes on a
+  restoration).
+* One shared Preview media-gesture contract, obeyed by **both** the video and image surfaces. The
+  image had exactly the defect D6A7e3 removed from video.
+
+### Two things worth remembering
+
+* **A raw NUL byte made a whole source file invisible to grep.**
+  `transport/remote/RemoteTelegramTransport.kt` held one literal 0x00 inside `token.fill(...)`, so
+  `file(1)` called the 475-line source *data* and plain `grep` skipped it as binary. Every
+  grep-based audit of this repository read the application's entire Telegram transport client as
+  empty. Written as `'\u0000'` now; behaviour identical. **When auditing this tree, use `grep -a`
+  or read files directly.**
+* **Ten surface guards were re-scoped, none deleted.** One had an *expired premise* rather than a
+  broken one: it banned any copy claiming Local Bot API support was active, written when it was not,
+  and D6A7f2 made it so. It now defends what still matters — name the transport, never the
+  deployment.
+
+### Gate
+
+3425 tests, 0 failures, 0 errors, 0 skipped across 219 suites; lint 0 issues; `assembleDebug` and
+`assembleDebugAndroidTest` both build. **Instrumentation compiled, not run** — no device-side
+automation exists and none is claimed.
+
+### Open
+
+`docs/D6A7F2A_DEVICE_CHECKLIST.md`, unmarked. The transport rows of `docs/D6A7F2_DEVICE_CHECKLIST.md`
+are superseded by it: they could not have passed on code 53.
+
+---
+
 ## D6A7f2 — the Local Bot API migration, performed once
 
 **The bot is on the official Telegram Local Bot API server.** `logOut` calls: **1**. The

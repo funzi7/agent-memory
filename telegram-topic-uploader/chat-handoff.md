@@ -60,6 +60,16 @@ supplied HEAD against GitHub before trusting it.
   **Do not** hand them `cd`, `cauto`, or any other session-entry command before a future prompt
   unless they explicitly ask for one. They already know how to open the session; offering it every
   time is noise.
+- **Since D6A7f2a, every Claude session started by `apps` runs at effort `xhigh`.** The launcher's
+  Claude pane exports `CLAUDE_CODE_EFFORT_LEVEL=xhigh` for that process only; no global shell
+  setting was touched, and a shell, pane or manual `claude` outside `apps` keeps its own default.
+  The mechanism was verified against the installed binary rather than assumed — it recognises the
+  variable and `xhigh` is a valid level — and an environment variable was chosen over the
+  equivalent command-line flag deliberately: a future version that stopped recognising the variable
+  would ignore it, whereas an unknown flag would fail the launcher outright. Consequence worth
+  knowing: `/effort` cannot lower it mid-session while the variable is set. The pane arrangement,
+  window numbering, working directories, `--add-dir` paths and permissions are unchanged, and the
+  pre-edit backup lives beside the script and is **not** in any repository.
 - **Development prompts stay in English.** Explanations to the user, and every device-testing
   instruction, stay in **Hebrew**.
 - **Every final Android build is copied to `/sdcard/Download/`** with a versioned filename and a
@@ -175,9 +185,16 @@ item, confirmation, ignore marker and deletion tombstone.
 > database migration; every row count identical before and after; every schedule untouched.
 > **No Telegram message was sent by any agent.**
 >
-> **Android was not rebuilt and did not need to be** — code commit `2afcedb9…`, APK `b3705d52…`,
-> version 53 / `0.14.2-d6a7f1a`, Room schema 17, all unchanged. The application learns the ceiling by
-> asking the server, which is what D6A7f built it to do.
+> **Android was not rebuilt** — code commit `2afcedb9…`, APK `b3705d52…`, version 53 /
+> `0.14.2-d6a7f1a`, Room schema 17, all unchanged.
+>
+> > **Corrected by D6A7f2a.** The line that stood here — *"the application learns the ceiling by
+> > asking the server, which is what D6A7f built it to do"* — described the **design**. D6A7f built
+> > the store, the binding and all three readers, and **nothing that could ever write one**:
+> > `TransportCeilingSource.record(...)` had five call sites and all five were in one unit test, and
+> > `RemoteTelegramTransport.transportStatus()` had no caller anywhere. The phone never asked, so
+> > the ceiling could not move and the handset went on refusing a >50 MB video against 50 MB. The
+> > missing synchronizer is D6A7f2a — **code 54 / `0.14.3-d6a7f2a`**.
 >
 > **The D6A7f1a two-class device gate closed on hardware.** Both the control class and the previously
 > blank/white card class now show a useful poster, a real duration and exactly one message.
@@ -187,10 +204,15 @@ item, confirmation, ignore marker and deletion tombstone.
 >
 > **HEADs.** Server `11c98184d89c5d494e39ec800e9321a93b1159e2`; `DEPLOYED_HEAD` `f3609c3ca524cbbd3c856af09f168844f4966e1b` — deliberately different, the two
 > commits between them being documentation only, because a docs-only redeploy would have restarted a
-> freshly migrated backend inside the Instagram deployment window. Android `649131c473ff4b25ad889d9fea702c99bd3cb7ea`.
+> freshly migrated backend inside the Instagram deployment window. Android, after D6A7f2a:
+> code commit `602976dea98195190881ee75f1cddd14073103a4`, HEAD
+> `a50ab0be423a6aaaed61c1d097f514d210e3e517`. **The server is unchanged by D6A7f2a — read-only, no
+> commit, no deployment; it was already correct and the whole defect was on the phone.**
 >
 > **Still open:** the user's first physical >50 MB send over the local backend, and one deliberate
-> *look* at poster sharpness in local mode. `docs/D6A7F2_DEVICE_CHECKLIST.md`.
+> *look* at poster sharpness in local mode — now on **code 54**, via
+> `docs/D6A7F2A_DEVICE_CHECKLIST.md`. The transport rows of `docs/D6A7F2_DEVICE_CHECKLIST.md` are
+> superseded: they could not have passed on code 53.
 
 ### The milestone this one completes
 
@@ -228,6 +250,7 @@ item, confirmation, ignore marker and deletion tombstone.
 | Room schema | **17, unchanged.** No schema 18: the poster is generated for an existing upload request, held in memory only until it is staged server-side, and never written to the user's folder, to Room or to a cache |
 | Gate | **3327 Android unit tests, 0 failures, 0 errors, 0 skipped** (3287 before, **all retained**); **lint 0 issues**; `assembleDebug` and `assembleDebugAndroidTest` both succeed — instrumentation **compiles and was not run**. Server: **1529 passed, 4 skipped** (1479/4 at D6A7f1), plus ruff format/check, mypy (125 files), `release-preflight` (60 modules), `git diff --check` |
 | APK | `/sdcard/Download/TelegramTopicUploader-0.14.2-d6a7f1a.apk`, SHA-256 `b3705d521ac2f7810ef55f586349aaa9d72b1efc7725da3d332028ff0b1f7c5b`, 16,964,198 bytes — hash verified identical to the build output, **not installed**. Every earlier APK left in place |
+| **D6A7f2a build** | code **54** / `0.14.3-d6a7f2a`, Room 17, no migration. APK `/sdcard/Download/TelegramTopicUploader-0.14.3-d6a7f2a.apk`, SHA-256 `478268982aec7f084f31c1894a177b77345f4598e94a432863065bdd054a6eca`, 17,011,433 bytes — verified identical to the build output, **not installed**. Every earlier APK left in place |
 | Hardware | **The blocking gate is open, and it is now TWO classes of video.** A control video from the class that already displayed correctly, **and** one from the class that produces the blank card, must both show a useful poster and a real duration, once each, exactly one message each. `docs/D6A7F1A_DEVICE_CHECKLIST.md`, nothing pre-marked. **The Local Bot API migration (D6A7f2) stays blocked until both pass.** |
 
 ### The lesson this milestone is really about
