@@ -11,6 +11,72 @@
 
 | Field | Value |
 | --- | --- |
+| Task | **D6A7f1a** — a pre-migration **corrective** milestone, and the second half of D6A7f1's. D6A7f1 restored the video metadata and hardware confirmed it: the videos that still look wrong now carry **real, non-zero durations**. What is still missing is the **poster** — the still image Telegram shows on the message — which this application has generated for every inline video since D3B1.3 and which D6A7f's declaration had no field for |
+| **Final application HEAD** | **`e507c659ef6c1c3c4379b25125cfa72e7dcb9d81`** — pushed. The build tree is `2afcedb9ade9480e5c78f2c3144f268aa3a9027d`; the commit after it is documentation only (the artefact record), so the APK hash is unchanged |
+| **Final server HEAD** | **`89b292d5086415da8d6d1c38d1598303d4d02409`** — **deployed and verified**, and `DEPLOYED_HEAD` equals it exactly |
+| **Deployment** | **done, CLOUD gateway mode, no rollback.** Migration `0008` → **`0009_d6a7f1a_video_poster`**, applied and verified, all eight poster columns present. Backend `cloud`, 52,428,800 bytes, **no `logOut`**, Local Bot API not active and its container does not exist. **Every row count identical before and after.** The enabled Instagram source was **307** minutes out when the clock was re-read immediately beforehand, **305** afterwards — the wall clock elapsing, and the proof no Instagram request occurred |
+| **Telegram local credentials** | **configured, and untouched.** Not read, not cleared, not replaced, not printed, not re-requested. Status reports only *configured* / *readable* |
+| **Existing upload rows** | All eight pre-existing `local_upload_parts` rows read `poster_state = 'absent'` — true of them, and none rewritten, redispatched or deleted to make it so |
+| Version | code 52 → **53**, name `0.14.1-d6a7f1` → **`0.14.2-d6a7f1a`** |
+| Room schema | **17, unchanged — no migration runs on this install.** No schema 18: the poster is generated for an existing upload request, held in memory only until it is staged server-side, and never written to the user's folder, to Room or to a cache |
+| Gate | **3327 Android unit tests, 0 failures, 0 errors, 0 skipped** (3287 before, **all retained**); **lint 0 issues** — both counted from the XML reports, every task `--rerun-tasks`, whole gate re-run from the committed tree. `assembleDebug` and `assembleDebugAndroidTest` both succeed; **instrumentation compiles and was not run**. Server: **1529 passed, 4 skipped** (1479/4 at D6A7f1), plus ruff format/check, mypy (125 files), `release-preflight` (60 modules), `git diff --check` |
+| APK | `/sdcard/Download/TelegramTopicUploader-0.14.2-d6a7f1a.apk`, SHA-256 `b3705d521ac2f7810ef55f586349aaa9d72b1efc7725da3d332028ff0b1f7c5b`, 16,964,198 bytes — hash verified identical to the build output, **not installed**. Every earlier APK left in place |
+| Production | **Deployed, and nothing else touched.** `LIVE_PROBES_USED=0`: no agent contacted any platform and **no Telegram message was sent** |
+| Hardware | **The blocking gate is open, and it is now TWO classes of video.** `docs/D6A7F1A_DEVICE_CHECKLIST.md`, nothing pre-marked. A control video from the class that already displayed correctly **and** one from the blank-card class must both show a useful poster and a real duration. **The Local Bot API migration (D6A7f2) stays blocked until both pass** |
+
+### Why this milestone exists — and the lesson in it
+
+**D6A7f1 was reported as fixing the video regression, and it fixed half of it.** The first video the
+user tested displayed normally. Subsequent ordinary uploads exposed more videos that still arrive as
+a large blank/white media card — with **real durations** on them, tens of seconds and over a minute.
+
+That distinction is the whole finding. Duration, width and height propagation is **physically
+fixed** and is not re-litigated. The remaining defect is poster/preview presentation.
+
+**Two lessons, and they are the durable part:**
+
+1. **One passing physical test was generalised into a class of passes.** The D6A7f1 checklist asked
+   for *one* ordinary small video. It got one, it worked, and "video presentation is fixed" is far
+   larger than one file supports. The successor checklist requires **two classes** — the one that
+   already worked and the one that did not.
+2. **A parity oracle was read as prose rather than as code.** D6A7f1 compared the server-backed
+   request against the three fields the old direct gateway's *KDoc* names. That gateway also attached
+   a fourth thing that sentence does not enumerate: the `thumbnail` multipart part. Reading
+   `TelegramMediaUploadApiGateway` line by line is what found this.
+
+**It is not a file-size rule.** The examples were around 10–12 MB. Telegram documents no such
+threshold, none was proved, and none was written into either repository.
+
+### What D6A7f1a changed on the phone
+
+* **One product concept, named once: the video poster.** `TelegramVideoThumbnail` →
+  `TelegramVideoPoster`; `VideoUploadMetadata.thumbnail` → `poster`;
+  `THUMBNAIL_UNAVAILABLE` → `POSTER_UNAVAILABLE`. Nothing above the four legacy direct transports
+  speaks Telegram's wire vocabulary, and a guard asserts it. **The app's own history/grid thumbnail
+  is a different, unrelated concept and is untouched.**
+* **`VideoPosterPolicy`** — the pure rule: `SEND_VIDEO` may declare a poster; `SEND_DOCUMENT` and
+  `SEND_PHOTO` may not, and neither is coerced into `SEND_VIDEO` to obtain one. The JPEG check reads
+  **both ends** of the bytes, so a truncated encode that kept its header is not a whole image.
+* **`RemoteUploadPart`** gains four poster facts and no bytes. The image has its own bounded route,
+  uploaded **before finalize**, so it is on the server before the phone is free to leave.
+* **`PosterStagingPlan`** — the staging decision, pure and separate from the loop that acts on it.
+  The server's answer outranks this device's memory, exactly as the byte offset already did, so a
+  process that died after staging the poster comes back, reads `verified`, and sends nothing.
+* **A bounded four-rung extraction ladder** — chosen frame, first frame, unsnapped decode,
+  `getFrameAtIndex(0)` — then a neutral placeholder with **no text of any kind**, no filename, and no
+  claim to be a frame. Before this, one failed decode demoted a perfect H.264 file to a document.
+* **An album video member declares a poster for the first time.** The album path passed
+  `thumbnail = null` explicitly, with a note claiming a grouped video attaches no separate cover —
+  never true of `InputMediaVideo`. A repair declares one too.
+* **A poster never costs the send**, and `delivered_wrong_shape` remains delivered, terminal and
+  never resent.
+
+---
+
+## The previous milestone
+
+| Field | Value |
+| --- | --- |
 | Task | **D6A7f1** — a pre-migration **corrective** milestone. D6A7f's transport reached Telegram and lost two contracts on the way; a source still owing its requested history was being scheduled as though it were finished; and validation's four states were indistinguishable on screen. All three are corrected |
 | **Final application HEAD** | **`82375dece6d0f4ed9f25ddc6cb383ff78c697a75`** — pushed. The build tree is `ea753c6463cbe2554e8d3c50e5d793350b8bd332`; the commit after it is documentation only (the artefact record), so the APK hash is unchanged — documentation is not a build input |
 | **Final server HEAD** | **`4fdd3abee47061573642aaa762f5c1ddb064b1c5`** — **deployed and verified**, and `DEPLOYED_HEAD` equals it exactly |

@@ -46,6 +46,7 @@ hash — and nothing added to it ever may.
 | **Head after D6A7e7a, unchanged** | **`c7536bf64f23b80feb92f9eac2e1e2c915c0d0fd`** (`c7536bf`) — **unchanged. This repository was not edited, not deployed, not restarted and not contacted for a change**, and the deployed HEAD is the same value. D6A7e7a was an **Android-only** corrective milestone: the fifth physical run reported that a local upload to Telegram became *requires review* every time the user left the application while it ran and came back. **That defect is local and is not attributable to this server, to the public edge or to Tailscale** — the local upload path never used a Remote Sources endpoint, and a structural guard now pins the fix's own sources free of every Remote Sources, transport and Tailscale symbol. Migration head **`0006_session_connection`**, unchanged. **No Funnel, Serve, public-edge, rate-limit or firewall configuration was changed.** **Instagram was not contacted**: no validation, no check, no operator probe, no credential touched, no source enabled or disabled. The same run also reported the **public HTTPS transport working on the handset** — the authenticated probe succeeds and ordinary Remote Sources use works with Tailscale off, which is positive device evidence for the D6A7e7 edge deployed from here |
 | **Head after D6A7e7b, unchanged** | **`c7536bf64f23b80feb92f9eac2e1e2c915c0d0fd`** (`c7536bf`) — **unchanged. This repository was not edited, not deployed, not restarted, not migrated and not contacted for a change**, and the deployed HEAD is the same value. D6A7e7b is **Android-only**. The sixth physical run reported that **TikTok was not visible in the phone's *Add source* platform chooser** — and that is emphatically **not a server finding**: this server already supports TikTok (`Platform.TIKTOK`, `SourceType.TIKTOK_PROFILE`, in `SUPPORTED_PLATFORMS`, with a real adapter advertising `profile_discovery=True`, `requires_credentials=False`, `optional_credentials=True`, exactly one source type and no feed modes), and `/system/status` has advertised all of it for eight milestones. The phone clipped the fifth chip out of a non-wrapping row. **No platform request occurred**: TikTok was not contacted, no source was created, validated, enabled, disabled or checked, and no credential was touched. The milestone's server work was a **read-only audit** of `schemas.py`, `routes.py`, `db/models.py`, `delivery/operations.py`, `delivery/telegram.py` and `adapters/registry.py`, which confirmed that Remote History already exposes **both** `created_at` and `confirmed_at` and that Android already parses both — so **no API change, no migration and no deployment was needed or made**. Migration head **`0006_session_connection`**, unchanged. **No Funnel, Serve, public-edge, nginx, rate-limit or firewall configuration was changed.** **Instagram was not contacted** |
 | **Head after D6A7e8** | **`b0ed4f0407a089b5cf567c78a3c4f7a055197638`** (`b0ed4f0`) — **deployed and verified**; migration head **`0006_session_connection`**, unchanged — none was needed and none was written. The code commit `b38f8ebe1d8bb33ad961cf4af0a5709621cb9f1b` (`b38f8eb`) was deployed first; `b0ed4f0` adds the deployment record and was redeployed so the deployed HEAD equals this one exactly. **The TikTok connector was asking gallery-dl for a URL that enumerates nothing** — see the section below. **`LIVE_PROBES_USED=0`**: no agent made a live request to any platform. **Instagram was not contacted**; its enabled source's `next_check_at` is unchanged to the microsecond across both deployments |
+| **Head after D6A7f1a** | **`89b292d5086415da8d6d1c38d1598303d4d02409`** — **deployed and verified**; `DEPLOYED_HEAD` equals it exactly. Migration head **`0009_d6a7f1a_video_poster`**, applied, and all eight poster columns present. The code commit is `66c0a5f57b47a39a7078715240518d943d887f2e`; `fa40605` records the deployment, `8fff043` the route verification and `89b292d` the cover trade-off, each redeployed so `DEPLOYED_HEAD` and `SERVER_HEAD` never diverge. Backend **`cloud`**, `max_upload_bytes` 52,428,800, **no `logOut`**, Local Bot API not active — **its container does not exist at all** — and the `api_id`/`api_hash` the user had already configured was **left untouched**: not read, not cleared, not replaced, not printed, not re-requested. **No rollback.** The Instagram clock was re-read read-only immediately beforehand: the enabled source's next check was **307 minutes** out, and **305** afterwards, which is the wall clock elapsing and the proof no Instagram request occurred. **Every row count identical before and after.** All eight pre-existing `local_upload_parts` rows read back `poster_state = 'absent'` — true of them, and none rewritten or redispatched. The new poster route was proved present rather than assumed: from the host with no credential, a path this build does not serve answers `404`, the chunk route answers `401`, and **the poster route answers `401`** — it exists and demands a device credential. **`LIVE_PROBES_USED=0`** |
 | **Head after D6A7f1** | **`4fdd3abee47061573642aaa762f5c1ddb064b1c5`** — **deployed and verified**; `DEPLOYED_HEAD` equals it exactly. Migration head **`0008_d6a7f1_media_metadata`**, applied. The code commit is `76a2fbd0b1d98417c94062f491fb740a3b422687`; `9cdac61` is the milestone documentation and was deployed first, `a61c007` records the deployment, and `4fdd3ab` records the live ladder evidence — each redeployed so `DEPLOYED_HEAD` and `SERVER_HEAD` never diverge. Backend **`cloud`**, `max_upload_bytes` 52,428,800, **no `logOut`**, Local Bot API not active, no `api_id`/`api_hash` stored. **First attempt, no rollback.** The Instagram clock was re-read read-only immediately beforehand and the enabled source's next check was **212 minutes** out. **Every row count identical across the deployment and across the re-arm** — 17 tables, unchanged. The evidence-gated `rearm-initial-imports --apply` moved **1** source: `next_check_at` from 24 hours out to 15 minutes, `initial_import_empty_attempts` 0 → 1, and **no run was created, nothing was imported and nothing was sent**. Both Instagram sources untouched to the microsecond. **`LIVE_PROBES_USED=0`** |
 | **Head after D6A7f** | **`df194a011b1733741380144d337976d026ad172f`** (`df194a0`) — **deployed and verified**; `DEPLOYED_HEAD` equals it exactly. Migration head **`0007_d6a7f_transport`**, applied. The code commit is `ee561241b5501d09f7cb52ddb2604ac2a2148a10` (`ee56124`); `8771552` and `01ae156` fix deployment tooling that the deployment itself exposed, and `df194a0` records the deployment. Backend **`cloud`**, `max_upload_bytes` 52,428,800, **no `logOut`**, Local Bot API not running, no `api_id`/`api_hash` stored. It took **three attempts**: the Instagram maintenance window refused the first (22.8 minutes to the next check), an edge that never re-read its bind-mounted route policy failed the second, and an unquoted `{8,64}` in an nginx `location` regex — which nginx reads as the start of a block — failed the third. Legacy 429 repair: **examined 5, repaired 5**; the automatic retry then ran by itself and all five settled `failed_before_dispatch`/`download_failed` because the source media has expired, so **nothing reached Telegram** and the five items are in Review. **`LIVE_PROBES_USED=0`**; no Telegram message sent; **Instagram untouched to the microsecond**, its 17:13:52Z check being the scheduler's own |
 | Host | A DigitalOcean droplet, Ubuntu 24.04.4, amd64, 1 vCPU, ~2 GiB RAM, ~48 GB disk |
@@ -55,7 +56,74 @@ hash — and nothing added to it ever may.
 The VPS address, its Tailscale hostname and the tailnet name are **deliberately not recorded
 anywhere**. They live in the operator's shell and in the Android app's settings.
 
+## D6A7f1a — the picture the phone always made and never sent
+
+**The finding, stated precisely.** D6A7f1 restored the three numbers and hardware confirmed it. The
+videos that still arrive as a large blank/white media card now carry **real, non-zero durations** —
+tens of seconds, over a minute — where the original defect showed `0:00`. **Duration propagation
+works.** The remaining defect is the **poster**: the still image Telegram shows on the message.
+
+Same shape of loss as before. The Android application has generated a bounded JPEG poster for every
+video it presents inline since D3B1.3 — it is *required*, and a file that cannot produce one is sent
+as a **document** instead, which is why every blank-card file provably had one on the phone — and
+the old direct gateway attached it to every `sendVideo`. D6A7f's declaration had a size, a digest, a
+filename and a caption, and **no field for an image**. Telegram was left to build a preview itself,
+which it manages for some containers and not for others.
+
+**No size rule was written and none may be.** The physical examples were around 10–12 MB. Telegram
+documents no such threshold, none was proved, and nothing in this service reads a media file's size
+to decide whether it deserves a poster. What the specification *does* say — *"can be ignored if
+thumbnail generation for the file is supported server-side"* — is about the file's contents.
+
+### What this repository gained
+
+* `DeclaredPart` / `LocalUploadPartRequest` gain `poster_present`, `poster_bytes`, `poster_sha256`,
+  `poster_width`, `poster_height` — **metadata only**. The declaration cannot carry an image.
+* Refused at the door when it cannot be honoured: only an inline video may declare a poster
+  (`poster_not_applicable` — including a `video/*` member carried `as_document`), all four values or
+  none (`poster_declaration_incomplete`), strictly under 200 kB, a real digest, sides in `1..320`.
+* `POST /local-uploads/{id}/parts/{n}/poster` — the whole image, one bounded request, exact
+  `Content-Length`, digest recomputed over what arrived. Wrong length refused **before the body is
+  read**; short body changes nothing; wrong digest keeps nothing; exact repeat is idempotent;
+  refused once Telegram has been asked (`session_not_open`).
+* Path composed here from the position; no filename accepted, none returned; mode `0600`; counted in
+  the same quota; removed by the same terminal-session cleanup; **retained** on `retry_wait`,
+  `result_unknown` and `delivered_wrong_shape` exactly as the media bytes are.
+* Migration **`0009_d6a7f1a_video_poster`**, additive: eight columns, no `UPDATE`, no drop, no
+  rebuild, no history or delivery-operation rewrite.
+
+### The wire mapping, and why it is two mappings
+
+Re-read against **Bot API 10.2**, not remembered:
+
+* `thumbnail` — *"… less than 200 kB … width and height should not exceed 320 … **Ignored if the
+  file is not uploaded using multipart/form-data** … pass `attach://<file_attach_name>`"*
+* `cover` — *"Pass a file_id …, an HTTP URL …, or `attach://<file_attach_name>` …"* — **no multipart
+  precondition.**
+
+| Transport | Main video | Poster |
+| --- | --- | --- |
+| **cloud** (active) | multipart | `thumbnail: attach://poster` |
+| **local** (planned, D6A7f2) | `file://` path — never re-uploaded | `thumbnail` **and** `cover` |
+
+Verified at source in the pinned official `tdlib/telegram-bot-api`
+`adfd7f6a8e990272851777eeb3ae0def4216f161`: `process_send_video_query` reads `cover`,
+`get_input_video` reads `cover`, and `get_input_file` resolves `file:/` to `inputFileLocal` in local
+mode. **No re-pin is required**, and a test pins the revision so moving it forces the verification
+to be redone rather than inherited.
+
+**A poster never costs a send.** Not declared, not uploaded and digest-mismatched all dispatch
+exactly as D6A7f1 does. `delivered_wrong_shape` remains terminal and is never resent. **No
+public-edge limit was widened** — the image is under 200 kB and the general mutation cap is 256 KiB.
+
+**Gate:** 1529 passed, 4 skipped (1479/4 at D6A7f1); ruff format/check clean; mypy 125 files;
+`release-preflight` 60 modules; `git diff --check` clean.
+
+---
+
 ## D6A7f1 — three numbers a blank card is missing, and a setup that is not a cadence
+
+> **Corrected by D6A7f1a.** This milestone fixed the **duration**, and only the duration.
 
 **Opened by one physical send.** A ~11 MB phone video went through the D6A7f transport, arrived with
 a positive message id and an exact digest, and Telegram drew a white media surface with a download

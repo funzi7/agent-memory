@@ -167,8 +167,96 @@ item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
 
+**D6A7f1a** — the picture the phone always made and never sent.
+
+> **A corrective milestone, and the second half of D6A7f1's.** D6A7f1 restored the video metadata
+> and the handset confirmed it: the videos that still look wrong now carry **real, non-zero
+> durations**, tens of seconds and over a minute, where the original defect showed `0:00`. Duration
+> propagation works and is not in question.
+>
+> **What is still wrong is the poster** — the still image Telegram shows on the message. Same shape
+> of loss, one layer along. The application has generated a bounded JPEG poster for every video it
+> presents inline since D3B1.3; it is *required*, and a file that cannot produce one is sent as a
+> **document** instead, which is why every blank-card file provably had one on the phone. D6A7f's
+> upload declaration had a size, a digest, a filename and a caption, and **no field for an image**.
+> So Telegram was left to generate a preview itself — which it manages for some containers and not
+> for others.
+>
+> **It is not a file-size rule.** The physical examples were around 10–12 MB. Telegram documents no
+> such threshold, none was proved, and none was written into either repository.
+>
+> **Two repositories changed and production was deployed.** `LIVE_PROBES_USED=0` — no agent
+> contacted any platform and **no Telegram message was sent**. The application was **not installed**.
+> **No `logOut`, no Local Bot API activation**, and the `api_id`/`api_hash` the user had already
+> configured was **left untouched**: not read, not cleared, not replaced, not printed, not
+> re-requested. Status reports only that it is *configured* and *readable*.
+
+| Field | Value |
+| --- | --- |
+| **Final application HEAD** | **`e507c659ef6c1c3c4379b25125cfa72e7dcb9d81`** — pushed. The build tree is `2afcedb9ade9480e5c78f2c3144f268aa3a9027d`; the commit after it is documentation only (the artefact record), so the APK hash is unchanged — documentation is not a build input |
+| **Final server HEAD** | **`89b292d5086415da8d6d1c38d1598303d4d02409`** — **deployed and verified**; `DEPLOYED_HEAD` equals it exactly |
+| **Deployment** | **done, CLOUD gateway mode, no rollback.** Migration `0008` → **`0009_d6a7f1a_video_poster`** applied and verified as the database head, and all eight poster columns are present. Backend `cloud`, `max_upload_bytes` 52,428,800, **no `logOut`**, Local Bot API not active — its container does not exist at all. **Every row count identical before and after.** The enabled Instagram source was **307 minutes** out when the clock was re-read immediately beforehand, and 305 afterwards — the wall clock elapsing, and the proof no Instagram request occurred |
+| **Existing upload rows** | All eight pre-existing `local_upload_parts` rows read back as `poster_state = 'absent'` — true of them, and **none was rewritten, redispatched or deleted** to make it so |
+| Version | code 52 → **53**, name `0.14.1-d6a7f1` → **`0.14.2-d6a7f1a`** |
+| Room schema | **17, unchanged.** No schema 18: the poster is generated for an existing upload request, held in memory only until it is staged server-side, and never written to the user's folder, to Room or to a cache |
+| Gate | **3327 Android unit tests, 0 failures, 0 errors, 0 skipped** (3287 before, **all retained**); **lint 0 issues**; `assembleDebug` and `assembleDebugAndroidTest` both succeed — instrumentation **compiles and was not run**. Server: **1529 passed, 4 skipped** (1479/4 at D6A7f1), plus ruff format/check, mypy (125 files), `release-preflight` (60 modules), `git diff --check` |
+| APK | `/sdcard/Download/TelegramTopicUploader-0.14.2-d6a7f1a.apk`, SHA-256 `b3705d521ac2f7810ef55f586349aaa9d72b1efc7725da3d332028ff0b1f7c5b`, 16,964,198 bytes — hash verified identical to the build output, **not installed**. Every earlier APK left in place |
+| Hardware | **The blocking gate is open, and it is now TWO classes of video.** A control video from the class that already displayed correctly, **and** one from the class that produces the blank card, must both show a useful poster and a real duration, once each, exactly one message each. `docs/D6A7F1A_DEVICE_CHECKLIST.md`, nothing pre-marked. **The Local Bot API migration (D6A7f2) stays blocked until both pass.** |
+
+### The lesson this milestone is really about
+
+**One passing physical test was generalised into a class of passes.** The D6A7f1 checklist asked for
+*one* ordinary small video. It got one, it worked, and "video presentation is fixed" is a far larger
+claim than one file supports. The successor checklist requires two classes deliberately — the one
+that already worked and the one that did not — and that change is the more durable half of the
+correction.
+
+**And a parity oracle was read as prose rather than as code.** D6A7f1 compared the server-backed
+request against the three fields the old direct gateway's *documentation* names. That gateway also
+attached a fourth thing its KDoc does not enumerate in that sentence: the `thumbnail` multipart part.
+Reading `TelegramMediaUploadApiGateway` line by line is what found this.
+
+### What D6A7f1a changed
+
+* **One product concept, named once: the video poster.** `TelegramVideoThumbnail` →
+  `TelegramVideoPoster`; `VideoUploadMetadata.thumbnail` → `poster`. Nothing above the four legacy
+  direct transports speaks Telegram's wire vocabulary, and a guard asserts it. (The application's own
+  *history/grid* thumbnail is a different, unrelated concept and is untouched.)
+* **A declaration that describes the poster and cannot carry it.** Four numbers and a digest; no
+  JPEG, no base64, nothing binary in a JSON body.
+* **`POST /local-uploads/{id}/parts/{n}/poster`** — the whole image, one bounded request, exact
+  `Content-Length`, digest recomputed over what arrived. Wrong length refused before the body is
+  read; short body changes nothing; wrong digest keeps nothing; exact repeat writes nothing twice;
+  refused once Telegram has been asked.
+* **Staged before finalize**, because once staging is complete the phone may be gone. A 429 that
+  delays the send by an hour reuses the same poster. The server has no decoder and never re-derives
+  one.
+* **One poster, two wire fields, chosen by transport.** `thumbnail` for cloud (main video is
+  multipart, so the documented guarantee applies); `thumbnail` **and** `cover` for the planned local
+  transport (main video is a `file://` path, so `thumbnail`'s *"Ignored if the file is not uploaded
+  using multipart/form-data"* lapses and `cover`'s contract does not). Verified at source against the
+  pinned official `tdlib/telegram-bot-api` revision — **no re-pin required**, and a test pins it so
+  moving it forces the verification to be redone.
+* **An album video member has a poster for the first time.** The album path passed `thumbnail = null`
+  explicitly, with a note claiming a grouped video attaches no separate cover — never true of
+  `InputMediaVideo`. A repair carries one too.
+* **A bounded four-rung extraction ladder** — chosen frame, first frame, unsnapped decode,
+  index-based extraction — then a neutral placeholder with **no text of any kind**. Before this, one
+  failed decode demoted a perfect H.264 file to a document.
+* **A poster never costs the send.** Not declared, not uploaded and digest-mismatched all dispatch
+  exactly as D6A7f1 does. `delivered_wrong_shape` remains terminal and is never resent.
+* **No public-edge limit was widened.** Telegram's ceiling for the image is under 200 kB; the general
+  mutation cap is 256 KiB.
+
+---
+
+## 4a. The previous milestone
+
 **D6A7f1** — the three numbers a blank card is missing, a document that stays one, and a setup that
 does not wait a day.
+
+> **Corrected by D6A7f1a.** It fixed the **duration**, and only the duration. Do not read its
+> checklist's line 23 as *video presentation is fully physically fixed*.
 
 > **A corrective milestone, opened by hardware.** D6A7f was installed and exercised on the handset.
 > It proved a great deal — async validation is live, the TikTok connector correction works, URL
