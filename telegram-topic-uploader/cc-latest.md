@@ -7,6 +7,112 @@
 > **When the user supplies SHAs, read agent-memory before responding**, verify each against
 > `origin/main`, and only then answer. A supplied SHA is a claim to verify, never a fact to repeat.
 
+## D6A7f2c — the rows that finally re-ask, the identity that names one attempt, and a History card with no ceiling
+
+**Android production change: yes.** `56` / `0.14.5-d6a7f2c`, Room schema **17**, no migration —
+the durable attempt identity (`dispatchAttemptId`) has existed since schema 5.
+**Server production change: yes, and deployed** — see
+`/root/work/agent-memory/telegram-remote-sources/cc-latest.md`. Server code commit
+`3055e2afbe16a66075b77c2417b7cb98ca342f19`; `SERVER_HEAD` and `DEPLOYED_HEAD` are **equal** at
+`e9f2d1e818d5da9db43ed0f48fbdd2bc03e7141f` — unlike the two milestones before, the guard window
+allowed deploying the docs too (Instagram 861.2 minutes out at the second pass), and the local
+Bot API container was never restarted.
+
+Android code commit `19d63231c59e73fa7c80a6aecf662885176340e3`, HEAD
+`c8b121731630f343828ebff16f98539bd26bac40`. APK
+`/sdcard/Download/TelegramTopicUploader-0.14.5-d6a7f2c.apk`, **17,089,507 bytes**, SHA-256
+`a5d056b79d04232d8752faebf224e76ebe4c4a00d48945f1a9a9fe9b5ab7eab7`, byte-identical to the build
+output, signer unchanged since D5A, **not installed**.
+
+### The physical proof came first
+
+**The first >50 MB Local-mode send is CLOSED.** Sent on build 55, positively confirmed by
+Telegram, retention policy ran; corroborated read-only against the server's table — exactly one
+part ever staged above 50 MiB, 62,389,767 bytes, session **confirmed**. Do not reopen the
+ceiling-sync defect, the migration, or that send's poster/duration. And the stale open session
+from D6A7f2b **expired on its own** at its 2026-08-09 06:25Z deadline (`expired /
+session_expired`), exactly as predicted — nothing was cancelled by hand.
+
+### 1 — reconciliation is a read (Android + server)
+
+`ServerUploadSessionReconciler` (app-scoped, single-flight joined like the transport
+synchronizer) asks the server's new `POST /local-uploads/reconcile` — bounded ≤50, device-scoped,
+no identity echoed, nothing per-item logged, zero mutation, zero dispatch, zero Telegram,
+maintenance-gate-free — at process start **after** durable recovery, on the 0→1 foreground edge
+(its own `ActivityLifecycleCallbacks` registration; `ProcessLifecycleOwner` stays banned), on
+`onEnterQueue`, on Queue pull-to-refresh (awaited), plus one self-armed pass at the nearest
+visible server-owned due moment (≤30 min, foreground only, never periodic). Findings map through
+the exhaustive `ServerSessionReconciliationPolicy` onto guarded single statements in
+`RoomQueueExecutionRepository` — six `UPDATE`s, no `INSERT`, no `DELETE`; a reconciled
+confirmation runs the same reservation sync and at-most-once deletion request a live one does.
+
+> **The attribution asymmetry is the safety core.** A finding under the row's own retained
+> `dispatchAttemptId` (`u2-` probe) may confirm, un-block a `RESULT_UNKNOWN`, or downgrade. A
+> finding under the legacy media-at-destination identity (`u1-` probe) may **confirm only** —
+> positive evidence is monotone; negative evidence cannot rule out an older attempt — and only
+> the **newest** row per (sha256, chat, thread) carries the legacy probe at all. `not_found`
+> changes nothing, ever. Reconciliation is never a retry: sends stay explicit.
+
+### 2 — the identity names one attempt (Android + server)
+
+`MediaUploadRequest.dispatchAttemptId` carries the exact id `markDispatchStarted` persisted;
+`ServerTelegramMediaUploadGateway` refuses a request without one, then decides via **one
+read-only legacy lookup** and the pure `SingleUploadDispositionPolicy`: `open`/`staged` →
+**rejoin the legacy session** (staged bytes never abandoned); `retry_wait`/`dispatching`/
+`confirmed`/`delivered_wrong_shape`/`result_unknown`/`failed_after_dispatch`/**any unrecognised
+state** → answered from the session, nothing created; only `failed_before_dispatch`/`cancelled`/
+`expired` or absence → a new `u2-<attemptId>` session. Identity strings are composed in exactly
+one transport-internal object (`ServerClientRequestIds`) — a surface guard pins the `"u1-` and
+`"u2-` literals to that single file and their absence from the whole interface layer. Albums
+(`al-`) and repairs (`rp-`) deliberately keep their existing identities.
+
+### 3 — the card names its surface (Android)
+
+`UploadJobCardSurface` is a **required** card parameter and `ceilingBytes` lost its default:
+QUEUE passes the row's live ceiling, HISTORY passes **null** — History has no active upload
+ceiling, which is the concept, not a smaller fix. One invariant
+(`UploadCardPresentationPolicy.rendersActiveSendability`) gates every current-tense statement:
+only QUEUE, never over a positive confirmation — its truth table has exactly one true cell. Due
+times render only while ahead of a bounded half-minute card tick (D6A7d's countdown idiom):
+server-owned rows print the server's send moment, actionable rows print **this device's own
+eligibility spacing** (named as such in both locales), and an expired time is never printed as
+future. `APPLICATION_SERVER_BUSY` and `TRANSPORT_GENERATION_CHANGED` have dedicated past-tense
+branches — הניסיון הקודם לא התחיל כי לשרת היו יותר מדי העלאות פעילות / שום דבר לא נשלח — with
+"אפשר לנסות שוב עכשיו" once due, and Upload now's `enabled` additionally honours
+`localRetryDue`. The Queue states why rows remain at all: a Send now action stays listed until a
+final outcome.
+
+### Guards: three re-scoped, none deleted
+
+* `D6A7F2BSurfaceTest`'s identity guard moved with the identity: same forbidden-generated-value
+  list over the new decision slice **and** over `ServerClientRequestIds`, plus the requirement
+  that the attempt identity come from `request.dispatchAttemptId`; the slice-size meta-guard list
+  updated with it.
+* `D6A7F2ASurfaceTest`'s size-block guards re-anchored on `sizeBlockCeilingBytes != null` — the
+  nullable ceiling is now itself the verdict — and the judged-against-the-row's-ceiling guard
+  additionally pins `ceilingBytes = null` at the History call site.
+* `D2B2BSurfaceTest`'s no-provider-text guard collided with a mere field access
+  (`row.messageThreadId` contains the forbidden `.message` substring): resolved with a `with(row)`
+  receiver scope in the repository, never by touching the guard.
+
+### Gate
+
+**3553 tests, 0 failures, 0 errors, 0 skipped, 228 suites; lint 0 issues** (3467/222 at
+D6A7f2b), counted from the XML report files on the exact committed tree with `--rerun-tasks`.
+Instrumentation compiles and was not run.
+
+### What is still open
+
+The physical run of build 56 — `docs/D6A7F2C_DEVICE_CHECKLIST.md`, unmarked; backlog rows
+252–257. Load-bearing: the three stale rows reconcile on Queue open with no Send tap; the
+confirmed 59.5 MB item's History card shows no size block and no ceiling; ONE safe explicit
+retry of a transport-generation row opens a new `u2-` session and produces exactly one Telegram
+message. §29's Android-side row counts remain honestly unmeasured — the app's Room database is
+sandboxed away from this environment; the server-side classification stood in (60 sessions:
+56 confirmed / 3 `transport_generation_changed` / 1 `expired`, 0 active, all `u1-`).
+
+---
+
 ## D6A7f2b — the state nothing owned, and the four rows that closed a phone's upload path
 
 **Android production change: yes.** `55` / `0.14.4-d6a7f2b`, Room schema **17**, no migration.

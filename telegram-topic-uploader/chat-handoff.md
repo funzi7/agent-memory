@@ -177,6 +177,62 @@ item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
 
+**D6A7f2c** — durable server-session reconciliation, the attempt-scoped retry identity, and
+terminal History semantics.
+
+> **The physical proof came first: the >50 MB Local-mode send is CLOSED.** Sent on build 55,
+> positively confirmed by Telegram, retention ran; the server's table corroborates read-only —
+> exactly one part ever staged above 50 MiB, 62,389,767 bytes, session confirmed. Do not reopen
+> the ceiling sync, the migration, or that send's poster/duration. The stale open session expired
+> **on its own** at its 2026-08-09 06:25Z deadline, exactly as predicted.
+>
+> **The defect family: the server settles, the phone never re-asks.** D6A7f2b's scheduler settled
+> the three parked sessions within a minute, and the Queue went on promising "the server will send
+> at 13:14" for hours — Android's only way to learn a session's fate was to try to create it
+> again, and a create is not a read. The server gained `POST /local-uploads/reconcile` — bounded,
+> device-scoped, identity never echoed, nothing per-item logged, zero mutation, zero dispatch,
+> zero Telegram, and deliberately answering under maintenance — and the phone gained
+> `ServerUploadSessionReconciler`, a single-flight read-only pass at process start after durable
+> recovery, on the foreground 0→1 edge, on entering the Queue, and on pull-to-refresh, mapped by
+> one exhaustive policy onto guarded UPDATE-only statements. **Attribution is the safety core**:
+> the row's own retained `dispatchAttemptId` may confirm, un-block or downgrade; a
+> media-at-destination match may only confirm, and only the newest row per media carries that
+> probe. `not_found` mutates nothing. Reconciliation is never a retry.
+>
+> **The retry identity finally names one attempt.** `create_session` returns the existing row for
+> an identity whatever its state — correct idempotency for an attempt, a permanent lockout for
+> the legacy media-scoped `u1-` key, which is why the D6A7f2b sentence "it will be uploaded again
+> to the current transport" was not executable. New single-upload sessions are keyed `u2-` + the
+> durable `dispatchAttemptId`; a pure disposition table first rejoins a live legacy session
+> (`open`/`staged` — staged bytes never abandoned), answers everything server-owned, delivered,
+> uncertain, refused **or unrecognised** from the session itself, and opens a new session only
+> after `failed_before_dispatch`/`cancelled`/`expired` or absence. Identity strings exist in one
+> transport-internal object and nowhere else; albums and repairs keep their identities.
+>
+> **History has no upload ceiling — as a concept, not a value.** The card requires its surface;
+> QUEUE passes the live row ceiling, HISTORY passes null; one invariant (whose truth table has a
+> single true cell) gates every current-tense statement, so a positive confirmation dominates
+> everywhere — the confirmed 59.5 MB video can never again read "blocked by a 50 MB limit". Due
+> times render only while still future against a bounded card tick; a busy refusal reads as the
+> previous attempt it was; the Queue says why rows remain.
+>
+> **HEADs.** Android code commit `19d63231c59e73fa7c80a6aecf662885176340e3`, HEAD
+> `c8b121731630f343828ebff16f98539bd26bac40`, **56 / `0.14.5-d6a7f2c`**, Room schema **17**, no
+> migration; APK 17,089,507 bytes,
+> `a5d056b79d04232d8752faebf224e76ebe4c4a00d48945f1a9a9fe9b5ab7eab7`, in Downloads, not
+> installed. Server code commit `3055e2afbe16a66075b77c2417b7cb98ca342f19`; `SERVER_HEAD` **and**
+> `DEPLOYED_HEAD` equal at `e9f2d1e818d5da9db43ed0f48fbdd2bc03e7141f` — the guard window (861+
+> minutes to Instagram's next check) allowed deploying docs too, and the local Bot API container
+> was never restarted. Gates: Android 3553/0/0/0, 228 suites, lint 0; server 1630 passed,
+> 4 skipped. Capability `local_uploads.reconcile.v1`.
+>
+> **Still open:** the physical run of build 56 — `docs/D6A7F2C_DEVICE_CHECKLIST.md`, backlog rows
+> 252–257: the three stale rows reconciling on Queue open with no Send tap, the confirmed item's
+> ceiling-free History card, and ONE safe explicit retry producing exactly one Telegram message
+> through a new `u2-` session.
+
+## 4a. Previous milestone
+
 **D6A7f2b** — the state nothing owned, and the four rows that closed a phone's upload path.
 
 > **The forensics came first and they changed the answer.** The user pressed Send on two videos above

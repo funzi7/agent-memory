@@ -11,6 +11,55 @@ hash — and nothing added to it ever may.
 
 ---
 
+## D6A7f2c — the read the phone never had
+
+**Server production change: yes, committed and deployed.**
+
+| Field | Value |
+| --- | --- |
+| Server code commit | `3055e2afbe16a66075b77c2417b7cb98ca342f19` |
+| Server HEAD | `e9f2d1e818d5da9db43ed0f48fbdd2bc03e7141f` |
+| `DEPLOYED_HEAD` | **equals HEAD exactly** — the code commit was deployed and verified first, then the documentation was deployed too, under a freshly re-read guard (Instagram **861.2** minutes out, TikTok 161.1, zero dispatching in both tables). Unlike D6A7f2 and D6A7f2b, the window allowed it. The local Bot API container was **not restarted** by any pass — it read `Up 27 hours` throughout |
+| Migration head | `0009_d6a7f1a_video_poster`, unchanged — none written, none needed |
+| Gate | **1630 passed, 4 skipped** (1606/4 before); ruff format/check, mypy 129 source files, release-preflight 61 modules, `git diff --check` — clean. No shell script changed |
+| Backend after deploy | `local`, verified, `max_upload_bytes` 2,097,152,000, maintenance clear |
+| `logOut` / live probes | **0.** No Telegram method by any agent; no platform contacted — the Instagram clock was read from the database only |
+
+### The one new surface
+
+`POST /api/v1/local-uploads/reconcile` — a bounded batch (≤50) of known client request
+identities, answered per item with `found` plus the full `LocalUploadSessionResponse`, keyed
+strictly by *(this device, `client_request_id`)*. A pure read: zero rows change (a test snapshots
+every column including `updated_at`), zero dispatcher work, zero Telegram calls, no bot
+verification, and the **maintenance gate is deliberately skipped** — a read must keep answering
+while dispatch is stopped. `POST` because the legacy identity embeds a media digest and
+destination material that must never sit in an access log; the response echoes only the caller's
+opaque `local_key`, never the identity; nothing per-item is logged (pinned by a `caplog` test).
+Capability `local_uploads.reconcile.v1`. No edge change: the route lives under the general
+`/api/v1/` location, ordinary 256 KiB ceiling. Verified live through the public edge:
+unauthenticated POST → **401** + `public-v1` marker + `no-store`.
+
+### The audit that changed no code
+
+`create_session` returns the existing row for *(device, `client_request_id`)* **whatever its
+state** — with `uq_local_upload_client_request` behind it. That is correct idempotency for an
+attempt-scoped identity and was a permanent lockout for the legacy media-scoped `u1-` one: the
+D6A7f2b queue sentence "it will be uploaded again to the current transport" was not executable.
+The fix is the **Android** half (u2- + durable dispatch-attempt id for new sends); server tests
+now pin rejoin-active-with-bytes-intact, distinct-identities-distinct-sessions for byte-identical
+media, and `local_upload_max_active_sessions == 4` — **the cap was not raised**.
+
+### Production, read-only, before anything was written
+
+60 sessions: **56 confirmed** — including exactly one part ever staged above 50 MiB,
+**62,389,767 bytes, session confirmed**: the physical >50 MB Local-mode send, closed — 3
+`failed_before_dispatch / transport_generation_changed` (attempt count 0, nothing started, no
+message ids; exactly as D6A7f2b settled them), 1 `expired / session_expired` — the stale open
+session, reclaimed at its 2026-08-09 06:25Z deadline as predicted. Zero active sessions; all
+identities `u1-`.
+
+---
+
 ## D6A7f2b — the state nothing owned, and the pass that did not exist
 
 **Server production change: yes, committed and deployed.**
@@ -249,6 +298,7 @@ reason to resend a message that arrived.
 | Field | Value |
 | --- | --- |
 | Repository | `https://github.com/funzi7/telegram-remote-sources` (private) |
+| **Head after D6A7f2c** | **`e9f2d1e818d5da9db43ed0f48fbdd2bc03e7141f`** — **deployed and verified**; `DEPLOYED_HEAD` equals it exactly (code commit `3055e2afbe16a66075b77c2417b7cb98ca342f19` deployed and verified first; the docs were then deployed too under a freshly re-read guard — Instagram 861.2 minutes out — unlike the two milestones before). Migration head **`0009_d6a7f1a_video_poster`**, unchanged. Backend **`local`**, verified, `max_upload_bytes` **2,097,152,000**, no `logOut`, Local Bot API healthy and **never restarted**. One new surface: `POST /local-uploads/reconcile`, a bounded device-scoped pure read (no echo, no per-item log, maintenance-gate-free), capability `local_uploads.reconcile.v1`. `create_session` audited and deliberately unchanged; the cap stays **4** and a test pins it. Production read-only: 60 sessions — 56 confirmed (one part ever >50 MiB, 62,389,767 bytes, **confirmed**: the physical >50 MB send closed), 3 `transport_generation_changed`, 1 `expired` (the stale open session, reclaimed on schedule), 0 active. Gate 1630/4. **`LIVE_PROBES_USED=0`** |
 | **Head after D6A7f2b** | **`d5cd04c1d5d827f8b129b1af8f427d56518a0b06`** — **deployed and verified**; `DEPLOYED_HEAD` equals it exactly. Migration head **`0009_d6a7f1a_video_poster`**, unchanged — none was written and none was needed. Backend **`local`**, verified, `max_upload_bytes` **2,097,152,000**, **no `logOut`**, Local Bot API healthy. **First attempt, no rollback.** It gave `RETRY_WAIT` an owner: the scheduler now drives due phone uploads, retention reclaims every unfinished state, and the transport generation is compared at dispatch. **The active-session cap was not raised.** Within a minute the three permanently parked sessions settled `failed_before_dispatch` / `transport_generation_changed` with `attempt_count = 0` and no request ever started — **nothing was sent** — and the device's active sessions went from 4 to 1. Total sessions **44**, unchanged: no row created, none deleted. The Instagram clock was re-read read-only immediately beforehand and the enabled source's next check was **99.4 minutes** out, outside the 90-minute margin. **`LIVE_PROBES_USED=0`** |
 | Local path | `/root/work/telegram-remote-sources` |
 | Branch | `main`, tracking `origin/main` |
