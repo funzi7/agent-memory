@@ -1,232 +1,293 @@
-# Private Media TV — F2A Handoff
+# Private Media TV — F2B Handoff
 
 ## Identity and release state
 
 | Field | Value |
 | --- | --- |
 | Application repository | `funzi7/private-media-tv` |
-| Milestone | F2A — persistent account-scoped local Telegram catalog and source-variant identity |
+| Milestone | F2B — TMDB-first catalog and bounded on-demand Telegram source discovery |
 | Branch / tracking branch | `main` / `origin/main` |
-| Starting application HEAD | `cd0865762d3db304d265a0972a4c40731e9e4d56` |
-| Final application HEAD | `605c053390bf7252eebfc90af5bf72cc47e4bb39` |
-| Agent-memory base before this handoff | `b869c405a259f593db8d14c67534d8981ff80544` |
-| Mobile identity | `com.funzi7.privatemediatv.mobile`, `0.2.0-phone-test`, `versionCode` 7 |
-| TV identity | `com.funzi7.privatemediatv`, `0.4.0-f2a`, `versionCode` 12 |
+| Starting application HEAD | `605c053390bf7252eebfc90af5bf72cc47e4bb39` |
+| Final application HEAD | `e0b6557f128cb4a33e218edadae7f930c3eadbe5` |
+| Agent-memory base before this handoff | `988ce1fce614ee50abdc9f231c077d38c1ff10ee` |
+| Mobile identity | `com.funzi7.privatemediatv.mobile`, `0.3.0-phone-test`, `versionCode` 8 |
+| TV identity | `com.funzi7.privatemediatv`, `0.5.0-f2b`, `versionCode` 13 |
 | Development signer SHA-256 | `2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0` |
 
-The application milestone commit was pushed without rewriting history. Application `HEAD` and
-`origin/main` both resolve to the final application SHA above. The exact-final-HEAD Android CI run
-succeeded, and its mobile artifact was downloaded, independently reverified, and published only to
-the package-specific Mobile directory. The TV APK was built and inspected locally and in CI but was
-not exported, downloaded to shared storage, installed, or deployed.
+The application milestone was committed once as
+`e0b6557f128cb4a33e218edadae7f930c3eadbe5` and pushed without rewriting
+history. A subsequent fetch verified that application `HEAD` and `origin/main`
+both resolve to that exact commit. Exact-final-HEAD Android CI passed, and only
+its mobile artifact was downloaded and published to the package-specific Mobile
+directory. No TV APK was exported, downloaded to shared storage, installed, or
+deployed.
 
-The agent-memory worktree initially opened clean at
-`a6492d54c337b3f6ccbc29edb73f7bad7bc429f8`. A fresh pre-handoff fetch found one newer unrelated
-remote commit, so it was preserved with `git pull --ff-only`; this handoff is based on the actual
-current parent recorded above.
+The agent-memory repository opened clean, was fetched before this edit, and its
+actual `HEAD` and `origin/main` both resolved to the base recorded above. Newer
+unrelated agent-memory work was preserved.
 
-## Authoritative physical code-6 baseline
+## Authoritative architecture reversal
 
-The owner physically installed and tested mobile code 6. Credentials and the authenticated
-Telegram session survived the update, real Telegram playback remained functional, TDLib-owned byte
-cache was reused, leaving playback and reopening the same media returned to the saved position, and
-immediate re-entry reused the warm session and resumed without buffering.
+The owner physically installed mobile code 7 and exercised a Telegram-channel
+scan. The scan operated, but physical use established that full-history scanning
+is the wrong primary product architecture. No additional private or physical
+result is inferred from that observation.
 
-Those observations close only the physical warm-session and immediate-resume baseline. Full
-track/control/cache-management acceptance was not explicitly reported and is not claimed. Physical
-mobile code-7 catalog acceptance remains pending. No Shield result is claimed.
+F2B makes TMDB the authoritative browsing, search, movie, series, season, and
+episode identity. Telegram is now an on-demand playback-source provider:
 
-## Outcome
+```text
+TMDB Home/Search
+→ movie, series, season, or exact episode
+→ explicit Sources or Play action
+→ bounded Telegram source discovery
+→ validated source variants
+→ current-message re-resolution
+→ existing TDLib/Media3 cache, resume, and player pipeline
+```
 
-F2A adds the first permanent app-private catalog for media discovered in explicitly selected
-Telegram broadcast channels. It provides account isolation, a default-empty channel allowlist,
-resumable bounded history scanning, persistent checkpoints, bounded reconnect catch-up, live
-new/edit/delete ingestion, deterministic provisional classification and grouping, source variants,
-local search/filtering, reversible manual correction, cache/availability projection, and playback
-through the existing production Telegram/Media3 pipeline.
+Home, TMDB search, movie details, series details, season details, and episode
+metadata do not start Telegram discovery. Initial whole-history scanning,
+checkpoints, pause/resume scan UI, aggregate scan progress, scan-derived catalog
+lists, and perpetual channel mirroring are disconnected from normal application
+startup and runtime. There is no fallback that scans an entire channel history.
 
-One coherent module, `core-catalog`, was added. It owns provider-neutral catalog contracts, parser
-and grouping rules, scan orchestration, Room persistence, migrations, and catalog-domain tests. It
-does not depend on raw TDLib classes. `core-telegram` owns the Telegram adapter, discovery, history,
-live-update mapping, durable locator handling, current-message playback resolution, and exact TDLib
-cache control. `app-mobile` owns the touch diagnostic UI. `app-tv` compiles the shared production
-catalog boundary only; the final F2C TV catalog design was not implemented.
+## Implemented modules and boundaries
 
-## Catalog persistence and account scope
+One coherent module, `core-metadata`, was added. It owns provider-neutral media
+identities, metadata and catalog-row models, provider/cache contracts, the
+internal TMDB HTTPS implementation, serialization tests, Room metadata caching,
+stale-while-revalidate behavior, official image configuration, and bounded image
+loading. Stable identity is:
 
-The app-private Room database is schema version 2 and uses WAL, foreign keys, deterministic schema,
-explicit indexes, bounded transactions, and no destructive migration fallback. Its persisted
-domains are:
+- `Movie(tmdbId)`;
+- `TvSeries(tmdbId)`; and
+- `TvEpisode(seriesTmdbId, seasonNumber, episodeNumber)`.
 
-- opaque account scope;
-- discovered channel settings and enabled state;
-- per-channel scan mode, state, counters, cursor, newest-known cursor, and reconcile generation;
-- provisional catalog items;
-- exact source variants; and
-- versioned reversible source-scoped manual overrides.
+Title text is never the primary identity, and no TMDB ID is invented.
 
-Composite account/key relationships enforce account scope at relational boundaries. The migration
-from schema 1 to 2 preserves valid rows and drops only malformed cross-account links from a
-foreign-key-disabled legacy fixture. Account-scoped query tests, foreign-key tests, migration row
-preservation, WAL behavior, and malformed-record isolation passed. The database is process-owned
-and remains independent of TDLib media-byte eviction. No database or catalog content is packaged in
-either APK.
+`core-catalog` now owns provider-neutral source discovery, conservative parsing
+and TMDB-aware matching, deterministic query planning, source-scope state, Room
+schema/migration, on-demand result caching, durable source identity, freshness,
+availability, playback commit coordination, and explicit legacy F2A cleanup.
+It contains no raw TDLib objects.
 
-After authorization reaches Ready, `core-telegram` obtains the active account through the pinned
-official API and derives an install-private opaque scope using a non-exportable Android Keystore
-HMAC identity. Raw account identity remains inside package-private implementation. If the active
-scope differs from the catalog scope, the app fails closed with a safe conflict: it neither merges
-nor automatically deletes either catalog. Explicit activation or confirmed old-catalog clearing is
-required.
+`core-telegram` remains the only module with raw TDLib types. It implements the
+exact pinned global and per-channel search APIs, channel filtering, pagination,
+candidate projection, and current-message source re-resolution. `core-security`
+owns the separate runtime TMDB credential vault and remains independent of
+TDLib.
 
-## Channel allowlist and removal
+`app-mobile` provides the F2B diagnostic catalog, metadata settings, source
+scope, source selection, refresh, extended search, and playback bridge.
+`app-tv` compiles the shared metadata/discovery/playback boundary and advances
+its update identity, but does not implement or deliver the final F2C TV design.
 
-Channel discovery persists supported, protected, and inaccessible projections without enabling any
-channel automatically. Users may enable or disable individual supported channels, select all, or
-deselect all. Only enabled supported channels are eligible for scan and live ingestion. Enabled
-state survives restart and APK update.
+The principal changed areas are:
 
-Disabling a channel stops ingestion immediately and safely pauses any in-flight checkpoint without
-deleting existing variants. Confirmed indexed-channel removal first disables ingestion, removes
-only that channel's variants transactionally, cleans empty items without affecting other variants
-or surviving manual state, and never deletes Telegram messages.
+- `core-metadata/`;
+- `core-catalog/` Room v3 and source-discovery contracts/repository/service;
+- `core-telegram/` bounded search and playback-resolution adapters;
+- `core-security/` TMDB credential-vault identity and Android implementation;
+- `app-mobile/` F2B state, data source, ViewModel, screens, runtime bridge, and
+  acceptance tests;
+- `app-tv/` shared-boundary wiring and version regression;
+- `scripts/` and `.github/workflows/android-ci.yml` artifact, upgrade,
+  credential, native-layout, and mobile-only delivery verification; and
+- the active project, security, Telegram, test, release, acceptance, UX,
+  distribution, and ADR documentation.
 
-F2A has no safe provider-owned channel-batch cache-clear operation. If cache cleanup is requested
-during channel removal, catalog metadata removal still commits, TDLib bytes are retained, and the
-UI reports the limitation safely. Existing exact-variant pin/unpin/clear remains available only
-through the resolved production cache manager; raw filesystem deletion is never used.
+## TMDB metadata behavior
 
-## Source and provisional-item identity
+The implementation was based on the current official TMDB developer reference,
+not memory. It covers application authentication, trending, popular, top-rated,
+recent/discover and genre-backed rows, movie and TV search, movie/series/season/
+episode details, credits, external IDs, alternative titles, image configuration,
+pagination, and safe HTTP/rate-limit classification.
 
-Durable source identity is the opaque combination of account scope, channel, message, and
-attachment slot/type. A current TDLib file operation identity is refreshable operational state and
-is never the permanent catalog key. Private remote unique-file evidence can detect duplicate
-physical media, but it never replaces message-source identity or leaks through presentation.
+Metadata supports Hebrew and English with deterministic requested-language,
+English, then original-field fallback. Original title/name remains separate.
+Images use the official secure configuration/path model with requested-language,
+English, and language-neutral selection. Image bytes use bounded app-private
+memory/disk caching and are never stored in Room or bundled as remote artwork.
 
-Message edits update the exact source row. Attachment replacement updates its generation and
-classification without aliasing old warm/resume state. Provider revision and observation priority
-prevent stale history, live, and playback-resolution races from overwriting newer content.
-Duplicate updates are idempotent, while duplicate or forwarded physical media remains represented
-by distinct source variants.
+TMDB vote score/count is always labelled as TMDB data. No IMDb score is derived
+or fabricated from TMDB votes. The approved official TMDB mark and required
+attribution notice appear together in the mobile About/Credits surface.
 
-Provisional item identity is explicitly identity-versioned and deterministic; parser version is
-stored separately so future reclassification is intentional:
+Metadata freshness is centralized and tested:
 
-- `MOVIE_CANDIDATE`: normalized title and optional explicit year;
-- `SERIES_EPISODE_CANDIDATE`: normalized series title, explicit season, explicit episode, and
-  optional year; or
-- `UNCLASSIFIED` for ambiguous, conflicting, or low-confidence metadata.
+| Metadata class | Freshness |
+| --- | ---: |
+| Catalog rows | 6 hours |
+| Search results | 1 hour |
+| Movie/series details | 3 days |
+| Season/episode details | 5 days |
+| Genres/image configuration | 14 days |
 
-Only exact high-confidence identity fields group variants across channels. Fuzzy title similarity
-is never used, and missing season or episode numbers are never invented. Empty provisional items
-are cleaned only after their last source disappears and no surviving manual state requires them.
+Cached data is bounded and coordinate-validated before use. A network or
+background-refresh failure does not erase a previously valid payload. Search and
+row pagination remain bounded and retain already loaded pages across background
+refresh.
 
-## Parser, search, and manual correction
+## Runtime TMDB credential protection
 
-Parser version 1 consumes only app-private Telegram filename/caption metadata. It applies Unicode
-normalization and locale-independent casing, handles common movie/year and explicit episode
-patterns, common separators, repeated release tokens, and mixed Hebrew/English text, and leaves
-ambiguous input unclassified.
+Mobile `הגדרת TMDB` supports secure local input, validate, save, confirmed
+replace, confirmed clear, and configured/not-configured status. The credential
+is stored in a distinct Android-Keystore-protected alias and envelope beneath
+package-owned app-private storage. It does not reuse a Telegram alias or
+envelope.
 
-Identity-bearing title/year/season/episode is separate from claimed release tags. Claimed
-resolution, container, source type, HDR/DV, codec, and language remain explicitly unverified.
-Actual size, duration, width, height, MIME/container when known, and cache state come from
-Telegram/Media3 facts and are never inferred from a filename or file size.
+TMDB requests use HTTPS application Bearer authentication. The credential is
+absent from source, BuildConfig, CI, plaintext preferences, URLs, logs,
+screenshots, state, `toString()`, APK payloads, and this public handoff. Candidate
+buffers are normalized and zeroed after use. HTTP errors are reduced to stable,
+safe categories without raw bodies or authorization headers.
 
-Account-scoped local search covers normalized provisional title, normalized on-device display
-title, optional year, and episode context. It is bounded, deterministic, debounced at 300 ms, and
-does not query Telegram or the internet per keystroke. Browse screens also support type/channel
-filters, newest-first ordering, and title ordering, including visible-title ordering for
-unclassified items.
+Credential lifecycle tests cover not configured, normalized input, validate,
+save, protected read-back, unconfirmed and confirmed replacement, confirmed
+clear, failure paths, zeroization, and presentation/string redaction. The APK
+scanner rejects common Telegram/TMDB credential aliases, JWT-shaped tokens,
+private-key markers and containers, databases, sessions, and private media.
 
-Manual correction can mark an exact source unclassified, edit title/year, set a movie candidate,
-set an explicit series/season/episode candidate, and remove the override to return to automatic
-classification. The versioned override survives rescans and message edits until reversed or until
-its exact source disappears. It does not create a TMDB identity and is never silently overwritten
-by the automatic parser.
+## Telegram source scope and bounded discovery
 
-## Scanning, checkpoints, and live updates
+The default source scope is `ALL_BROADCAST_CHANNELS`, with per-channel
+exclusions. `SELECTED_CHANNELS_ONLY` is also supported. Existing F2A selected-
+channel state is retained only as a legacy preference and cannot silently narrow
+the new default. Loading the joined broadcast-channel list is allowed; loading
+every historical message is not.
 
-Initial scanning is explicitly user-started, newest-to-oldest, and bounded to 40 messages per page.
-Each page, source upsert batch, grouping update, counters, and next checkpoint commits atomically.
-Progress includes enabled not-yet-started channels as well as running, paused, cancelled,
-retryable, fatal, and completed channels.
+The exact pinned TDLib API is used as follows:
 
-Pause, resume, cancel, retry, and reconcile are exact, account-scoped operations. Initial resume
-continues paused/cancelled work and remaining not-yet-started sibling channels. Cancellation joins
-the exact scan before persisting terminal state, avoiding cancel/resume races. Process death changes
-stale running checkpoints to paused on next open; committed data and cursor remain resumable. The
-scan does not continue invisibly after process death and no perpetual background service was added.
+- fast all-broadcast search with no exclusions uses channel-filtered global
+  `SearchMessages`;
+- selected-only scope, any exclusion, and every explicit extended search use
+  bounded per-channel `SearchChatMessages`;
+- only video and document media filters are searched;
+- a plan contains at most four unique deterministic semantic queries;
+- fast search uses at most two pages per query/filter;
+- extended search uses at most four pages per query/filter;
+- each request is capped at 100 results;
+- per-channel fan-out is capped at 200 eligible channels and fails closed if the
+  scope is larger;
+- identical normalized requests are not repeated;
+- selection changes cancel lifecycle-owned discovery; and
+- private chats, groups, unbounded pagination, and full-history fallback are
+  excluded.
 
-Each channel isolates adapter, begin, page-load, commit, and fatal/retryable failure. One failed
-channel does not abort later channels. Reconcile uses a generation so retry/restart remains
-idempotent and stale variants are pruned only after a completed pass. Successful discovery marks
-channels absent from the full bounded result inaccessible and disables them without deleting their
-catalog variants.
+Movie plans use localized, original, and validated alternative titles plus the
+intended year, then a bounded title-only fallback where safe. Numeric titles are
+handled without confusing title tokens with release-year evidence. Episode
+plans use exact series identity, season, and episode with deterministic
+`SxxExx`, `SxEx`, and `NxNN` forms. No season or episode number is invented.
 
-Live subscription starts before bounded catch-up so there is no reconnect gap. New messages,
-edits, attachment replacement, permanent deletion, and file/cache-state changes are applied
-idempotently only for currently enabled channels. A single persistence failure does not terminate
-later live ingestion. Three bounded recent catch-up pages update the newest-known cursor without
-mutating a completed initial-history checkpoint on failure. Deep missed historical edits require
-explicit reconcile.
+Every candidate passes conservative parsing and TMDB-aware matching. Conflicting
+explicit years, unrelated titles, and season/episode conflicts are rejected.
+Known localized and original aliases may independently corroborate the same
+identity, while generic caption text is not treated as identity evidence.
 
-## Playback and cache independence
+Results are deduplicated by durable message/attachment identity. Distinct
+messages or channels remain distinct variants even when reliable remote evidence
+marks the underlying bytes as exact duplicates. The public/UI projection never
+contains raw Telegram identifiers.
 
-Selecting a catalog variant never trusts a stale TDLib file identity. Playback uses the durable
-message source to fetch the current message, confirms that the exact attachment remains playable,
-refreshes operational metadata, and passes a provider-neutral range source through the existing
-warm/cache/resume/player route. Account scope is rechecked before playback. If the source is absent
-or replaced incompatibly, only that variant becomes unavailable and the details screen remains
-open for another variant.
+## Source cache and freshness
 
-Warm/resume identity combines the durable source with attachment-generation evidence, while the
-cache controller remains tied to the exact current TDLib file operation. A file-ID refresh for the
-same attachment preserves warm/resume identity; an attachment replacement invalidates it when
-generation evidence changes. Existing persistent TDLib bytes, adaptive range streaming, resume
-positions, controls, LTR timeline, track preferences, and Media3 behavior are reused unchanged.
+On-demand results are keyed by opaque account scope, TMDB media identity,
+source-scope revision, and discovery-plan version. Freshness is centralized and
+tested:
 
-Catalog metadata and source membership survive transitions among `REMOTE`, `PARTIAL`, `COMPLETE`,
-and `UNAVAILABLE` and survive TDLib byte eviction. Catalog identity is not itself a cache pin. No
-TDLib file is moved or renamed, and no second media-byte cache was introduced.
+- positive results: 12 hours;
+- negative/no-source results: 30 minutes.
 
-## Mobile diagnostic UI and TV boundary
+Fresh positive and negative cache reads return without a Telegram request.
+Stale positive results display immediately while refreshing; stale negatives
+retry discovery. Manual refresh bypasses freshness while keeping old valid
+variants visible until a replacement commits. A failed refresh retains the last
+valid variants, timestamp, freshness, and safe statistics.
 
-Mobile adds the touch-first **קטלוג מקומי** action and diagnostic routes for overview, sources,
-scan progress, movies, series, unclassified items, search, item details, source variants, playback,
-and manual correction. Overview and progress expose only safe counts and status. UI capabilities
-use process-local opaque tokens; public state, errors, logs, tests, and accessibility semantics do
-not expose provider identifiers.
+Account state is opaque and fail-closed. Fresh offline cache can be used only
+for a single established account scope. A ready live account is checked against
+that scope before cached results cross an account boundary or a refresh/playback
+operation proceeds. Scope revisions invalidate discovery results without
+deleting Telegram messages or TDLib byte-cache files.
 
-TV advances only because the catalog model and Telegram adapter are shared production code. The TV
-package, shared database/query compilation, and existing player route were regression-built and
-tested. No final TV Home, artwork, horizontal catalog rows, details design, TMDB data, TV export,
-installation, or delivery was added.
+## Room migration and F2A legacy handling
 
-## Security and upgrade preservation
+The catalog database advances non-destructively from schema v2 to v3. Existing
+scan-produced records remain present as legacy data but are not used to build the
+TMDB Home, search, Movies, Series, or Unclassified catalog. `CatalogSyncEngine`
+and full-history entry points are not composed or started by the normal runtime.
 
-- TDLib Java/JNI types remain confined to `core-telegram`; `core-catalog`, UI, `core-model`,
-  `core-provider`, and `core-playback` remain provider-neutral. `core-security` remains independent
-  of TDLib.
-- Entity and public-model `toString()` output is redacted. Logs, exceptions, UI state, tests, CI,
-  artifacts, and this public handoff contain no private or real account/channel/message/file
-  identity, media title, filename, provider path, database row, private screenshot, credential,
-  key, QR, or session data. Test-only locators and metadata are synthetic.
-- Mobile code 7 preserves the package and signer used by code 6, credential vault, database-key
-  material, authenticated TDLib database/session, complete and partial byte cache, cache ledger,
-  playback resume records, warm/player preferences where process state permits, and unrelated
-  settings. No version-triggered deletion was added.
-- TV code 12 preserves code-11 package/signing/update identity. It was validation-only and was not
-  delivered.
-- Backup remains disabled. The new catalog starts empty and adopts metadata only through explicit
-  source selection and scanning.
-- Neither APK contains credentials, keys, `.pmtprov`, Telegram session/database material, catalog
-  database/content, private media, private captures, or signing secrets.
+The confirmed action `מחק נתוני סריקה ישנים` removes only obsolete F2A scan-
+derived catalog metadata. Tests prove that it retains Telegram credentials,
+session/database state, TDLib media bytes, playback resume, cache ledger, player
+preferences, source-scope preferences, TMDB metadata, and the new on-demand
+source cache.
 
-## Native artifact evidence
+Process-owned catalog and metadata databases now close safely and reopen after a
+full application reset. Surviving F2B UI state and lifecycle jobs are cancelled
+and cleared before vault/database deletion, preventing stale account/catalog
+presentation or post-reset writes.
 
-No TDLib native build occurred. Both mandatory verification-only commands passed locally, and the
-exact-HEAD CI run restored and verified its pre-existing official cache without rebuilding.
+## Source presentation and playback
+
+The mobile source list exposes safe on-device channel/source labels and available
+resolution, claimed/verified HDR/DV state, codec/container, size, language hints,
+local/partial/remote/unavailable state, cache state, and cached-result age. It is
+sorted complete/local, partial/local, remote available, then unavailable, with
+reliable quality and stable ordering. Quality is never inferred from file size.
+
+Selecting a cached variant never trusts a stale TDLib file ID. Playback:
+
+1. resolves the durable message locator;
+2. fetches the current message;
+3. verifies that the intended attachment still exists and is available;
+4. reconstructs the current playable handle;
+5. safely commits refreshed operational metadata and provider revision; and
+6. enters the existing player pipeline.
+
+Deleted, replaced, stale-revision, or unavailable sources do not enter the
+player. Only that variant is marked unavailable, the source list remains open,
+and alternatives remain usable. Playback and discovery jobs are generation-
+guarded so superseded same-media and cross-media results cannot update or launch
+the wrong selection.
+
+The proven TDLib byte cache, warm session, resume, adaptive 16→32→64 MiB range
+streaming, Media3 device profiles, LTR timeline, track controls, and cache
+controls remain independent and are reused unchanged.
+
+## Mobile UI and TV boundary
+
+Mobile now provides:
+
+- TMDB-backed Home rows and cards;
+- debounced, cancellable, pageable movie/TV search;
+- movie details;
+- series details and season/episode selection;
+- exact episode details;
+- explicit `מקורות` entry;
+- cached/loading/refreshing/success/empty/error source states;
+- `רענון מקורות` and explicit `חיפוש מורחב`;
+- source-scope mode, selection, and exclusions;
+- confirmed F2A legacy cleanup; and
+- TMDB credential status/settings plus About/Credits attribution.
+
+Tests prove that Home, search, movie details, series details, season details, and
+episode metadata do not start Telegram discovery. Only explicit Sources, Play
+when source selection is needed, or refresh starts discovery.
+
+TV compiles the shared F2B code and advances from code 12 to 13, but the final
+horizontal Home/details/series design and Continue Watching integration remain
+F2C. The TV APK was built and inspected only. It was not exported, downloaded,
+installed, or deployed.
+
+## Native and update preservation
+
+No TDLib native build occurred. Both mandatory verification-only commands passed
+locally, and exact-final-HEAD CI restored and verified the existing official
+artifact without rebuilding it.
 
 | Native property | Observed value |
 | --- | --- |
@@ -238,79 +299,73 @@ exact-HEAD CI run restored and verified its pre-existing official cache without 
 | Local Java JAR SHA-256 | `e39bb497b7eea1f33d7d3b5816591b7656259df29e0231c10287e514e3951a04` |
 | Local packaged JNI SHA-256 | `21d59ebfeba4edc62ea74cefaa79b08650e796530f3d5e57804105cc44cb65dc` |
 | CI packaged JNI SHA-256 | `790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f` |
-| Layout | ARM64 DYN, NDK r28c, every `LOAD` alignment at least `0x4000`, stored and 16,384-byte APK aligned, expected system dependencies only |
+| Layout | ARM64 DYN, 16-KiB compatible, stored and 16,384-byte APK aligned, expected system dependencies only |
 
-The local and CI JNI hashes are the two pre-existing, separately verified cache lineages for the
-same pinned official source/build identity. F2A changed neither lineage, source pin, native input,
-ABI, NDK, AAR/JAR identity, nor packaging policy.
+The local and CI JNI hashes are the existing separately verified native
+lineages for the same pinned official source/build identity. F2B changed no
+native source, input, ABI, NDK, AAR/JAR lineage, signer, or cache identity.
+
+Real retained APK pairs passed mobile code 7→8 and TV code 12→13 package,
+signer, and update-compatibility verification. Mobile code 8 preserves the
+mobile application ID, Development signer, app-private storage identities,
+Keystore aliases, and TDLib paths. Mobile-only publication left all parent TV
+files byte-for-byte and metadata unchanged.
 
 ## Local validation
 
-Both TDLib verification-only commands, Gradle 9.5/JDK 21 discovery, every focused module task,
-aggregate tests, aggregate lint, and both signed debug assemblies passed. Generated JUnit XML
-records 617 tests with zero failures, errors, or skips:
+Gradle 9.5.0/JDK 21 project discovery, aggregate tests, focused module tests,
+aggregate lint, and both signed debug assemblies passed. Generated JUnit XML
+recorded 756 tests with zero failures, errors, or skips:
 
 | Module | Tests |
 | --- | ---: |
-| `app-mobile` | 71 |
+| `app-mobile` | 128 |
 | `app-tv` | 74 |
-| `core-catalog` | 71 |
+| `core-catalog` | 102 |
+| `core-metadata` | 37 |
 | `core-model` | 15 |
 | `core-playback` | 78 |
 | `core-provider` | 27 |
 | `core-provisioning` | 48 |
-| `core-security` | 96 |
-| `core-telegram` | 137 |
-| **Total** | **617** |
+| `core-security` | 98 |
+| `core-telegram` | 149 |
+| **Total** | **756** |
 
-All 513 tests present at the start remain within the 617-test result. New behavior coverage includes
-account reopen/conflict/isolation/clear, channel selection/default-empty/disabled updates/removal,
-schema/migration/WAL/foreign keys/corrupt-link isolation, source idempotency/revision/edit/
-replacement/deletion/duplicate evidence, conservative parser fixtures, scan batching/checkpoint/
-pause/resume/cancel/restart/retry/end/failure/reconcile races, live/catch-up isolation, exact
-grouping and no fuzzy merge, manual correction/reversal, local search/sorting, playback
-re-resolution/stale file identity/unavailable alternate, cache-state independence, redaction, and
-mobile/TV upgrade compatibility.
+The retained executable checks also passed:
 
-Additional executable validation passed:
-
-- browser WebCrypto, production-Kotlin interoperability, provisioning HTML, self-test, and negative
-  checks;
+- browser WebCrypto, production-Kotlin interoperability, provisioning HTML,
+  self-test, and negative checks;
 - provisioning inspector: 4 cases;
 - APK upgrade harness: 13 cases;
 - TV publication harness: 9 cases;
-- mobile publication harness: 10 cases;
+- mobile publication harness: 11 cases;
 - TV exact-HEAD downloader rejection harness: 8 cases;
 - mobile downloader harness: 20 rejection cases and 1 success case;
-- deterministic native-layout, APK identity, signer, JNI, and prohibited-content verification;
-- shell syntax checks;
-- real retained mobile code 6→7 update verification; and
-- real retained TV code 11→12 update verification.
-
-The TV code-11 input was artifact `8907120083` from successful starting-HEAD Android CI run
-`30945616102`, with APK SHA-256
-`c0579ae0385c7b2fe69b70ea1fd54194990f9d2ba3c2343ffd2877a10cec18d1`. This is real update-pair
-evidence, not exact-final-HEAD CI evidence.
+- credential/APK scanner harness: 41 cases;
+- deterministic native-layout, identity, signer, JNI, packaging, and prohibited-
+  content inspection; and
+- shell syntax checks.
 
 The final locally assembled artifacts were:
 
 | Candidate | Size | SHA-256 | Modification time |
 | --- | ---: | --- | --- |
-| Mobile code 7 | 57,086,527 bytes | `b4c3cbf13ee97b1566c6e0ae329f88e0a7818064f5a53cdd94933f03b584b410` | `2026-08-09 06:08:32.166529396 +0000` |
-| TV code 12 | 57,996,245 bytes | `80dd36cf8e36dcb966d5a55242422fe0220ae2a25e6b2f92ccf001bf5a31543f` | `2026-08-09 06:08:32.094529396 +0000` |
+| Mobile code 8 | 58,063,300 bytes | `5a3b9ce0302876d4132e5588e1c05b37e230c9c684dec8f7795fc7138cc98658` | `2026-08-09 16:29:35.605185006 +0000` |
+| TV code 13 | 58,281,939 bytes | `3f2737930ee274598037b638db248113b430fee4603541676ec0b1d8ec0f487f` | `2026-08-09 16:29:33.229185007 +0000` |
 
-Both passed package/version/code, Development signer, ARM64-only, local JNI, 16 KiB native layout,
-and forbidden-content inspection. The TV exporter, TV CI downloader, installer, and Shield deployer
-were not run.
+Both passed package/version/code, Development signer, ARM64-only, TDLib JNI,
+NDK r28c/16-KiB native layout, and credential/private-content inspection. The TV
+exporter, TV CI downloader, installer, and Shield deployer were not run.
 
-`adb devices -l` listed no attached device. Therefore no code-7 installation, launch, catalog
-behavior, update preservation, Telegram action, or Shield result is inferred from local or CI
-validation.
+`adb devices -l` listed no attached device. Therefore no code-8 installation,
+launch, update, credential provisioning, metadata request, Telegram discovery,
+source playback, cache/resume preservation, cleanup action, or Shield behavior is
+claimed from local or CI validation.
 
 ### Commands actually run
 
-The observed command set included all mandatory application and agent-memory preflights and these
-milestone checks:
+The observed command set included all mandatory application and agent-memory
+preflights and these milestone checks:
 
 ```bash
 ./scripts/bootstrap-tdlib-android.sh --verify-only
@@ -323,6 +378,7 @@ milestone checks:
 ./gradlew :app-tv:assembleDebug
 ./gradlew :app-mobile:testDebugUnitTest
 ./gradlew :app-tv:testDebugUnitTest
+./gradlew :core-metadata:testDebugUnitTest
 ./gradlew :core-catalog:testDebugUnitTest
 ./gradlew :core-model:test
 ./gradlew :core-provider:test
@@ -339,98 +395,118 @@ node tools/verify-pmtprov-interop.mjs self-test
 ./scripts/test-mobile-apk-phone-delivery.sh
 ./scripts/test-download-latest-ci-apk-rejections.sh
 ./scripts/test-download-latest-ci-mobile-apk-rejections.sh
+./scripts/test-apk-credential-scan.sh
 bash -n scripts/*.sh
 bash -n scripts/lib/*.sh
 ./scripts/export-latest-mobile-apk-to-phone.sh
 ./scripts/download-latest-ci-mobile-apk-to-phone.sh
+./scripts/verify-mobile-apk.sh --apk /storage/emulated/0/Download/PrivateMediaTV/Mobile/private-media-tv-mobile-latest.apk
 adb devices -l
 git diff --check
 ```
 
+Two initial independent-verifier invocations were command-usage errors, not APK
+failures: one omitted required `--apk`, and one supplied the APK digest to the
+option whose value is the expected signer fingerprint. The corrected invocation
+shown above passed with the configured Development signer.
+
 ## Local mobile-only delivery
 
-Before the application push, the local mobile exporter published the verified local code-7 APK to
-the Mobile directory at 57,086,527 bytes, SHA-256
-`b4c3cbf13ee97b1566c6e0ae329f88e0a7818064f5a53cdd94933f03b584b410`, modification
-`2026-08-09 06:11:56.482529318 +0000`. The verified code-6 APK remained the distinct `previous`.
+Before the application push, the local mobile exporter copied the verified local
+code-8 APK to:
 
-Parent TV `latest`, `previous`, and the provisioning tool retained their exact hashes, sizes,
-timestamps, and inodes. No TV exporter or deployment ran. Shared-storage file delivery is not
-installation, launch, update, or physical acceptance evidence.
+`/storage/emulated/0/Download/PrivateMediaTV/Mobile/private-media-tv-mobile-latest.apk`
+
+It was 58,063,300 bytes with SHA-256
+`5a3b9ce0302876d4132e5588e1c05b37e230c9c684dec8f7795fc7138cc98658`
+and modification time `2026-08-09 16:35:18.477184875 +0000`. This was file
+delivery only, not installation or physical acceptance.
+
+Parent TV `latest`, `previous`, and the provisioning tool retained their exact
+pre-publication hashes, sizes, timestamps, and inodes. No TV exporter or
+deployment ran.
 
 ## Exact-final-HEAD Android CI
 
 | Field | Value |
 | --- | --- |
-| Run | `31298739489` |
-| URL | `https://github.com/funzi7/private-media-tv/actions/runs/31298739489` |
-| Event / branch | `push` / `main` |
-| Commit | `605c053390bf7252eebfc90af5bf72cc47e4bb39` |
+| Run | `31324478391` |
+| URL | `https://github.com/funzi7/private-media-tv/actions/runs/31324478391` |
+| Event / branch / commit | `push` / `main` / `e0b6557f128cb4a33e218edadae7f930c3eadbe5` |
+| Run time | `2026-08-09T16:42:22Z` through `2026-08-09T16:53:28Z` |
 | Conclusion | success |
-| Wrapper job | `93207982963` — success |
-| Android build job | `93207997312` — success in 12 minutes 2 seconds |
-| Mobile artifact | `private-media-tv-mobile-apk-605c053390bf7252eebfc90af5bf72cc47e4bb39` (artifact `9033949499`, 56,896,055-byte archive, unexpired) |
-| TV artifact | `private-media-tv-apk-605c053390bf7252eebfc90af5bf72cc47e4bb39` (artifact `9033949267`, 57,805,639-byte archive, unexpired) |
+| Wrapper job | `93272541946` — success, `16:42:31Z` through `16:42:40Z` |
+| Android build job | `93272567405` — success, `16:42:44Z` through `16:53:27Z` |
+| Mobile artifact | `private-media-tv-mobile-apk-e0b6557f128cb4a33e218edadae7f930c3eadbe5`, artifact `9041248660`, 57,340,363-byte archive, SHA-256 `d71ec98924bc819dccfc868330566c282e760f7d32843bfef063ec7ad74c11bf` |
+| TV artifact | `private-media-tv-apk-e0b6557f128cb4a33e218edadae7f930c3eadbe5`, artifact `9041248166`, 58,002,247-byte archive, SHA-256 `9082ef6c80856c2f8511fe6b1bfe73b299e050d19d00de3278aecc336290f33d` |
 
-The exact-HEAD run passed wrapper validation, pinned official-TDLib cache verification without a
-native rebuild, downloader rejection tests, browser crypto fallback, Development signer
-reconstruction/verification, aggregate and focused F2A tests, lint, signed ARM64 TV/mobile
-assembly, package/version/signer/JNI/content inspection, metadata/checksum generation, and both
-artifact uploads. GitHub emitted only a non-failing Node.js action-runtime deprecation annotation;
-the run conclusion remained success and no F2A check failed.
+The exact-HEAD run passed wrapper validation, pinned official-TDLib artifact
+verification without a native rebuild, downloader rejection tests, browser
+crypto fallback, Development signer reconstruction/verification, aggregate
+tests, focused F2B tests, lint, signed ARM64 TV/mobile assembly, package/version/
+signer/JNI/content inspection, non-sensitive metadata/checksum generation, and
+both artifact uploads. The pull-request-only signer step was correctly skipped
+for the push run. Both artifacts were created on 2026-08-09 and were unexpired
+when inspected.
 
-## Final CI mobile-only delivery
+## Final exact-HEAD CI mobile-only delivery
 
-After CI succeeded, `./scripts/download-latest-ci-mobile-apk-to-phone.sh` selected only the exact-
-HEAD push artifact, verified its three-file shape, metadata, checksum, package, version, signer,
-ABI, JNI, native layout, and prohibited-content boundary, and published it through the Mobile-only
-rotation path. The distinct verified code-6 APK remains `previous`.
+After CI succeeded,
+`./scripts/download-latest-ci-mobile-apk-to-phone.sh` selected only the exact-
+HEAD push artifact. It verified artifact shape and metadata, checksum, package,
+version, Development signer, ABI, JNI, native layout, and prohibited-content
+boundary, then published through the Mobile-only rotation path.
 
 | Field | Final CI mobile APK |
 | --- | --- |
 | Canonical path | `/storage/emulated/0/Download/PrivateMediaTV/Mobile/private-media-tv-mobile-latest.apk` |
-| Package/version | `com.funzi7.privatemediatv.mobile`, `0.2.0-phone-test` (`versionCode` 7) |
-| Size | 56,894,981 bytes |
-| APK SHA-256 | `1e5a7448d5f5b7a00a7777fc06228fbdf7a4d8625dee390351c7a815215d8729` |
-| Fresh modification timestamp | `2026-08-09 06:38:10.702528717 +0000` |
-| Modification epoch | `1786257490` |
+| Package/version | `com.funzi7.privatemediatv.mobile`, `0.3.0-phone-test` (`versionCode` 8) |
+| Size | 57,339,289 bytes |
+| APK SHA-256 | `ffb6d1b0f530fc258c0b60d75d202e08224f3149faef5833e2a02461bba429b9` |
+| Fresh modification timestamp | `2026-08-09 16:59:06.537184330 +0000` |
+| Modification epoch | `1786294746` |
 | Development signer SHA-256 | `2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0` |
 | ABI | ARM64 only |
 | Packaged JNI SHA-256 | `790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f` |
-| Native layout | NDK r28c, ARM64 DYN, `LOAD` 0x4000, stored and 16,384-byte aligned, expected dependencies only |
+| Native layout | NDK r28c, ARM64 DYN, 16-KiB compatible and aligned, expected dependencies only |
 
-The final APK is a real copied file, not a symlink. The verified code-6 `previous` is 56,251,476
-bytes with SHA-256 `17c2d7f970ec260a7a9c47426ea8464da1fda53aa3a5ac2ca8a2fd969a25e542`.
-Parent TV `latest`, `previous`, and the provisioning tool retained their exact pre-publication
-hashes, sizes, timestamps, and inodes. No TV export, CI TV download, installation, launch, or
-deployment occurred.
+The final APK is a real regular copied file, not a symlink. A corrected
+independent `verify-mobile-apk.sh` invocation passed against the canonical file.
+Parent TV `latest`, `previous`, and the provisioning tool retained their exact
+pre-download hashes, sizes, timestamps, and inodes. No TV export, CI TV download,
+installation, launch, or deployment occurred.
 
-## Limitations and deferred work
+## Limitations, risks, and next step
 
-- Physical code-7 catalog acceptance remains pending: update over code 6, retained Telegram/cache/
-  resume behavior, default-empty selection, three committed pages, pause/force-stop/reopen/resume,
-  duplicate resistance, browsing/search, grouped variants, alternate playback, manual correction,
-  and disabled-source live-ingestion checks are not yet physically proven.
-- Full history need not complete for the first physical pass; scanning intentionally does not run
-  invisibly after process death.
-- Deep missed historical edits require explicit reconcile.
-- Android Keystore-backed account-scope derivation is implemented and compile/test covered, but no
-  physical code-7 account-scope creation or account-switch conflict was exercised on a device.
-- F2A has no safe provider-owned channel-batch TDLib cache cleanup; requested cleanup retains bytes
-  and reports the limitation after catalog metadata removal commits.
-- No TMDB networking, IMDb-labelled ratings, or remote metadata cache exists. F2B is next.
-- Final TV Home/details/series pages remain F2C. Final source picker and external subtitle/audio
-  integration remain F2D.
-- Shield D-pad, performance, storage capacity, codecs, update, and catalog acceptance remain
-  entirely deferred. A phone result will not prove them.
+Physical mobile code-8 acceptance remains pending. No physical update over code
+7, retained Telegram session, existing cached/resume playback, local TMDB
+credential provisioning, live TMDB catalog/search/details, on-demand source
+discovery, immediate cached source reopen, manual refresh, exact episode match,
+source playback, scope invalidation, or legacy-cleanup preservation result is
+claimed. Follow `docs/MOBILE_ACCEPTANCE.md` in order and record only safe
+outcomes; never publish a credential, channel/media label, filename, provider
+identity, database content, or identifying screenshot.
+
+Runtime availability and search latency depend on the locally provisioned TMDB
+credential, Telegram account/channel membership, network conditions, and media
+naming. Extended search remains deliberately bounded and does not guarantee that
+every source can be found. Claimed release tags remain distinct from verified
+media properties.
+
+F2C is next: final TV Home/details/series UX plus Continue Watching integration
+on top of the physically proven F2B data flow. F2D remains advanced source
+selection and external subtitle/audio integration. Shield acceptance, TV
+delivery, installation, and deployment remain deferred.
 
 ## Continuation
 
-1. On the authorized phone, follow the 22-step F2A order in `docs/MOBILE_ACCEPTANCE.md`, installing
-   code 7 over code 6 without uninstalling or clearing data.
-2. Record only safe counts and outcomes; publish no channel/media names, filenames, identifiers,
-   screenshots, account/session data, or database contents.
-3. Do not infer Shield behavior from phone acceptance and do not deliver the TV APK for F2A.
-4. After physical F2A acceptance, continue with **F2B — TMDB matching and app-private metadata
-   cache**, preserving account scope, provisional/source identity, parser-version, cache, playback,
-   and privacy contracts.
+1. Install mobile code 8 over code 7 without uninstalling or clearing data.
+2. Perform the 26-step F2B procedure in `docs/MOBILE_ACCEPTANCE.md`, including
+   retained Telegram/cache/resume checks before locally configuring TMDB.
+3. Confirm TMDB Home/Search/Details never starts a history scan and that
+   Telegram discovery begins only from explicit Sources/Play/refresh.
+4. Confirm cached source results reopen immediately, exact episode matching and
+   source-scope revision behavior, and optional confirmed legacy cleanup while
+   preserving session/cache/resume/TMDB/source-cache state.
+5. Record only safe outcomes, then proceed to F2C. Do not infer Shield behavior
+   from phone acceptance and do not deliver the TV APK for F2B.
