@@ -11,6 +11,70 @@ hash — and nothing added to it ever may.
 
 ---
 
+## D6A8 — the listing that never fetches a post page
+
+**Server production change: yes, committed, deployed and live-validated.**
+
+| Field | Value |
+| --- | --- |
+| Server code commit | `76e4c7c03f575810e078fdd96a58da854a553f76` |
+| Server HEAD | `f34ef5c61db5e0c9e1a885c02fac4b54ccd3cfa7` |
+| `DEPLOYED_HEAD` | **equals HEAD exactly** — code deployed and verified first (first attempt, no rollback, full edge verification clean), then the docs under a freshly re-read guard. The local Bot API container was **never restarted** (`Up 2 days` throughout both passes) |
+| Migration head | `0009_d6a7f1a_video_poster`, unchanged — none written, none needed |
+| Gate | **1637 passed, 3 skipped** (1630/4 at D6A7f2c; the three skips are the conformance suite's no-credential platforms, by name); ruff format/check, mypy 129 source files, release-preflight 61 modules, `git diff --check` — clean, from the committed tree |
+| Backend after deploy | `local`, verified, `max_upload_bytes` 2,097,152,000 |
+| Guard readings | binding pre-deploy read at 13:02:48Z: enabled Instagram source **288.5 min** out, TikTok 150.6, zero dispatching in both tables; docs pass re-read at 13:09:06Z: 282.2 / 144.3 / zero |
+| `logOut` / Telegram / Instagram | **0 / 0 / not contacted.** TikTok only: bounded validation probes, itemised in the repo's `docs/RELEASE_REVIEW.md` |
+
+### What it fixed, in one paragraph
+
+TikTok discovery ran gallery-dl, whose enumeration must fetch **every post's own page**; TikTok
+answers those pages with an anti-bot challenge, gallery-dl skips each failed post and exits zero
+with an empty `[]` dump, and the server honestly read that as an empty feed — so a validated
+source imported zero posts forever, on every rung of the retry ladder. A second, independent
+defect hid behind it: the shared dump reader drops the URL element of a `Message.Url` triple and
+TikTok's metadata carries no `url` key, so even an *unchallenged* dump parsed to zero posts while
+every fixture (with `url` embedded in metadata — a shape the real `DataJob` never emits) stayed
+green. Discovery now runs `yt-dlp --dump-single-json --flat-playlist` on the profile: one entry
+per post, **no post page ever fetched**, the page recorded as a `ytdl:` plan resolved fresh at
+dispatch. **A silent zero is never an empty feed** — zero entries with a clean exit is
+`TEMPORARY_FAILURE / tiktok_listing_unavailable` and a *failed* validation; the one honest empty
+is yt-dlp's own `videoCount == 0` sentence (`tiktok_profile_empty`); an unreadable profile
+settles `SOURCE_INACCESSIBLE / tiktok_profile_unreadable`.
+
+### Adversarial review before commit — three more, all fixed and pinned
+
+* yt-dlp merges the selected format into the document's **top level**, so a photo post's
+  background track (`vcodec: "none"`, its only format) stood at `payload["url"]` and the
+  resolution fallback would have posted an mp3 as the video. Refused now; the masking fixture was
+  corrected to the real merged shape.
+* A nonexistent handle retried forever as `TEMPORARY_FAILURE / extractor_failed` — none of the
+  gallery-dl-era markers match yt-dlp's wording.
+* An all-undated listing could write the cursor onto TikTok's **pinned** old post and stall every
+  later check at element zero; an undated head hands back no cursor and discovery's newest-dated
+  fallback keeps the baseline.
+
+Also: `_preview_from_upstream` sent an Instagram Referer with every platform's thumbnail fetch;
+the Referer is host-derived now.
+
+### The live production validation
+
+After deployment, the deployed adapter's own `discover(limit=3)` was run **on the production
+host** against the enabled TikTok source — read-only, no DB write, no identity printed, no
+Telegram: **`success_new_posts`, 3 posts**, each dated, titled, with a real duration, a cover
+thumbnail and a `ytdl:` plan. The profile that imported zero through every previous milestone
+enumerates from production's own IP; its next scheduled check imports without operator action.
+
+### Named limitation, and the named next step
+
+Photo carousels are indistinguishable in the flat listing: discovered as posts, refused at
+dispatch by name (`tiktok_media_unresolved`), never delivered as their background track. If
+`tiktok_listing_unavailable` ever repeats for days, the two named steps are a `tiktok` cookie-jar
+import and then `curl-cffi` for TLS impersonation — deliberately **not** shipped now, because the
+listing worked without it from both hosts and unproved insurance is just surface.
+
+---
+
 ## D6A7f2c — the read the phone never had
 
 **Server production change: yes, committed and deployed.**
@@ -298,6 +362,7 @@ reason to resend a message that arrived.
 | Field | Value |
 | --- | --- |
 | Repository | `https://github.com/funzi7/telegram-remote-sources` (private) |
+| **Head after D6A8** | **`f34ef5c61db5e0c9e1a885c02fac4b54ccd3cfa7`** — **deployed and verified**; `DEPLOYED_HEAD` equals it exactly (code commit `76e4c7c03f575810e078fdd96a58da854a553f76` deployed and verified first, first attempt, no rollback; docs deployed under a freshly re-read guard — Instagram 282.2 minutes out — and the local Bot API container never restarted). Migration head **`0009_d6a7f1a_video_poster`**, unchanged. TikTok discovery moved onto yt-dlp's flat listing; a silent zero-entry listing is `tiktok_listing_unavailable`, never an empty feed. **Live production validation**: the deployed adapter's `discover(limit=3)` against the enabled TikTok source from the production host answered `success_new_posts` with 3 dated, titled, cover-carrying `ytdl:`-planned posts — read-only, no DB write, no Telegram. Gate 1637/3. TikTok probes itemised in `docs/RELEASE_REVIEW.md`; Telegram zero; Instagram not contacted |
 | **Head after D6A7f2c** | **`e9f2d1e818d5da9db43ed0f48fbdd2bc03e7141f`** — **deployed and verified**; `DEPLOYED_HEAD` equals it exactly (code commit `3055e2afbe16a66075b77c2417b7cb98ca342f19` deployed and verified first; the docs were then deployed too under a freshly re-read guard — Instagram 861.2 minutes out — unlike the two milestones before). Migration head **`0009_d6a7f1a_video_poster`**, unchanged. Backend **`local`**, verified, `max_upload_bytes` **2,097,152,000**, no `logOut`, Local Bot API healthy and **never restarted**. One new surface: `POST /local-uploads/reconcile`, a bounded device-scoped pure read (no echo, no per-item log, maintenance-gate-free), capability `local_uploads.reconcile.v1`. `create_session` audited and deliberately unchanged; the cap stays **4** and a test pins it. Production read-only: 60 sessions — 56 confirmed (one part ever >50 MiB, 62,389,767 bytes, **confirmed**: the physical >50 MB send closed), 3 `transport_generation_changed`, 1 `expired` (the stale open session, reclaimed on schedule), 0 active. Gate 1630/4. **`LIVE_PROBES_USED=0`** |
 | **Head after D6A7f2b** | **`d5cd04c1d5d827f8b129b1af8f427d56518a0b06`** — **deployed and verified**; `DEPLOYED_HEAD` equals it exactly. Migration head **`0009_d6a7f1a_video_poster`**, unchanged — none was written and none was needed. Backend **`local`**, verified, `max_upload_bytes` **2,097,152,000**, **no `logOut`**, Local Bot API healthy. **First attempt, no rollback.** It gave `RETRY_WAIT` an owner: the scheduler now drives due phone uploads, retention reclaims every unfinished state, and the transport generation is compared at dispatch. **The active-session cap was not raised.** Within a minute the three permanently parked sessions settled `failed_before_dispatch` / `transport_generation_changed` with `attempt_count = 0` and no request ever started — **nothing was sent** — and the device's active sessions went from 4 to 1. Total sessions **44**, unchanged: no row created, none deleted. The Instagram clock was re-read read-only immediately beforehand and the enabled source's next check was **99.4 minutes** out, outside the 90-minute margin. **`LIVE_PROBES_USED=0`** |
 | Local path | `/root/work/telegram-remote-sources` |

@@ -7,6 +7,102 @@
 > **When the user supplies SHAs, read agent-memory before responding**, verify each against
 > `origin/main`, and only then answer. A supplied SHA is a claim to verify, never a fact to repeat.
 
+## D6A8 — the card that plays, the poster that outlives its file, and the listing that finally lists
+
+**Android production change: yes.** `57` / `0.14.6-d6a8`, Room schema **17**, no migration — the
+durable poster store is app-private files keyed by a digest of the document URI, deliberately not
+a column. **Server production change: yes, deployed and live-validated** — see
+`/root/work/agent-memory/telegram-remote-sources/cc-latest.md`. Server code commit
+`76e4c7c03f575810e078fdd96a58da854a553f76`; `SERVER_HEAD` and `DEPLOYED_HEAD` **equal** at
+`f34ef5c61db5e0c9e1a885c02fac4b54ccd3cfa7`; the local Bot API container was never restarted.
+
+Android code commit `d5dd45fd3763d82821310e6967f136b9c839f449`, HEAD
+`845096633d133cab8e7663de1c5b2368b600a47f`. APK
+`/sdcard/Download/TelegramTopicUploader-0.14.6-d6a8.apk`, **17,159,121 bytes**, SHA-256
+`ed384318ae4ac9546e273a185a278f859f32b530bb839a91f1cac46d395cdf97`, byte-identical to the build
+output, signer unchanged since D5A, **not installed**.
+
+### 1 — TikTok imports, proven from production (server)
+
+The connector had never imported a post: gallery-dl's enumeration fetches **every post's own
+page**, TikTok answers those with an anti-bot challenge, and the tool skips each failure and
+exits zero with `[]` — a blocked profile indistinguishable from an empty one, baselining as
+"nothing new" forever. A second defect hid behind it: the shared dump reader drops the URL of a
+`Message.Url` triple and TikTok's metadata carries no `url` key, so even an unchallenged dump
+parsed to zero posts while url-embedding fixtures stayed green. Discovery now runs
+`yt-dlp --dump-single-json --flat-playlist` on the profile — one entry per post, no post page
+fetched, the page recorded as a `ytdl:` plan resolved fresh at dispatch. **A silent zero is never
+an empty feed**: clean-exit-zero-entries is `TEMPORARY_FAILURE / tiktok_listing_unavailable` and
+a *failed* validation; the one honest empty is yt-dlp's own `videoCount == 0` sentence. **Live
+production validation:** the deployed adapter's `discover(limit=3)` against the enabled TikTok
+source, from the production host, answered `success_new_posts` with 3 dated, titled,
+cover-carrying posts — read-only, no DB write, no Telegram; the source's next scheduled check
+imports on its own. Photo carousels are a **named limitation**: indistinguishable in the flat
+listing, refused at dispatch by name, never posted as their background track.
+
+### 2 — inline playback inside the cards (Android)
+
+`InlineCardPlayback.kt`: the platform `MediaPlayer` on an owned `TextureView` (D6A7e3's
+no-library rule stands), hosted by the Review grid cell and by the Queue/History card below its
+row. One application-wide slot (`InlineVideoPlayback`); a video's tap target is exactly its
+picture and an image's picture declares no gesture; auto-hiding LTR controls with a lift-to-seek
+bar; a full-screen dialog sharing the session; pauses on `ON_PAUSE` and on audio-focus loss —
+a pause, never a release. Opening the Preview overlay stops inline playback at all four call
+sites. Named v1 limitation: rotation recreates the Activity and ends inline playback.
+
+### 3 — the History poster that survives the source's deletion (Android)
+
+The gray squares were structural: thumbnails decode from the original document at render time,
+and delete-after-confirmation destroys that document moments after the send confirms. The
+two-tier `HistoryPosterStore` (`filesDir/history-posters`, 64 MiB, pure eviction policy —
+deletion-time captures evicted last) fixes the class: the confirmed-source sweep captures **after
+the gate and before the SHA-256 re-proof**, always overwriting its tier; render write-throughs
+land after the frame is displayed; the manual permanent discard **removes** the stored picture in
+every absence-proved branch; compact tiles state a settled absence instead of staying silent.
+Old rows whose sources were already gone cannot get a picture back — they get the sentence.
+
+### 4 — the requested sort chip (Android)
+
+`ReviewSortOrder.UNSORTED`, labeled exactly **בלי זה**: no comparator at all, the projection's
+own order, an honest note replacing the timestamp sentence, default unchanged.
+
+### The adversarial review — 19 confirmed, 0 refuted, all fixed pre-commit
+
+The critical: the fullscreen toggle destroyed its own session — the arbiter-release
+`DisposableEffect` lived on the *surface*, and a surface swap fires `onDispose` (effect identity
+is positional). It lives on the session-owning parent now. The class worth carrying: every
+finding was invisible to a green unit suite — composition dynamics, platform lifecycle, API
+asynchrony, cross-feature interaction.
+
+### Guards: six re-scoped, none deleted
+
+Three write/delete scans exclude `HistoryPosterStore.kt` by name on a marker list
+`D6A8SurfaceTest` pins (no ContentResolver/DocumentsContract/MediaStore/stream/network); D3B2's
+mention-count became a property **and its card slice's end anchor was dead** (`private fun` vs
+the real `internal fun` — the region silently ran to end-of-file; anchored and measured now);
+D5A's sniff scan excludes the store's own-file filtering; the server's tooling-notes guard now
+pins yt-dlp and gallery-dl's absence for TikTok.
+
+### Gate
+
+**Android: 3588 tests, 0 failures, 0 errors, 0 skipped, 230 suites; lint 0** (3553/228 at
+D6A7f2c), from the XML reports on the committed tree with `--rerun-tasks`; both APK variants
+build; the first pass hit the documented D6A7e8 socket-buffering flake once (untouched transport
+file) and the whole gate re-ran green with the byte-identical APK. **Server: 1637 passed,
+3 skipped** (1630/4; the three are the conformance no-credential skips, by name), ruff, mypy 129
+files, release-preflight 61 modules — from the committed tree.
+
+### What is still open
+
+The physical run of build 57 — `docs/D6A8_DEVICE_CHECKLIST.md`, 32 items, unmarked; backlog rows
+258–268. Load-bearing: inline playback on all three surfaces with the one-player rule and the
+Preview interaction; a delete-after-confirmation send keeping its poster; **the TikTok source's
+own scheduled check importing and the items rendering in Remote Review** (the enumeration half is
+already production-proven); one TikTok send producing exactly one Telegram message. Rows 252–257
+(the D6A7f2c physical run) remain open and unmarked.
+
+---
+
 ## D6A7f2c — the rows that finally re-ask, the identity that names one attempt, and a History card with no ceiling
 
 **Android production change: yes.** `56` / `0.14.5-d6a7f2c`, Room schema **17**, no migration —
