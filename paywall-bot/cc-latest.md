@@ -1,232 +1,213 @@
-# paywall-bot current handoff — TheMarker extraction outage
+# paywall-bot current handoff — PR #93
 
 Updated: 2026-08-11 UTC
 
-## Current repository and PR
+## Repository and pull request
 
-- Project: `funzi7/paywall-bot`
-- Task branch: `fix/themarker-extraction-outage-circuit-breaker-20260810`
+- Project: `funzi7/paywall-bot`.
+- Existing task branch:
+  `fix/themarker-extraction-outage-circuit-breaker-20260810`.
 - Final pushed project HEAD:
-  `75691d0ac9e71eaca9574e41c6ef8bba67fd8e5c`.
-- PR: #93, `fix(themarker): park systemic extraction outages`, ready, open,
-  targeting `main`; it is not merged, auto-merge is unset, and its final
-  `mergeStateStatus` is `CLEAN`.
-- Base used after scheduled-state reconciliation:
-  `35bc4e0372bc15a4b69839e17ef10608c8e055b2`.
-- Exact-head CI run `31525184002` passed every canonical repository step on
-  `75691d0ac9e71eaca9574e41c6ef8bba67fd8e5c`.
-- Trusted review raised and the branch fixed three real findings: a P1 where
-  later rows skipped item-specific local sources, a P1 where non-TheMarker
-  paywall rejection was removed, and a P2 where provider-health evidence did
-  not clear stale persisted outage state. The first thread is outdated; the
-  two line-mapped fixed threads are resolved. The trusted reviewer reported
-  no major issues on exact head `75691d0ac9` at
-  `2026-08-11T18:59:25Z`.
-- Review-only gate dispatch `31525749669` succeeded. The PR-attached rerun of
-  gate run `31525182583` then succeeded, including evaluator job `93893739654`
-  and authoritative `check-codex-status` job `93893780483`. All three final PR
-  checks are green.
-- No PR merge, deployment, production workflow dispatch, Backfill, production-
-  state edit, real Telegram post/DM, or Telegraph create/edit occurred. The
-  normal post-merge scheduled Poll remains the first authorized production
-  application of the migration and breaker.
+  `aae1c20698509d3cf52a4e9f68cc7a24feb44383`.
+- PR #93, `fix(themarker): park systemic extraction outages`, is open,
+  non-draft, and targets `main`. It is deliberately not merged.
+- The branch was normally reconciled with scheduled-state commits through
+  fetched `origin/main` `19642e9d4bdeeedce714113e5f6bfd05f9ba92a6`.
+  No reset, stash, force push, alternate worktree, or state rollback was used.
+- Exact-head CI run `31532282974` passed on `aae1c20698509d3cf52a4e9f68cc7a24feb44383`.
+- Trusted Codex reported no major issues on exact head `aae1c20698` at
+  `2026-08-11T20:22:47Z`. Every prior P1/P2 thread is resolved or outdated.
+- The PR-attached rerun of trusted gate run `31532281455` succeeded, including
+  evaluator job `93916314961` and authoritative `check-codex-status` job
+  `93916362452`. The review-triggered gate run `31532623944` and manual
+  verification dispatch `31532650437` also succeeded. The PR is mergeable,
+  `mergeStateStatus=CLEAN`, and all three final checks are green.
+- No PR merge, deployment, production Poll dispatch, Backfill, manual
+  production-state edit, real Telegram post/DM, or Telegraph create/edit was
+  performed by this task.
 
-## PR #92 is merged and worked
+## PR #92 is merged and its production recovery worked
 
-The old handoff was stale. PR #92 merged at
-`2c32368013ee35560952f5e6ec2fe141cd101439` on 2026-08-09. Do not revert its
-publication accounting, successful-send checkpointing, exact rolling 24-hour
-Health window, source timestamps, terminal ledger, or source-aware alerting.
+PR #92 merged as `2c32368013ee35560952f5e6ec2fe141cd101439` on
+2026-08-09. Its publication accounting, successful-send checkpointing, exact
+inclusive rolling 24-hour Health source window, distinct `last_post_at` and
+`last_poll_at`, terminal ledger, and source-aware alert behavior are production
+invariants. PR #93 preserves them.
 
-Its exact recovery migration succeeded through normal production Polls:
+Verified normal-production results after PR #92:
 
-- historical `e074` is Telegram message #757;
+- historical `e074` remains Telegram message #757;
 - recovered live `e16` published as #760 through direct;
 - recovered premium `d240` published as #761 through one3ft; and
 - recovered premium `dd04` published as #762 through one3ft.
 
-Normal publications continued afterward. Current fetched production state
-contains 22 publication events and reaches Telegram message #780 at
-`2026-08-11T17:49:02.247329+00:00`, source one3ft, URL identity `ef7d`.
-Message #766 at `2026-08-09T21:22:16.187205+00:00` was only the latest send
-at the initial outage report, not current latest truth.
+Normal sends continued. Current fetched state commit
+`19642e9d4bdeeedce714113e5f6bfd05f9ba92a6` reaches message #782 at
+`2026-08-11T19:55:06.919015+00:00` through one3ft. Messages #780, #781, and
+#782 are all publication-proven. Message #766 was only the latest send at the
+initial incident report.
 
-Daily Health is also working. Run #86 (`31353377940`) fetched 13 Telethon
-messages, resolved 13 records, and logged `exact_window=True`. Run #87
-(`31455370670`) fetched 14 messages, resolved the 13 records inside the exact
-rolling interval, and also logged `exact_window=True`. Publication counts
-remain `publication_events`-based, and last post/poll remain distinct.
+Daily Health remained correct: run #86 (`31353377940`) fetched/resolved 13
+records and logged `exact_window=True`; run #87 (`31455370670`) also retained
+exact rolling-window coverage. A technically successful workflow does not
+override application-health classification.
 
-## Current outage evidence
+## Current extraction outage and first-party findings
 
-Every decoded post-merge Poll log from #700 (`31306003725`) through #724
-(`31519428389`) was read. Provider availability is intermittent across
-unrelated TheMarker URLs:
+Decoded Poll & Post runs #700 through #725 were inspected. Across unrelated
+premium, highlight, magazine, and short public-looking URLs, the systemic
+signature repeats:
 
-- Telegram source text is usually absent/incomplete;
+- Telegram source text is absent or incomplete;
 - premium direct is intentionally `skipped_premium_url`;
-- public-looking/highlight direct pages return a short paywalled teaser;
+- highlight/public-looking direct responses are short paywalled teasers;
 - Jina returns 403;
-- smry returns HTTP 200 but its client shell parses as `no_body`;
-- one3ft frequently returns 503; and
+- smry returns an HTTP-200 client shell with `no_body`;
+- one3ft is volatile, often 503 but intermittently recovers; and
 - Wayback returns 403/404.
 
-Run #708 had two ready/two bumped. Run #709 (`31369619950`) had three ready,
-two bumped, and terminalized magazine `b2be`. Run #723 (`31509168254`) repeated
-the broken chain for six rows before one3ft recovered and published #777–#779.
-Run #724 repeated it for five rows, terminalizing `ef60`, before one3ft
-recovered for the sixth and published `ef7d` as #780. A workflow conclusion of
-success is therefore not application health.
+Run #724 (`31519428389`) repeated the chain across five rows before one3ft
+recovered for the sixth and published #780. Run #725 (`31530201981`) repeated
+it again, terminalized reviewed identity `eb60`, bumped reviewed identities
+`f0c7`, `f083`, and `ef3a`, then published unrelated fresh rows `f0b9` and
+`f0eb` as #781/#782 when one3ft recovered. This proves both the systemic
+retry-burn problem and the need to preserve usable-source recovery.
 
-Fetched production state commit `81bc541` has:
+Read-only first-party response inspection covered current premium,
+`.highlight`, `ty-article-magazine`, ordinary public, short paywalled-looking
+public, and live shapes. Full bodies were not printed or persisted. Ordinary
+public and structurally complete live pages contain complete server-rendered
+bodies already handled by direct. Premium/highlight/magazine responses expose
+only teaser/paywall DOM and JSON-LD plus body-free React metadata. No complete
+premium body or demonstrably page-referenced first-party body endpoint was
+proved. PR #93 therefore adds no new parser, browser/session path, speculative
+proxy, or quality-floor reduction. The four-paragraph / 1,500-character floor
+and scoped live completeness proof remain unchanged.
 
-- latest poll `2026-08-11T17:49:07.820731+00:00`;
-- latest post `2026-08-11T17:49:02.247329+00:00`, message #780;
-- 15 active `fetch_chain_exhausted` terminals;
-- four retry-bearing affected deferred rows; and
-- two fresh retry-zero rows (`f0b9`, `f0eb`) that are not recovery targets.
+## Circuit breaker and Health behavior
 
-## First-party extraction findings
+`core/extraction_outage.py` classifies only the bounded body-free four-provider
+availability pattern. Direct premium skip alone is not systemic. A healthy
+usable source or request-backed article-specific quality failure prevents a
+false systemic classification.
 
-Read-only raw-response inspection covered current premium, `.highlight`,
-`ty-article-magazine`, ordinary public, short paywalled-looking public, and
-live pages. Full article text was not printed or persisted.
+The TheMarker-only poll policy is:
 
-- Ordinary public and structurally complete live pages contain full bodies in
-  server-rendered DOM and are already accepted by the existing direct path.
-- Premium/highlight/magazine pages expose only a one-paragraph teaser in DOM
-  and JSON-LD plus paywall UI.
-- Their React Flight target-article record contains IDs, title, dates, paywall
-  type, and word count, but no article body/content.
-- No complete premium body or page-referenced first-party body endpoint was
-  proved. Generic API-gateway strings are not proof of an endpoint.
+1. One representative ready row probes the configured chain.
+2. Proven systemic evidence parks that row without incrementing retry.
+3. Later ready rows still try item-specific Telegram/direct sources, but make
+   zero new Jina/smry/one3ft/Wayback requests in that poll.
+4. Complete local content may publish; article-specific local quality failure
+   uses the normal item retry; provider/paywall-local exhaustion parks.
+5. The next scheduled Poll performs one bounded full-chain reprobe.
+6. Complete content or request-backed provider-health evidence clears stale
+   outage state and normal processing resumes.
+7. If the representative reprobe is inconclusive and leaves persisted outage
+   state active, that active state latches the remainder of the Poll so later
+   rows use only Telegram/direct and do not repeat the external chain or burn
+   retries.
+8. If publication proof or normalization removes the final parked row, the
+   bounded count refresh now deactivates the stale latch with
+   `no_parked_work`. This fixes the reviewed stale-latch P2 and is covered
+   for both startup normalization and phase-2 dedup removal.
 
-Therefore PR #93 adds no speculative proxy, browser automation, login/session
-path, or new first-party parser. The global floor stays four paragraphs / 1,500
-characters. The existing live exception still requires exact complete DOM and
-JSON-LD update agreement with no collapsed/expand control. A sanitized fixture
-pins teaser/paywall/nav/comment/metadata rejection.
+Persisted `extraction_outage` metadata is bounded and body-free. Parked work is
+unpublished, nonterminal, retry-neutral, eligible, and red in Health—not grace
+waiting. Alert cooldown may suppress a duplicate DM but never changes red
+classification. Tech Feed IL's existing publisher cooldown and publication
+accounting remain separate and cross-tenant tested.
 
-## Circuit breaker implementation
+## Exact 19-identity recovery
 
-`core/extraction_outage.py` classifies only a bounded, body-free systemic
-attempt chain. All four configured external providers must show explicit
-availability failures. Direct premium skip or explicit
-`paywalled_partial_body` may accompany the outage, but a healthy non-paywalled
-direct quality failure vetoes systemic classification. Any accepted source or
-healthy external-provider content rejection also uses the normal per-item
-retry. The exact migration alone accepts reviewed legacy direct reason codes,
-because its allowlist predates the explicit paywall diagnostic and decoded
-logs prove those direct shapes were paywall teasers.
+Migration version: `themarker_2026_08_09_extraction_outage_v1`.
 
-`core/main.py` implements a TheMarker-only poll-local latch:
+It is tenant-gated, state-only, idempotent, and never sends or creates
+publication proof. Publication proof wins. Current status/retry, failure
+reason, body-free systemic attempts, suppression shape, and original
+first-seen evidence must match; otherwise the row fails closed as
+`left_state_mismatch`.
 
-1. The first qualifying ready row probes the normal chain.
-2. If systemic, it becomes `extraction_outage_parked` with unchanged retry.
-3. Every later ready row still tries its item-specific Telegram/direct paths
-   but makes zero Jina/smry/one3ft/Wayback requests. A complete local body can
-   publish; a healthy direct integrity rejection uses the item retry lifecycle,
-   while provider/paywall-local exhaustion parks with unchanged retry.
-4. The shared-provider latch remains active after a local-only success, so the
-   rest of the Poll still cannot fan out into repeated broken-provider chains.
-5. The next scheduled Poll permits one fresh full-chain representative probe.
-6. A complete valid source on that probe clears the active outage and normal
-   processing resumes; existing successful-send checkpointing/dedup prevents
-   duplicates.
+Current exact transitions after run #725:
 
-A request-backed external-provider response rejected only for article-specific
-quality also clears a stale active systemic flag before that row uses its normal
-retry. Post-parse integrity rejection follows the same transition. Missing or
-availability-only diagnostics do not clear it.
+- 14 terminal identities restore retry 5 -> 0: `e4af`, `e096`, `d1bf`,
+  `e542`, `e671`, `b2be`, `e63d`, `e581`, `64f8`, `e618`, `e5c7`, `ec85`,
+  `ec77`, and `eed3` (full UUIDs/URLs are versioned in `core/state.py` and the
+  reliability runbook).
+- terminal `ef60-db03-a9ff-ff733d9f0000` restores 5 -> 1, preserving its one
+  legitimate one3ft HTTP-200 short-body failure.
+- terminal `eb60-d310-a3df-ef63432e0000` restores 5 -> 0.
+- deferred `f0c7-d28e-a3df-f0d74c530000`,
+  `f083-db94-a3df-fd8342f90000`, and
+  `ef3a-d456-a99f-ef7ab4f10000` restore 3 -> 0.
 
-Top-level `extraction_outage` is bounded and stores only active/recovered state,
-first/last/probe times, probe and parked/affected counts, reason, and four
-source/reason pairs. Parked rows remain unpublished, nonterminal eligible
-work. Health distinguishes them from grace waiting, displays the bounded
-provider line, and forces active outage red. Alert cooldown can suppress a
-duplicate DM but cannot change the underlying red classification.
+The identity allowlist remains exactly 19. The scheduled-state reconciliation
+changed only the exact evidence shape for four already allowlisted identities.
+An in-memory copy of current tracked production state produced 19/19
+`retry_budget_restored` outcomes, left the real state object/file unchanged,
+and created no publication proof. Published `ef7d` (#780), `f0b9` (#781), and
+`f0eb` (#782), plus all unrelated rows, remain excluded.
 
-The feature is gated by tenant name and TheMarker config. Tech Feed IL's
-existing `source_extraction_cooldown`, publisher request behavior, retries,
-and publication accounting are unchanged and cross-tenant tested.
+The normal first Poll after an owner merge must be the migration's first
+production application. Do not apply it manually.
 
-## Exact recovery migration
+## Telegraph native author-header follow-up
 
-Version: `themarker_2026_08_09_extraction_outage_v1`.
+TheMarker config now uses the existing generic policy:
 
-It is TheMarker-only, idempotent, state-only, and never posts or creates fake
-publication evidence. Publication proof wins. Current status/retry, original
-first-seen evidence where present, failure reason, and systemic attempts must
-match; otherwise that row fails closed as `left_state_mismatch`. It removes
-processed suppression only for an exact matching terminal target and requires
-that suppression as part of the terminal shape. An unexpected suppression on
-an active deferred target fails closed and is preserved. The normal post-merge
-Poll must be the first production invocation.
+- `author_name: TheMarker` (visible byline preserved);
+- `author_url_behavior: channel`; and
+- `author_url: https://t.me/demarkerpremium`.
 
-Exact terminal targets restoring retry 5 -> 0:
-`e4af`, `e096`, `d1bf`, `e542`, `e671`, `b2be`, `e63d`, `e581`,
-`64f8`, `e618`, `e5c7`, `ec85`, `ec77`, and `eed3` (full UUIDs and URLs are
-versioned in `core/state.py` and the reliability runbook).
+New createPage and explicit editPage requests therefore use
+`https://t.me/demarkerpremium` as the native Telegraph author/header link. The
+original TheMarker article is not used as the top link and remains exactly
+once in the established final `מקור: TheMarker` footer node. No duplicate
+attribution block was added. Tech Feed IL remains on its existing
+`https://t.me/Tech_Feed_IL` policy, and generic `original` behavior remains
+supported for a tenant that selects it.
 
-Exact terminal `ef60-db03-a9ff-ff733d9f0000` restores 5 -> 1. Its first
-one3ft HTTP-200 `body_too_short:960<1500` response was article-specific; its
-following four attempts were systemic.
+Read-only HTTP inspection of the latest existing page, message #782, returned
+200. It currently renders visible byline `TheMarker` linked to the original
+article and ends with the original-source footer, proving the pre-merge state
+and footer. No existing Telegraph page was edited or migrated. The config
+change affects newly created/explicitly edited pages only after merge.
 
-Exact active deferred restoration:
+## Validation physically executed
 
-- `eb60-d310-a3df-ef63432e0000`: 4 -> 0
-- `f0c7-d28e-a3df-f0d74c530000`: 2 -> 0
-- `f083-db94-a3df-fd8342f90000`: 2 -> 0
-- `ef3a-d456-a99f-ef7ab4f10000`: 2 -> 0
-
-Published `ef7d` (#780), fresh `f0b9`/`f0eb`, all PR #92 publications, and any
-unrelated historical terminal are intentionally not recovered. An in-memory
-copy of current production state matched 19/19 targets, moved 15 terminals to
-deferred, restored the four active budgets, preserved original first-seen
-data, and left `publication_events` plus `last_post_at` unchanged. No tracked
-state file was edited.
-
-## Validation actually executed
-
-All Telegram and Telegraph write boundaries were mocked. No Backfill, real
-channel post, owner DM, Telegraph create/edit, production Poll dispatch, or
-manual production-state mutation occurred.
+All Telegram and Telegraph write boundaries were mocked.
 
 - `.venv/bin/python -m tests.test_message_format`: passed.
-- `.venv/bin/python -m unittest discover -v`: 454/454 passed.
+- `.venv/bin/python -m unittest discover -v`: 458/458 passed.
 - `.venv/bin/python -m compileall -q .`: passed.
 - `.venv/bin/python -m compileall core sites tests`: passed.
 - `node --check tools/codex_gate_logic.js`: passed.
 - `node --test tests/test_codex_gate_logic.js`: 18/18 passed.
-- PyYAML parsed all 15 tracked workflow YAML files.
+- PyYAML parsed all 15 tracked workflow files.
 - `bash -n` passed both tracked shell scripts.
-- `git diff --check` and tracked `state/` diff checks passed.
-- SHA-256 snapshots proved all seven tracked state files byte-identical across
-  both Python suites.
+- `git diff --check` passed.
+- SHA-256 comparisons proved all seven tracked `state/` files byte-identical
+  across the final Python suites; final state diff matched fetched
+  `origin/main` exactly.
+- Exact-head GitHub Actions CI run `31532282974`: passed.
+- Trusted exact-head Codex review: clean at `2026-08-11T20:22:47Z`.
+- Trusted PR-attached gate run `31532281455`: evaluator
+  `93916314961` and `check-codex-status` `93916362452` both passed.
 
-The current local Python environment is the repository `.venv`; the older
-PRoot/bubblewrap limitation did not reproduce. The bare system interpreter
-lacks the Telegram dependency, so the canonical Python commands were executed
-with `.venv/bin/python`; none was claimed against an interpreter where it could
-not start.
+## Remaining risk and exact continuation
 
-## Remaining risks and exact continuation
-
-- External provider availability remains volatile. HTTP success still must
-  pass all completeness and integrity gates.
-- Premium/highlight/magazine full bodies are unavailable if all configured
-  providers are unavailable; the correct behavior is red parking, not fake
-  completeness or retry exhaustion.
-- PR #93 is ready for owner review but remains deliberately open and unmerged.
-  Do not merge it from this task handoff.
-- If `origin/main` advances with scheduled state before finalization, merge it
-  safely without force, inspect the new Poll/state transition, update the exact
-  migration constants only from proven evidence, rerun affected tests, and
-  push a normal follow-up commit.
-- After a reviewed merge by the owner, let the normal scheduled Poll apply the
-  migration. Do not run Backfill or edit state. Verify the stored 19 migration
-  outcomes, exactly one representative provider chain during a continuing
-  outage, zero retry changes for parked rows, red Health, and automatic normal
-  processing after a complete-source probe.
-- Keep this file aligned with later production facts; preserve unrelated
-  agent-memory work and use normal non-force pushes.
+- External providers remain volatile. When none supplies complete content,
+  correct behavior is red parking—not fake completeness or retry exhaustion.
+- PR #93 remains open and unmerged. Do not claim deployment from this handoff.
+- If `origin/main` advances again before merge/finalization, reconcile normally,
+  preserve scheduled state, inspect exact transition evidence, and rerun the
+  affected validation. Never force push.
+- After an owner merges PR #93, let the first normal scheduled Poll apply the
+  migration and breaker. Verify all 19 stored migration outcomes, one bounded
+  representative external chain during continued outage, zero retry burn for
+  parked rows, and red Health classification.
+- Verify the first newly created TheMarker Telegraph page after merge: visible
+  `TheMarker` header must link `https://t.me/demarkerpremium`, and the original
+  article must appear exactly once in the final footer.
+- Verify the first Poll that exercises the circuit breaker and the first
+  complete-source reprobe that clears it. Preserve publication-events and exact
+  rolling-24h Health semantics.
