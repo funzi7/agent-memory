@@ -11,6 +11,127 @@ hash — and nothing added to it ever may.
 
 ---
 
+## D6A8a — the fetch that could never have worked, and the failure nothing owned
+
+**Server production change: yes.**
+
+| Field | Value |
+| --- | --- |
+| Server code commit | `3e3638976cd4cd78b6795d575a9c551ba6b5ca4c` — the last of five, after two review passes and one live observation |
+| Server HEAD | `3e3638976cd4cd78b6795d575a9c551ba6b5ca4c` |
+| `DEPLOYED_HEAD` | `3e3638976cd4cd78b6795d575a9c551ba6b5ca4c` — **equal to HEAD.** Three deployments this milestone, each first-attempt, each under a freshly re-read guard, and the local Bot API container never restarted (`Up 3 days` at the last one) |
+| Migration head | `0009_d6a7f1a_video_poster`, **unchanged** — none written, none needed |
+| Gate | **1683 passed, 4 skipped** from the working tree at the final commit (1637/3 at D6A8). The three skips are the conformance suite's no-credential platforms, by name — the same three as D6A8. The fourth skip is the release-integrity equivalence, which skips itself rather than failing when the working tree has uncommitted changes; on a clean committed tree it passes and the count reads 3. ruff format/check, mypy 132 source files, `release-preflight` 61 modules, `bash -n` on both changed shell scripts, `git diff --check` — clean |
+| Wire change | **additive**: `ItemResponse.retry_reason`. No field removed, no field changed meaning |
+| Backend | `local`, verified, `max_upload_bytes` 2,097,152,000 — **untouched**. No `logOut`, no backend change, no credential read or written |
+
+### The forensics, read before any code was written
+
+A scheduled check imported ten TikTok posts onto an `auto_send` source at 15:33:33Z.
+`dispatch_auto_send` **did** run and did **not** stop early: ten ordinary `DeliveryOperation` rows,
+one per item, about four seconds apart. Every one settled `failed_before_dispatch / download_failed`
+with `attempt_count` 0, `request_started_at` NULL, `retry_not_before` NULL and `failure_detail`
+**empty**, and every item went back to `review`. **Zero Telegram requests.** The container log — and
+only the log — carried the reasons: `media_http_403` ×5, `tiktok_media_unresolved` ×5. None of the
+ten is a photo carousel; all ten are videos with real durations.
+
+Separately: `local_upload_sessions` held **197 rows and not one of them non-terminal**, no bot-wide
+block, no maintenance. That is what settled the Android side's stuck Queue row as
+`SESSION_NOT_FOUND_ANDROID_STALE` — see the application repository's handoff.
+
+### The hypothesis that was wrong, and must not be re-derived
+
+The obvious reading of the 403 — a signed CDN URL fetched without the `http_headers` yt-dlp prints
+beside the format it chose, which `select_progressive_url` discarded — was implemented, and then
+**refuted live** from the production host against a real post of the enabled source:
+
+| request | answer |
+| --- | --- |
+| the chosen format's full `http_headers` (`User-Agent`, `Referer`, `Accept`, `Accept-Language`, `Sec-Fetch-Mode`) | **403** |
+| those headers **plus** the document's own cookies (`ttwid`, `tt_csrf_token`, `tt_chain_token`) | **403**, body `text/html` — an anti-bot page |
+| bare / `Referer` only / `User-Agent` only | **403** |
+| **`yt-dlp` downloading the same post, same host, seconds later** | **exit 0, 19,567,399 bytes, `ftypisom`** |
+
+**TikTok declines this deployment's ordinary HTTP client and serves the extractor.** Do not try the
+header fix again; it is tested and dead.
+
+### What shipped
+
+1. **`TikTokAdapter.download` runs yt-dlp with `-o` into the operation's staging directory.** The
+   resolve-then-fetch path, `ResolvedMedia`, `forwardable_headers`, `select_progressive_media` and
+   `select_progressive_url` are **deleted** — a path that provably 403s is not a fallback, and a
+   function nothing calls is a guard gone vacuous. Kept and asserted at the new site: the generated
+   filename, the inside-the-directory proof, `--max-filesize` **plus** a re-measured byte count,
+   `--no-part` with a discard-on-failure sweep, and the digest over the bytes written.
+   The carousel refusal is now the format requirement `b[vcodec!=none][protocol^=http]`; the
+   carousel *name* is used only after a metadata read confirms it, because yt-dlp words that
+   refusal the same way for an all-manifest video. Cobalt, if configured, is still asked once and
+   only for `tiktok_media_unresolved`.
+2. **`remote_sources/delivery/failures.py`** — the transient/permanent table, the bounded ladder
+   (5 m, 15 m, 45 m, 2 h, 6 h) and the coarse wire code. An unknown reason is **not** transient.
+3. **A transient pre-dispatch failure on an `auto_send` delivery parks in the existing
+   `RETRY_WAIT`**, driven by the existing due-retry pass. No second engine, no second queue, same
+   operation identity, same frozen destination. A manual Send is never retried behind the person's
+   back. The last rung settles with the real reason.
+4. **`DeliveryOperation.failure_detail` finally has a writer** (it had none anywhere in `src`), and
+   `ItemResponse.retry_reason` puts the parked delivery's coarse code on the wire.
+   `GET /review/pending-send` had existed since D6A7f with no caller; the phone calls it now.
+
+### One column, two waits — found by reviewing the finished diff, before the second deploy
+
+`DeliveryOperation.last_retry_after_seconds` is reused as the ladder position **and** carries the
+number Telegram named in a 429, which this service honours **verbatim and uncapped**. Read as a
+position, an hour-long flood wait would have made the next pre-dispatch failure skip four rungs, and
+a six-hour one would have declared the ladder exhausted before a single pre-dispatch retry.
+`failures.ladder_position` now treats a stored delay as a position only when the previous park was
+one of ours. **If a future milestone adds a third kind of wait to that column, it must extend
+`_TELEGRAM_OWNED_WAITS` or the same class of bug returns.**
+
+### The defect that only showed up by watching the fixed code run
+
+The repaired build was deployed at 06:21Z; the TikTok source's own scheduled check fired at
+06:32Z. It settled `success_no_new_posts` — and **created no operation for any of the ten items**,
+which were still sitting in `review` with a transient reason.
+
+`dispatch_auto_send` was armed only by `SUCCESS_NEW_POSTS` (or new Stories). An authorised backlog
+therefore had no driver at all: those ten would have waited for an unrelated new post to appear on
+that profile before anything looked at them again. **That is the same "state with no driver" the
+milestone was opened by, one layer up**, and no amount of unit testing would have shown it — the
+condition was correct for everything it had ever been asked to do.
+
+Any *successful* check drains now. A successful check has just proved the platform reachable and the
+source healthy, which is exactly the right moment; and the cost is bounded, because the drain skips
+items whose last failure was permanent and a transient one is already owned by the retry pass.
+
+### The deployment
+
+Deployed **first attempt, no rollback**, `20260810T221658Z-e481bd1`. `remote-sources-ctl version`
+reports `e481bd1b3d5c7d2c700a7bacb3baeb0f769d92ec`. Backend still `local`, verified,
+`max_upload_bytes` **2,097,152,000** unchanged; migration head still `0009_d6a7f1a_video_poster`;
+full edge verification clean; Funnel/Serve/firewall unchanged. **The local Bot API container was
+never restarted** (`Up 2 days` throughout).
+
+Guard read immediately before deploying, at 22:16:44Z: zero dispatching operations, zero dispatching
+local sessions, zero running checks, zero running validations, no maintenance, no bot-wide block —
+and the enabled sources' next checks **495.1 / 861.1 / 1378.1 minutes** out, so the nearest was
+fourteen hours beyond the ninety-minute Instagram margin.
+
+**A production state change worth knowing:** between the first forensic read (20:24Z) and the guard
+read, a **second Instagram source was re-enabled** — there were two enabled Instagram sources at
+deploy time where the earlier read showed one. Nothing in this milestone did that, and both were far
+outside the margin.
+
+**The ten TikTok items were left exactly as they were** — still `review`, count verified after the
+deployment. No one-off SQL, no manual dispatch, no baseline reset, no cursor change. The source's own
+next scheduled check is what will act on them.
+
+### Live upstream budget
+
+Four bounded TikTok sessions from the production host, all read-only against the database and
+Telegram, itemised in the repository's `docs/RELEASE_REVIEW.md`. No Instagram request, no Telegram
+request, no `logOut`, no profile re-check, no forced scheduler tick, no row written, and no post
+identity, URL or handle printed anywhere.
+
 ## D6A8 — the listing that never fetches a post page
 
 **Server production change: yes, committed, deployed and live-validated.**

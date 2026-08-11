@@ -7,6 +7,128 @@
 > **When the user supplies SHAs, read agent-memory before responding**, verify each against
 > `origin/main`, and only then answer. A supplied SHA is a claim to verify, never a fact to repeat.
 
+## D6A8a — a claim about somebody else's table, and a queue that had no driver
+
+**Android production change: yes.** `58` / `0.14.7-d6a8a`, Room schema **17**, **no migration** —
+the delete queue reuses `manual_source_deletions`, which already recorded the user's authorisation
+durably and simply had nothing that executed it; the now-durable Review sort order is a preference,
+not a column. **Server production change: yes, deployed** — see
+`/root/work/agent-memory/telegram-remote-sources/cc-latest.md`.
+
+| Field | Value |
+| --- | --- |
+| Android code commit | `f0b7694743284a310562d16e471865f9ab794df1` |
+| Android HEAD | `aa9b30166dad84988a2a8c7fe425db14acb58ecb` — documentation only after the code, so the APK hash is unchanged; documentation is not a build input |
+| Version | **58** / `0.14.7-d6a8a`, Room schema **17**, **no migration** |
+| Gate | **3673 tests, 0 failures, 0 errors, 0 skipped, 233 suites; lint 0 issues** (3588/230 at D6A8), from the committed tree with `--rerun-tasks`. `assembleDebug` and `assembleDebugAndroidTest` both build; instrumentation **compiles and was not run** |
+| APK | `/sdcard/Download/TelegramTopicUploader-0.14.7-d6a8a.apk`, **17,207,507 bytes**, SHA-256 `5f9ac2216a4a709c04f2fe19a3b19b742b5ccdcfe186538494a3665b5d8e3d6b`, byte-identical to the build output, signer `74e78654…` unchanged since D5A, **not installed** |
+| Server | code `3e3638976cd4cd78b6795d575a9c551ba6b5ca4c`, `SERVER_HEAD` and `DEPLOYED_HEAD` **equal**; migration head `0009_d6a7f1a_video_poster` unchanged. Three deployments, each first-attempt, each under a freshly re-read guard |
+| Hardware | **`docs/D6A8A_DEVICE_CHECKLIST.md`, nothing pre-marked.** D6A8's section C is **withdrawn**, not closed: it tested an option built on a misreading |
+
+### The forensics, done before any code was written
+
+Read-only against production, no platform contacted, no row written:
+
+* **`LOCAL_STUCK_UPLOAD_BUCKET = I (SESSION_NOT_FOUND_ANDROID_STALE)`.** All 197 local upload
+  sessions on the server are terminal — 193 confirmed, one expired, three failed-before-dispatch
+  (all three `cloud`-era). **No staged, no retry-waiting, no dispatching row exists at all**, no
+  bot-wide Telegram block, no maintenance. The handset had called
+  `POST /api/v1/local-uploads/reconcile` fifteen times and been answered `200` every time.
+* **TikTok: 10 items, 10 operations, 10 `failed_before_dispatch / download_failed`, 0 Telegram
+  requests, 0 carousels.** `dispatch_auto_send` ran and processed all ten. The reasons
+  (`media_http_403` ×5, `tiktok_media_unresolved` ×5) went to a log line and were thrown away.
+
+### 1 — the Queue row that could never be told it was wrong
+
+Two independent defects, both fixed:
+
+* **the identity was erased exactly when it became necessary.** `recordDispatchRetryable` clears
+  `dispatchAttemptId` — right for every ordinary retry, exactly wrong for a server-owned wait where
+  the server accepted the bytes and still holds the send. `ServerUploadSessionReconciler` emits its
+  strong exact-attempt probe only for a row that still has one, so every server-owned row could be
+  asked about **only** through the weaker media-at-destination identity. A sibling DAO statement,
+  `recordServerOwnedWait`, keeps it for exactly `SERVER_STAGED_AWAITING_TELEGRAM`,
+  `SERVER_SENDING_TO_TELEGRAM` and `RATE_LIMITED`;
+* **a proven absence was never acted on.** For a row whose entire content is a claim about the
+  server's own table, *no such session* disproves it. It now settles the new
+  `DispatchErrorCode.SERVER_SESSION_ABSENT`, becomes explicitly retryable, offers *Upload now*, and
+  is in `PROVED_NOT_ACCEPTED_CODES` so removal stops being refused.
+
+**The narrowing that keeps the widening safe:** the transport reported `found = false` both for
+"the server said there is no such session" and for "a session whose body would not parse" — opposite
+facts. `RemoteReconcileFinding.provenAbsent` now carries the server's own boolean, and the policy
+requires it. `RESULT_UNKNOWN` is still untouched by any absence, under either attribution.
+
+### 2 — three removal sentences instead of one borrowed uncertainty
+
+`QueueCorrectionRefusal` gained `SERVER_HOLDS_DELIVERY`, `SERVER_SENDING_TO_TELEGRAM` and
+`RESULT_UNKNOWN`. A card that has just stated a certainty no longer explains its disabled control
+with "the recorded outcome does not prove Telegram never received it".
+
+### 3 — `יעד:` instead of `נשלח אל`
+
+`remote_source_destination` renders the source's **configured** destination and always did; the
+English on the same id was always the present-tense "Goes to". The Hebrew past tense is why the user
+believed ten items had been sent. A guard now forbids past tense on that line. An `AUTO_SEND`
+source's count says `פריטים ממתינים:` rather than `ממתינים לסקירה:`.
+
+### 4 — "בלי זה" meant *without this platform*
+
+D6A8 read it as *without sorting* and shipped a chip with no comparator. Corrected: the sort is a
+**dropdown** — date newest/oldest, size largest/smallest — unknown sizes sort **last in both**
+directions, and the order is now **durable** (an `AppSettingsRepository` preference storing the enum
+*name*, so a removed member reads as the default). The exclusion the phrase meant —
+**בלי TikTok / Instagram / 9GAG / X / Reddit** — lives on **Remote Review**, the one surface whose
+rows carry a server-supplied `RemotePlatform`. The local grid deliberately does **not** get it: its
+only source-category field is the folder profile the user configured, which already has its own
+inclusion chips, and inferring a platform from a filename or folder name is the guess this project
+refuses everywhere else. **That division is pinned by tests and stated in the docs.**
+
+### 5 — the delete queue
+
+`SourceDeletionPolicy` returns the new `Queueable` when the *only* remaining obstacle is that
+another media holds the slot — every refusal about the file itself still wins, and each is tested.
+`ManualSourceDeletionCoordinator.drainQueuedDeletions()` runs the authorisations oldest-first,
+reconciling `DELETING` rows left by a dead process **before** reading the queue (they are not in the
+two queued states, so without that they would be the one row the pass could never see). Execution is
+the same gate, the same compare-and-set claim, the same identity/size/last-modified/digest re-proof
+and the same single irreversible call. Withdrawal is guarded on the two states that have provably
+not begun. Driven from `SourceDeletionWakeCoordinator.wake`, **unconditionally** — gating it on
+`releasesSourceBytes` would have reproduced the original defect one layer up, because that policy
+returns false for exactly the transitions this exists for.
+
+### Two of this milestone's own fixes were withdrawn — do not re-attempt them
+
+An adversarial review of the finished diff refuted both halves of the first answer to the stuck
+Queue row. **Neither reached a device, and neither should be tried again.**
+
+* **Retaining `dispatchAttemptId` for a server-owned wait.** The column does not mean "which attempt
+  this was" to the rest of the application; it means *an attempt is claimed*. `hasExecutionClaim` is
+  projected as `executionOwnerToken IS NOT NULL OR dispatchAttemptId IS NOT NULL`, every claim query
+  requires it NULL, and `SafeRetirementPolicy` refuses removal on it — so retaining it would have
+  made every server-owned wait permanently **unsendable and unremovable**.
+* **Acting on a per-item `found: false`.** `ServerUploadSessionReconciler.decideFor` discards a
+  not-found *exact* finding before the policy sees one, so such a branch can only ever fire on the
+  legacy media-at-destination probe — and since D6A7f2c a session is opened under the attempt-scoped
+  identity, so that probe answers *not found* about sessions that are **alive**. It would have told
+  the user nothing was sent while the server was about to send, and permitted a removal that
+  releases the reservation whose whole job is to stop a duplicate post.
+
+**What replaced them:** the reconcile response now carries `device_non_terminal_sessions` — how many
+sessions the server holds for this device that have not settled, of any kind, under any identity.
+Zero is a count rather than an identity, so it cannot be the "asked with the wrong key" answer, and
+zero means every row on that device claiming server ownership is stale by arithmetic. `null` is
+never read as zero, a failed lookup never qualifies, and `RESULT_UNKNOWN` remains untouched.
+
+### Guards re-scoped, never deleted or weakened
+
+Eleven changed premise and every one was re-scoped: D6A8's two "בלי זה = no sorting" assertions
+became *every offered order really orders*; D4C's two-direction tie-break count became
+one-per-order; D4C's single-preference count became *the store still has no generic setter*; D5A's
+`"queue"` substring — which matched `queuedDeletions` — became the five things it stood for; four
+rendition-selection tests became assertions on the format selector that replaced them; and five
+refusal-reason assertions were renamed with *and it is still refused* kept beside each.
+
 ## D6A8 — the card that plays, the poster that outlives its file, and the listing that finally lists
 
 **Android production change: yes.** `57` / `0.14.6-d6a8`, Room schema **17**, no migration — the

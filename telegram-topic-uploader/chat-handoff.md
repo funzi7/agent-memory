@@ -54,6 +54,41 @@ supplied HEAD against GitHub before trusting it.
 - **Repositories are committed and pushed separately** — server, then application, then agent-memory.
   All must end clean, zero ahead, zero behind.
 
+### Two D6A8a fixes were withdrawn, and must not be re-attempted
+
+Both were plausible, both were refuted by an adversarial read of the finished diff, and neither
+reached a device:
+
+- **Retaining `dispatchAttemptId` for a server-owned wait.** That column means *an attempt is
+  claimed* to the rest of the application — `hasExecutionClaim` is projected from it, every claim
+  query requires it NULL, `SafeRetirementPolicy` refuses removal on it. Retaining it makes the row
+  permanently unsendable and unremovable.
+- **Acting on a per-item `found: false` from the reconcile route.** `decideFor` discards a not-found
+  *exact* finding, so such a branch can only fire on the legacy media-at-destination probe — which,
+  since D6A7f2c, says "not found" about sessions that are alive. It is a duplicate-post path.
+
+The sound replacement is `device_non_terminal_sessions` on the reconcile response: a **count**, not
+an identity, so zero cannot be the "asked with the wrong key" answer.
+
+### Facts about production a later chat must not rediscover — D6A8a
+
+- **TikTok's CDN refuses this deployment's own HTTP client, whatever headers or cookies it carries,
+  and serves `yt-dlp`.** Tested live, one variable at a time, from the production host against a
+  real post: the resolved format's own `http_headers` → 403; those plus the document's cookies →
+  403 with an anti-bot HTML body; bare, `Referer`-only and `User-Agent`-only → 403; `yt-dlp`
+  downloading the same post seconds later → 19.5 MB of real MP4. **Do not re-attempt a
+  "resolve the URL and fetch it ourselves" fix for TikTok**; it is tested and dead, and the code
+  that did it has been deleted rather than left as a fallback.
+- **The reconcile route answers `found: false` for two opposite facts** — the server has no such
+  session, and the session's body would not parse. Android now separates them with `provenAbsent`.
+  Anything new that reads that route must keep them apart.
+- **`DeliveryOperation.last_retry_after_seconds` serves two different waits** — Telegram's own
+  uncapped `retry_after`, and the pre-dispatch ladder's position. A third kind of wait added to
+  that column must extend `_TELEGRAM_OWNED_WAITS` in `remote_sources/delivery/failures.py`.
+- **The ten TikTok items imported on 2026-08-10 are real user data and were deliberately left in
+  `review`.** No one-off SQL, no manual dispatch, no baseline reset. The source's own scheduled
+  check is what acts on them.
+
 ### Permanent manager-workflow rules — recorded so no later chat rediscovers them
 
 - **The user launches the complete three-pane development session with the `apps` command.**
@@ -104,6 +139,13 @@ cp /root/work/telegram-topic-uploader/app/build/outputs/apk/debug/app-debug.apk 
 **Install over the existing app.** The debug certificate has not changed since D5A — at D6A7d it is
 still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`. **D6A7e8 (code 50,
 `0.13.25-d6a7e8`) supersedes every earlier build; no intermediate version needs installing first.**
+
+**D6A8a does not move the Room schema — it stays at 17, and no migration runs on this install.**
+The durable delete queue reuses `manual_source_deletions`, which has recorded the user's
+confirmation before any attempt since D5A and simply had **nothing that ever executed those rows**;
+the now-durable Review sort order is an `AppSettingsRepository` preference storing the enum's
+*name*, deliberately not a column. Anything missing after the install is therefore not a migration
+defect, because there was no migration.
 
 **D6A7e8 does not move the Room schema — it stays at 17, and no migration runs on this install.**
 The identity field's canonical value is **form state**: it has no column, is not persisted, is not
@@ -176,6 +218,51 @@ build reads identically to one answered against this one.
 item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
+
+**D6A8a** — the Queue row that claimed the server owned a send the server had no record of, the
+TikTok auto-send path diagnosed from production, the copy that said a configuration had been sent
+to, the sort corrected to date and size, and a delete queue that finally has a driver.
+
+> **A corrective milestone, opened by hardware, settled by evidence read first.** Nothing here was
+> designed from the brief's description alone: the server was read read-only before a line was
+> written, and **two plausible readings were refuted on the way**. Both refutations are recorded in
+> the repositories rather than tidied away, because they are the part a later chat most needs.
+>
+> **The stuck Queue row was not waiting for the server.** All 197 local upload sessions on the
+> server are terminal; there is no staged, retry-waiting or dispatching row at all, no bot-wide
+> block and no maintenance. The handset had asked fifteen times and been answered `200` each time.
+> Two defects made the row permanent: the durable write that produces a server-owned wait **cleared
+> the dispatch-attempt identity**, leaving only the weaker media-at-destination one to ask with; and
+> a *not found* answer was never acted on, which is right everywhere except for a row whose whole
+> content is a claim that answer disproves. Both fixed — and narrowed by their own guard, because
+> the transport reported `found = false` for both "no such session" and "an answer that would not
+> parse", which are opposite facts. `RESULT_UNKNOWN` is still untouched by any absence.
+>
+> **The TikTok 403 was not a header problem, and the first fix for it was wrong.** Ten items were
+> imported, authorised, attempted and abandoned without a reason — ten operations, zero Telegram
+> requests, reasons written only to a log line. The obvious diagnosis (a signed CDN URL fetched
+> without the `http_headers` yt-dlp prints beside it) was implemented and then **refuted live**:
+> those headers 403, those headers plus the document's own cookies 403 with an anti-bot HTML body,
+> bare and single-header variants 403 — while `yt-dlp` downloading the same post from the same host
+> succeeded with 19.5 MB of real MP4. **TikTok declines this deployment's ordinary HTTP client and
+> serves the extractor.** So the extractor downloads now, and the resolve-then-fetch path was
+> **deleted** rather than kept. *Do not attempt the header fix again; it is tested and dead.*
+>
+> **A transient pre-dispatch failure finally has an owner** — the existing `RETRY_WAIT` state on a
+> bounded five-rung ladder driven by the existing retry pass. No second engine, no second queue. A
+> manual Send is never retried behind the person's back; a photo carousel is never retried at all
+> and says so by name.
+>
+> **"בלי זה" meant *without this platform*, not *without sorting*.** D6A8 misread it. The sort is a
+> dropdown (date and size, both directions, unknown sizes last in both, now durable across a process
+> death) and the exclusion lives on Remote Review, the one surface whose rows carry an authoritative
+> platform — the local grid deliberately does not get it, and that division is pinned by tests.
+>
+> **The delete queue was already durable and had no driver.** A Delete on an idle, safe file was
+> greyed out because something unrelated was uploading; the confirmation was recorded faithfully and
+> then nothing ever selected those rows. Room stays at **17**.
+
+### 4a. The previous milestone
 
 **D6A8** — inline playback inside the cards, the durable History poster, the **בלי זה** sort
 option, and the TikTok listing that finally lists.
