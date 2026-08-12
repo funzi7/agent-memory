@@ -7,6 +7,90 @@
 > **When the user supplies SHAs, read agent-memory before responding**, verify each against
 > `origin/main`, and only then answer. A supplied SHA is a claim to verify, never a fact to repeat.
 
+## D6A8b — one boolean that meant both "a worker holds this" and "an attempt happened once"
+
+**Android production change: yes.** `59` / `0.14.8-d6a8b`, Room schema **17**, **no migration** —
+the local repair separates two facts that were already in four existing columns and were only ever
+read through one projection. **Server production change: yes, deployed** — see
+`/root/work/agent-memory/telegram-remote-sources/cc-latest.md`.
+
+| Field | Value |
+| --- | --- |
+| Android code commit | `c6e32cae6122319ad2d064a361ae5183b22ce632` |
+| Android HEAD | `486bddea0c57162fcced91ba854697adba24a3ba` — documentation only after the code, so the APK hash is unchanged; documentation is not a build input |
+| Version | **59** / `0.14.8-d6a8b`, Room schema **17**, **no migration** |
+| Gate | **3714 tests, 0 failures, 0 errors, 0 skipped, 235 suites; lint 0 issues** (3673/233 at D6A8a), from the committed tree with `--rerun-tasks`. `assembleDebug` and `assembleDebugAndroidTest` both build; instrumentation **compiles and was not run** |
+| APK | `/sdcard/Download/TelegramTopicUploader-0.14.8-d6a8b.apk`, **17,232,412 bytes**, SHA-256 `bc157c8e8222073fda72068b0153c431ef9a4f32d1482bec1338438897dabc6f`, byte-identical to the build output, signer `74e78654…` unchanged since D5A, **not installed** |
+| Server | code `09a65f099aebb2eb0162c8866bc959ffa76c4c58` = `DEPLOYED_HEAD`; `SERVER_HEAD` `2af6d4a00e9769b27f6bf0d1ef0a254106960861` is documentation after the deployment and was deliberately not redeployed. Migration head `0009_d6a7f1a_video_poster` unchanged |
+| Hardware | **`docs/D6A8B_DEVICE_CHECKLIST.md`.** Four lines pre-marked, all physically reported before this build existed; everything else unticked |
+
+### The forensics, done before any code was written
+
+**The local half was structural, and that is stronger than a dump.** The Room database is not
+reachable from an unprivileged shell — no root, no app-external data directory, and a persistent
+debug API was deliberately not introduced to inspect one row. It was not needed:
+`SafeRetirementPolicy.refusal` is an ordered `when` of mutually exclusive clauses, so the sentence
+the card rendered eliminates every earlier clause by construction.
+
+* clause 1 did not fire → **no** stored message id and no confirmation;
+* clause 2 did not fire → the status really is `FAILED_PERMANENT`;
+* clause 3 fired → the claim boolean was true;
+* exactly **two** statements in the application write `FAILED_PERMANENT`, one setting
+  `executionOwnerToken = NULL` and the other requiring it null → **no live owner**, so the true half
+  could only be `dispatchAttemptId` — which `recordDispatchPermanentFailure` keeps on purpose.
+
+`LOCAL_FAILED_ITEM_BUCKET = TERMINAL_AMBIGUOUS_STALE_CLAIM`; safe to resend **no**, safe to retire
+**no**, safe to dismiss keeping the reservation **yes**.
+
+### What the fix is, and what must not be undone
+
+`hasExecutionClaim` unioned four columns. It is now split into `hasLiveExecutionClaim` (owner,
+lease) and `hasDispatchAttemptEvidence` (attempt id, start time). A **retirement** still refuses
+both — it releases the reservation — under the new, true name `DISPATCH_ALREADY_ATTEMPTED`. A
+**dismissal** refuses only the live half, because it keeps the reservation.
+
+`dismissFromActiveList` is its own statement: `retireFromQueue` requires the very markers a
+settlement keeps, so the dismissal reached the database and matched zero rows. It preserves
+`completedAt` rather than overwriting it.
+
+**Do not re-merge the two booleans.** The merge made D6A5's dismissal unreachable for every row it
+was built for, and its tests passed because they built `hasExecutionClaim = false` — a value
+production cannot produce for a settled row that reached dispatch.
+
+### Also in this milestone
+
+* **`TerminalClaimPolicy`** — a pure exhaustive table over every `UploadStatus`: a settled row may
+  keep any amount of attempt evidence and may **never** keep live ownership.
+* **The canonical terminal-claim reconciliation**, in process-start recovery. Clears an owner and a
+  lease from an already-settled row and nothing else; a live row is unreachable from its statement;
+  idempotent; finds nothing on a healthy database, which is why it is run rather than assumed.
+* **Three conditions off `UNKNOWN`**: `INVALID_LOCAL_INPUT` → `REQUEST_INVALID`,
+  `WEBHOOK_CONFLICT` → `WEBHOOK_CONFLICT`, `INTERNAL_ERROR` → `LOCAL_TRANSPORT_FAILURE`. The first
+  two are proof nothing arrived and join `PROVED_NOT_ACCEPTED_CODES`. **`HTTP_ERROR` and
+  `API_ERROR` keep `UNKNOWN` deliberately** — they mean *Telegram replied and this build has no
+  branch for what it said*, and there is no stronger true statement.
+* **Remote History** says it records *attempts*, with All / Sent / Failed / Unknown tabs filtering
+  pages already in memory, and a per-card line relating the attempt to what became of its item —
+  correlated by item id, never by title or thumbnail. `RESULT_UNKNOWN` has its own tab because
+  calling it *failed* asserts the one thing it exists to leave unproven.
+
+### Adversarial review — eight lenses, three confirmed
+
+1. **Server fields no Android surface consumed.** `auto_send_stopped` and `failure_detail` were
+   parsed and never rendered. Fixed by completing the chain, not by removing the fields.
+2. **The dismissal overwrote `completedAt`** — the moment the attempt ended — with the moment
+   somebody tidied a list. Now `COALESCE`.
+3. **The publication rule matched by suffix**, so free text ending in `_rate_limited` would have
+   been forwarded verbatim to a phone. A token-shape test now runs first.
+
+### Device evidence carried in
+
+* **PASSED** — the D6A8a stale server-owned Queue row became sendable on build 58; the user pressed
+  Upload now once; it uploaded; Telegram received it.
+* **PARTIAL PASS** — inline History playback works in-card with a real advancing position and
+  visible LTR progress/seek, play/pause, volume and fullscreen controls. Fullscreen round trip,
+  background pause, audio-focus loss and rotation **not** reported and **not** claimed.
+
 ## D6A8a — a claim about somebody else's table, and a queue that had no driver
 
 **Android production change: yes.** `58` / `0.14.7-d6a8a`, Room schema **17**, **no migration** —

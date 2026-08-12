@@ -11,6 +11,81 @@ hash — and nothing added to it ever may.
 
 ---
 
+## D6A8b — a ladder with no end, a refusal that never said why, and a reason that never left the database
+
+**Server production change: yes, deployed.** Migration head **unchanged** at
+`0009_d6a7f1a_video_poster` — none written, none needed.
+
+| Field | Value |
+| --- | --- |
+| Server code commit | `09a65f099aebb2eb0162c8866bc959ffa76c4c58` = **`DEPLOYED_HEAD`** |
+| `SERVER_HEAD` | `2af6d4a00e9769b27f6bf0d1ef0a254106960861` — documentation written **after** the deployment and deliberately **not** redeployed, following the D6A7f2b precedent |
+| Migration head | `0009_d6a7f1a_video_poster`, unchanged |
+| Wire change | **additive, four fields**: `ItemResponse.failure_detail`, `ItemResponse.auto_send_stopped`, `HistoryEntry.failure_detail`, `HistoryEntry.item_state`. Nothing removed, nothing changed meaning |
+| Gate | **1745 passed, 3 skipped**; ruff format and check clean; mypy clean over 133 files; release-preflight 61 modules |
+| Telegram | untouched. Backend `local`, verified, bot unchanged. **No `logOut`, no backend change, no credential touched, Local Bot API container not restarted** (`Up 4 days` through the deployment) |
+| Live requests | **zero** platform checks, **zero** source validations, **zero** Telegram test sends, **zero** `getMe` |
+
+### Production facts a later chat must not rediscover
+
+Read read-only on 2026-08-12 with the D6A8a code deployed:
+
+* **there are THREE enabled AUTO_SEND sources, not one** — two Instagram profiles and one TikTok
+  profile. The D6A8a handoff already warned that a second Instagram source had been re-enabled
+  outside that milestone; it is still enabled and healthy (46 items, all confirmed);
+* **the D6A8a TikTok fix worked, and Telegram then refused every item.** A scheduled check succeeded
+  at 06:58 with `success_no_new_posts`, and the backlog drain created ten operations six seconds
+  later — the first Telegram requests those ten items ever produced. All ten reached
+  `failed_after_dispatch / telegram_refused`, and the items are `failed`. **The staging half is
+  fixed; the destination half is not diagnosed**, and that is the open question for a later chat;
+* **five Instagram items each had six delivery operations**, one per daily check since 1 August,
+  against a CDN answering `media_http_403` every time;
+* **zero** items in `review` whose latest operation is `failed_after_dispatch`. The state is
+  unreachable — `create_operation` refuses anything outside `{REVIEW, BASELINE}`.
+
+### What changed, and the one subtlety worth carrying
+
+**The ladder now ends.** Exhaustion used to be recorded only in a log line, while the item's durable
+code stayed the **coarse** `download_failed` — a member of the transient set by construction — so
+`is_permanently_settled` waved it through and the next check opened a fresh five-rung ladder.
+
+`is_ladder_exhausted(state, last_retry_after_seconds)` needs no column. **The subtlety:**
+`last_retry_after_seconds` served two different waits — this module's ladder position and the
+number Telegram names in a 429, which is honoured verbatim and uncapped. `_settle_pre_dispatch` now
+pins it to the final rung exactly when the ladder runs out and to `None` otherwise, so on a settled
+pre-dispatch row the column means one thing. Without that normalisation a six-hour flood wait would
+be indistinguishable from a spent ladder. **Do not "tidy" that assignment away.**
+
+Existing production rows already satisfy the invariant, so no backfill was needed.
+
+**A refusal now says why.** Telegram's description reached `SendResult.detail` and was dropped by
+`_settle_rejected`. It is classified into a closed vocabulary and stored; the description itself is
+**never** stored, because it is the one field in this exchange that can name a chat, a topic or a
+file. Both post-dispatch settlements assign the detail unconditionally, so a stage transition
+overwrites the reason instead of inheriting it — five TikTok operations were `telegram_refused`
+while still carrying `extractor_failed` from an earlier attempt of the same operation.
+
+**Pre-D6A8b rows are not rewritten.** Twenty-eight refusals still have no reason. Backfilling one
+nobody recorded would be inventing it.
+
+### The review finding worth carrying
+
+`is_publishable_detail` accepted anything matching the vocabulary's **suffix** tests — which exist
+so an unwritten connector classifies correctly. Free text ending in `_rate_limited` would have gone
+to a phone verbatim. A sanitized-token shape test (lowercase, digits, underscore, ≤64) now runs
+**first**. Keep that ordering.
+
+### Deployment
+
+Guard read **fresh at 18:09Z**, not carried over from the forensics five hours earlier: zero
+dispatching deliveries, zero non-terminal local upload sessions, zero running checks or validations,
+no maintenance, no pacing block, nearest scheduled check 21:15Z against a window ending 19:39Z.
+First attempt, verified afterwards read-only: migration head unchanged, `RELEASE_COMMIT` reads back
+the deployed SHA, and the five stranded items correctly **not** yet flagged as stopped — their
+current ladder was still climbing, due 21:44Z. The fix prevents the *seventh* operation; it does
+not rewrite the six on record.
+
+
 ## D6A8a — the fetch that could never have worked, and the failure nothing owned
 
 **Server production change: yes.**

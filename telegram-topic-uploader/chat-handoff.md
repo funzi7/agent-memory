@@ -54,6 +54,31 @@ supplied HEAD against GitHub before trusting it.
 - **Repositories are committed and pushed separately** — server, then application, then agent-memory.
   All must end clean, zero ahead, zero behind.
 
+### D6A8b settled what the withdrawn D6A8a fix was pointing at — read this before touching claims
+
+The D6A8a note below is still correct about `dispatchAttemptId`, and D6A8b explains **why** it was
+correct and fixed the underlying problem rather than the symptom. The column really did mean *an
+attempt is claimed* to the rest of the application — and that was itself the defect. Four durable
+columns were unioned into one boolean:
+
+    hasExecutionClaim = executionOwnerToken IS NOT NULL OR dispatchAttemptId IS NOT NULL
+
+Two of them (`executionOwnerToken`, `executionLeaseExpiresAt`) mean **a worker holds this row now**.
+Two of them (`dispatchAttemptId`, `dispatchStartedAt`) mean **an attempt happened once and is
+over** — and a terminal settlement clears the first pair and deliberately *keeps* the second, so
+every row that had ever reached dispatch read as permanently claimed.
+
+Since D6A8b the concept is split: `hasLiveExecutionClaim` and `hasDispatchAttemptEvidence`.
+
+- **a retirement** still refuses both, because it releases the reservation and a started request may
+  have been accepted. Its refusal is now `DISPATCH_ALREADY_ATTEMPTED`, which is true of the row;
+- **a dismissal** refuses only the live half, because it keeps the reservation.
+
+**Do not re-merge them, and do not "simplify" the policy back to one boolean.** The cost of the
+merge was not a bad sentence: D6A5's dismissal tests the same boolean, so it had been unreachable
+for every row it was built for, and its tests passed because they constructed
+`hasExecutionClaim = false` — a value production cannot produce for such a row.
+
 ### Two D6A8a fixes were withdrawn, and must not be re-attempted
 
 Both were plausible, both were refuted by an adversarial read of the finished diff, and neither
@@ -140,6 +165,10 @@ cp /root/work/telegram-topic-uploader/app/build/outputs/apk/debug/app-debug.apk 
 still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`. **D6A7e8 (code 50,
 `0.13.25-d6a7e8`) supersedes every earlier build; no intermediate version needs installing first.**
 
+**D6A8b does not move the Room schema — it stays at 17, and no migration runs on this install.**
+The local repair needed no new column: the two facts it separates were already in four existing
+columns and were only ever read through one projection. Build **59 / `0.14.8-d6a8b`** supersedes 58.
+
 **D6A8a does not move the Room schema — it stays at 17, and no migration runs on this install.**
 The durable delete queue reuses `manual_source_deletions`, which has recorded the user's
 confirmation before any attempt since D5A and simply had **nothing that ever executed those rows**;
@@ -218,6 +247,32 @@ build reads identically to one answered against this one.
 item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
+
+**D6A8b** — the terminally failed row that offered nothing at all, the canonical rule that a settled
+row may keep evidence and never ownership, three transport conditions that were never unidentified,
+a pre-dispatch retry ladder that started again every morning, a Telegram refusal that recorded no
+reason, and Remote History finally saying it is a record of *attempts*.
+
+> **Forensics first, and the local half was structural.** The Room database is not reachable from an
+> unprivileged shell, and it did not need to be: `SafeRetirementPolicy.refusal` is an ordered `when`
+> of mutually exclusive clauses, so the sentence the card rendered eliminates every earlier clause.
+> No message id and no confirmation, a genuine `FAILED_PERMANENT`, a true claim boolean — and since
+> exactly two statements write `FAILED_PERMANENT` and both guarantee `executionOwnerToken IS NULL`,
+> there was no live owner and the true half could only be `dispatchAttemptId`.
+> `LOCAL_FAILED_ITEM_BUCKET = TERMINAL_AMBIGUOUS_STALE_CLAIM`.
+>
+> **Production had three enabled AUTO_SEND sources, not one** — two Instagram, one TikTok.
+>
+> **The D6A8a TikTok fix worked and Telegram then refused every item.** A scheduled check succeeded
+> at 06:58 on 2026-08-12 and the backlog drain created ten operations six seconds later, the first
+> Telegram requests those items ever produced. All ten were definitively refused.
+>
+> **Five Instagram items each had six delivery operations**, one per daily check since 1 August,
+> because ladder exhaustion was recorded only in a log line while the item's durable code stayed the
+> coarse `download_failed` — which is transient by construction.
+>
+> **`REVIEW` + `FAILED_AFTER_DISPATCH` was predicted and does not exist.** Zero pairs, and the state
+> is unreachable. The refutation is pinned by a test, not by prose.
 
 **D6A8a** — the Queue row that claimed the server owned a send the server had no record of, the
 TikTok auto-send path diagnosed from production, the copy that said a configuration had been sent
