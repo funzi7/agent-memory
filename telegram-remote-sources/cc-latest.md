@@ -74,6 +74,33 @@ reason must not name a separate permanent problem. A row with **no** stored reas
 deliberately: that absence is the affected period's signature, because the build that handled those
 refusals dropped Telegram's description.
 
+### What production then did, on its own — both fixes proved on real deliveries
+
+The five retry-owned Instagram items came naturally due at 21:44Z, on their existing ladder, nothing
+triggered by hand — and **all five were confirmed by Telegram** within forty-six seconds. Each had
+previously settled `download_failed / media_http_403` *before dispatch*; they staged through the
+authenticated extractor, were handed to the Local Bot API as a path it could finally read, and came
+back with message identifiers. **The first Remote Sources deliveries confirmed since 1 August.**
+
+Confirmed operations **66 → 71**; total operations **139 → 139** (the retries reused their own
+operations, the repair created none); **zero** items with more than one confirmed operation; all 33
+historical refusals unchanged.
+
+### A defect the next milestone should fix
+
+Those five confirmed operations still carry `failure_code='download_failed'` and
+`failure_detail='media_http_403'` from the attempt that failed before the one that worked.
+`_settle_confirmed` never clears them, and `routes.py` publishes `failure_detail` for **every**
+History entry regardless of state — so a *confirmed* card's detail panel shows a download failure on
+a delivery that succeeded. The headline is correct (*sent and confirmed in Telegram*), so it is a
+clarity defect and not a safety one.
+
+Not new code: the pre-existing retry path, newly reachable because before D6A8c a `RETRY_WAIT`
+Remote operation never went on to succeed. Same shape as the inherited staging detail D6A8b fixed,
+one state further along. Left unfixed deliberately — a redeploy was not attempted while deliveries
+were in flight, since the guard requires zero dispatching operations and breaking it for a cosmetic
+field would risk a `RESULT_UNKNOWN` on a real send.
+
 ### For the next milestone
 
 The re-armed items are owned by the ordinary scheduler — any *successful* check drains (D6A8a) — so
