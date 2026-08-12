@@ -7,6 +7,70 @@
 > **When the user supplies SHAs, read agent-memory before responding**, verify each against
 > `origin/main`, and only then answer. A supplied SHA is a claim to verify, never a fact to repeat.
 
+## D6A8c — a tile that opened a player and nothing that closed it
+
+**Android production change: yes.** `60` / `0.14.9-d6a8c`, Room schema **17**, **no migration** —
+the player's expansion state is UI state. **Server production change: yes, deployed** — see
+`/root/work/agent-memory/telegram-remote-sources/cc-latest.md`.
+
+| Field | Value |
+| --- | --- |
+| Android code commit | `7af20cb9e569d94136783dda7733379bf931b602` |
+| Android HEAD | `2bcdfbbc15172ecc9d549ad08d93e36a1297f512` — documentation only after the code, so the APK hash is unchanged; documentation is not a build input |
+| Version | **60** / `0.14.9-d6a8c`, Room schema **17**, **no migration** |
+| Gate | **3734 tests, 0 failures, 0 errors, 0 skipped, 236 suites; lint 0 issues** (3714/235 at D6A8b), counted from the XML reports on the committed tree with `--rerun-tasks`. `assembleDebug` and `assembleDebugAndroidTest` both build; instrumentation **compiles and was not run** |
+| APK | `/sdcard/Download/TelegramTopicUploader-0.14.9-d6a8c.apk`, **17,242,503 bytes**, SHA-256 `c3cecc6355f02e81a6c27d6c6495a272300487ee2d803518b500756a8398559f`, byte-identical to the build output, signing certificate `74:E7:86:54:…:DF:D4` verified unchanged against the D6A8b APK, **not installed** |
+| Server | code `5f6bb4aa2c75c9882348d6b5b425cec36cca3c0e` = `DEPLOYED_HEAD`; `SERVER_HEAD` `fb45bf45219bfa25c7390181bfab5eb472eb8786` is documentation after the deployment. Migration head `0009_d6a7f1a_video_poster` unchanged |
+| Hardware | **`docs/D6A8C_DEVICE_CHECKLIST.md`.** Nothing pre-marked; D6A8b's physical evidence carried forward in its own section |
+
+### The toggle the user asked for
+
+D6A8 made a card's compact video tile expand into an inline player and never made anything collapse
+it. The gap was easy to miss because the tile is *replaced* by the player: the control you press to
+open is no longer on screen, so the only ways back were opening a different card or scrolling this
+one out of composition — side effects, not actions.
+
+The obvious fix is refused, and the refusal is pinned by a test. Making a tap on the large player
+collapse the card would give that surface a third meaning for one gesture — it already reveals
+hidden controls, then plays and pauses — so somebody reaching for pause would close the card. The
+toggle keeps its own compact target, present as long as the player is, and deliberately **not**
+auto-hidden with the playback controls: the only way out of a state must not be hidden by that
+state.
+
+It adds no state. `InlineVideoPlayback.activeKey` already answers "is this card expanded", and a
+per-card boolean beside it would be a second answer to one question — the shape that leaves a
+collapsed card still holding the application-wide slot. Collapsing releases the slot; the existing
+disposal then releases the `MediaPlayer` and abandons audio focus, so "no hidden audio" is the path
+that already handled scrolling rather than new code to get wrong.
+
+Full screen is untouched and separate in both behaviour and wording: **סגור נגן / Close player**
+against **מסך מלא**. The compact tile is **פתח נגן / Open player** rather than "Play", which belongs
+to the expanded surface.
+
+### A refusal that implied it knew why
+
+Twenty-eight of the thirty-three definitive refusals in production stored no reason — the build that
+handled them read Telegram's description, classified nothing, and dropped it. "Telegram refused this
+send" is true and invites the reading that the product knows why and is withholding it.
+
+Three honest answers now. A recognised token is said in full (fourteen translated). No reason at all
+says exactly that. And a token this build does not recognise — including the server's own
+`telegram_refused_unclassified`, and the five old rows carrying an inherited *staging* reason rather
+than a Telegram one — keeps the plain sentence. Those five are the reason: they would otherwise
+explain a Telegram refusal with a download failure. **Nothing is guessed for a row that never stored
+a reason, and no historical row is rewritten.**
+
+### Physical evidence recorded this milestone
+
+`D6A8B_AMBIGUOUS_LOCAL_DISMISS_DEVICE_RESULT = PASSED`. The ambiguous local terminal failure — the
+row that read *permanent failure / reason unknown / cannot remove because an attempt is still
+claimed* — offered **Remove from active processing** on build 59 and the user has now used it. It
+worked. No resend was attempted and the failure was not re-created.
+
+**Nothing is claimed about whether that row's source file was deleted or retained**: the handset did
+not report it, so the checklist does not say. Writing "the file was kept" because it is the expected
+behaviour would be inventing evidence.
+
 ## D6A8b — one boolean that meant both "a worker holds this" and "an attempt happened once"
 
 **Android production change: yes.** `59` / `0.14.8-d6a8b`, Room schema **17**, **no migration** —

@@ -165,6 +165,10 @@ cp /root/work/telegram-topic-uploader/app/build/outputs/apk/debug/app-debug.apk 
 still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`. **D6A7e8 (code 50,
 `0.13.25-d6a7e8`) supersedes every earlier build; no intermediate version needs installing first.**
 
+**D6A8c does not move the Room schema — it stays at 17, and no migration runs on this install.**
+The inline player's expansion state is UI state and needs no column. Build **60 /
+`0.14.9-d6a8c`** supersedes 59.
+
 **D6A8b does not move the Room schema — it stays at 17, and no migration runs on this install.**
 The local repair needed no new column: the two facts it separates were already in four existing
 columns and were only ever read through one projection. Build **59 / `0.14.8-d6a8b`** supersedes 58.
@@ -247,6 +251,31 @@ build reads identically to one answered against this one.
 item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
+
+**D6A8c** — the Local Bot API container that could never read the directory Remote delivery stages
+into, an Instagram media fetch that carried no session, a compact media tile that opened a player
+and nothing that closed it, and a refusal that implied it knew a reason it had never stored.
+
+> **The diagnosis was certain rather than plausible because of a working sibling.** Every Remote
+> Sources delivery attempted after the cloud-to-local migration was refused — 33, no successes — and
+> every one ever confirmed was before it. Meanwhile **194 phone uploads confirmed across the same
+> period**, same bot, same server, same release. The only difference is which directory the file sat
+> in: the phone's root was mounted into the `telegram-bot-api` container and the delivery staging
+> root was not. Confirmed from inside the container before and after the fix.
+>
+> The cause in code was one boolean doing two jobs — `supports_local_path` means *this transport
+> accepts a path*, and it was answering *this file is one the receiver can open*. The rule is now a
+> conjunction, so no other directory can repeat it silently.
+>
+> Instagram's media fetch was anonymous while its discovery was authenticated. One bounded probe:
+> **403** for the old path, **512,272 bytes of valid media** for the authenticated extractor,
+> against the same failing member minutes apart.
+>
+> **The repair re-armed 33 items — 10 TikTok and 23 Instagram — and the 23 were added only after the
+> user reviewed the evidence and approved.** The brief had scoped it to TikTok; the milestone
+> reported the count and left them alone rather than widening on its own reading. It created no
+> delivery operation, sent nothing, preserved all 33 historical refusals, and a second `--apply`
+> reported zero.
 
 **D6A8b** — the terminally failed row that offered nothing at all, the canonical rule that a settled
 row may keep evidence and never ownership, three transport conditions that were never unidentified,

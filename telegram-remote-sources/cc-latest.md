@@ -1,5 +1,85 @@
 # Remote Sources server — latest handoff
 
+## D6A8c — a path the Bot API could not read, and a fetch that carried no session
+
+**Server production change: yes, deployed.** Migration head **unchanged** at
+`0009_d6a7f1a_video_poster` — a mount is a deployment change, not a schema one, and the repair works
+from row state that already exists.
+
+| Field | Value |
+| --- | --- |
+| Server code commit | `5f6bb4aa2c75c9882348d6b5b425cec36cca3c0e` = `DEPLOYED_HEAD` |
+| Server HEAD | `fb45bf45219bfa25c7390181bfab5eb472eb8786` — documentation written after the deployment, deliberately not redeployed |
+| Gate | **1821 passed, 3 skipped**; ruff format and check clean; mypy clean over **136** files; release-preflight **63** modules; `bash -n` on the one changed shell script |
+| Telegram | backend `local`, verified, `max_upload_bytes` 2,097,152,000, same bot. **No `logOut`, no backend change, no credential touched, no bot identity change, no Telegram request made by this milestone** |
+| Local Bot API | **recreated** — that is what applies the new mount — from the same pinned image `sha256:7df49461…`, `linux/amd64`, unchanged. No published port |
+| Live upstream | **one** bounded Instagram media probe. Zero source checks, zero validations, zero Telegram test sends |
+
+### The diagnosis, and why it was certain rather than plausible
+
+Every Remote Sources delivery attempted after the cloud-to-local migration was refused — 33 of them,
+across both platforms, first on 9 August — and every delivery ever *confirmed* was **before** that
+migration (66, last on 1 August; the switch was 8 August 07:20).
+
+What made it certain was a working sibling nobody had asked about: **194 phone uploads confirmed
+over the same period**, through the same bot, the same server, the same release. The only difference
+is which directory the file sat in. The phone's media lands under `local-uploads`, which the
+`telegram-bot-api` container mounts; Remote Sources media lands under `staging`, which it did not —
+so the server was handed a `file://` URI naming a path that does not exist in its filesystem
+namespace. Confirmed directly, before and after: `ls /var/lib/remote-sources` inside that container
+answered only `local-uploads`, and after the deployment answers `local-uploads` **and** `staging`.
+
+The cause in code was one boolean doing two jobs. `supports_local_path` means *this transport
+accepts a path*; it was used to answer *this file is one the receiver can open*, which depends
+entirely on mounts. `delivery/local_paths` is now the one authority and the rule is a conjunction —
+transport accepts paths **and** the file is under a shared root — so a thumbnail, a backup or a
+scratch file cannot repeat this silently. A path outside every shared root falls back to multipart,
+which is slower and always correct.
+
+### The second defect
+
+Instagram discovery was authenticated and its media fetch was not: the adapter checked a session
+existed and then fetched with an anonymous client and a `Referer`, which made the code *read* as
+though the session were involved. The URLs it replayed are signed and expiring.
+
+Measured with one bounded probe from inside the production container, against a member failing at
+that moment: **403** for the old path, **512,272 bytes of valid media** for `gallery-dl` with the
+operator cookie jar. Media is now re-resolved through the authenticated extractor at dispatch, from
+the shortcode already stored — which is what lets the backlog be repaired with no rediscovery and no
+cursor movement. There is deliberately **no fallback**; on this deployment it would only ever add a
+403 to every genuine failure.
+
+### The repair, and the decision that shaped it
+
+`repair-d6a8c-remote-backlog`, keyed `d6a8c_remote_delivery_path`. Applied after a verified backup,
+against production:
+
+```
+tiktok examined 10    → re-armed 10
+instagram examined 23 → transport defect, post-dispatch: 23
+                      → media download, pre-dispatch:     0
+```
+
+A second `--apply` reported **zero** on every line. Afterwards: all 33 historical refusals present
+and unchanged, operations carrying a confirmation still **66**, total operations still **139** (the
+repair creates none), source cursors untouched, and the five retry-owned Instagram items still
+holding their ladder and due time.
+
+**The twenty-three were not taken on the agent's own reading.** The brief scoped the post-dispatch
+repair to TikTok, so the first selector refused them; the milestone reported the count and the
+evidence and left them alone. The user reviewed that evidence and approved including them, and only
+then was the selector extended — with its own conditions rather than TikTok's: the refusal must lie
+at or after the recorded local-migration instant, the backend must still be local, and the stored
+reason must not name a separate permanent problem. A row with **no** stored reason passes
+deliberately: that absence is the affected period's signature, because the build that handled those
+refusals dropped Telegram's description.
+
+### For the next milestone
+
+The re-armed items are owned by the ordinary scheduler — any *successful* check drains (D6A8a) — so
+TikTok's ten are due on its 06:58Z check and Instagram's on 05:11Z. Nothing was manually dispatched.
+
+
 > The canonical cross-chat bootstrap for this system is
 > `/root/work/agent-memory/telegram-topic-uploader/chat-handoff.md`. **Read that first.** This file
 > is the detailed technical handoff for the server repository specifically.
