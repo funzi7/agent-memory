@@ -225,6 +225,13 @@ not install the release. Three further conditions:
 - **Never delete prior APKs from Downloads.** They are the only way to go back.
 - **If `/sdcard/Download/` is unavailable, the Android release handoff has failed** — report the
   exact filesystem error rather than silently skipping the copy.
+- **D6A8d: verify the signer by its certificate, not by the signature block.** `META-INF/CERT.RSA`
+  is a PKCS#7 SignedData block that *contains the signature*, so its digest changes on every build
+  and comparing it release to release proves nothing — it will always look different and read as a
+  changed signer. Extract the certificate inside it and compare that fingerprint:
+  `openssl pkcs7 -inform DER -in CERT.RSA -print_certs | openssl x509 -noout -fingerprint -sha256`.
+  It has been `74:E7:86:54:97:9A:76:70:4D:80:36:D5:76:83:59:FE:A9:2D:DE:6A:7E:65:51:E2:04:C1:3D:0E:8F:3C:DF:D4`
+  (`CN=Android Debug`) since D5A.
 
 **D6A7e2 does not move the Room schema — it stays at 16, and no migration runs on this install.**
 Every folder grant, destination, queue item, confirmation, ignore marker, deletion tombstone and
@@ -251,6 +258,42 @@ build reads identically to one answered against this one.
 item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
+
+**D6A8d** — the white/blank Telegram video card on every Remote delivery this service has ever made,
+a confirmed delivery that still published its earlier failure, a card that claimed a delivery on an
+item that had never been sent, and counts on every relevant tab.
+
+> **The white card is a re-occurrence, not a discovery, and the control case had to come from
+> somewhere unexpected.** D6A7f1 proved on hardware that a `sendVideo` with no duration renders as a
+> blank `0:00` card; D6A7f1a proved that some files stayed blank *with correct durations* until the
+> poster travelled too. The Remote dispatcher was never brought along: it built every outgoing
+> member with duration, dimensions and poster absent — unconditionally, on both transports, for
+> every delivery ever made. So **no normally-presenting Remote video exists** to compare against,
+> and the working sibling is the phone path: same bot, same Local Bot API server, same period, 194
+> confirmed sessions with videos up to **28,784,273 bytes**, all carrying measured presentation and
+> a verified poster, all rendering normally. That is nearly three times the size of the Remote video
+> that came out blank, which is what rules size out. **No size threshold is encoded and a test in
+> each repository refuses one.**
+>
+> **The reason for the omission was true when it was written and had quietly lapsed.** The docstring
+> said this service "has no decoder". The media is staged on the server before dispatch and the
+> runtime image has carried `ffmpeg` — and therefore `ffprobe` — since the first release, because
+> `yt-dlp` needs it. The honest sentence was never *cannot know*; it was *never asked*. No
+> dependency was added, and the toolchain was inspected before anything was reached for.
+>
+> **A delivery is retried in place**, so the five Instagram rows that confirmed on 12 August are the
+> rows that had failed — and the confirmation was written over the top without clearing it. Five
+> rows said `confirmed`, with a confirmation time and a message id, beside `media_http_403`. Fixed
+> in three places, each load-bearing alone: the writer, a projection guard that covers every row
+> written before the writer was fixed, and one narrow repair (5 / 5 / 0).
+>
+> **A frozen destination does not mean delivered.** It means a delivery operation exists — true of
+> the 33 items sitting in Review having never been sent — and the card was rendering *sent to
+> `<topic>`* for it. One boolean carrying two facts, the same class D6A8a fixed one line higher.
+>
+> **The 33 were re-armed by D6A8c and were not sent by this milestone.** Nothing here pressed Send,
+> pressed Check now, created a delivery operation, moved a cursor or altered their state, and no
+> live request of any kind was made — the optional bounded media reconstruction was not needed.
 
 **D6A8c** — the Local Bot API container that could never read the directory Remote delivery stages
 into, an Instagram media fetch that carried no session, a compact media tile that opened a player
@@ -347,6 +390,11 @@ to, the sort corrected to date and size, and a delete queue that finally has a d
 > then nothing ever selected those rows. Room stays at **17**.
 
 ### 4a. The previous milestone
+
+**D6A8c** — the Local Bot API container that could never read the directory Remote delivery stages
+into, and an Instagram media fetch that carried no session. Its full note is in section 4 above; the
+five Instagram deliveries it unblocked confirmed on their own afterwards, and those five confirmations
+are what exposed both defects D6A8d fixed.
 
 **D6A8** — inline playback inside the cards, the durable History poster, the **בלי זה** sort
 option, and the TikTok listing that finally lists.

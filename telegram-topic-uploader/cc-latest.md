@@ -7,6 +7,52 @@
 > **When the user supplies SHAs, read agent-memory before responding**, verify each against
 > `origin/main`, and only then answer. A supplied SHA is a claim to verify, never a fact to repeat.
 
+## D6A8d — the topic a card said it had gone to, and a tab with no number on it
+
+**Android production change: yes.** `61` / `0.14.10-d6a8d`, Room schema **17**, **no migration** —
+counters and wording are projections and UI state. **Server production change: yes, deployed** — see
+`/root/work/agent-memory/telegram-remote-sources/cc-latest.md`.
+
+| Field | Value |
+| --- | --- |
+| Android code commit | `6ee0a167294a9409be8fb5ea83cf9c755c0fe53b` |
+| Android HEAD | `9165503f8e987fa2a6563d8ae53e25c3985e0a52` — documentation only after the code, so the APK hash is unchanged; documentation is not a build input |
+| Version | **61** / `0.14.10-d6a8d`, Room schema **17**, **no migration** |
+| Gate | **3775 tests, 0 failures, 0 errors, 0 skipped, 238 suites; lint 0 issues** (3734/236 at D6A8c), counted from the XML reports on the committed tree with `--rerun-tasks`. `assembleDebug` and `assembleDebugAndroidTest` both build; instrumentation **compiles and was not run** |
+| APK | `/sdcard/Download/TelegramTopicUploader-0.14.10-d6a8d.apk`, **17,262,289 bytes**, SHA-256 `1a1666339439e48cd352808f0648bb2bddd67cab33b8212e115040bd01611627`, byte-identical to the build output, signing **certificate** `74:E7:86:54:…:DF:D4` verified unchanged against the D6A8c APK, **not installed** |
+| Server | code `0e18506fbe8bd8695cea73128dc83d7c71e0c673` = `DEPLOYED_HEAD`; `SERVER_HEAD` `74d2758e211f222d021cecc5c801e1d5c10d5da7` is documentation after the deployment. Migration head `0009_d6a7f1a_video_poster` unchanged |
+| Hardware | **`docs/D6A8D_DEVICE_CHECKLIST.md`.** Nothing pre-marked |
+
+### What it fixes
+
+**A card claimed a delivery that had not happened.** Remote Review rendered *sent to `<topic>`*
+whenever the destination was frozen — and a frozen destination means *a delivery operation exists*,
+not *it arrived*. Thirty-three items were reading that way while waiting for their sources' next
+scheduled checks. One boolean was carrying two facts.
+
+The fix is a rule, in the same shape as D6A8a's one line higher on the source card: only a confirmed
+item may present its topic as a completed delivery, and a **separate** sentence says what is
+happening in the tense the evidence supports. Telling *waiting for you* from *waiting for the
+server* needs the source's mode, which the item response now carries; a build that does not get it
+renders no claim at all, because guessing is the defect.
+
+**Every relevant tab now carries a count**, and it is the server's own total rather than the size of
+the loaded page. `בלי TikTok` stays free of a round trip because the server publishes each category
+per platform and the phone does one subtraction. An older server sends nothing and a tab draws **no
+number** rather than a fabricated zero.
+
+### Two signer facts worth carrying forward
+
+The APK's `META-INF/CERT.RSA` **block** digest changes on every build — it contains the signature —
+so comparing it release to release proves nothing. The **certificate inside it** is the signer
+identity; extract it and compare its SHA-256 fingerprint. D6A8c's block digest and D6A8d's differ;
+their certificate fingerprints are identical.
+
+### What is still unproven
+
+Everything a Telegram client draws. No live send was made by any agent, the thirty-three re-armed
+items were not sent, and the previously blank cards were not touched.
+
 ## D6A8c — a tile that opened a player and nothing that closed it
 
 **Android production change: yes.** `60` / `0.14.9-d6a8c`, Room schema **17**, **no migration** —

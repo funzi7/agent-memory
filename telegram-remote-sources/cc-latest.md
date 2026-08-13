@@ -1,5 +1,72 @@
 # Remote Sources server — latest handoff
 
+## D6A8d — the decoder this service already had, and the failure a confirmed delivery kept
+
+**Server production change: yes, deployed.** Migration head **unchanged** at
+`0009_d6a7f1a_video_poster` — the measurements are ephemeral operation data, the settlement
+correction uses existing columns, and the counts are folded from existing states.
+
+| Field | Value |
+| --- | --- |
+| Server code commit | `0e18506fbe8bd8695cea73128dc83d7c71e0c673` = `DEPLOYED_HEAD` |
+| Server HEAD | `74d2758e211f222d021cecc5c801e1d5c10d5da7` — documentation written after the deployment, deliberately not redeployed |
+| Gate | **1895 passed, 4 skipped**; ruff format and check clean; mypy clean over **143** files; release-preflight **67** modules; `bash -n` on the one changed shell script |
+| Telegram | backend `local`, verified, `max_upload_bytes` 2,097,152,000, same bot. **No `logOut`, no backend change, no credential touched, no bot identity change, no Telegram request made by this milestone** |
+| Local Bot API | **not touched.** Same pinned image, same container, up throughout both deployments. No published port |
+| Live upstream | **zero.** No source check, no validation, no Telegram test send, no platform contacted by any part of this milestone including the forensics |
+
+### The white card, and the control case the obvious comparison could not supply
+
+A delivered Instagram video arrived in Telegram as a white/blank download-style card. Telegram
+confirmed the message, so this was never a failed send — it was a delivered message with the wrong
+presentation, which is the worst shape available because nothing fails and so nothing retries.
+
+The dispatcher built **every** Remote member with `duration_seconds`, `width`, `height` and
+`poster_path` absent — unconditionally, on both transports, for every delivery this service has ever
+made. So there is no normally-presenting Remote video to hold the blank one against, and the control
+had to be the **working sibling**: the phone path, same bot, same Local Bot API server, same period,
+194 confirmed sessions with videos from **1,268,017** to **28,784,273** bytes, all carrying measured
+duration, measured dimensions and a verified poster, and all rendering normally.
+
+The largest of those is nearly three times the size of the Remote video that came out blank, which
+is what rules size out. **No size threshold is encoded and a test in each repository refuses one** —
+the user's ~10 MB figure is the client's auto-play boundary, which D6A7f1a had already established.
+
+**The reason the omission existed was true when it was written and had lapsed.** The docstring said
+this service "has no decoder". The media is staged here before dispatch and the runtime image has
+carried `ffmpeg`, and therefore `ffprobe`, since the first release because `yt-dlp` needs it. The
+honest sentence was never *cannot know*; it was *never asked*. **No dependency was added.**
+
+### The failure a confirmed delivery kept
+
+A delivery is retried **in place**, so the five Instagram rows that confirmed on 12 August are the
+rows that had failed. Exactly five read `confirmed`, with a confirmation time and a positive message
+id, beside `download_failed` / `media_http_403` and a past `retry_not_before`.
+
+Three corrections, each load-bearing alone: the writer clears the four presentation fields, a
+projection guard refuses to publish a current failure for a positively confirmed delivery, and
+`repair-d6a8d-confirmed-failure` corrected the stored rows — dry run 5, `--apply` 5, second dry run
+0. Afterwards all 71 confirmed rows still hold their confirmation and message id, every
+`attempt_count` is unchanged, and zero carry any current-failure field.
+
+### The one way this could have caused a resend, and why it does not
+
+`due_retry_operations` treats a **null** `retry_not_before` as *due* — deliberately, for legacy
+repaired rows — and the confirmation settlement now writes exactly that null. It is safe because the
+query's first condition is `state == RETRY_WAIT` and the clearing only ever happens on a `CONFIRMED`
+row. The conjunction is the safety, and it is now a test rather than an argument.
+
+### Carry forward
+
+* **`cover` is documented on `sendVideo` and `InputMediaVideo`, not on `sendAnimation`.** This
+  milestone made that reachable and the field is no longer sent there. `thumbnail` is documented on
+  `sendAnimation` and still travels.
+* **The response body of a send is not retained**, so Telegram's own returned `video` object is not
+  available as evidence for any past delivery. Do not plan a forensic step that assumes it is.
+* **A confirmed operation's staging is cleaned**, so the bytes of an affected past delivery are
+  gone. The request shape was decisive without them, and the bounded media-reconstruction allowance
+  was not used.
+
 ## D6A8c — a path the Bot API could not read, and a fetch that carried no session
 
 **Server production change: yes, deployed.** Migration head **unchanged** at
