@@ -1,46 +1,85 @@
-# paywall-bot handoff — 2026-08-12 UTC
+# paywall-bot handoff — 2026-08-13 UTC
 
 ## Outcome
 
-The self-healing rollout is intentionally **not complete**. Do not merge the open sync PR until central automation-core finishes review and a new sync replaces its head.
+The automation-only rollout completed through the normal exact-head Codex Gate and Merge Bot. PR #94 is merged; no owner click or finding acknowledgement was used. The task did not edit TheMarker, Tech Feed IL, Telegram, Telegraph, or Backfill application logic or state.
 
-## Verified repository state
+## Upstream prerequisite
 
-- GitHub main: `9ec7a64075969ddae9d150f56c3ed5ddf397259e`.
-- The main movement from `c18971779d05bc81a822092cbe782ce5c9deaff7` was an unrelated automated `state/techfeedil.json` update. This infrastructure task did not mutate or publish Tech Feed IL/TheMarker production state.
-- PR #93 is merged. Former head: `aae1c20698509d3cf52a4e9f68cc7a24feb44383`; merge commit: `8e2e3a24496584c74e05e90714ab130309f5f5b8`.
-- PR #89 (`chore(automation): sync from automation-core`) is CLOSED, not merged. Stale head: `2dc8cd5028fac0add06355fd10b84a463e118c5e`. The factual close comment is <https://github.com/funzi7/paywall-bot/pull/89#issuecomment-5258872850>.
-- The old #89 branch was deleted. The current `chore/sync-automation-core` branch belongs to fresh PR #94, as allowed by the cleanup rule.
+- automation-core emergency PR #40 repaired the unparseable Codex Gate and merged as `fd16f6ad875726386f4f7c029993639cafebaa01` after exact-head CI.
+- The parse failure came from direct `${{ ... }}` interpolation inside a roughly 25 KB `actions/github-script` body, which exceeded GitHub's 21,000-character expression limit during template evaluation. Regression checks now cover every tracked workflow YAML, including synced source/mirror pairs and hub-only workflows, and reject all direct expression interpolation inside script bodies; values must travel through `env`.
+- The automation-core watchdog now deduplicates gate-dispatch, update-branch, and backup-dispatch alerts by repository, PR, exact head, operation, and normalized error fingerprint. The first material event alerts; an identical retry does not; a new head or material error may alert once.
+- CI Doctor now excludes trusted internal automation by workflow path as well as name. automation-core Issue #39 was factually closed after the Gate parsed and dispatched, and two subsequent CI Doctor checks created no replacement.
+- The prematurely merged old #38 state was corrected forward through reviewed, normally auto-merged automation-core PRs #41–#51. Issue-mode Claude now has no `AUTOMATION_PAT`, no persisted checkout credential, and no generic shell/interpreter tools during model execution; the PAT is confined to trusted post-model code.
+- GitHub Codex review capacity was available for the forward fixes and downstream rollout.
 
-## Fresh sync PR #94
+## PR #94 final proof
 
-- URL: <https://github.com/funzi7/paywall-bot/pull/94>
-- Current head: `58e675d2337d092c85d0518a0a43eac788583c74`.
-- State: OPEN, non-draft, mergeable.
-- Diff contains only five synced automation workflows: Claude, Codex auto-fix, Codex backup, Codex Gate, and Merge Bot/watchdog infrastructure; no production application/state file.
-- At creation, all seven configured synced workflows were byte-identical to automation-core main `c6708e2d9c58179e451d3a7cb5be0baa4f283767`.
-- Exact-head `test-message-format` CI is green, but authoritative `check-codex-status` is red.
-- Active trusted P1 thread: `PRRT_kwDOSZRyh86YbmH1` (“Keep protected paths guarded for bot-authored owner PRs”). Do not resolve it until the final central provenance fix has merged and been synced into #94.
-- Do not merge #94 at its present head.
+- PR: <https://github.com/funzi7/paywall-bot/pull/94>
+- Final exact head: `5d65f205708435aab09ce03ace5880c30b342293`.
+- Normal squash merge: `2575f0f2b16c12ebb9b9173e8c9a8248ab529ebe` at 12:35:05 UTC.
+- Normal automation-core sync updated the existing PR; it did not create a replacement. At the final head, all seven configured workflows were byte-identical to automation-core source.
+- Exact-head paywall CI run `31699982535` passed.
+- A fresh trusted Codex review at 12:30:31 UTC named the exact head and reported no active P1/P2. All 13 older or addressed review threads were resolved only after the reviewed corrections were present.
+- Authoritative manual Gate run `31700426352` passed. The exact original `pull_request_target` Gate attempt on run `31699980086` was then rerun after thread resolution and produced green native `codex-gate-evaluator` and `check-codex-status` checks on the exact head.
+- Normal workflow-run Merge Bot run `31700719028` performed the merge. No owner merge and no `codex-p1-acknowledged` label were used.
+- The formerly active `.github/workflows/merge-bot.yml:803` P1 became legitimately superseded by the upstream reviewed corrections; it was never overridden merely to make the PR green.
 
-## Central dependency / blocker
+## Production and repository state
 
-- automation-core PR #37 proved the requested live behavior and auto-merged exact reviewed head `b912f6e6ea5b6721589c8d87edb23fafe2977080` as squash commit `c6708e2d9c58179e451d3a7cb5be0baa4f283767`.
-- Merge Bot run `31555184597` logged protected owner review, cleared `needs-owner` + `needs-owner-auto`, merged, and deleted the branch.
-- A downstream Codex review then exposed PAT-authorship ambiguity for Claude-created protected changes.
-- Central corrective PR #38 is open at `5933fa16cc48ad6e2bd2d68fcf6aac2c916f089c`. Automation Core CI run `31558633148` is green and all prior P1/P2 threads are resolved.
-- The external Codex reviewer refused the required current-head review with an account usage-limit message on 2026-08-12 02:59 UTC. Therefore no authoritative exact-head gate exists for #38, and #38 was correctly left open with `needs-owner` + `needs-owner-auto`.
+- Paywall-bot Codex Gate workflow ID `288364579`, Claude Fixer `302557988`, Claude Fallback Watchdog `303932281`, and Merge Bot `303932284` are active.
+- The seven synced workflows on main are the reviewed automation-core versions. No rejected pre-fix automation regression was reintroduced.
+- Main may also contain unrelated production-state commits made by existing automation outside this infrastructure task. This task neither authored nor modified those state files.
+- Do not run Backfill or mutate/publish production data while performing automation maintenance.
 
-## Safe resume sequence
+## Final documentation
 
-1. Restore/renew Codex code-review capacity.
-2. Request `@codex review` on automation-core PR #38 and require a verdict explicitly bound to `5933fa16cc48ad6e2bd2d68fcf6aac2c916f089c` (or its then-current head), zero active P1/P2 threads, green Automation Core CI, mergeability, and green exact-head `check-codex-status`.
-3. Let central Merge Bot auto-merge. Do not use an override merely to bypass the missing review.
-4. Trigger `Sync from automation-core` in paywall-bot. It should update fresh PR #94; it must not resurrect #89.
-5. Verify all seven sync files match central and only intended automation files changed. Resolve #94 thread `PRRT_kwDOSZRyh86YbmH1` only after its fix is present.
-6. Request a fresh exact-head Codex review, require CI/gate green and no active P1/P2, then let the newly synced Merge Bot close the loop. Use the authorized one-time rollout merge only if bootstrap timing alone prevents the old downstream bot, and pin it to the exact reviewed SHA.
-7. Verify downstream main contains the synced Merge Bot. Do not run Backfill or mutate/publish production state.
+- Handoff PR #95 exact head `b42085136b470556595ba5126c3e013a4bedda15` passed downstream CI, received a clean exact-head Codex review, and passed Gate run `31701230800`.
+- The normal Merge Bot squash-merged it as `3202649611d6a51d913d7d054a2189ded50e9afb`; paywall-bot main now includes the self-contained rollout record in `handoffs/CONTEXT.md`.
 
-## Local state
+## Subsequent exact-head hardening and final rollout
 
-- `/root/work/paywall-bot` is on clean `main` at `9ec7a64075969ddae9d150f56c3ed5ddf397259e` after a normal fast-forward.
+- Automation-core PR #52 completed repository-wide expression hardening and
+  normally merged as `961b51d9ff23edd215ff026d8dc0845f9a8124a9`.
+  Normal downstream PR #96 head
+  `d29810b1c2f3e0a4bf425aa364cf3bbfec99aa3d` passed current-head CI/Codex,
+  Gate `31705628966`, and normally merged as
+  `cb5cc5d87f335963e1f80db54de11fe706e3f6de`.
+- Documentation PR #97 revealed that an old-head Codex task summary could
+  arrive after a push and satisfy timestamp-only freshness before the new
+  head's review. It had already merged as
+  `0c4ae03fdbc7c7bf79b41c4fb31dd19db0c10e10` when detected; the automation was
+  contained and corrected forward without an override.
+- Automation-core PR #53 removed task/timestamp binding and normally merged as
+  `42cf33992116b2a9845d4a060c363d7ea4ae1bda`. PR #54 preserved legitimate
+  reaction-only clean delivery only for authenticated single-observed-head PRs
+  and normally merged as `cbd154d34e150b1195b62be7cc0f0786e9ce4866`.
+  PR #55 then made reaction-history errors fail closed and moved history lookup
+  behind a trusted `+1` candidate; its exact head
+  `8e61001b03e41090304db8f77f450901619e2295` passed 84 tests, exact-head CI
+  `31710332461`, a clean Codex result, Gate `31710681603`, and normal Merge Bot,
+  merging as `b91dade2be64c403b9b06c30d007e3a1b5f59b45`.
+- Normal sync updated existing PR #98. Final exact head
+  `012824a7b8d710cd4fd06245ac19afc27a4de09d` contained all seven workflows
+  byte-identical to the final automation-core source plus only the two scoped
+  handoff documents. Application CI `31711027957` passed; the fresh Codex
+  result explicitly named that head and found no major issue; all prior P1/P2
+  threads were resolved/outdated; Gate `31711220444` produced the green exact
+  head check. Normal Merge Bot run `31711250348` performed the SHA-pinned merge
+  as `73c2d3875e49aa038f0ed9790d610eb063e4e90d` with no owner merge or override.
+- Final handoff-only PR #99 head
+  `cffb38d44810d5e74ba592330b225f77a0186821` changed one documentation file,
+  passed full CI `31711412191`, received a clean exact-head Codex result with
+  zero review threads, and passed Gate `31711526953`. Normal Merge Bot run
+  `31711572132` merged it as
+  `d8b3251e49fb9512c4e872dd15663d3513a28d1e`, the final paywall-bot main SHA
+  for this task. No TheMarker, Tech Feed IL, Telegram/Telegraph publishing,
+  state, or Backfill logic was edited.
+
+## Upstream production evidence
+
+- Post-repair automation-core Gate run `31681859499` dispatched successfully with no expression-length parse failure.
+- The watchdog was re-enabled only afterward. Real scheduled watchdog runs
+  `31687590924`, `31692340712`, `31695724482`, and `31698865743` passed without
+  a timestamped gate-dispatch parse error or Telegram alert/failure.
+- Deterministic coverage proves repeated identical failure fingerprints are suppressed while genuinely new heads and error classes still alert once.
