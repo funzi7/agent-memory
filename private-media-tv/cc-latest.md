@@ -1,235 +1,325 @@
-# Private Media TV — F2B.4.2 Handoff
+# Private Media TV — F2B.5 Handoff
 
 ## Identity and release state
 
 | Field | Value |
 | --- | --- |
-| Application repository | `funzi7/private-media-tv` |
-| Milestone | F2B.4.2 — no-known-source owner search and mobile-player parity |
-| Branch / tracking branch | `main` / `origin/main` |
-| Starting application HEAD | `f7d06959c94131e73844e79ba620c27b8b4c42a1` |
-| Main implementation commit | `a950dffa2bec4354d2b4a85feb29f5ac3e12aa3b` |
-| Final application HEAD | `6cfbe7d870e8478b9014f25d29eadfc662304246` |
-| Starting agent-memory HEAD | `8858a48a74c4a5e53c4785483bb757ef238a4aaf` |
-| F2B.4.1 exact-head baseline CI | `31748553198` — success |
-| First F2B.4.2 CI | `31755156670` — failed only on stale workflow version assertions |
-| Final exact-head CI | `31756251328` — success |
-| Mobile identity | `com.funzi7.privatemediatv.mobile`, `0.3.6-phone-test`, versionCode 14 |
-| TV regression identity | `com.funzi7.privatemediatv`, `0.5.6-f2b42`, versionCode 19 |
-| Development signer SHA-256 | `2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0` |
+| Application repository | funzi7/private-media-tv |
+| Milestone | F2B.5 — Search Engine V2 local index and bounded Telegram live search |
+| Branch / tracking branch | main / origin/main |
+| Starting application HEAD | 6cfbe7d870e8478b9014f25d29eadfc662304246 |
+| Final application HEAD | 8b2f0eb6102695201244f56e7242c4e5c4f6b444 |
+| Starting agent-memory HEAD | 8c77b5d38423e91b2c8ade6c72e0ca3af04f9caa |
+| Exact-head Android CI | 31815991716 — success |
+| Mobile identity | com.funzi7.privatemediatv.mobile, 0.3.7-phone-test, versionCode 15 |
+| TV regression identity | com.funzi7.privatemediatv, 0.5.7-f2b5, versionCode 20 |
+| Development signer SHA-256 | 2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0 |
 
-Both application commits were pushed without force, and final application `HEAD` matches
-`origin/main`. The first commit contains the scoped search, UI, player-control, tests, version, and
-documentation changes. The second is a CI-only correction: the workflow was still asserting and
-publishing F2B.4.1 version names/codes after correctly building F2B.4.2. It updates those assertions
-and artifact metadata and renames the focused-test step; it does not change runtime behavior.
+The application milestone was committed once and pushed without force. Final application HEAD
+matches origin/main. Exact-head CI passed, and only its mobile artifact was downloaded and
+published to the isolated Mobile shared-storage directory. The TV artifact was built and verified
+as a shared-code regression but was not downloaded, exported, installed, or delivered. No Shield
+command ran.
 
-Only the exact-final-HEAD mobile artifact was downloaded and published. TV shared-code regression
-was built and verified, but no TV APK was exported or delivered and no Shield command ran.
+## Implemented architecture and behavior
 
-## Implemented behavior
+### One authoritative Search Engine V2 pipeline
 
-### Explicit owner-search scope
+Normal production discovery now uses this single order:
 
-Owner-directed literal discovery now carries an explicit provider-neutral scope:
+1. existing exact binding;
+2. local Room search index;
+3. eligible manual or proven known-source live search;
+4. bounded active live-search pool;
+5. explicit Deep Search batches.
 
-- `KNOWN_SOURCES_ONLY` searches only non-empty title-specific manual affinity;
-- `ALL_SELECTED_SOURCES` searches only the owner's currently active, explicitly selected My
-  Sources entries; and
-- zero selected sources performs no provider work and leaves search disabled with a Manage Sources
-  explanation.
+Exact binding still returns before any local query or Telegram work and continues through the
+existing resolver, Media3 player, TDLib byte cache, downloads, and playback stack. Search Engine
+V2 is the production default. The old discovery service and old 100-result dual media-filter
+transport remain reachable only through explicit LEGACY_DIAGNOSTIC construction. Production never
+runs both engines and never automatically falls back to legacy after a V2 miss.
 
-The Known Sources screen no longer equates global selection with title affinity. It separately
-shows authoritative title-specific known sources and globally selected sources that may be added to
-the title. With no title affinity, the screen explicitly says that no known sources are defined and
-enables the all-My-Sources literal action when any selected sources exist.
+Automatic, owner-literal, recurring-program, and refresh paths now route through V2 semantics.
+Home, TMDB browsing/details, and metadata search still never start Telegram discovery.
 
-Known-source literal search preserves the physically successful F2B.4.1 path. All-selected literal
-search uses the owner term directly, with one primary literal query per eligible source, existing
-bounded concurrency/cancellation, no automatic TMDB alias Cartesian product, and the selected-source
-limit. It checks exact binding and local metadata first. A local hit is exposed progressively before
-remaining live work completes; live progress is stable-appended, and the existing bounded recent
-media fallback participates when textual provider search returns zero.
+### Android-native local search index
 
-Literal video/document hits remain visible as possible matches when the automatic identity parser
-is uncertain. Private cards continue to render the source display title, media caption/title,
-filename when available, date, duration, resolution, size, and thumbnail on-device. No private
-source or media value was added to diagnostics, fixtures, CI, logs, documentation, or this handoff.
+Catalog Room schema 11 is an additive migration. It retains the existing private metadata-index
+base rows and adds:
 
-### Exact binding and playback eligibility
+- a standalone FTS4 unicode61 projection with deterministic trigger synchronization and migration
+  backfill;
+- a deterministic normalized substring column and token-prefix fallback;
+- separate account-scoped live-pool configuration and pin rows; and
+- a stable index scan-start marker used by generation-safe reconciliation.
 
-An owner-confirmed result discovered through all selected sources may now use the existing exact
-binding when its source is still explicitly selected and active. Reopening Sources consults that
-binding first and returns it without a new broad search. Parent source/template learning remains
-conservative, and no sibling episode is exact-bound automatically.
+The normalizer uses Unicode NFKC, locale-independent lowercasing, punctuation and common filename
+separator normalization, and collapsed whitespace. Search covers caption/text, filename, dates,
+attachment metadata, and durable source/message/attachment identity without downloading video
+bytes. It supports Hebrew, English, mixed Hebrew/English, numbers, punctuation, exact normalized
+phrase, normalized substring, all-token, and supported token-prefix lookup.
 
-Test playback for an unbound possible result discovered across My Sources is likewise allowed only
-while the source remains currently selected. Bound, warm, verified complete-local, cached, and
-current-message resolution rules remain intact; fullscreen/orientation changes never repeat source
-resolution.
+Ranking is deterministic: literal strength is evaluated before learned evidence, then stable
+source affinity and newest-date tie breaking. The implementation validates the complete bounded
+local union before applying the presentation cap, so newer weak or identity-rejected rows cannot
+hide an older exact literal result. A focused 58-selected-source dataset returns locally without
+calling Telegram.
 
-### Accurate FAST scope copy
+All selected My Sources may contribute indexed rows, including selected sources outside the
+active live pool. Partial sources are searchable immediately. Per-source and Index All workflows
+support newest-to-oldest metadata scans, durable checkpoints, cancel, pause/resume, process restart,
+generation rejection, edits, replacements, deletes, and new messages. A replayless runtime gap
+conservatively marks READY work stale and invalidates a partial head cursor while retaining
+searchable rows. Incremental rows create or update an accurate PARTIAL job and indexed-media count.
 
-Automatic FAST discovery now restricts to manual affinity only when that affinity is non-empty.
-Without manual affinity it uses selected My Sources, while existing learned/proven evidence remains
-preferred ordering rather than being falsely presented as manual scope. Mobile state records the
-actual search scope, so progress says it is searching known sources only for real known affinity and
-My Sources otherwise. Zero My Sources performs no search and shows the source-management action.
+The My Sources UI exposes NOT_INDEXED, INDEXING, PARTIAL, READY, STALE, and FAILED, indexed counts,
+per-source actions, and the required Hebrew Index All action. Index All accounts for every selected
+source while only issuing history work for currently provider-eligible sources; retained rows for
+an ineligible source stay visible rather than being silently discarded. Indexing uses
+GetChatHistory metadata only and never calls DownloadFile.
 
-DEEP behavior and the existing exact-binding short circuit remain explicit and unchanged.
+### Active live pool, known override, and Deep Search
 
-### Unified mobile player controls
+My Sources selection remains authoritative and keeps all existing selections. It is independent of
+LIVE SEARCH SOURCES:
 
-Tracing proved that automatic, possible/test-play, exact-bound, cached/warm, complete-local, and
-normal picker launches already converge on the same `MobileScreen.PLAYBACK`, player runner,
-controller, Media3 surface, and playback identity. There was no second player to remove. The
-physical symptom was discoverability: Fullscreen sat after six actions in a horizontally scrolling
-row and was initially off-screen on a portrait phone.
+- missing configuration means deterministic AUTO mode, up to 8 eligible sources;
+- explicit pinning is transactionally capped at 12;
+- attempting source 13 returns a typed rejection and does not deselect or delete anything;
+- manual affinity is authoritative, including an explicit empty override;
+- otherwise only PROVEN learned affinity can override the normal cap;
+- one discovery operation increments affinity at most once per source, so two distinct successful
+  operations are required to become proven; and
+- a known/manual/proven source remains eligible for its title even outside the configured 12.
 
-Fullscreen is now an always-visible fixed player action. While fullscreen, Exit Fullscreen and
-Rotate are fixed and visible. The established fullscreen policy remains the single implementation:
-known portrait dimensions request portrait, landscape or square dimensions request landscape,
-unknown dimensions preserve current orientation, manual rotate overrides automatic orientation for
-that playback session, and exit restores normal app orientation and system bars. Immersive mode
-uses supported insets APIs with transient gesture escape.
+FAST and OWNER_LITERAL search local rows first, then eligible known sources, then the active pool
+only if still needed. Literal owner results remain visible when conservative TMDB parsing is
+uncertain. DEEP is an explicit action: it searches the local index first and then only remaining
+selected sources in deterministic batches of at most 12. It continues through later batches after
+an earlier hit, keeps all prior results visible in stable order, shows group progress, and stops
+later batches on cancellation.
 
-Fullscreen and rotation do not key or recreate source resolution, the playback runner, controller,
-or surface. Position, Media3 memory buffer, speed, scaling, audio track, subtitle track, and resume
-identity therefore stay in the same active session.
+User-facing deadlines are centralized. An eligible known/manual operation and its remaining-time
+pool fallback share an 8-second total deadline; a normal active-pool operation without that
+override receives 15 seconds; each explicit Deep batch receives 20 seconds. Account-scope lookup,
+chat preparation, searches, and paging are inside the total deadline. Individual provider work is
+bounded to no more than 4 seconds so slow siblings release worker slots. Every path terminalizes as
+results, partial results, empty, typed error, deadline, or cancellation; it cannot leave an endless
+Loading state.
+
+Results are progressive. The first valid result is surfaced immediately while siblings may
+continue, later results append by durable identity without destructive resorting, and partial
+coverage does not become a false completed miss. Starting a new query, leaving the route, explicit
+cancel, or starting playback invalidates the old generation. Late results cannot contaminate a new
+query, and cancellation retains every result already presented.
+
+### Telegram-X-derived live pager
+
+core-telegram now owns an isolated provider-neutral pager/state machine around official TDLib
+SearchChatMessages. The initial request is unfiltered, fromMessageId 0, offset 0, limit 20. It
+preserves totalCount and nextFromMessageId, handles short pages with continuation evidence,
+requests later 20-result pages only when no usable media has been found or explicit variants are
+requested, stops after the first usable automatic result, guards repeated cursors, and has a
+budgeted safety ceiling.
+
+Search context and request generations suppress stale responses. Cancellation, empty, typed error,
+terminal page, and repeated-cursor states are explicit. Results retain Telegram ordering and are
+deduplicated stably. Caption/text search happens before local identification of playable video and
+plausible video documents, avoiding an over-restrictive server media filter. Pager request, page,
+state, and internal transport toString output is redacted.
+
+The adapter uses bounded parallel chat preparation and four search workers. It records partial
+hydration/search failures, timeouts, pages, provider results, useful results, cancellations, and
+terminal reason without exposing source names, queries, captions, filenames, or provider IDs.
+
+### Search UX and diagnostics
+
+The mobile harness presents the required simple Hebrew phases for local index, known source,
+active-pool, and Deep batch work. It includes local-coverage explanations, AUTO/explicit live-pool
+management, the 12-source rejection notice, Index All controls, source labels on result cards, and
+Deep Search retention/cancellation. Existing exact binding, possible-owner-result behavior, Hebrew
+episode parsing, recurring identity, fullscreen/orientation controls, and player continuity remain
+covered.
+
+Unrestricted diagnostics are count-only: local query time, indexed sources/rows/results, live
+scheduled/completed/timed-out sources, pages, provider/useful results, cancelled work, elapsed
+time, failure category, and terminal reason. Technical details remain behind the diagnostics
+disclosure. No unrestricted diagnostic contains private source or media identity.
+
+## Upstream reuse and licensing
+
+The pinned research baselines are:
+
+- groupultra/telegram-search at
+  02baeec6b8a320ade999c773d2806622b6219b87, AGPL-3.0; and
+- TGX-Android/Telegram-X at
+  5459ddb884a56a668b31ca4357c4a0cdf7dae250, GPL-3.0-or-later.
+
+telegram-search provided the architectural and adapted lifecycle model for selected-chat metadata
+synchronization, batch persistence, local-only lookup, update/edit/delete upsert and tombstone
+handling, cancellation, and checkpoints. Its Node, GramJS, Takeout, PGlite/PostgreSQL, Jieba,
+vector/embedding, server, UI, and account-session implementations were not imported.
+
+Telegram X provided the adapted 20-result SearchChatMessages pager, continuation, total-count,
+context-generation, cancellation, and stale-response behavior. The application copied no Telegram
+X UI, branding, assets, or unrelated code.
+
+Source headers and docs/THIRD_PARTY_SEARCH_ENGINE.md record the exact repositories, pinned commits,
+upstream paths, reuse classification, licenses, and original Telegram X copyright. Complete pinned
+root license texts are stored under third_party/licenses. Their SHA-256 values are:
+
+- telegram-search AGPL text:
+  74971ebe9f8aff6d68fb017906a0c455d2aad56fbd46120fe56b734774724cfe;
+- Telegram X GPL text:
+  3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986.
+
+No external source was copied into this public agent-memory repository.
 
 ## Principal implementation areas
 
-- `core-catalog`: explicit owner-directed scope, selected-source eligibility, literal progressive
-  discovery, local-first behavior, exact binding, possible-result playback, and FAST empty-affinity
-  fallback.
-- `app-mobile`: distinct title-affinity/global-source presentation, correct Hebrew scope/action
-  copy, source-scope state, common player launch assertions, and fixed fullscreen/rotate controls.
-- `core-telegram`: production code was unchanged; focused adapter regression proves one literal
-  request per selected source and progressive first-result behavior.
-- `core-playback`: production code was unchanged; existing runner/controller continuity and
-  fullscreen policy tests remain authoritative.
-- `app-tv`: version 19 compile/regression only; no delivery or physical flow.
-- `.github/workflows` and `scripts`: code-14/code-19 validation, artifact metadata, safe mobile
-  code-13 predecessor rotation, and upgrade fixtures.
-- Documentation: README, roadmap, changelog, product/architecture/data/security/Telegram/UX/test,
-  release, handoff, APK distribution, project state, and ordered mobile acceptance were reconciled.
-
-## Focused regression evidence
-
-Synthetic behavior tests cover:
-
-- three selected sources and no title affinity enabling all-My-Sources owner search;
-- a known source among three global selections restricting the owner query to that source only;
-- zero selected sources disabling search, showing the explanation/action, and making no provider
-  call;
-- exact FAST progress copy for known affinity versus My Sources scope;
-- one literal primary query for each selected source, a match existing only in the third source,
-  progressive exposure before sibling completion, private source-label rendering, and retention as
-  a possible match despite parser uncertainty;
-- a local literal index hit appearing before suspended live-network completion;
-- owner binding of the all-selected result and immediate exact reopen with zero provider calls;
-- all-selected possible-result test playback while the source remains selected;
-- validated automatic, possible/test-play, and exact-bound results producing the same playable
-  launch contract and mobile route;
-- Fullscreen displayed without horizontal scrolling, with Exit Fullscreen and Rotate displayed in
-  fullscreen on a phone-sized viewport;
-- portrait, landscape, square, and unknown video-dimension decisions plus session-scoped manual
-  override; and
-- runner/controller identity, position, buffering, speed, scaling, track choices, and resume state
-  surviving fullscreen/orientation transitions.
-
-Failing-first evidence was observed before production changes: the new owner-scope API and UI tests
-did not compile against the manual-only contracts, and the phone-sized player test could not see the
-off-screen Fullscreen action. The focused regressions passed after the scoped implementation.
+- core-catalog: SearchEngineV2, Room FTS4 index, ranking, live-pool persistence/planning,
+  deadlines, progressive aggregation, exact/owner/deep behavior, recurring V2 routing, index
+  lifecycle, migration 10 to 11, and privacy cleanup.
+- core-telegram: Telegram-X-derived pager, unfiltered TDLib request/continuation mapping, bounded
+  adapter concurrency/timeouts, partial failure accounting, cancellation/stale suppression, and
+  diagnostic legacy transport.
+- app-mobile: search/index/live-pool models, production composition, Index All coordinator,
+  ViewModel cancellation/retention, source-management UI, diagnostics, and physical code-15
+  acceptance harness.
+- app-tv: shared-code compile/regression and version 20 only; no delivery or physical change.
+- .github/workflows and scripts: F2B.5 focused CI, code-15/code-20 package assertions, safe
+  predecessor update fixtures, and exact-head mobile artifact publication.
+- docs and ADR 0017: product, architecture, data, Telegram, security, UX, test, release,
+  distribution, state, handoff, third-party provenance, and SEARCH-first physical acceptance.
 
 ## Local validation
 
-The following completed successfully:
+Focused prototypes passed before broad integration:
 
-- focused `app-mobile`, `core-catalog`, `core-playback`, and `core-telegram` tests;
-- affected-module suites;
-- `./gradlew --version` and `./gradlew projects`;
-- `./gradlew test` — 1,071 tests, zero failures/errors/skips: mobile 236, TV 74,
-  catalog 222, metadata 66, model 19, playback 90, provider 27, provisioning 48,
-  security 98, and Telegram 191;
-- `./gradlew lint`;
-- `./gradlew :app-mobile:assembleDebug`;
-- `./gradlew :app-tv:assembleDebug`;
-- `./scripts/bootstrap-tdlib-android.sh --verify-only`;
-- `./scripts/verify-tdlib-artifact.sh`;
-- package/version/signer, ARM64-only JNI, NDK r28c, ELF dependencies, stored JNI, 16-KiB alignment,
-  page-size, and prohibited-content checks;
-- mobile/TV exporter, exact-head downloader, upgrade, rejection-path, credential-scan, provisioning
-  interoperability, and shell-syntax harnesses;
-- real retained mobile code 13→14 update verification;
-- exact-head F2B.4.1 TV baseline code 18→19 update verification; and
-- `git diff --check` before both application commits.
+- local Room search covered Hebrew, English, mixed text, filename and punctuation normalization,
+  substring, all-token/prefix, deterministic ranking, 58 selected sources with zero Telegram calls,
+  incremental updates, and migration/backfill;
+- the Telegram pager covered the initial 0/0/20 request, second and third-page continuation, short
+  pages with continuation evidence, terminal empty, typed error, cancellation, repeated-cursor
+  safety, stale context rejection, and new-query invalidation.
+
+Focused integration suites then covered exact bypass, local-first known search, AUTO 8, explicit
+12/source-13 rejection, known override outside the pool, 58-source local coverage, progressive
+sibling results, hard deadlines including a suspended account lookup, bounded Deep batches and
+retention/cancel, owner-literal uncertainty, recurring routing, Index All, lifecycle/restart, UI
+phase copy, route/playback cancellation, and legacy-only construction.
+
+Final validation completed successfully:
+
+- ./gradlew --version;
+- ./gradlew projects;
+- ./gradlew test;
+- ./gradlew lint;
+- ./gradlew :app-mobile:assembleDebug;
+- ./gradlew :app-tv:assembleDebug;
+- ./scripts/bootstrap-tdlib-android.sh --verify-only;
+- ./scripts/verify-tdlib-artifact.sh;
+- package/version/signer, private-material, ARM64 JNI, ELF dependency, NDK r28c, 16-KiB load and APK
+  alignment checks;
+- mobile and TV delivery behavior harnesses, exact-head artifact-selection rejection harnesses,
+  credential scan, PMTPROV inspection/interoperability, LAN crypto fallback, shell syntax, and
+  upgrade-verifier behavior suites; and
+- real local mobile code 14 to 15 and TV code 19 to 20 update compatibility checks.
+
+The successful final test report contains 1,179 unique tests in 123 suites with zero skipped,
+failures, or errors:
+
+- app-mobile 264;
+- app-tv 74;
+- core-catalog 280;
+- core-metadata 66;
+- core-model 19;
+- core-playback 90;
+- core-provider 27;
+- core-provisioning 48;
+- core-security 98; and
+- core-telegram 213.
+
+The final local APKs were:
+
+- mobile: 58,584,728 bytes, SHA-256
+  ab146d53ff444ee7917452796567738322a90676d38a48b8aaa9e88f1d3ddefd,
+  modified 2026-08-14 15:31:36.564807455 +0000;
+- TV regression: 58,787,739 bytes, SHA-256
+  a9cbc70a7ede64170f04bc58187ab79225b1bd574b3d2840d476fd4110cfcbdb,
+  modified 2026-08-14 15:32:11.460807442 +0000.
 
 Official TDLib 1.8.66 remains pinned to official source commit
-`022d60202e446ad1287b9fb68e687c8a0760788b`, ARM64-only, NDK r28c, and 16-KiB-compatible. The local
-verified artifact AAR SHA-256 is
-`025313d2a7cdbf148e5c700e8ef6c9d384f2301aff043c844997e0c23eb9abd2`, and its JNI SHA-256 is
-`21d59ebfeba4edc62ea74cefaa79b08650e796530f3d5e57804105cc44cb65dc`. The exact-CI packaged JNI
-SHA-256 is `790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f`. TDLib was verified only
-and was not rebuilt.
+022d60202e446ad1287b9fb68e687c8a0760788b, ARM64-only, NDK r28c, and 16-KiB-compatible. The verified
+local artifact AAR SHA-256 is
+025313d2a7cdbf148e5c700e8ef6c9d384f2301aff043c844997e0c23eb9abd2, and its source JNI SHA-256 is
+21d59ebfeba4edc62ea74cefaa79b08650e796530f3d5e57804105cc44cb65dc. TDLib was verified only and
+was not rebuilt.
 
-The final local mobile APK was 59,132,387 bytes with SHA-256
-`1ebe7ec75dc2b354f9620fd99f9179adb5854ae40bf367e73572659d3f023c4e`. The regression-only local
-TV APK was 59,384,558 bytes with SHA-256
-`a9fb4133ec398513d7eb18f8f33d71beee7870b1d8dffa3b1c9cbb89bf840c56`.
-
-`adb devices -l` found no connected device.
+adb devices -l found no attached device.
 
 ## Exact-head CI and mobile delivery
 
-CI run `31755156670` reached the post-assembly verification step for implementation HEAD
-`a950dffa2bec4354d2b4a85feb29f5ac3e12aa3b`. Wrapper validation, official TDLib verification,
-unit/focused tests, lint, and both assemblies passed. The job then failed because the workflow still
-asserted TV F2B.4.1 code 18 and mobile code 13. No artifact was published from that failed run.
+Android CI run 31815991716 completed successfully for exact application HEAD
+8b2f0eb6102695201244f56e7242c4e5c4f6b444. Wrapper validation and the main job both passed. The
+main job verified official pinned TDLib, artifact-rejection paths, LAN crypto fallback, Development
+signing, unit tests, focused F2B.5 tests, lint, signed ARM64 TV/mobile assemblies, package/version,
+signer, JNI and private-material rules, metadata/checksums, and both artifact uploads.
 
-The narrow workflow correction produced final Android CI run `31756251328`, which completed
-successfully for exact final application HEAD `6cfbe7d870e8478b9014f25d29eadfc662304246`.
-Wrapper validation, official TDLib verification, 1,071 tests, focused F2B.4.2 suites, lint, signed
-ARM64 TV/mobile assemblies, package/version/signer/JNI/private-material checks, metadata creation,
-and both artifact uploads passed. The exact mobile artifact ID is `9203067605`; the TV artifact was
-not downloaded.
+The exact mobile artifact is
+private-media-tv-mobile-apk-8b2f0eb6102695201244f56e7242c4e5c4f6b444, artifact ID 9225368275.
+The TV artifact ID 9225366861 was not downloaded or delivered.
 
-The exact-head mobile downloader independently verified remote `main`, workflow/run/head/artifact
-metadata, checksum, package/version/code, Development signer, ARM64-only native payload, and
-private-material rules before isolated atomic publication. The published APK is:
+The guarded mobile downloader independently required current remote main, the successful push run,
+the exact artifact name, one APK/checksum/metadata set, matching commit/package/version/code/hash,
+Development signer, ARM64-only JNI, and expected private-material policy. It then atomically rotated
+only the isolated mobile files. Final publication:
 
-- path: `/storage/emulated/0/Download/PrivateMediaTV/Mobile/private-media-tv-mobile-latest.apk`;
-- size: 58,371,732 bytes;
-- SHA-256: `6d12c5d4e72e2157587c33dcf7add3ff3e8a113c9e924c33eac61ca8bd1d510b`;
-- modified time: `2026-08-14 00:22:27.030729838 +0000`;
-- package/version: `com.funzi7.privatemediatv.mobile` / `0.3.6-phone-test` (14);
-- signer: the Development certificate above; and
-- ABI/JNI: ARM64-only with the exact-CI packaged JNI hash above.
+- path:
+  /storage/emulated/0/Download/PrivateMediaTV/Mobile/private-media-tv-mobile-latest.apk;
+- size: 58,584,728 bytes;
+- SHA-256:
+  50596c8be1378d1c6538befe9cdb82555362c53cd10822ceebf7596fb53df23f;
+- modified time: 2026-08-14 16:00:15.752806800 +0000;
+- package/version: com.funzi7.privatemediatv.mobile / 0.3.7-phone-test (15);
+- signer: the Development certificate above;
+- ABI: arm64-v8a only; and
+- packaged TDLib JNI SHA-256:
+  790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f.
 
-The verified code-13 APK remains at the isolated mobile `previous` path with SHA-256
-`97150a677e9247d475cf5b6a8f384ab7c0ed5748e33672fdd924dc95c4605a33`. A direct post-publication
-check proves same package and signer, code 13→14, ARM64-only JNI, and update-preserving
-`adb install -r` policy with no uninstall, downgrade, or clear-data operation. Parent TV APKs and
-the provisioning document retained their pre-delivery hashes. No TV artifact was delivered.
+An independent post-publication verification confirmed the file is regular, not a symlink, and has
+the same package, version, signer, ABI, JNI, size, hash, and timestamp. The previous mobile APK was
+rotated within the Mobile directory. Parent TV shared-storage files were not changed.
 
 ## Physical acceptance, limitations, and next step
 
-No authorized device was connected. No installation, launch, state-preservation check, real
-Telegram search, source-label inspection, binding, playback, fullscreen, orientation, manual rotate,
-or playback-continuity action was physically performed. File publication, tests, and CI are not
-physical acceptance.
+No authorized Android device was attached. There was no installation, launch, Telegram login,
+real-source index build, real Telegram query, result selection, playback, cancellation, rotation,
+or state-preservation test. File publication, unit tests, local builds, and CI are not physical
+acceptance.
 
-The exact next step is the ordered 23-step code-14 procedure in `docs/MOBILE_ACCEPTANCE.md`:
+The remaining gate is the ordered code-15 SEARCH-first procedure in docs/MOBILE_ACCEPTANCE.md:
 
-1. update code 13 to code 14 without uninstalling or clearing state;
-2. reconfirm the known-source/exact-bound physical F2B.4.1 baseline and playback;
-3. verify visible fullscreen, dimension-driven portrait/landscape, manual rotate, and retained
-   position/buffer on exit;
-4. use a title with no affinity to verify the explicit empty-known state, enabled all-My-Sources
-   literal search, progressive source-labelled result, binding, and immediate exact reopen; and
-5. verify FAST says known sources only with affinity and My Sources without affinity.
+1. update mobile code 14 to 15 without uninstalling or clearing app data;
+2. retest the previously working known title and playback;
+3. retest the previously failing known source and confirm a local hit or terminal live result within
+   the interactive budget;
+4. verify progressive literal owner search in an active source;
+5. verify indexed content from a selected non-active source, proving local coverage is not capped;
+6. verify normal live fanout stays within AUTO/configured pool;
+7. run explicit Deep Search for content outside both active pool and current local coverage;
+8. verify a superseded query cannot contaminate the replacement; and
+9. play the returned video and verify fullscreen, portrait, and rotation regression behavior.
 
-Keep every real source name, title, term, caption, filename, provider identity, and screenshot out
-of public issues, commits, CI, and agent-memory. Do not expand this corrective milestone into TMDB,
-Offline, Auto-next, trailers, recommendations, sync, YouTube, indexing architecture, TV delivery, or
-Shield work.
+On-device SQLite/FTS4 behavior, real TDLib latency, and live source-specific media mapping remain
+physical acceptance risks until those tests pass. A conservatively stale index may require owner
+resume/reconciliation after a replayless process gap. The legacy diagnostic engine is intentionally
+retained for rollback comparison and should be removed only in a later cleanup milestone after
+physical V2 acceptance.
+
+The exact next milestone is code-15 physical F2B.5 acceptance only. Do not expand it into TV
+delivery, Shield deployment, TMDB changes, a second Telegram session, server search, embeddings,
+Node/GramJS/PGlite/PostgreSQL, UI branding reuse, or legacy removal.
+
+Keep every real account, source, title, query, caption, filename, message identity, screenshot, and
+session detail out of public issues, commits, CI, and agent-memory.
