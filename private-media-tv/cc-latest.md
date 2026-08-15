@@ -1,132 +1,127 @@
-# Private Media TV — F2B.5.2 Handoff
+# Private Media TV — F2B.5.2.1 Handoff
 
 ## Identity and release state
 
 | Field | Value |
 | --- | --- |
 | Application repository | funzi7/private-media-tv |
-| Milestone | F2B.5.2 — Runtime survivability, automatic index continuity, and source-inventory recovery |
+| Milestone | F2B.5.2.1 — Emergency mobile startup crash hotfix (release blocker) |
 | Branch / tracking branch | main / origin/main |
-| Starting application HEAD | bd59754e14123e199381417664969d3513806781 |
-| Final application HEAD | c8ef6a6c11e78486b6ecd5e94ee1e6d527efb201 |
-| Starting agent-memory HEAD | 4b8d84ccf515c30179db98ebf6b0c374a3de49b4 |
-| Exact-head Android CI | 31862292848 — success |
-| Mobile identity | com.funzi7.privatemediatv.mobile, 0.3.9-phone-test, versionCode 17 (updates code 16 in place) |
-| TV regression identity | com.funzi7.privatemediatv, 0.5.9-f2b52, versionCode 22 (built and verified only) |
+| Starting application HEAD | c8ef6a6c11e78486b6ecd5e94ee1e6d527efb201 |
+| Final application HEAD | 3910fc8c6b1b354df795302eafde982404e83a28 |
+| Starting agent-memory HEAD | b954ae98ff922fe4cb7dd8f8c48971c3fa55a2bf |
+| Exact-head Android CI | 31884520652 — success |
+| Mobile identity | com.funzi7.privatemediatv.mobile, 0.3.10-phone-test, versionCode 18 (updates broken code 17 in place) |
+| TV regression identity | com.funzi7.privatemediatv, 0.5.9-f2b52, versionCode 22 (unchanged; regression build only) |
 | Development signer SHA-256 | 2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0 |
 
-The milestone was committed once on main and pushed without force; the final application HEAD matches
-origin/main. Exact-head Android CI passed (Gradle wrapper validation and the official-TDLib/tests/lint/signed-APK job) and uploaded both signed artifacts; only the mobile artifact was downloaded and published to the isolated Mobile shared-storage directory, rotating the code-16 APK to `previous`. The TV artifact is a shared-code regression, never downloaded, exported,
-installed, or deployed. No Shield command ran. No physical device was attached (`adb devices` empty),
-so physical code-17 acceptance is pending on the owner's phone.
+One hotfix commit on main, pushed without force; the final application HEAD matches origin/main.
+Exact-head Android CI passed and uploaded both signed artifacts; only the mobile artifact was
+downloaded and published. No TV export/delivery, no Shield, no adb device attached.
 
-## Why F2B.5.2 exists
+## Why F2B.5.2.1 exists (sanitized physical evidence)
 
-On mobile code 16 the owner physically hit a runtime-survivability defect independent of search: after
-a native TDLib start failed, repeated Retry could not recover and only an Android Force Stop restored
-operation. The session/database were intact (Force Stop + reopen restored Telegram, Index All resumed,
-and a newly joined source appeared), so the fault was process-local runtime ownership, not session
-data. Physical code-16 evidence, preserved: known-source Search Engine V2 repair works (a previously
-failing real TV episode was found again); owner literal -> explicit bind -> playback works; local-index
-search returns real media; Index All retained ~2,035–2,064 indexed rows across a failed all-source
-operation; the newly joined source appeared after runtime recovery. F2B.5.2 removes the need for Force
-Stop and makes the index survive runtime loss. It is not a Search Engine rewrite.
+Mobile code 17 (0.3.9-phone-test) physically crashed immediately on application startup on the
+owner's Samsung phone. A real Android bug report captured the fatal exception: an uncaught
+retryable `CatalogAdapterException` (safeCode `PMTV-SOURCE-RUNTIME-NOT-READY`, retryable=true) on
+`DefaultDispatcher-worker-3`, stack `ProcessRuntimeCatalogBridge.providerAdapters` →
+`contentUpdateGapSignals` → `ProductionF2bSourceDiscoveryBackend` background worker.
 
-## Root cause and repairs
+Root cause: the F2B.5.2 content-gap maintenance worker (launched in the backend's init) subscribed
+to the provider gap-signal stream before Telegram authorization reached Ready. `providerAdapters()`
+intentionally throws retryable RUNTIME_NOT_READY in that state — a normal startup lifecycle
+condition — but unlike the sibling live-updates loop, the content-gap worker had no lifecycle/retry
+protection, so the exception escaped the coroutine uncaught and Android killed the process. There
+was no evidence of Telegram session, Room, FTS-index, credential, or APK/native corruption; those
+boundaries were not touched.
 
-A Java-side update/result handler exception fires `TdLibClientGateway.handleNativeFailure()`, which
-poisons the `CallbackRequestBridge` (`failAll`). The native client is still alive, but a Close routed
-through the poisoned bridge returned `NATIVE_FAILURE`; the gateway's synthesized-Closed fallback only
-matched `CLIENT_CLOSED`, so no genuine `AuthorizationStateClosed` arrived, the lease stayed held, and
-the phone reported `PMTV-TDLIB-RUNTIME-LEASE`. Repairs:
+## What the hotfix changed (application HEAD 3910fc8c)
 
-1. **Real Close on a poisoned-but-alive client.** `close()` sends `TdApi.Close()` directly to the
-   native client, bypassing the bridge; the genuine Closed releases the lease. Ownership is never faked.
-2. **Coalesced `TelegramRuntime.recover()`.** Released -> one restart; retained -> drive Close, await
-   real Closed within a bounded window, release, one restart; else `AwaitingClose` (no lease error, no
-   second client). Concurrent Retry taps coalesce. Exposes `TelegramRuntimeRecoveryStatus`.
-3. **Coordinated recover-once** for recoverably-failed runtimes at the source-discovery backend owner
-   (covers search, My Sources refresh, index continuation, hydration); fatal states never retried.
-4. **Non-fatal content-update backpressure.** Runtime stays Ready; dropped message-boundary updates
-   advance a durable `contentUpdateGapRevision`; file-state chatter is coalesced. Delivered as a
-   distinct `contentUpdateGapSignals` stream.
-5. **Incremental idempotent catch-up.** Gap stales READY jobs; catch-up walks newest history to the
-   previously-indexed boundary (`newlyIndexedInPage == 0`), then finalizes READY. No FTS4 schema-11
-   change, no full-history rescan, no duplicate rows.
-6. **Index All continuity + UX.** `WAITING_FOR_TELEGRAM` state, auto-resume-on-ready, new-source
-   auto-index; cached-inventory-preserving refresh + auto-retry; ineligible-source disabled visibility;
-   safe runtime diagnostics; reworked Index All status; playback `keepScreenOn` on the common surface.
+1. **Runtime-gated maintenance supervisor** (`superviseRuntimeGatedMaintenance`, internal seam in
+   `ProductionF2bSourceDiscoveryBackend.kt`), now running BOTH live-index workers (content-gap and
+   live-updates): safe construction while NOT_READY; bounded cancellation-aware wait for Ready
+   before each attach; retryable adapter failures are transient lifecycle state (no staleness
+   recorded); stream completion / non-retryable / unexpected failures invoke a contained
+   stale-marking hook (rows never deleted) and reattach after a bounded 2 s delay;
+   `CancellationException` always propagates. No hot spin, no duplicate workers, no second TDLib
+   client, no faked Ready.
+2. **Single-source index collector containment** (`F2bCatalogViewModel.buildSourceMetadataIndex`):
+   the backend's `MetadataIndexRuntimeUnavailableException` rethrow (previously caught only by the
+   aggregate Index All coordinator) could escape `viewModelScope` uncaught — reachable through the
+   F2B.5.2 no-tap auto-index of a newly selected source while not Ready. Now contained as the
+   single-source WAITING equivalent (checkpoint retained, waiting notice, auto-resume on the next
+   runtime-ready signal); unexpected failures stop safely.
+3. **Fail-soft startup invariant** (`launchFailSoftObserver`): the catalog ViewModel startup
+   observers (metadata refreshes, runtime-ready signals, offline downloads, library collections)
+   are contained and reattach after a bounded delay; HOME is reached and kept alive while Telegram
+   is STARTING / NOT_READY / recovering.
+4. **Delivery rollback protection** (`scripts/lib/mobile-apk-delivery.sh`): a physically broken
+   version is never promoted into the canonical `previous` slot —
+   `pmtv_mobile_version_is_physically_broken` (currently 0.3.9-phone-test:17) plus a new
+   `superseded` rotation outcome that replaces `latest` in place and leaves `previous` untouched;
+   `0.3.9-phone-test:17` was added to the rotation recognition allow-list only so publication over
+   the installed broken build is possible.
+5. Version: mobile 17→18 across build.gradle.kts, MobileModels constants, CI metadata, and all
+   script pins. TV untouched (no TV or shared production code changed).
 
-## Preserved and unchanged
+## Validation evidence
 
-Search Engine V2, the local Room/FTS4 index (schema 11), the Telegram-X-derived pager, the
-AUTO-8/maximum-12 live pool, exact binding, the F2B.5.1 known-source natural query and reserved
-`GetChatHistory` fallback, parser-uncertain POSSIBLE, contradiction rejection, owner literal,
-progressive results, truthful DEADLINE/EXHAUSTED/PARTIAL terminals, offline local search (not gated on
-`currentAccountScope()` before a valid local/index/exact result), Media3 playback, the TDLib byte
-cache/downloads, TMDB identity, and the local library. Official TDLib 1.8.66 remains the single runtime.
+- Focused regressions (all green, red-by-construction against the pre-fix escape):
+  `MaintenanceSupervisionTest` (9 tests; virtual time; explicit `CoroutineExceptionHandler`
+  assertions for spec Tests 1–4: pre-Ready quiet wait + attach + gap processing;
+  Ready→unavailable→Ready single reattach; cancellation propagation both waiting and attached;
+  contained unexpected failure with bounded retry; retryable/non-retryable classification; stream
+  completion reattach; contained interruption/readiness-probe failures; cancellation-only
+  termination). `ProductionStartupCrashRegressionTest` (Robolectric; REAL Owner→backend→bridge→Room
+  composition over a bundled-driver process database; code16-like persisted state with a READY
+  index + PARTIAL Index All checkpoint; runtime present but not Ready; default
+  uncaught-exception-handler asserted empty; retained rows survive; after Ready the gap worker
+  attaches and a replayed gap signal marks the re-READY index STALE with
+  `PMTV-INDEX-CONTENT-GAP-STALE`; plus a HOME smoke over the production data source with no runtime
+  at all). `F2bStartupFailSoftViewModelTest` (3 tests: WAITING containment, safe-stop containment,
+  fail-soft observer reattach). `MobileCatalogUiContractTest` wiring assertions.
+  `scripts/test-mobile-apk-phone-delivery.sh` new case
+  `test_broken_code_seventeen_is_never_promoted_to_previous` (14 cases total).
+- Full local: `./gradlew test` — 1232 tests, 0 failures/errors across all modules (287 in
+  app-mobile); `./gradlew lint` clean; `:app-mobile:assembleDebug` and `:app-tv:assembleDebug`
+  BUILD SUCCESSFUL; `git diff --check` clean.
+- Script harnesses: credential scan 41, TV delivery 9, mobile delivery 14, pmtprov 4, upgrade
+  verifier 13, TV CI rejections 8, mobile CI rejections 20+1 — all passed; `bash -n` clean.
+- TDLib verify-only (NO rebuild): pinned commit 022d60202e446ad1287b9fb68e687c8a0760788b, ARM64
+  AAR sha 025313d2a7cdbf148e5c700e8ef6c9d384f2301aff043c844997e0c23eb9abd2.
+- CI: exact-head `Android CI` run 31884520652 for 3910fc8c… completed success.
 
-## Modules and files
+## Delivery evidence (mobile only)
 
-core-telegram: `TdLibClientGateway` (real Close), `TelegramSessionController` (recover + gap),
-`TelegramRuntime`, new `TelegramRuntimeRecovery`, `TelegramCatalogSourceAdapter` (gap signal).
-core-catalog: `CatalogContracts` (contentUpdateGapSignals), `SourceIntelligence` (newlyIndexedInPage,
-completeMetadataIndexCatchUp). core-playback: `PlaybackController` (playbackKeepsScreenOn),
-`Media3PlaybackController` (keepScreenOn surface). app-mobile: `ProductionF2bSourceDiscoveryBackend`
-(recover-once, gap collector, catch-up loop, WAITING), `F2bSourceIndexCoordinator`
-(WAITING_FOR_TELEGRAM), `F2bCatalogViewModel` (runtime-ready observer, auto-index, refresh notice),
-`F2bCatalogDataSource` (runtimeReadySignals), `F2bCatalogModels`/`F2bCatalogScreens` (eligibility +
-status UX), `MobileRuntimeFacade`/`MobileViewModel`/`MobileModels`/`MobileAcceptanceApp` (facade
-recover, diagnostics), `MobilePlayerOverlay` (keepScreenOn). Versions: gradle, MobileModels, CI, and
-the contract test.
+Published via `./scripts/download-latest-ci-mobile-apk-to-phone.sh` from CI run 31884520652,
+artifact `private-media-tv-mobile-apk-3910fc8c6b1b354df795302eafde982404e83a28`:
 
-## Validation actually run
+- Latest: `/storage/emulated/0/Download/PrivateMediaTV/Mobile/private-media-tv-mobile-latest.apk`
+  — 0.3.10-phone-test (18), APK SHA-256
+  c6c57598f9e7d6604a5c2ce34ee6885e85695a874385cb8836d313048b921060, 58,633,880 bytes, modified
+  2026-08-15 12:40:43 UTC, ARM64-only, one `lib/arm64-v8a/libtdjni.so` (packaged JNI sha
+  790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f), Development signer verified.
+- Rotation result: `superseded` — broken code 17 was REPLACED, not demoted; previous remains the
+  known-good code 16 (0.3.8-phone-test), byte-identical to before publication (SHA-256
+  e37df5ba2239b8958df044f538964309ff8c4c97a57566a44589be7d3fefaa2d). Post-publication re-verified
+  with `verify-mobile-apk.sh` (note: its `--expected-sha256` flag means the expected SIGNER digest,
+  not the APK content hash).
+- Only the two canonical Mobile files exist; TV files untouched.
 
-`./gradlew test` — green except one pre-existing flaky Robolectric paging test
-(`F2bCatalogPagingAndProviderComposeTest > real LazyRow retries one failed append…`) that passes in
-isolation and is unrelated to F2B.5.2. `./gradlew lint` — BUILD SUCCESSFUL.
-`./gradlew :app-mobile:assembleDebug :app-tv:assembleDebug` — both debug APKs built.
-`./scripts/bootstrap-tdlib-android.sh --verify-only` and `./scripts/verify-tdlib-artifact.sh` — TDLib
-1.8.66 (`022d60202e446ad1287b9fb68e687c8a0760788b`), ARM64, no rebuild. `git diff --check` — clean.
-Focused regressions added at the controller (recover RETAINED/AwaitingClose/coalescing/backpressure),
-repository (bounded idempotent catch-up), coordinator (WAITING), ViewModel (auto-index), compose
-(inventory notice + eligibility), and playback (screen-awake) levels.
+## Not done / pending
 
-## APK and CI delivery results
+- **Physical code-18 acceptance is PENDING** on the owner's phone (gates in
+  `docs/MOBILE_ACCEPTANCE.md`): install over code 17 (no uninstall/clear-data), app stays open and
+  HOME appears, session retained, index counts/PARTIAL work retained, app alive while Telegram
+  becomes Ready, Index All resumes, exact binding + playback, keep-screen-on. Automated tests are
+  not physical evidence.
+- F2B.5.2 physical code-17 acceptance is recorded as FAILED at startup (superseded by code 18).
 
-Exact-head Android CI run 31862292848 for c8ef6a6c11e78486b6ecd5e94ee1e6d527efb201 passed and uploaded both signed artifacts. Only the mobile artifact was downloaded and published; the TV artifact was built and verified but never downloaded, exported, installed, or deployed.
+## Continuation instructions
 
-- Mobile latest: `/storage/emulated/0/Download/PrivateMediaTV/Mobile/private-media-tv-mobile-latest.apk`
-- Package `com.funzi7.privatemediatv.mobile`, version `0.3.9-phone-test` (17), arm64-v8a only
-- APK SHA-256: `295ab184e90c3ed6250ea76fa91d2b38c2ada732d5e7e573be5b0d35e38477a2`
-- TDLib JNI (`libtdjni.so`) SHA-256: `790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f`
-- Certificate SHA-256: `2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0`
-- Size 58,633,880 bytes, published 2026-08-15 03:57:36 UTC, rotation: rotated (code 16 -> previous)
-- No TV export/delivery. No Shield command ran. No physical device attached (`adb devices` empty).
-
-## Physical status and omitted checks
-
-No physical device was attached; physical code-17 acceptance (retained index/binding, retry recovery
-without Force Stop, Index All wait/resume, inventory refresh, indexed search, catch-up, player
-screen-awake) is pending on the owner's phone. The gateway poisoned-client Close runs against the real,
-un-fakeable TDLib `Client`; it is validated end-to-end at the controller level and must be confirmed
-physically.
-
-## Limitations and risks
-
-"All-source maintenance active" is derived from persisted index-job presence (no new entity/schema); a
-never-indexed source does not auto-index on select. The runtime-ready observer polls readiness on a
-bounded interval in production. If TDLib truly cannot deliver Closed, recovery reports `AwaitingClose`
-and keeps retrying (never a lease error); a genuine wedged native process would still require a process
-restart, but the physical evidence shows the session/database intact and recoverable.
-
-## Unresolved decisions
-
-None new. F2B.5.2 hardened survivability without changing what is indexed, searched, or selected, so no
-product-intent escalation was required.
-
-## Exact next milestone and continuation
-
-Physical code-17 acceptance on the phone, then any owner-directed follow-up. Do not reopen Search
-Engine V2, the FTS4 schema-11 index, or normal live fan-out. Continue on main from
-c8ef6a6c11e78486b6ecd5e94ee1e6d527efb201.
+Next agent: obtain the owner's physical code-18 result first. If gate 1 fails again, pull a new
+Android bug report before changing anything. If acceptance passes, record it in
+`docs/MOBILE_ACCEPTANCE.md`/`PROJECT_STATE.md` and remove `0.3.9-phone-test:17` from future
+promotion consideration (it stays blocklisted in `pmtv_mobile_version_is_physically_broken`).
+Architecture notes live in ADR 0019's F2B.5.2.1 amendment; the full milestone record is in
+CHANGELOG / PROJECT_STATE / TEST_PLAN / RELEASE_REVIEW / HANDOFF at the application HEAD above.
