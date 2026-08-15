@@ -1,85 +1,134 @@
-# paywall-bot handoff — 2026-08-13 UTC
+# paywall-bot handoff — 2026-08-15 UTC
 
-## Outcome
+## Task
 
-The automation-only rollout completed through the normal exact-head Codex Gate and Merge Bot. PR #94 is merged; no owner click or finding acknowledgement was used. The task did not edit TheMarker, Tech Feed IL, Telegram, Telegraph, or Backfill application logic or state.
+Restore TheMarker production publishing reliability: eliminate discovery-cap +
+phase-2 queue starvation during a persisted extraction-provider outage,
+investigate additional body sources, audit for missed discoveries, correct the
+PR #98 evidence, and ship through the normal PR → exact-head CI → Codex → Gate →
+Merge Bot path. No Tech Feed IL change; no quality gate weakened; no Backfill;
+no hand-edited production state; no manual Telegram/Telegraph writes.
 
-## Upstream prerequisite
+## Root cause (publication-reliability defect, not a total outage)
 
-- automation-core emergency PR #40 repaired the unparseable Codex Gate and merged as `fd16f6ad875726386f4f7c029993639cafebaa01` after exact-head CI.
-- The parse failure came from direct `${{ ... }}` interpolation inside a roughly 25 KB `actions/github-script` body, which exceeded GitHub's 21,000-character expression limit during template evaluation. Regression checks now cover every tracked workflow YAML, including synced source/mirror pairs and hub-only workflows, and reject all direct expression interpolation inside script bodies; values must travel through `env`.
-- The automation-core watchdog now deduplicates gate-dispatch, update-branch, and backup-dispatch alerts by repository, PR, exact head, operation, and normalized error fingerprint. The first material event alerts; an identical retry does not; a new head or material error may alert once.
-- CI Doctor now excludes trusted internal automation by workflow path as well as name. automation-core Issue #39 was factually closed after the Gate parsed and dispatched, and two subsequent CI Doctor checks created no replacement.
-- The prematurely merged old #38 state was corrected forward through reviewed, normally auto-merged automation-core PRs #41–#51. Issue-mode Claude now has no `AUTOMATION_PAT`, no persisted checkout credential, and no generic shell/interpreter tools during model execution; the PAT is confined to trusted post-model code.
-- GitHub Codex review capacity was available for the forward fixes and downstream rollout.
+TheMarker's body providers were systemically unavailable (jina 403, smry
+HTTP-200 `no_body` shell, one3ft 503, Wayback 503/no-snapshot — re-verified live
+2026-08-15). The outage is IP/availability driven (the shared GitHub-Actions
+runner IP is intermittently blocked), and production DID publish in bursts on
+recovery — last real send before this task was `2026-08-15T07:22:43Z` via
+one3ft/direct, then the outage re-latched at `09:17Z`. So the earlier
+"zero publications since 2026-08-11" premise was already stale; the real defect
+was current-article STARVATION during the latched outage:
 
-## PR #94 final proof
+1. Discovery cap — phase 1 did `fresh = sort_oldest_first(fresh)[:cap]` with
+   `exclude_deferred_from_discovery_cap: false`, so the oldest 20 candidates
+   (already-deferred parked rows) consumed the whole admission budget and
+   genuinely new URLs were never recorded (`20 already in deferred queue,
+   0 newly recorded`).
+2. Phase-2 ordering — `_select_deferred_ready` was always oldest-first, so the
+   same oldest parked rows were re-selected every poll and newer articles never
+   got a local-source publish chance.
 
-- PR: <https://github.com/funzi7/paywall-bot/pull/94>
-- Final exact head: `5d65f205708435aab09ce03ace5880c30b342293`.
-- Normal squash merge: `2575f0f2b16c12ebb9b9173e8c9a8248ab529ebe` at 12:35:05 UTC.
-- Normal automation-core sync updated the existing PR; it did not create a replacement. At the final head, all seven configured workflows were byte-identical to automation-core source.
-- Exact-head paywall CI run `31699982535` passed.
-- A fresh trusted Codex review at 12:30:31 UTC named the exact head and reported no active P1/P2. All 13 older or addressed review threads were resolved only after the reviewed corrections were present.
-- Authoritative manual Gate run `31700426352` passed. The exact original `pull_request_target` Gate attempt on run `31699980086` was then rerun after thread resolution and produced green native `codex-gate-evaluator` and `check-codex-status` checks on the exact head.
-- Normal workflow-run Merge Bot run `31700719028` performed the merge. No owner merge and no `codex-p1-acknowledged` label were used.
-- The formerly active `.github/workflows/merge-bot.yml:803` P1 became legitimately superseded by the upstream reviewed corrections; it was never overridden merely to make the PR green.
+## Fixes (all TheMarker-only, tenant-gated; Tech Feed IL untouched)
 
-## Production and repository state
+- Discovery admission: `exclude_deferred_from_discovery_cap: true` +
+  new `admit_all_discovered_identities: true`. `_bounded_admissions` (extracted
+  from `run_poll`) admits every newly discovered eligible identity from the
+  bounded source result (defer only, never publishes); `max_items_per_run`
+  bounds phase-2 processing only. New phase-1 observability line
+  (`source/already_deferred/newly_discovered/admitted/dropped_over_cap`).
+- Active-outage phase-2 fairness: `themarker_active_outage_queue_fairness: true`.
+  While latched, `_select_deferred_ready` returns one representative (oldest
+  ready row → full external-chain single probe) then the NEWEST ready rows
+  (local-only). Preserves the circuit breaker exactly: one probe/poll, no
+  external fan-out on later rows, no retry burn, no false terminalization;
+  oldest-first drain resumes on recovery. Deterministic.
+- Telegram extraction via read-only Telethon: `telegram_extraction_telethon_index:
+  true`. `sites/themarker/telegram_index.prime_from_telethon` (called once per
+  poll before phase 2) builds the extraction index from the same trusted
+  read-only channel history discovery uses (bounded 96h/200-msg horizon, shared
+  short-link cache, resolve budget) instead of only the ~20 newest public
+  `t.me/s` HTML posts. Newest-wins per identity, read-only, public HTML
+  fallback intact. Telegram ledes still must clear the unchanged 4-para /
+  1,500-char floor.
 
-- Paywall-bot Codex Gate workflow ID `288364579`, Claude Fixer `302557988`, Claude Fallback Watchdog `303932281`, and Merge Bot `303932284` are active.
-- The seven synced workflows on main are the reviewed automation-core versions. No rejected pre-fix automation regression was reintroduced.
-- Main may also contain unrelated production-state commits made by existing automation outside this infrastructure task. This task neither authored nor modified those state files.
-- Do not run Backfill or mutate/publish production data while performing automation maintenance.
+## Additional body sources — investigated, none added
 
-## Final documentation
+Read-only live probe of 6 structurally different current URLs (public-news,
+public-markets, `.premium`, `.highlight`, magazine-highlight, technation):
+first-party JSON-LD `articleBody` is teaser-sized only (115–297 chars); no
+`__NEXT_DATA__`/preload hydration body; RSS `cmlink/1.144` has zero
+`content:encoded` (descriptions ≤349 chars); no already-public `?gift=` token
+present (tokens never guessed). Public URLs' bodies are already handled by the
+existing `direct` parser; premium/highlight/magazine are teaser-only.
+Third-party providers: jina 403, Wayback 503, smry no-body, one3ft intermittent
+(200 residential / 503 GHA-IP). No reliable new complete-body provider exists →
+none added; the outage classifier provider set is unchanged.
 
-- Handoff PR #95 exact head `b42085136b470556595ba5126c3e013a4bedda15` passed downstream CI, received a clean exact-head Codex review, and passed Gate run `31701230800`.
-- The normal Merge Bot squash-merged it as `3202649611d6a51d913d7d054a2189ded50e9afb`; paywall-bot main now includes the self-contained rollout record in `handoffs/CONTEXT.md`.
+## Missed-discovery audit (§7)
 
-## Subsequent exact-head hardening and final rollout
+Compared public `t.me/s/themarkeronline` in-window identities (from
+`2026-08-12T00:00:00Z`) vs every tracked state identity using the shared
+`url_utils.normalize_url`. 14 in-window records: 12 already accounted for, 2
+unaccounted — both timestamped AFTER the last poll (`14:20Z`, `17:27Z` vs
+`last_poll_at 13:22Z`) and within the 48h Telethon discovery horizon, so the
+next normal poll admits them. No proven missing identity falls outside the
+horizon → NO recovery migration was warranted or created (fabricating state is
+forbidden). Coverage limit: public HTML exposes only ~20 newest posts and no
+Telethon creds are available in the agent env, so the `08-12→08-14T08` window
+cannot be independently re-derived here; the admission fix prevents recurrence.
 
-- Automation-core PR #52 completed repository-wide expression hardening and
-  normally merged as `961b51d9ff23edd215ff026d8dc0845f9a8124a9`.
-  Normal downstream PR #96 head
-  `d29810b1c2f3e0a4bf425aa364cf3bbfec99aa3d` passed current-head CI/Codex,
-  Gate `31705628966`, and normally merged as
-  `cb5cc5d87f335963e1f80db54de11fe706e3f6de`.
-- Documentation PR #97 revealed that an old-head Codex task summary could
-  arrive after a push and satisfy timestamp-only freshness before the new
-  head's review. It had already merged as
-  `0c4ae03fdbc7c7bf79b41c4fb31dd19db0c10e10` when detected; the automation was
-  contained and corrected forward without an override.
-- Automation-core PR #53 removed task/timestamp binding and normally merged as
-  `42cf33992116b2a9845d4a060c363d7ea4ae1bda`. PR #54 preserved legitimate
-  reaction-only clean delivery only for authenticated single-observed-head PRs
-  and normally merged as `cbd154d34e150b1195b62be7cc0f0786e9ce4866`.
-  PR #55 then made reaction-history errors fail closed and moved history lookup
-  behind a trusted `+1` candidate; its exact head
-  `8e61001b03e41090304db8f77f450901619e2295` passed 84 tests, exact-head CI
-  `31710332461`, a clean Codex result, Gate `31710681603`, and normal Merge Bot,
-  merging as `b91dade2be64c403b9b06c30d007e3a1b5f59b45`.
-- Normal sync updated existing PR #98. Final exact head
-  `012824a7b8d710cd4fd06245ac19afc27a4de09d` contained all seven workflows
-  byte-identical to the final automation-core source plus only the two scoped
-  handoff documents. Application CI `31711027957` passed; the fresh Codex
-  result explicitly named that head and found no major issue; all prior P1/P2
-  threads were resolved/outdated; Gate `31711220444` produced the green exact
-  head check. Normal Merge Bot run `31711250348` performed the SHA-pinned merge
-  as `73c2d3875e49aa038f0ed9790d610eb063e4e90d` with no owner merge or override.
-- Final handoff-only PR #99 head
-  `cffb38d44810d5e74ba592330b225f77a0186821` changed one documentation file,
-  passed full CI `31711412191`, received a clean exact-head Codex result with
-  zero review threads, and passed Gate `31711526953`. Normal Merge Bot run
-  `31711572132` merged it as
-  `d8b3251e49fb9512c4e872dd15663d3513a28d1e`, the final paywall-bot main SHA
-  for this task. No TheMarker, Tech Feed IL, Telegram/Telegraph publishing,
-  state, or Backfill logic was edited.
+## Content floor / prior work preserved
 
-## Upstream production evidence
+4-paragraph / 1,500-char floor, hebrew_ratio 0.5, teaser/talkback protections,
+publication_events truth (vs posted_guids), terminal/deferred distinction,
+checkpoint-after-publish, PR #92/#93 outage-parking + one-probe-per-poll +
+retry-neutral parking + stale-outage clearing + recovery migrations — all
+unchanged. Telegraph header policy (visible author `TheMarker`, header link
+`https://t.me/demarkerpremium`, original URL once in footer) unchanged.
 
-- Post-repair automation-core Gate run `31681859499` dispatched successfully with no expression-length parse failure.
-- The watchdog was re-enabled only afterward. Real scheduled watchdog runs
-  `31687590924`, `31692340712`, `31695724482`, and `31698865743` passed without
-  a timestamped gate-dispatch parse error or Telegram alert/failure.
-- Deterministic coverage proves repeated identical failure fingerprints are suppressed while genuinely new heads and error classes still alert once.
+## Tests / validation
+
+`tests/test_themarker_queue_starvation.py` — 14 tests (discovery admission exact
+production shape; active-outage fairness; Telethon index incl. teaser rejection
+and HTML fallback). Full `unittest discover` = 472 pre-existing + 14 new all OK;
+`tests.test_message_format` "All tests passed"; `compileall`; 15 workflow YAML
+parses; `git diff --check` clean. No production state mutated by tests.
+
+## PR / CI / Codex / Gate / Merge — PENDING (fail-closed)
+
+- PR: https://github.com/funzi7/paywall-bot/pull/100
+  head `7957fce8b5801ba49bdfa62b2acc147831ff02ff`, base `main`.
+- Exact-head application CI (`test-message-format`) PASSED.
+- Codex review capacity is UNAVAILABLE: the connector posted a usage-limit
+  notice, not a review. Per policy that is not a review signal, so
+  `check-codex-status` / `codex-gate-evaluator` are RED (fail-closed). No owner
+  merge, no `codex-p1-acknowledged`, no `no-automerge` was used.
+- The PR is intentionally left OPEN and fail-closed pending Codex capacity;
+  Merge Bot will auto-merge only once a clean exact-head Codex review turns the
+  Gate green. Manual merge is NOT performed.
+
+## Post-merge production verification — PENDING
+
+Not yet applicable (PR unmerged). When merged, the first scheduled TheMarker
+Poll must show: new items admitted, no disappearance behind old deferred rows,
+active-outage phase-2 giving current ready rows a local-source chance, exactly
+one external probe/poll, no external fan-out on later rows, no retry burn.
+
+## Telegraph header verification — STILL PENDING
+
+The last proven send (#782, 2026-08-11) predates #93's header change, and no new
+post-merge publication has occurred, so the `TheMarker` → `t.me/demarkerpremium`
+header behavior remains unverified in production.
+
+## Corrected PR #98 merge evidence
+
+#98 final head `012824a7b8d710cd4fd06245ac19afc27a4de09d`; exact-head CI
+`31711027957` and Gate `31711220444` green. The SHA-pinned Merge Bot merge
+request on run `31711250348` coincided with a server-side successful merge while
+its client/API call surfaced a 502 (`#98: unexpected merge error (502),
+skipping this PR: Server Error`); GitHub independently recorded #98 merged at
+`2026-08-13T14:40:09Z` as `73c2d3875e49aa038f0ed9790d610eb063e4e90d`, and the
+next Merge Bot run found no candidate because #98 was already merged. Run
+`31711250348` did NOT receive a normal successful merge response. Corrected in
+`handoffs/CONTEXT.md` (in PR #100) and in `automation-core/cc-latest.md`.
