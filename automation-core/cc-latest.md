@@ -84,9 +84,15 @@ The malformed production Codex Gate, repeated watchdog Telegram alerts, CI Docto
   `012824a7b8d710cd4fd06245ac19afc27a4de09d` contained the seven byte-identical
   workflows plus only scoped documentation, passed application CI
   `31711027957`, received a clean explicitly bound Codex result with all three
-  prior findings resolved/outdated, and passed Gate `31711220444`. Normal Merge
-  Bot run `31711250348` performed the SHA-pinned merge as
-  `73c2d3875e49aa038f0ed9790d610eb063e4e90d`. Final one-file handoff PR #99
+  prior findings resolved/outdated, and passed Gate `31711220444`. The
+  SHA-pinned Merge Bot merge request on run `31711250348` coincided with a
+  server-side successful merge while its client/API call surfaced a 502 (the
+  run logged `#98: unexpected merge error (502), skipping this PR: Server
+  Error`); GitHub independently recorded #98 merged at `2026-08-13T14:40:09Z`
+  as `73c2d3875e49aa038f0ed9790d610eb063e4e90d`, and the immediately following
+  Merge Bot run found no auto-merge candidate because #98 was already merged.
+  Run `31711250348` therefore must not be described as having received a normal
+  successful merge response. Final one-file handoff PR #99
   passed CI `31711412191`, clean exact-head Codex and Gate `31711526953`; normal
   Merge Bot run `31711572132` merged it as
   `d8b3251e49fb9512c4e872dd15663d3513a28d1e`.
