@@ -189,3 +189,32 @@ The fix for `cardsFound: 0` is one line:
 …plus the dedup-by-source_id loop and the regex update. v1's broader guidance (Tier 2, defer detail enrichment, expired/closed filters at detail level) all still apply.
 
 If after this fix `cardsFound` is still 0, the issue isn't the link pattern — it's at the HTTP layer (anti-bot, cookie gate, UA filtering on Vercel-vs-GH-Actions IPs, or similar). At that point we need a full response-body artifact dumped from the failing run to diagnose, not another selector inspection.
+
+---
+
+## 2026-08-17 — reliability milestone re-diagnosis (PR #93)
+
+**Verdict: PAUSED (runner-IP block), NOT a code bug.**
+
+- **From the GitHub Actions runner IP:** hard-blocked. Latest scheduled run
+  `31909171930` / job `95071543356` (2026-08-15): `{"event":"index_fetch",...,
+  "status":403}` on PTY (and `found=0` on all 5 cities), workflow concluded **success**.
+- **UA/bot wall (important, latent data-safety trap):** the LI origin (nginx behind
+  CloudFront) serves **HTTP 202 + an empty body** to non-browser UAs, and full 200 HTML
+  to a browser UA. The scraper sends a Chrome UA so it *would* get 200 — but `searchCity`
+  only threw on `status >= 400`, so a 202+empty page parsed to 0 cards and the run looked
+  like a genuinely-empty city (→ source-wide stale sweep). **Fixed:** the index guard now
+  rejects `202` and a `<500`-char body as an acquisition failure (`failAcquisition`).
+- **From a browser-UA IP (this env, 2026-08-17):** index
+  `.../living_zone_en/42/Condo/Rent/1/...` → **200**, ~2.4 MB, **48 unique listings**
+  (961 raw `a[href*="/detail_en/"]` anchors → dedup). `parseCardFromAnchors` matches.
+- **Enrichment evidence (for the later milestone — NOT implemented now):**
+  - Index cards no longer carry the word "Rooms"; specs read bare numbers
+    (`"1 1 Fl. 27 31 Sq.m."`), so `parseLiCardRooms` falls through and index-only
+    beds/baths come out **null**. sqm + price still parse, so cards persist.
+  - The **detail** page (200 with browser UA) has the lost data in prose:
+    `⚡1 bed,1 bath ⚡Floor 27th ⚡31 Sqm`, `Fully furnished` (in `meta[name=description]`/
+    `og:description`), and `"...40 floors ... Completed in 2021"` → `total_floors=40`,
+    `building_year=2021`. A detail-fetch v2 would restore beds/baths + furniture + year.
+- **Re-enable condition:** a runner access path yielding `found>0` via `workflow_dispatch`.
+  Schedule commented out in `scrape-living-insider.yml`; code + dispatch retained.

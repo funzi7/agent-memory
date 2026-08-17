@@ -199,3 +199,31 @@ Use the meta description as the safety-net regex parser when structured selector
 - **Capture project metadata.** Lazudi project pages are unusually rich — store the project's numeric ID and name in `raw_data.project = { name, lazudi_id }` for future Building-model backfill. Don't scrape project pages directly in this batch.
 - **Capture agent + agency ID** (e.g., PBRE `ID:7390R`) into `raw_data.agency_id` for future cross-source dedup work.
 - **Verification step (mandatory after merge):** `workflow_dispatch` for PTY with `--limit 30 --dry-run` first to inspect parser output, then a real `--limit 100` run. Crons stay commented out until both produce sensible numbers and a manual spot-check confirms 5–10 listings have correct project/price/bed/sqm.
+
+---
+
+## 2026-08-17 — reliability milestone re-diagnosis (PR #93)
+
+**Verdict: PAUSED (runner-IP block), NOT a code bug.**
+
+- **From the GitHub Actions runner IP:** hard-blocked. Latest scheduled run
+  `31848091141` / job `94918481752` (2026-08-14): Playwright → Cloudflare challenge →
+  plain-fetch fallback → **HTTP 403** (5929b), `found=0 errors=2 deactivated=8`,
+  workflow concluded **success**. The `deactivated=8` is the stale-sweep-on-failure bug
+  (now fixed: `failAcquisition` suppresses the sweep and marks the run FAILED).
+- **From a normal browser-UA IP (this env, 2026-08-17):** fully reachable. Index
+  `https://lazudi.com/th-en/properties/condo-for-rent/chonburi/pattaya` → **200**,
+  1.24 MB, **40 detail links** (`a[href*="/property/"]`). Detail page → 200 with a real
+  `<title>` and `<meta name="description">`. `looksLikeCloudflareChallenge` = false; the
+  `cf-*` hits are the Turnstile widget in the phone-OTP contact form, not a bot wall.
+  So the old findings-doc claim "403 across every URL" is **stale** — the block is
+  runner-IP reputation.
+- **Parser fix shipped:** `META_DESCRIPTION_RE` ended with `([^.]+?)\.?$`, but live meta
+  descriptions append `" View property listing."` after the province, so the `$` anchor
+  never matched (metaParsed was null on every real page; title/price fallbacks kept the
+  scraper functional). Changed the province group to end at the first period
+  (`([^.]+?)\.`), verified against the live meta string. `parseLazudiTitle` /
+  `parseLazudiMetaDescription` smoke tests still pass.
+- **Re-enable condition:** a working access path from the runner (residential/proxy
+  egress, or the runner IP range clearing) that yields `found>0` via `workflow_dispatch`.
+  Schedule is commented out in `scrape-lazudi.yml`; code + dispatch retained.

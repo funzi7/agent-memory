@@ -2,7 +2,15 @@
 
 > History of completed work + forward plan. Update at end of each batch.
 
-עדכון אחרון: 2026-05-04
+> ⚠️ **RECONCILED 2026-08-17.** The **current actionable work list is the repo's
+> `TODO.md`** (root of funzi7/thai-rent-finder), reconciled during the reliability
+> milestone (PR #93). Everything below this banner is **historical batch history**
+> (May 2026). The "Top priority — Bugs" / "UX" / "Features" sections below are an old
+> snapshot — most of those items (search, favorites==status, current-apartment,
+> compare, AI concerns, building reviews, contact fields, mobile search) have since
+> shipped. Do NOT treat the open-item lists below as current; use `TODO.md`.
+
+עדכון אחרון: 2026-05-04 (historical; see TODO.md for current)
 
 ---
 

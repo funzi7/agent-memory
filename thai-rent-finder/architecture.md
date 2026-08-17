@@ -21,18 +21,30 @@ The big decision. Each source picks ONE tier:
 
 ### Tier 1: Vercel functions (`/api/scrape/[source]`)
 - Runs in serverless function with 10–60s timeout
-- Triggered by Vercel Cron OR manual button in `/jobs` UI
+- Triggered by manual button in `/jobs` UI (there is NO Vercel cron)
 - Suitable for: simple HTML scraping with no anti-bot protection
 - Limitation: cannot run Playwright (missing libnss3 + other Chromium deps)
-- Currently used by: `THAILAND_PROPERTY`
+- **As of 2026-08, NO source runs on Tier 1 scheduling.** The `/api/scrape/[source]`
+  route still exists for on-demand triggers, but all scheduled scraping is Tier 2.
 
 ### Tier 2: GitHub Actions (`scripts/scrape-cli.ts` + `.github/workflows/scrape-{source}.yml`)
 - Runs on GH Actions runner (ubuntu-latest), 60min timeout
-- Triggered by daily cron OR `workflow_dispatch`
-- Required for: anti-bot sites (Cloudflare → FazWaz) or sites needing Playwright
-- Used by: `FAZWAZ`, and any new scraper by default for consistency
+- Triggered by cron (every 3 days, staggered) OR `workflow_dispatch`
+- Required for: anti-bot sites (Cloudflare → FazWaz/Lazudi/Hipflat) or Playwright
+- **Used by ALL sources**: `THAILAND_PROPERTY` (via `scrape.yml`, iterates cities
+  internally with a 210s deadline), `FAZWAZ`, `RENTHUB`, and (paused) `LIVING_INSIDER`,
+  `LAZUDI`, `HIPFLAT`.
 
-**Default for new scrapers: Tier 2.** Only stay on Tier 1 if there's a specific reason (e.g., needs to be triggerable from the UI in real time).
+**Default for new scrapers: Tier 2.** Thailand Property was migrated off the Vercel tier
+onto `scrape.yml` — older docs that call it "Tier 1 (Vercel)" are stale.
+
+### Data-safety / acquisition-integrity (`src/scrapers/core/acquisition.ts`)
+A source/city acquisition failure (403/429/5xx/challenge/fetch failure) is signalled by
+`BaseScraper.failAcquisition(city, reason)`. `computeSweepPlan()` then skips the stale
+sweep for that city; `classifyRun()` marks the run `SUCCESS`/`PARTIAL`/`FAILED`. The
+CLI (`scripts/scrape-cli.ts`) exits non-zero on `FAILED`. `completedCities` (only
+thailand-property) additionally scopes its sweep to fully-scanned cities. Shortlist-or-
+better listings are exempt from the sweep; stale window is 14 days.
 
 ## Database schema (key models)
 
@@ -72,13 +84,24 @@ Defined in Prisma schema:
 - `LAZUDI` (not yet implemented)
 - `PROPERTY_SCOUT` (not yet implemented)
 
-## City enum
+## City codes
+
+There is **no** `City` enum in Prisma — `Listing.city` is a plain `String`. The
+canonical user-facing code list lives in `src/lib/format.ts` (`CITY_OPTIONS`):
 
 - `BKK` — Bangkok
 - `PTY` — Pattaya
 - `CMI` — Chiang Mai
 - `PHK` — Phuket
 - `SAM` — Koh Samui
+
+(Note: `UserPreference.cities` `@default` still lists only 4 — missing `SAM` — a minor
+known inconsistency; changing it is a schema change, deferred.)
+
+## ScrapeJob.status
+
+`ScrapeJob.status` is a free-form `String` (not an enum), so status values evolve
+without a migration. Current values: `RUNNING`, `SUCCESS`, `PARTIAL`, `FAILED`.
 
 ## Scraper interface (BaseScraper)
 

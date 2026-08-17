@@ -1,116 +1,160 @@
-autopsy: PR #88 claude fixer 17s no-op — full transcript (READ-ONLY)
+# cc-latest — thai-rent-finder reliability milestone
 
-_2026-07-05. READ-ONLY on funzi7/thai-rent-finder: no code/PR/comment/label/run change — only this
-agent-memory publish. `gh` unavailable → REST/curl 403 on downstream Actions → GitHub MCP `get_job_logs`.
-Owner referenced only by login `funzi7`._
+**Timestamp:** 2026-08-17 11:37 ICT
+**Branch:** `fix/trf-reality-sync-data-safety`
+**Project HEAD (pushed):** `3b7dd106d5eb8c4177c76bcf7733c0669337e855`
+**Base / main HEAD observed:** `bd513fcc3ddc9db6a976b9de50b6a382d1fd3285`
+**Worktree:** was clean on `main` at start; all work committed & pushed on the branch. No unrelated local changes.
+**PR (this milestone):** #93 — https://github.com/funzi7/thai-rent-finder/pull/93 (open, NOT merged)
 
-## 0. the run
-```
-run 28749789826  (claude.yml, "Claude Fixer")  job 85246781366 "claude"
-event=pull_request_review_comment  actor=funzi7  head=c3b700e  created 2026-07-05T17:58:55Z
-job success (17:58:58→17:59:23 = 25s); step 4 "Run Claude Code" 17:59:01→17:59:18 = ~17s.
-Trigger: review comment id 3525359670 (the bridge's @claude fix on src/components/SearchBox.tsx:33,
-2 active P2). Log: "Preparing with mode: agent for event: pull_request_review_comment / Verified human
-actor: funzi7".
-```
+## PR #92 isolation (honored)
 
-## 1. transcript IS exposed (fix #16 var active)
-```
-action inputs:  show_full_output: true      "show_full_output": "true"
-grep "full output hidden": 0 occurrences   → the FULL SDK transcript is in the log.
-SDK: claude_code_version 2.1.201, model "claude-opus-4-8[1m]", apiKeySource "ANTHROPIC_API_KEY",
-     permissionMode "default", "Running Claude with prompt from file: .../claude-prompt.txt".
-```
+PR #92 (`chore(automation): sync from automation-core`) is open, base `main`, head
+`e267904e390db8b9d7cf3c19dc337af6fdb9322a`, touching **7 workflow files**:
+`ci-doctor.yml`, `claude-fallback-watchdog.yml`, `claude.yml`, `codex-auto-fix.yml`,
+`codex-backup-fix.yml`, `codex-gate.yml`, `merge-bot.yml`. **None were edited in this
+milestone** (verified via `git status`). Any watchdog cost optimization is documented
+as deferred until #92 resolves.
 
-## 2. the prompt the action fed Claude (verbatim opening)
-```
-Context prompt: You are the autonomous fixer in a self-healing CI loop. You were
-invoked on a GitHub Issue or PR in this repository.
-  If triggered by a `claude-fix` Issue (opened by ci-doctor): 1. Read the Issue body… 5. Do NOT merge…
-  Prefer the allowed tools and do NOT attempt tools outside the allowlist…
-  If triggered by an @claude mention, follow the request in the comment, working on a branch…
-Trigger result: true
-```
-This is the STATIC claude.yml fixer prompt (fed from `claude-prompt.txt`). The visible "Context prompt"
-does NOT inline the ping's 2 P2 findings (the action surfaces the review-thread context separately). But
-it is MOOT — see §3: Claude processed zero tokens.
+## Files changed (28)
 
-## 3. Claude's final message + terminal SDK result (the core evidence)
-```
-{ "type": "assistant",
-  "message": { "model": "<synthetic>", "role": "assistant", "stop_reason": "stop_sequence",
-    "usage": { "input_tokens": 0, "output_tokens": 0, ... },
-    "content": [ { "type": "text", "text": "Credit balance is too low" } ] },
-  "error": "billing_error", "request_id": "req_011CcjM1AN1hKXNYke4U41gD" }
+Source: `src/scrapers/core/BaseScraper.ts`, `src/scrapers/core/acquisition.ts` (new),
+`src/scrapers/core/types.ts`, `src/scrapers/sources/{lazudi,livinginsider,renthub,fazwaz,thailand-property}.ts`,
+`src/app/api/admin/health/route.ts`, `src/lib/contact.ts`, `src/lib/building-reviews.ts`.
+Scripts: `scripts/scrape-cli.ts`, `scripts/generate-state.js`,
+`scripts/test-acquisition-safety.ts` (new), `scripts/test-scraper-datasafety.ts` (new), `package.json`.
+Workflows (non-#92): `auto-update-state.yml`, `site-health.yml`, `daily-checkup.yml`,
+`scrape-lazudi.yml`, `scrape-living-insider.yml`, `scrape-renthub.yml`.
+Config/docs: `.claude-guard.json` (only `__doc__`), `README.md`, `TODO.md` (new),
+`ThaiRentFinder_MasterPlan.md`, `Round1_Prompt.md`, `DEPLOY.md`.
 
-{ "type": "result", "subtype": "success",
-  "is_error": true,
-  "api_error_status": 400,
-  "duration_ms": 259, "num_turns": 1,
-  "result": "Credit balance is too low",
-  "stop_reason": "stop_sequence",
-  "total_cost_usd": 0,
-  "usage": { "input_tokens": 0, "output_tokens": 0, ... },
-  "permission_denials": [],
-  "terminal_reason": "completed" }
-```
-`is_error:true`, `api_error_status:400`, `error:"billing_error"`, `num_turns:1`, `input_tokens:0`,
-`output_tokens:0`, `total_cost_usd:0`, `permission_denials:[]`. **Claude never ran a single inference —
-the first API call 400'd on billing.** Yet the action's result `subtype:"success"` and the job exited 0.
+## Product behavior changed
 
-## 4. secondary (the cloud-ping cross-trigger)
-The later `issue_comment` cross-trigger (the codex-cloud `@claude` re-trigger that fix #25 sanitizes)
-hits the SAME billing wall — Claude is out of credit account-wide, so every invocation returns
-`billing_error / "Credit balance is too low"` at 0 tokens regardless of trigger. Not separately dumped
-(identical root cause). The delivery-check step (fix #23) still fired correctly on this run: it found 0
-commits after the ping and posted the 👎 (`funzi7:-1@17:59:19`) + the `agent=claude state=no_delivery`
-marker.
+- **Data-safety (fail-closed):** a source/city acquisition failure (HTTP 403/429/5xx,
+  Cloudflare challenge, index-fetch/browser failure) is signalled by
+  `BaseScraper.failAcquisition(city, reason)`. When set, the stale sweep is **skipped**
+  for that city, the `ScrapeJob` is `PARTIAL`/`FAILED` (never `SUCCESS`), and the CLI
+  exits non-zero + emits an `error` event. A run with a few per-item parse errors is
+  `PARTIAL` and keeps its records; a genuinely-empty valid run stays `SUCCESS` and
+  still sweeps. Pure logic in `src/scrapers/core/acquisition.ts` (`computeSweepPlan`,
+  `classifyRun`). Shortlist-or-better exemption + 14-day window unchanged.
+- **Status:** `ScrapeJob.status` is a free-form String → new `SUCCESS`/`PARTIAL`/`FAILED`
+  values, **no schema migration**. `ScrapeRunResult` gained `status` + `acquisitionOk`.
+- **Lazudi + Living Insider:** scheduled crons commented out (paused); code + parsers +
+  `workflow_dispatch` retained. `/api/admin/health` reports `paused_sources`; state/
+  health show PAUSED, not stale/unhealthy.
+- **site-health:** `/`→`/listings` 307 redirect no longer a false alert; paused
+  scrapers not checked by workflow conclusion.
+- **generate-state.js:** TP corrected to GH Actions; live workflow `state` via Actions
+  API; PAUSED/BROKEN states; commented crons no longer render as active.
+- **Docs:** README rewritten; new `TODO.md`; MasterPlan/Round1 marked historical;
+  DEPLOY cadence fixed. Private first-name references removed from editable files.
 
----
+## Source status (current)
 
-# VERDICT
+| Source | Runner | Status |
+|--------|--------|--------|
+| THAILAND_PROPERTY | GH Actions `scrape.yml` (09:00 ICT / 3d) | ✅ active (last scrape 2026-08-16 SUCCESS, added 6) |
+| FAZWAZ | GH Actions (03:00 ICT / 3d) | ✅ active |
+| RENTHUB | GH Actions (03:30 ICT / 3d) | ✅ active |
+| LIVING_INSIDER | GH Actions | ⏸️ paused (runner-IP HTTP 403) |
+| LAZUDI | GH Actions | ⏸️ paused (runner-IP Cloudflare 403) |
+| HIPFLAT | GH Actions | ⏸️ disabled_manually (Cloudflare 403) |
 
-**(a) Transcript exposed?** **YES.** `show_full_output: true` (the fix #16 wiring + the repo Actions var
-`CLAUDE_SHOW_FULL_OUTPUT=true`), zero "full output hidden" lines, and the complete SDK options + result
-JSON are in the log. Fix #16 is exactly what made this diagnosable.
+## Evidence (run IDs used)
 
-**(b) What prompt the action constructed.** The **static claude.yml fixer prompt** —
-`"You are the autonomous fixer in a self-healing CI loop. You were invoked on a GitHub Issue or PR in
-this repository. …"` — read from `claude-prompt.txt`. It was NOT empty or garbled, and it did NOT inline
-the ping's P2 findings in the visible context (the action would surface the review thread as separate
-context). **Irrelevant to the outcome:** `input_tokens:0` means Claude never even ingested the prompt.
+- **Lazudi** run `31848091141` / job `94918481752` (2026-08-14): Playwright→Cloudflare
+  challenge, plain fetch→HTTP 403 (5929b), `found=0 errors=2 deactivated=8`, workflow
+  `success`. The `deactivated=8` is the stale-sweep bug — attributable and now fixed.
+- **Living Insider** run `31909171930` / job `95071543356` (2026-08-15):
+  `index_fetch status=403` on all 5 cities, `found=0`, workflow `success`.
+- Live from THIS environment's IP (different from runner): Lazudi index 200 / 1.24MB /
+  40 detail links; LI index 200 / 48 unique listings. So the block is runner-IP
+  reputation, not a permanent site change.
 
-**(c) Claude's final message (verbatim).** `"result": "Credit balance is too low"` — a **synthetic**
-assistant message (`"model":"<synthetic>"`) wrapping `error:"billing_error"`, `api_error_status:400`.
-Claude gave **no reasoning** for finishing without changes: it did not decide "no change needed"; it
-never inferred anything (`num_turns:1`, 0 tokens, $0). The "17-second success" is the ~17s of
-git-auth + `claude` install + one instant 400 billing bounce.
+## Production smoke (read-only, 2026-08-17)
 
-**(d) Diagnosis: NEITHER a pipeline prompt bug NOR a model decision — it is an INFRASTRUCTURE / BILLING
-failure.** The Anthropic account behind `ANTHROPIC_API_KEY` is **out of credit**. Evidence line:
-`{"type":"result","subtype":"success","is_error":true,"api_error_status":400,"result":"Credit balance is
-too low","total_cost_usd":0,"usage":{"input_tokens":0,"output_tokens":0}}`. Secondary defect worth
-naming: **claude-code-action reports `subtype:"success"` and exits 0 despite `is_error:true`**, so a
-billing_error masquerades as a clean no-op — which is exactly why it looked like a mysterious "no-op
-success". (fix #23's delivery check caught the *symptom* — no commit → 👎 + `no_delivery` marker — and
-the ladder advanced; but the ROOT is billing.)
+`/`→307 (intentional, no Location header — RSC/client redirect), `/listings`, `/board`,
+`/compare`, `/jobs`, `/settings/current` → 200; `/api/health`→200. Mobile search box
+verified visible without opening filters (headless 390px); no console errors; detail
+page has outbound source link. **No production data mutated.** `SEED_KEY` not available
+in this env → admin-health endpoint not called (401 unauthenticated confirmed).
 
-**(e) Recommended fix (one paragraph).** Two layers. **Immediate:** fund the Anthropic account — until
-credit is restored the Claude fixer is 100% dead on TRF *and every repo sharing that key* (every call
-400s at 0 tokens), so the whole first ladder rung is a no-op everywhere. **Structural:** teach claude.yml
-to read the SDK execution output (`claude-execution-output.json` / the `type:"result"` object) and treat
-`is_error:true` with `billing_error` / "Credit balance is too low" as a **hard, distinct failure** — not
-a delivery no-op — so it (i) alerts the owner to fund and (ii) short-circuits the fixer stage like the
-keyless fail-soft, letting the watchdog ladder jump straight to Codex Cloud instead of burning a runner +
-a 20-min delivery window per PR. Cheapest version: gate claude.yml behind a `CLAUDE_ENABLED` Actions var
-(mirroring `CODEX_BACKUP_ENABLED`) that is flipped off while credit is exhausted.
+## DB counts (verified live)
 
-**(f) Implication for the fix #26 proxy stage.** Given this evidence, feeding Claude the Codex recipe
-will **NOT** change the outcome — **NO.** Claude never executes (0 tokens, instant 400); a better prompt
-reaches an account that cannot run. A proxy stage is pointless while credit is exhausted. **And the entry
-condition must be tightened:** "no-op with key present" is INSUFFICIENT — this run had the key present and
-produced a no-op, yet it was a **billing failure**, not a genuine model no-op. The proxy must fire ONLY on
-a *genuine model no-op* — Claude actually RAN (`is_error:false`, `num_turns > 1`, `input_tokens/output_tokens
-> 0`) and chose not to change code — and **never** on `billing_error` / credit exhaustion / failed / keyless
-runs. So the confirmed entry condition is "no-op with key present **AND `is_error:false` AND tokens spent**"
-(explicitly excluding billing_error), not "no-op with key present" alone.
+`/api/health`: `active_listings = 949`; `last_scrape` = THAILAND_PROPERTY SUCCESS
+(2026-08-16, added 6). Total-in-DB (~2365 per prior state.md) not re-verified live.
+
+## Tests
+
+- `npm run test:acquisition-safety` — 13 checks (pure sweep/classify logic). PASS.
+- `npm run test:scraper-datasafety` — 14 checks (end-to-end via fake Prisma): no sweep
+  on acquisition failure + FAILED; records kept + PARTIAL on per-item error; SUCCESS +
+  sweep on genuinely-empty; sweep query exempts SHORTLISTED/CONTACTED/VISITED. PASS.
+- `npx tsc --noEmit` (this repo's CI build gate) — clean. Existing offline smoke tests
+  (filters, image-utils, photo-filters, lazudi/li/renthub parsers) — pass. `git diff
+  --check` — clean. Lint: repo has no eslintrc (pre-existing; `next lint` prompts to
+  configure). Full `next build` needs a live DB — CI itself uses `tsc` instead.
+
+## Data-safety semantics after the fix
+
+`failAcquisition` → (a) sweep skipped for the failed city, (b) status `FAILED` iff
+found==0 else `PARTIAL`, (c) CLI exit 1 on `FAILED`. Per-item errors alone → `PARTIAL`,
+never suppress the sweep. `completedCities` (thailand-property) still gates its sweep;
+failed cities are additionally filtered out. No `found==0` heuristic — a genuine empty
+inventory still sweeps.
+
+## Issue #83
+
+OPEN, 43 comments, coalescing `site-health` issue. Latest (2026-08-17): `Uptime:
+homepage (HTTP 307)` (FALSE POSITIVE — fixed here) + `DB: stale sources:
+LIVING_INSIDER,LAZUDI` (now represented as PAUSED and excluded from stale). **Do NOT
+close manually** until a post-deploy run proves healthy (see pending-tests).
+
+## Actions-cost findings (audit only, no #92 edits)
+
+Claude Fallback Watchdog (`claude-fallback-watchdog.yml`, a #92 file): cron
+`2-59/5 * * * *` but GitHub throttles to ~48 runs/day; 749 total runs; median ~11s each
+→ 1-min billing floor. **Measured ≈565 Actions-minutes over the last 30 days** (single
+largest recurring non-scraper consumer). Do NOT extrapolate the theoretical 288/day.
+Lever = cadence (e.g. `2-59/5`→`*/30`), not runtime. Deferred until #92 resolves.
+
+## Private-name audit
+
+All editable hits neutralized (contact sign-offs dropped; AI prompt → `המשתמש`;
+comments/docs → `funzi7`/"the owner"; `.claude-guard.json __doc__` fixed to
+`needs-owner`). Remaining `rg` hits are false positives: `dimAttr` (dimension helper,
+renthub.ts) and `jsonLdImageCount` (scrape-debug). **Zero** name hits inside the 7 #92
+files.
+
+## Current TODO priorities
+
+Blockers: post-deploy verification; keep #83 open until proven healthy; Lazudi/LI stay
+paused until a runner access path is proven. Next: decide on the 8 Lazudi rows
+deactivated by the old bug; watchdog cost after #92; Next.js patch/LTS path (audit: 1
+critical `next` DoS + high `postcss`/`undici`/`nanoid`; fixing `next` is breaking — NOT
+done here). See root `TODO.md`.
+
+## Risks
+
+- Lazudi/LI: if their GitHub `state` stays `active`, commenting the cron stops
+  scheduled runs but the workflow still shows `active` in the API; state.md will label
+  them PAUSED via `paused_sources`, which is correct. (Fully disabling via
+  `gh workflow disable` was intentionally NOT done — it would also block
+  `workflow_dispatch`.)
+- The `next build` path is unverified locally (no DB); relying on `tsc --noEmit` which
+  matches CI's `pr-build-gate.yml`.
+
+## Physical checks still required AFTER deploy (not claimed done)
+
+1. site-health run: no `homepage (HTTP 307)` alert.
+2. `/api/admin/health?key=…` returns `paused_sources:[LIVING_INSIDER,LAZUDI,HIPFLAT]`
+   and `stale_sources` no longer lists the paused ones.
+3. Next `auto-update-state` run: `state.md` shows TP as GH Actions, Hipflat with no
+   live cron, LI/Lazudi paused.
+4. A scraper acquisition failure (or a `workflow_dispatch` on a paused source) exits
+   non-zero and does NOT deactivate rows.
+5. Decide/reactivate the 8 Lazudi rows if desired (`/api/admin/reactivate-curated`).
+
+**No deploy observed** — this milestone only opens PR #93; Vercel deploys on merge to
+`main`, which has not happened.

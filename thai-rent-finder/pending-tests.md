@@ -1,5 +1,32 @@
 # thai-rent-finder — pending tests / post-deploy checks
 
+## PR #93 — reliability milestone (2026-08-17)
+
+### Regression tests added (already passing in this branch — evidence: green locally)
+- [x] `npm run test:acquisition-safety` — pure sweep/classify logic (13 checks).
+- [x] `npm run test:scraper-datasafety` — end-to-end via fake Prisma (14 checks):
+      acquisition failure ⇒ no sweep + FAILED; per-item error ⇒ records kept + PARTIAL;
+      genuinely-empty ⇒ SUCCESS + sweep; sweep query exempts SHORTLISTED/CONTACTED/VISITED.
+- [x] `npx tsc --noEmit` clean (repo's CI build gate); existing offline smoke tests pass.
+
+### Post-deploy acceptance (do AFTER PR #93 merges + Vercel deploys — NOT yet done)
+- [ ] Trigger `site-health.yml` (`workflow_dispatch`): no `homepage (HTTP 307)` alert;
+      uptime step reports homepage OK on the 307 redirect.
+- [ ] `GET /api/admin/health?key=SEED_KEY` returns `paused_sources`:
+      `["LIVING_INSIDER","LAZUDI","HIPFLAT"]` and `stale_sources` no longer lists the
+      paused ones; `healthy:true` if the 3 active sources are fresh.
+- [ ] Next `auto-update-state.yml` run: `state.md` shows THAILAND_PROPERTY as
+      GH Actions (Tier 2), Hipflat/Lazudi/LI with no live cron / disabled state, and no
+      false schedule for commented-out crons.
+- [ ] `workflow_dispatch` a paused source (e.g. Lazudi PTY): if it 403s, the job exits
+      non-zero, emits an `error` event, `ScrapeJob.status=FAILED`, and **`deactivated=0`**
+      (no stale sweep on acquisition failure). If it unexpectedly succeeds (`found>0`),
+      that is the signal to re-enable its schedule.
+- [ ] Recovery decision for the 8 Lazudi PTY rows deactivated by the old sweep bug
+      (Lazudi run `31848091141`): reactivate via `/api/admin/reactivate-curated` if
+      wanted, or leave (non-shortlisted; Lazudi paused so they can't self-heal).
+- [ ] Issue #83: only after the above prove healthy, decide whether to close it.
+
 ## PR #82 — deactivation data-safety fix (post-deploy)
 
 - [ ] Merge PR, wait for Vercel deploy

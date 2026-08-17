@@ -65,6 +65,50 @@
 **Not a substitute for:** human review of scraper outputs against real listings. Codex can't tell you that 4 PTY listings is suspiciously low.
 **To respond inline:** comment `@codex address that feedback` on a PR — it will push a fix commit. We don't currently use this; Claude Code handles fixes.
 
+## Data-safety & monitoring (2026-08 reliability milestone)
+
+### Acquisition failure ≠ inventory disappeared
+**Symptom:** a scraper hits HTTP 403/challenge, yields 0 listings, and the stale sweep
+then deactivates real rows (Lazudi run `31848091141`: `found=0 … deactivated=8`).
+**Reason:** 5 of 6 scrapers left `completedCities=null` and swallowed the index-fetch
+failure into a per-item error, so `BaseScraper` reached the stale sweep with an empty
+`seen` set and deactivated everything not seen.
+**Fix:** scrapers call `BaseScraper.failAcquisition(city, reason)` on an index-fetch
+failure. The sweep is then skipped for that city and the job is `PARTIAL`/`FAILED`.
+Pure logic in `src/scrapers/core/acquisition.ts` (`computeSweepPlan`, `classifyRun`).
+Never use a `found==0 ⇒ failure` heuristic — a genuinely empty inventory is valid and
+must still sweep.
+
+### Workflow green ≠ scraper healthy
+**Symptom:** `conclusion=success` while the scraper ingested 0 rows behind a 403.
+**Reason:** `scrape-cli.ts` exited 0 unconditionally; a swallowed failure emitted
+`event:"done"`.
+**Fix:** `ScrapeJob.status` is now `SUCCESS`/`PARTIAL`/`FAILED` (free-form String — no
+migration). CLI exits 1 + emits `error` on `FAILED`. Site-health checks DB freshness
+(`stale_sources`), not just workflow conclusion, for the ingest-0-rows mode.
+
+### Redirects must be interpreted intentionally in health checks
+**Symptom:** site-health reported `homepage (HTTP 307)` as downtime every run for weeks.
+**Reason:** `/` intentionally `redirect("/listings")` (307, and with NO `Location`
+header — it's an RSC/client redirect, so `curl -L` does not follow it). The uptime
+check tested `!= "200"`.
+**Fix:** accept 2xx/3xx for the homepage; keep strict 200 for `/listings` and the APIs.
+
+### Auto-generated state must derive runtime facts, not hard-code architecture
+**Symptom:** `state.md` showed THAILAND_PROPERTY as "Tier 1 (Vercel)" (it runs on GH
+Actions via `scrape.yml`) and Hipflat as an active scheduled source (its cron is
+commented out).
+**Fix:** `auto-update-state.yml` now reads live workflow `state` via
+`actions.listRepoWorkflows` and only reads a cron from a non-comment line;
+`generate-state.js` renders ACTIVE/PAUSED/BROKEN and suppresses crons for
+disabled/paused workflows.
+
+### Paused ≠ broken
+A source unreachable from the runner IP is **paused** (schedule commented out, code +
+`workflow_dispatch` kept), not deleted or "stale". `/api/admin/health` reports
+`paused_sources` and excludes them from the healthy/stale decision so they don't raise
+false alerts. Same idea as the long-standing HIPFLAT omission.
+
 ## Pitfalls to avoid
 
 - Don't introduce `playwright-extra` / `puppeteer-extra-plugin-stealth` unless plain Playwright + minimal init script truly fails. Adds dependency weight.
