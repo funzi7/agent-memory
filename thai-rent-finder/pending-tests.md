@@ -27,6 +27,30 @@
       wanted, or leave (non-shortlisted; Lazudi paused so they can't self-heal).
 - [ ] Issue #83: only after the above prove healthy, decide whether to close it.
 
+### Manager follow-up (commit bccce40) — regression tests (passing locally)
+- [x] `test:acquisition-safety` (20 checks incl. isAmbiguousEmptyIndex, isFailedRunStatus).
+- [x] `test:scraper-datasafety` (20 checks incl. HTTP-200 page-1 zero cards → no sweep +
+      FAILED; page-2 exhaustion → sweep + SUCCESS).
+- [x] `test:checkup-message` (6 checks — paused-source rendering / precedence / status).
+
+### Manager follow-up — post-merge / post-deploy acceptance (NOT yet done)
+- [ ] Ambiguous HTTP-200 page-1 zero-card run (e.g. a source whose selectors drift, or a
+      `workflow_dispatch` that returns a shell) exits non-zero, `ScrapeJob.status=FAILED`,
+      and **deactivated=0** (no sweep).
+- [ ] Valid pagination exhaustion (page 2+ empty after page-1 inventory) stays normal —
+      status SUCCESS/PARTIAL, sweep runs, no false acquisition failure.
+- [ ] A TP FAILED run (anti-bot/zero-link) makes the `scrape.yml` GitHub Actions step
+      **red** (scripts/scrape.ts exit propagation).
+- [ ] `/jobs` renders a PARTIAL job as "חלקי" in amber (needs a real PARTIAL row — e.g.
+      a run with per-item errors).
+- [ ] Daily Checkup Telegram message lists LIVING_INSIDER / LAZUDI / HIPFLAT with ⏸️
+      (paused) and overall status is not forced to "Needs Attention" by paused alone.
+- [ ] A fully-healthy `site-health` run comments "recovered" on and **closes** the open
+      `site-health` issue (#83) via the new lifecycle step; a subsequent healthy run posts
+      no further comment (idempotent).
+- [ ] `auto-update-state` still renders active vs paused sources correctly after these
+      changes.
+
 ## PR #82 — deactivation data-safety fix (post-deploy)
 
 - [ ] Merge PR, wait for Vercel deploy

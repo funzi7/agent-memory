@@ -103,6 +103,40 @@ commented out).
 `generate-state.js` renders ACTIVE/PAUSED/BROKEN and suppresses crons for
 disabled/paused workflows.
 
+### HTTP 200 + zero parsed cards ≠ empty inventory (fail closed)
+**Symptom:** selectors drift or an anti-bot/JS shell is served with HTTP 200; the index
+parses to zero listing cards and the scraper treats the city as "empty" → stale sweep.
+**Reason:** an explicit fetch failure (403/challenge) is caught by `failAcquisition`, but
+a 200 with zero parsed cards is ambiguous — selector drift, a JS shell, and a genuinely
+empty city are indistinguishable.
+**Fix:** `BaseScraper.noteEmptyIndexPage(city, page)` + pure `isAmbiguousEmptyIndex`.
+Page 1 with no VERIFIED source empty-results marker → `failAcquisition` (fail closed, no
+sweep, not SUCCESS). Page 2+ → ordinary pagination exhaustion (page 1 already proved the
+parser works) → no-op. Do NOT invent an empty-state selector to "prove empty" — only use
+one evidenced from live HTML; otherwise fail closed. Wired into all active scrapers.
+
+### The runner that turns the workflow red is scraper-specific
+**Symptom:** `ScrapeJob.status=FAILED` in the DB but the GH Actions step is green.
+**Reason:** per-site scrapers run via `scripts/scrape-cli.ts` (which propagates status to
+exit code), but **Thailand Property runs via `scripts/scrape.ts`** (`scrape.yml` →
+`npm run scrape:thailand-property`), which printed ✓ and exited 0 regardless of status.
+**Fix:** both runners share `isFailedRunStatus`; scrape.ts sets a non-zero exitCode on
+FAILED/throw (after closeBrowser + prisma cleanup — never `process.exit` that skips it).
+When adding a new runner, route its exit code through `isFailedRunStatus`.
+
+### Auto-generated Telegram/state messages must derive paused from health, not counts
+**Symptom:** a paused source vanished from Daily Checkup (0 rows → absent) or showed ✅
+(still had recent rows).
+**Fix:** render paused sources from `health.paused_sources` (⏸️, always listed), not from
+`fresh_counts_7d`/`stale_sources`. Paused is not a health failure.
+
+### site-health issues need a healthy-path close, or they stay open forever
+**Symptom:** the coalesced `site-health` issue (#83) stays open after recovery, so Daily
+Checkup shows "Needs Attention" indefinitely.
+**Fix:** an idempotent "close on recovery" step in `site-health.yml` that comments +
+closes the open `site-health` issue only when ALL checks pass (acts only if an open issue
+exists → no daily spam).
+
 ### Paused ≠ broken
 A source unreachable from the runner IP is **paused** (schedule commented out, code +
 `workflow_dispatch` kept), not deleted or "stale". `/api/admin/health` reports
