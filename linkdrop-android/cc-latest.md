@@ -1,102 +1,106 @@
-# LinkDrop — Milestone 2 Handoff (Android 16 crash fix + FGS hardening + physical evidence)
+# LinkDrop — Milestone 3 Handoff (Shizuku optional · Home URL autofill · one-at-a-time · truthful notifications)
 
 ## Identity and release state
 
 | Field | Value |
 | --- | --- |
 | Application repository | funzi7/linkdrop-android |
-| Milestone | 2 — fix Android 16 download crash, harden foreground-service execution, record physical findings |
+| Milestone | 3 — manual use without Shizuku, foreground Clipboard autofill, immediate downloads, truthful notifications, queue/UI fixes |
 | Branch / tracking | main / origin/main |
-| Starting application HEAD | `2803eeaea8babe24c07f17dec992f0dc8e4e279e` (Milestone 1) |
-| Final pushed application HEAD | `045d007460f3260b0d9e530e3f08ea3cdda03551` |
-| Starting agent-memory HEAD | `25b3e39d88a2231f9c0717e7b4ac93e4390bfa0f` |
-| Identity | com.funzi7.linkdrop, 0.1.2-feasibility, versionCode 3, minSdk 30 / targetSdk 36 / compileSdk 37, arm64-v8a only |
-| APK (release asset) | LinkDrop-v0.1.2-feasibility-arm64-debug.apk — 125,487,623 bytes |
-| APK SHA-256 | `996cedc79000b47b3a05ebee8448f2bd400fc7817e9153b33b018f06ad6862ef` |
-| Release | prerelease `v0.1.2-feasibility`, target = final HEAD, asset attached + digest verified (sha256 matches) |
-| Phone delivery | `/storage/emulated/0/Download/LinkDrop/LinkDrop-v0.1.2-feasibility-arm64-debug.apk` (SHA matches source) |
+| Starting application HEAD | `045d007460f3260b0d9e530e3f08ea3cdda03551` (Milestone 2) |
+| Final pushed application HEAD | `571095449f1a4c5719ecc89f95cde2181df15b2c` |
+| Starting agent-memory HEAD | `3c43c97423f881eae6ebfb9c39309b2ecd1eb6d2` |
+| Identity | com.funzi7.linkdrop, 0.1.3-feasibility, versionCode 4, minSdk 30 / targetSdk 36 / compileSdk 37, arm64-v8a only |
+| APK (release asset) | LinkDrop-v0.1.3-feasibility-arm64-debug.apk — 125,879,091 bytes |
+| APK SHA-256 | `6561145e0221414408c063edbeffec64512e7a55629087c31dd871980f6f5184` |
+| Release | prerelease `v0.1.3-feasibility`, target = final HEAD, asset attached; downloaded asset SHA re-verified == source |
+| Phone delivery | `/storage/emulated/0/Download/LinkDrop/LinkDrop-v0.1.3-feasibility-arm64-debug.apk` (SHA matches source) |
 | Git author identity | funzi7 <207505227+funzi7@users.noreply.github.com> (repo-local) |
 
 One coherent commit on main, pushed without force; `git ls-remote` confirms remote main == local HEAD.
 No device or emulator was attached to the build.
 
-## Physical test evidence (Samsung Galaxy S25 Ultra · Android 16 / One UI · arm64) — real device
+## Physical evidence carried in (real device — Samsung Galaxy S25 Ultra · Android 16 / One UI · arm64)
 
-Ran `v0.1.1-feasibility` on the phone. **Proved:** install + onboarding usable; **Google Play REFUSED
-Shizuku** (built-for-older-Android) so Shizuku was installed from the **official RikkaApps/Shizuku GitHub
-release** and started via **Wireless Debugging over a temporary hotspot** (no Wi-Fi); onboarding
-completed; **background clipboard ingestion works for screen-on + X foreground** — a copied X URL was
-detected automatically, persisted in Room, queued, reached `DOWNLOADING`, WITHOUT the manual field or
-Share. **Failed:** progress stuck at 0%, app crashed, row left at `DOWNLOADING 0%`, crash recurred on
-reopen, no file produced. The "מפעיל האזנה אוטומטית לקישורים" Snackbar was near the crash but is NOT the
-cause (benign auto-start-monitoring feedback; preserved). **Still unproven:** screen-off, recents-swipe,
-reboot, long-term Shizuku, listener-vs-polling, and any completed download.
+On `v0.1.2`: the interrupted `v0.1.1` X download **recovered and completed**; the file physically exists
+under the configured `X/` folder; a second X URL copied while Shizuku monitored was auto-detected,
+extracted (title shown), and completed; re-copying a completed URL was skipped as a **duplicate**;
+Advanced-Diagnostics manual URL download works. **Shizuku stops when the temporary hotspot/Wi-Fi that
+starts it via Wireless Debugging is removed** — so on cellular it cannot be an always-available
+prerequisite. That drove the Milestone-3 "Shizuku is optional" correction.
 
-## Crash root cause (STATIC diagnosis — device logcat was NOT accessible)
+## What was implemented (application HEAD 5710954)
 
-Build host is Termux/PRoot: no authorized adb device, no `rish`, `logcat`/`getprop` blocked (fake-root
-can't cross into Android namespace), no tombstone/ANR artifact in shared storage. **The exact runtime
-exception was NOT recovered and none was invented.** Diagnosed from the merged manifest + WorkManager
-2.11.2 bytecode (conclusive): `DownloadWorker` promotes with `FOREGROUND_SERVICE_TYPE_DATA_SYNC`, but
-WorkManager's `SystemForegroundService` merged into the APK with **no** `foregroundServiceType`. On
-Android 14+ (device API 36) `Service.startForeground(…, DATA_SYNC)` throws `IllegalArgumentException`
-("not a subset of foregroundServiceType attribute … in manifest"). WorkManager's `Api31Impl` catches
-ONLY `ForegroundServiceStartNotAllowedException` + `SecurityException` (verified in bytecode), so the
-`IllegalArgumentException` propagated on the service main thread → process crash. The old worker wrote
-`DOWNLOADING` before `setForeground()` and outside try/catch → row stuck at `DOWNLOADING 0%`.
+- **Shizuku optional in onboarding (§3/§4):** `OnboardingStateMapper` gains `requiredReady`
+  (folder+overlay), `REQUIRED_STEPS`/`OPTIONAL_STEPS`, and an `OnboardingSnapshot.requiredReady` field;
+  `allReady` still means "all incl. Shizuku". Wizard finishes on `requiredReady`, offers
+  *"המשך בלי זיהוי אוטומטי"*, labels Shizuku steps *"(רשות)"*, never shows a not-running Shizuku as done.
+  `finishOnboarding` starts monitoring only if Shizuku READY and leaves `autoMonitorAttempted=false`
+  otherwise so the `init{}` collector auto-starts monitoring if Shizuku later becomes READY.
+- **Permanent Home URL card (§5)** + **foreground Clipboard autofill (§6):** Home field + *"הורד"* routes
+  through the same `UrlIngestPipeline` via new `IngestSource.HOME_MANUAL`. `MainActivity.onResume` reads
+  the clipboard (no Shizuku) → `vm.onForegroundClipboard`; pure `ClipboardAutofillPolicy` decides
+  Fill/Ignore, never submits, never overwrites deliberate edits (fills only empty field or its own prior
+  autofilled value). Pure `HomeUrlPolicy` reflects an already-active/completed identity (*"כבר הורד"*).
+- **Strict single ingestion:** all sources converge on the mutex-serialized idempotent `ingest()` +
+  `DuplicatePolicy`; `enqueueUniqueWork(workName, KEEP)` keeps exactly one WorkRequest per canonical
+  identity (workName = `linkdrop_dl_$dedupKey`, stable across the row's life).
+- **Deterministic one-at-a-time (§10/§11):** KEY INSIGHT — `DownloadWorker` is a `CoroutineWorker`; its
+  `doWork()` runs on `Dispatchers.Default`, NOT the WorkManager main executor, so the old single-thread
+  `setExecutor` did NOT serialize transfers. Removed it (default executor). New fair-`Mutex`
+  `DownloadCoordinator.withTransferSlot`: second item → `WAITING` ("ממתין") → FIFO auto-release on
+  completion/failure/cancellation (`finally`), no Activity needed. New `WAITING` `QueueStatus` (stored as
+  TEXT name — NO Room migration; converter maps unknown→FAILED) is an active hold in
+  `DuplicatePolicy.ACTIVE_STATUSES` + `WorkReconciliationPolicy.isInFlight` + `QueueRepository.inFlightRows`.
+- **Immediate background start (§9)** + **cellular (§14):** `DownloadScheduler` sets
+  `setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)` (preserves the request); only
+  `NetworkType.CONNECTED` constraint (never UNMETERED). `NetworkPolicy` documents/asserts it.
+- **Truthful notifications & stages (§12/§13):** start notification only at `DOWNLOAD_START`, posted
+  explicitly (appears even when FGS promotion fell back / Activity never opened); ongoing notification one
+  id per row (`fgsId`), completion only after SAF write. Pure `DownloadNotificationPolicy` is the tested
+  contract. New `DownloadStage`: `WORK_ENQUEUE_REQUESTED`, `WORK_RUNNING`, `WAITING`, `COMPLETED`,
+  `DUPLICATE_SKIPPED`; the false "…ההורדה החלה" enqueue message is gone.
+- **Honest queue wording (§8):** Home active section *"הורדות"* (non-terminal only); `queueStatusHebrew`
+  maps `WAITING→"ממתין"`, `DOWNLOADING→"מוריד"`, `QUEUED/EXTRACTING/DETECTED→"מכין הורדה"` — never *"בתור"*.
+  Advanced Diagnostics *"כל הרשומות (N)"*.
 
-## What was implemented (application HEAD 045d007)
+New pure files: download/{DownloadCoordinator,DownloadNotificationPolicy,NetworkPolicy}.kt,
+ingest/{ClipboardAutofillPolicy,HomeUrlPolicy}.kt.
 
-- **Merged-manifest fix (definitive):** merged `android:foregroundServiceType="dataSync"` onto
-  `androidx.work.impl.foreground.SystemForegroundService` (`tools:node="merge"`). VERIFIED present in
-  `app/build/intermediates/packaged_manifests/.../AndroidManifest.xml` + both merged_manifest
-  intermediates, with FOREGROUND_SERVICE + FOREGROUND_SERVICE_DATA_SYNC permissions.
-- **Guarded promotion:** `DownloadWorker.promoteToForeground` wraps `setForeground()`; pure
-  `ForegroundPromotionPolicy.classify(className,message)`→`FgsPromotionOutcome` (Promoted /
-  StartNotAllowed→`FGS_START_NOT_ALLOWED` / ConfigOrSecurityError→`FGS_PROMOTION_CONFIG_ERROR`) then
-  `decide()`. Every failure continues as a normal Worker; no FGS exception can crash-loop. (Note: the
-  IllegalArgumentException is thrown on WorkManager's service main thread, NOT the worker coroutine, so
-  the manifest fix — not the guard — prevents THAT crash; guard covers the rejection path.)
-- **Queue ordering:** pure `DownloadStartupPolicy.evaluate(hasDestination, ExtractionGate)` gates
-  destination→extraction→entry; row becomes `DOWNLOADING` only on `ProceedToTransfer`. Failures →
-  `NO_DESTINATION`/extraction code/`NO_DOWNLOADABLE`, never stuck 0%.
-- **Startup reconciliation:** pure `WorkReconciliationPolicy.decide(status, WorkPresence)` +
-  `StartupReconciler` (reads `getWorkInfosForUniqueWork`). In-flight = DETECTED/EXTRACTING/QUEUED/
-  DOWNLOADING; ACTIVE work→Leave, ABSENT→`markInterrupted(INTERRUPTED_PROCESS)` (retryable, no
-  attemptCount bump, never touches COMPLETED). Wired in `LinkDropApp.onCreate` (Dispatchers.IO). Never
-  enqueues (no dup jobs). AWAITING_SELECTION intentionally left for future overlay-restore.
-- **Exit evidence:** pure `ExitReasonMapper` (REASON_* → code/level/meaningful; hasReadableTrace;
-  bounded+redacted summarize) + `ExitReasonReporter` reads `getHistoricalProcessExitReasons`, logs the
-  last meaningful exit (`exit/EXIT_*`) deduped via `SettingsRepository.lastExitReportedAt`. Traces
-  bounded to 4KB read + 1200-char redacted excerpt; ANR/native only. NOT a Logcat replacement.
-- **Stage diagnostics:** `DownloadStage` enum + `ProgressCoalescer(25%)`; pipeline emits DETECTED/
-  NORMALIZED/WORK_ENQUEUED, worker emits WORK_STARTED…DOWNLOAD_DONE/FAILED. Progress coalesced.
-- **Shizuku GitHub fallback:** pure `ShizukuInstall` (githubReleasesUrl = official RikkaApps/Shizuku
-  releases/latest; market/playStore). `ShizukuManager.openShizukuGithub` + `VM.installShizukuFromGithub`
-  + onboarding secondary button "הורדה רשמית מ-GitHub" in the NOT_INSTALLED step. Official sources only;
-  no scrape/silent-install.
+## Internal 4-track adversarial review — confirmed findings, all fixed
 
-New pure files: download/{DownloadStage,ForegroundPromotionPolicy,DownloadStartupPolicy,
-WorkReconciliationPolicy}.kt, diagnostics/ExitReasonMapper.kt, shizuku/ShizukuInstall.kt. New Android:
-download/StartupReconciler.kt, diagnostics/ExitReasonReporter.kt.
+- **MAJOR:** `retry()` bypassed the duplicate policy → could download a second file for a since-COMPLETED
+  identity / orphan a QUEUED row. Now runs `DuplicatePolicy.decide` over sibling rows first (skip/refuse).
+- **HIGH:** cancellation cleanup ran suspend Room calls in an already-cancelled coroutine → row never
+  marked CANCELLED / notification never cleared. Now wrapped in `withContext(NonCancellable)`.
+- **MEDIUM-HIGH:** failure notifications posted at the FGS id were wiped by WorkManager's foreground-service
+  teardown on `Result.failure()`. Terminal (completed/failed) notifications now post at a disjoint id
+  (`TERMINAL_DOWNLOAD_BASE` [3000,3999] vs. ongoing [2000,2999]); ids never collide.
+- **MEDIUM:** on API 30 (minSdk) expedited work runs as an FGS, so `getForegroundInfo()` posts before
+  `doWork()` — it returned a "מוריד"/progress notification for a pre-gate/WAITING item. Now returns a
+  neutral *"מכין הורדה"* notification, upgraded to the real one only at `DOWNLOAD_START`.
+- **LOW:** the Home automation notice + an onboarding KDoc were reworded to be truthful (the notice reads
+  the real Shizuku phase — *"האזנה אינה פעילה"* when Shizuku is up but not monitoring).
+- **Known limitation (not fixed, pre-existing overlay path):** an `AWAITING_SELECTION` row stranded by
+  process death permanently blocks its identity (recoverable via the diagnostics cancel button) — TODO.
 
 ## Automated tests / lint / build
 
-- `./gradlew testDebugUnitTest` → **136 tests, 0 failures** (99 M1 + 37 new). New: ForegroundPromotion
-  PolicyTest 9, WorkReconciliationPolicyTest 8, ExitReasonMapperTest 8, DownloadStartupPolicyTest 5,
-  DownloadStageTest 4, ShizukuInstallTest 3. Covers every §14 case incl. dedup-after-interrupt.
+- `./gradlew testDebugUnitTest` → **178 tests, 0 failures** (136 M2 + 42 new). New: ClipboardAutofillPolicy
+  7, HomeUrlPolicy 8, DownloadCoordinator 4 (coroutines-test), DownloadNotificationPolicy 7, NetworkPolicy 2,
+  OnboardingOptionalShizuku 5, QueueActiveSemantics 6, AutoDetectionNotice 3.
 - `./gradlew lintDebug` → **0 errors, 33 warnings**. `./gradlew assembleDebug` → arm64-v8a APK
-  (libpython.so + libffmpeg.so). `git diff --check` clean. All heavy builds via the device-wide
-  heavy-build lock (not bypassed).
-- Merged manifest validated (task §15): SystemForegroundService has foregroundServiceType="dataSync".
+  (libpython.so + libffmpeg.so). `git diff --check` clean. All heavy builds via the device-wide lock.
+- Merged manifest: versionCode 4, versionName 0.1.3-feasibility, SystemForegroundService keeps
+  `foregroundServiceType="dataSync"`, FOREGROUND_SERVICE_DATA_SYNC present, NO wifi/UNMETERED token.
 
-## Not physically tested (PENDING — the whole point of the next test)
+## Not physically tested (PENDING — the next device test)
 
-**No device/emulator attached to the build.** The crash fix, the corrected download path (has NEVER
-completed a file on device), reconciliation on a real interrupted row, exit-reason capture, clipboard
-monitoring beyond screen-on — all pending. The manifest fix is verified STATICALLY only; whether
-`startForeground` actually succeeds on One UI 16 is unverified. Do NOT claim the download works until the
-user physically verifies `0.1.2-feasibility`.
+**No device/emulator attached.** Home Clipboard autofill, Shizuku-free manual/Share download, immediate
+expedited background start, the new start/progress/completion notifications, FIFO multi-download, TikTok,
+screen-off, recents-removal, reboot — all pending `docs/PHYSICAL_TEST_PLAN.md` (Tests A–E first). JVM
+coordinator tests do NOT prove Android's real expedited/FGS/notification behaviour. Do NOT claim any of the
+new flows work until the user physically verifies `0.1.3-feasibility`.
 
 ## Reused hard-won facts (still true)
 
@@ -105,26 +109,21 @@ user physically verifies `0.1.2-feasibility`.
   at `/opt/android-sdk` via `local.properties`.
 - Toolchain unchanged: AGP 9.3.1 built-in Kotlin 2.3.21, KSP 2.3.7, Hilt 2.60.1, Room 2.8.4,
   WorkManager 2.11.2, Compose BOM 2026.08.00, youtubedl-android 0.18.1. `data object` works.
-- WorkManager 2.11.2 specifics learned this milestone: its AAR declares SystemForegroundService with NO
-  foregroundServiceType; `Api31Impl.startForeground` swallows only ForegroundServiceStartNotAllowed +
-  SecurityException (API 29/30 path does NOT wrap at all); MissingForegroundServiceTypeException never
-  referenced. So any FGS-type-mismatch on API 34+ crashes unless the merged manifest declares the type.
-- APK delivery: `scripts/copy-apk-to-downloads.sh` probes real writable Download dir, publishes to
-  `Download/LinkDrop/<versioned>.apk`, verifies src↔dst SHA-256. Default name bumped to v0.1.2.
+- WorkManager 2.11.2: `CoroutineWorker.doWork()` runs on `Dispatchers.Default`, NOT the `setExecutor`
+  executor — so a single-thread executor does not serialize coroutine transfers (use app-level
+  coordination). On API < 31, expedited work runs as an FGS and calls `getForegroundInfo()` before
+  `doWork()`. SystemForegroundService still needs the merged `dataSync` type (M2 fix retained).
+- Adding a `QueueStatus` enum value needs NO Room migration (stored as TEXT via converter; DB version 1;
+  `stringToStatus` maps unknown→FAILED). Heavy Gradle auto-routes through `/root/work/bin/heavy-run` lock
+  via the global PreToolUse hook. Release: `gh release create` of the ~120 MB APK can exceed a 2-min
+  timeout mid-upload; the release is created but assetless — finish with `gh release upload --clobber`.
+- APK delivery: `scripts/copy-apk-to-downloads.sh` (default name bumped to v0.1.3) verifies src↔dst SHA.
 
-## Forbidden-name validation
+## Continuation (Milestone 4)
 
-Case-insensitive scan (excluding .git/.gradle/build/.kotlin) for the prohibited personal name + retired
-`com.<name>` namespace: **PASS — 0 occurrences** (also 0 for the email local-part token). All packages
-`com.funzi7.linkdrop*` (+ intentional framework `android`/`android.content` for the @hide clipboard
-AIDL). namespace/applicationId = com.funzi7.linkdrop. Same scan run over this agent-memory dir.
-
-## Continuation (Milestone 3)
-
-Run `docs/PHYSICAL_TEST_PLAN.md` on the already-configured device: install `0.1.2-feasibility` from
-`Download/LinkDrop/`, copy one public X video URL with X foreground, confirm **no crash + progress > 0% +
-a completed file under X/**, then TikTok, then duplicate-skip, then read Advanced Diagnostics for the
-clipboard mechanism (listener vs polling) and the `stage/*` + `FGS_*` outcome. Only after the core path
-works: screen-off / recents / interrupted-recovery / Shizuku-restart / reboot. Then harden the winning
-clipboard path, real multi-video + thumbnails, periodic engine-update worker, Compose/instrumented tests.
-Never claim clipboard monitoring or downloads work until physically confirmed.
+Run `docs/PHYSICAL_TEST_PLAN.md` Tests A–E on the configured device: Shizuku OFF Home autofill + manual
+download on cellular (start + completion notifications + file under X/); Share without Shizuku; automatic
+mode with Shizuku up (app not opened); two URLs (second shows "ממתין", starts automatically); duplicate
+skip. Only after A–E: screen-off / recents / reboot / TikTok. Then harden the winning clipboard path, real
+multi-video + thumbnails, periodic engine-update worker, Compose/instrumented tests, and reconcile stranded
+`AWAITING_SELECTION` rows. Never claim the new flows work until physically confirmed.
