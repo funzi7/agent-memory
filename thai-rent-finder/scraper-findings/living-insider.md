@@ -136,7 +136,7 @@ Filter: detail-page text contains `Close the deal` OR `This listing has been clo
 Living Insider's hotel/business listings are filtered at URL level (different category in nav: `Hotel_apartment`). Within `/Condo/Rent/`, hotels shouldn't appear — but defensive check on title for `Hotel`/`Resort`/`Hostel`/`Guesthouse` is cheap and worth keeping.
 
 ### Daily / hourly rentals
-Living Insider has flexible rental terms — some listings are 1-month minimum, others 12-month. The card shows `1 month OK` when 1-month is accepted; this is **not a rejection signal** in itself. The site is monthly-oriented (unlike Renthub), so no equivalent of the Renthub daily-filter is needed here. The presence of "Short-term rental" in the title or `Cleaning service` mentions indicate flexible/serviced units, but those still belong in the dataset for Dima's use case.
+Living Insider has flexible rental terms — some listings are 1-month minimum, others 12-month. The card shows `1 month OK` when 1-month is accepted; this is **not a rejection signal** in itself. The site is monthly-oriented (unlike Renthub), so no equivalent of the Renthub daily-filter is needed here. The presence of "Short-term rental" in the title or `Cleaning service` mentions indicate flexible/serviced units, but those still belong in the dataset for the user's use case.
 
 ## Gotchas / surprises
 
@@ -229,7 +229,7 @@ Implement Living Insider Pattaya scraper rebuild. Critical path is fixing the in
 - Other-city zone mapping (BKK strategy unclear)
 - Photo deduplication beyond what `dedupeImageUrls()` already does
 
-**Open question for Dima before implementation:**
+**Open question for the owner before implementation:**
 - Accept v1 = index-only (no expired/closed filter, no full photo set, no description) on the bet that index data is good enough for the listings UI — and add detail enrichment in a follow-up?
 - Or block on solving the detail-page empty-body issue first (Playwright route, +1 day of work)?
 

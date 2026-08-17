@@ -1,89 +1,77 @@
-# thai-rent-finder — pending tests / post-deploy checks
+# thai-rent-finder — Pending Verification
 
-## PR #93 — reliability milestone (2026-08-17)
+A short, current queue of things to actually test. The current in-flight PR is **#93**
+(branch `fix/trf-reality-sync-data-safety`), OPEN, not merged. Regression tests already
+pass locally on that branch (see the note at the end); the items below are the physical
+checks that still need a real environment (post-merge/post-deploy) or a live UI.
 
-### Regression tests added (already passing in this branch — evidence: green locally)
-- [x] `npm run test:acquisition-safety` — pure sweep/classify logic (13 checks).
-- [x] `npm run test:scraper-datasafety` — end-to-end via fake Prisma (14 checks):
-      acquisition failure ⇒ no sweep + FAILED; per-item error ⇒ records kept + PARTIAL;
-      genuinely-empty ⇒ SUCCESS + sweep; sweep query exempts SHORTLISTED/CONTACTED/VISITED.
-- [x] `npx tsc --noEmit` clean (repo's CI build gate); existing offline smoke tests pass.
+Historical per-PR "open, merge and deploy" step-lists (for the already-merged #82 / #84
+/ #85 / #88 work) have been dropped; only the genuinely-still-unverified product
+behaviors are kept, rewritten as current product checks.
 
-### Post-deploy acceptance (do AFTER PR #93 merges + Vercel deploys — NOT yet done)
-- [ ] Trigger `site-health.yml` (`workflow_dispatch`): no `homepage (HTTP 307)` alert;
-      uptime step reports homepage OK on the 307 redirect.
-- [ ] `GET /api/admin/health?key=SEED_KEY` returns `paused_sources`:
-      `["LIVING_INSIDER","LAZUDI","HIPFLAT"]` and `stale_sources` no longer lists the
-      paused ones; `healthy:true` if the 3 active sources are fresh.
-- [ ] Next `auto-update-state.yml` run: `state.md` shows THAILAND_PROPERTY as
-      GH Actions (Tier 2), Hipflat/Lazudi/LI with no live cron / disabled state, and no
-      false schedule for commented-out crons.
-- [ ] `workflow_dispatch` a paused source (e.g. Lazudi PTY): if it 403s, the job exits
-      non-zero, emits an `error` event, `ScrapeJob.status=FAILED`, and **`deactivated=0`**
-      (no stale sweep on acquisition failure). If it unexpectedly succeeds (`found>0`),
-      that is the signal to re-enable its schedule.
-- [ ] Recovery decision for the 8 Lazudi PTY rows deactivated by the old sweep bug
-      (Lazudi run `31848091141`): reactivate via `/api/admin/reactivate-curated` if
-      wanted, or leave (non-shortlisted; Lazudi paused so they can't self-heal).
-- [ ] Issue #83: only after the above prove healthy, decide whether to close it.
+---
 
-### Manager follow-up (commit bccce40) — regression tests (passing locally)
-- [x] `test:acquisition-safety` (20 checks incl. isAmbiguousEmptyIndex, isFailedRunStatus).
-- [x] `test:scraper-datasafety` (20 checks incl. HTTP-200 page-1 zero cards → no sweep +
-      FAILED; page-2 exhaustion → sweep + SUCCESS).
-- [x] `test:checkup-message` (6 checks — paused-source rendering / precedence / status).
+## PR #93 — post-merge / post-deploy (NOT yet done)
 
-### Manager follow-up — post-merge / post-deploy acceptance (NOT yet done)
-- [ ] Ambiguous HTTP-200 page-1 zero-card run (e.g. a source whose selectors drift, or a
-      `workflow_dispatch` that returns a shell) exits non-zero, `ScrapeJob.status=FAILED`,
-      and **deactivated=0** (no sweep).
+- [ ] Site Health run: the `/` → `/listings` **307** redirect no longer raises a
+      `homepage (HTTP 307)` alert (uptime step reports homepage OK).
+- [ ] `GET /api/admin/health?key=SEED_KEY` returns `paused_sources`
+      `["LIVING_INSIDER","LAZUDI","HIPFLAT"]`; `stale_sources` no longer lists the paused
+      ones; `healthy:true` when the 3 active sources are fresh.
+- [ ] Next `auto-update-state` run: `state.md` shows THAILAND_PROPERTY as GH Actions
+      (Tier 2), LI/Lazudi/Hipflat as paused with no live cron, and no false schedule for
+      commented-out crons. **Note:** the generator fix ships in PR #93 — until it merges,
+      the daily auto-run still uses the deployed (old) generator, so the deployed
+      `state.md` may temporarily show the old values. Not a regression.
+- [ ] A real acquisition failure (e.g. a `workflow_dispatch` on a paused source that
+      403s) → job exits non-zero, `ScrapeJob.status=FAILED`, and **`deactivated=0`**.
+- [ ] Ambiguous HTTP-200 page-1 zero-card run (selector drift / a returned shell) →
+      exits non-zero, `status=FAILED`, **no stale sweep** (`deactivated=0`).
 - [ ] Valid pagination exhaustion (page 2+ empty after page-1 inventory) stays normal —
-      status SUCCESS/PARTIAL, sweep runs, no false acquisition failure.
-- [ ] A TP FAILED run (anti-bot/zero-link) makes the `scrape.yml` GitHub Actions step
-      **red** (scripts/scrape.ts exit propagation).
-- [ ] `/jobs` renders a PARTIAL job as "חלקי" in amber (needs a real PARTIAL row — e.g.
-      a run with per-item errors).
+      `SUCCESS`/`PARTIAL`, sweep runs, no false acquisition failure.
+- [ ] A Thailand Property FAILED run (anti-bot / zero-link) turns the `scrape.yml`
+      GitHub Actions step **red** (scripts/scrape.ts exit propagation).
+- [ ] `/jobs` renders a PARTIAL job as "חלקי" in amber (needs a real PARTIAL row).
 - [ ] Daily Checkup Telegram message lists LIVING_INSIDER / LAZUDI / HIPFLAT with ⏸️
-      (paused) and overall status is not forced to "Needs Attention" by paused alone.
-- [ ] A fully-healthy `site-health` run comments "recovered" on and **closes** the open
-      `site-health` issue (#83) via the new lifecycle step; a subsequent healthy run posts
-      no further comment (idempotent).
-- [ ] `auto-update-state` still renders active vs paused sources correctly after these
-      changes.
+      (paused); overall status is NOT forced to "Needs Attention" by paused alone.
+- [ ] A fully-healthy Site Health run comments "recovered" on and **closes** the open
+      `site-health` issue (#83); a subsequent healthy run posts no further comment
+      (idempotent). Do NOT close #83 by hand — let the workflow do it.
+- [ ] Decide/recover the 8 Lazudi PTY rows deactivated by the old sweep bug (Lazudi run
+      `31848091141`): reactivate via `/api/admin/reactivate-curated` or leave them
+      (non-shortlisted; Lazudi paused so they can't self-heal). Only if still relevant
+      after deploy.
 
-## PR #82 — deactivation data-safety fix (post-deploy)
+## Older physical UX/data checks still worth verifying
 
-- [ ] Merge PR, wait for Vercel deploy
-- [ ] Call /api/admin/reactivate-curated?key=SEED_KEY&dry_run=true — expect Riviera+Dusit rows listed
-- [ ] Call again without dry_run — expect reactivated>=2
-- [ ] Browser: main list + board show Riviera & Dusit again
-- [ ] After next scrape.yml run: audit-listings shows both still is_active=true (sweep exemption held)
+These are meaningful product behaviors that have never been physically re-verified in
+the current UI/data (independent of any specific old PR). Test when convenient:
 
-## PR #84 — solo cadence + concerns cleanup (post-deploy)
+- [ ] **Curated protection holds through real scraper cycles:** a SHORTLIST-or-better
+      listing stays `is_active=true` and visible on the list + board after a normal
+      scrape run that didn't re-see it (stale-sweep exemption).
+- [ ] **AI concerns hygiene in production:** concerns on a live listing use only the 4
+      approved categories, in simple natural Hebrew, with no legacy wifi/furniture/pets
+      cards.
+- [ ] **Favorite + status AND semantics in the live UI:** `favoriteOnly=1` shows
+      favorited listings; `favoriteOnly=1&status=SHORTLISTED` still shows;
+      `favoriteOnly=1&status=NEW` is empty (AND, not OR).
+- [ ] **Latin search works:** searching "riviera" finds the Riviera listing. (Hebrew
+      queries matching English source text is a KNOWN LIMITATION — see TODO.md — not a
+      test target.)
+- [ ] **Mobile recent-search chips:** searching adds a recent chip; chips survive a
+      reload; a chip click re-applies the query; ✕ removes it.
+- [ ] **"עודכן" timestamp** shows on cards + the detail header in Thailand time.
+- [ ] **Sort/size filters:** sort by size asc/desc; sqm range narrows; year sort puts
+      nulls last.
 
-- [ ] Merge PR, wait for Vercel deploy
-- [ ] Run /api/listings/<riviera-id>/recompute-concerns?key=SEED_KEY&source=all — new concerns are plain Hebrew, only 4 categories, no wifi/furniture/pets cards
-- [ ] Same for the Dusit listing
-- [ ] Next TP run (group A day, 09:00 ICT): log shows city order PTY→CMI→PHK→BKK, all 4 completed, BKK yielded ≤2, duration ~4-6 min
-- [ ] Site-health after an off-day: no false stale alerts (80h threshold holding)
-- [ ] agent-memory state.md after next auto-update: single footer, ~20 duplicates gone, cron table reflects */3 cadence
+_(Lazudi/LI enriched-field checks are intentionally omitted while those sources are
+paused; revisit only if a source becomes runnable again — see the re-enable condition in
+TODO.md / cc-latest.md.)_
 
-## PR #85 — search/sort/favorites/lazudi (post-deploy)
+---
 
-- [ ] Merge PR, wait for Vercel deploy
-- [ ] /listings?favoriteOnly=1 → favorited listings show
-- [ ] favoriteOnly=1&status=SHORTLISTED → still shows; favoriteOnly=1&status=NEW → empty (AND semantics)
-- [ ] Search box: "riviera" finds Riviera; Hebrew building-name query finds a match
-- [ ] List cards show building name line where available
-- [ ] Sort by size asc/desc works; sqm range filter narrows; year sort puts nulls last
-- [ ] After next Lazudi run (group B day): a Lazudi listing shows a real description, not "View property listing."
-
-## PR #88 — enrich/dates/search/cleanup (post-deploy)
-
-- [ ] Merge PR, wait for Vercel deploy
-- [ ] /api/admin/cleanup-dead-concerns?key=SEED_KEY&dry_run=true → counts > 0
-- [ ] Real run → deleted_total matches; open a listing that had "חסר מידע על ריהוט/חיות מחמד" → cards gone
-- [ ] Cards show "עודכן: dd.MM.yy HH:mm" in Thailand time; detail page header shows the same line
-- [ ] Mobile: search box visible above results without opening סננים; searching adds a recent-chip; chips survive reload; chip click re-applies; ✕ removes
-- [ ] After next Lazudi run (group B day): a Lazudi listing shows קומה on the card and מרוהט=כן on the detail page; amenities chips appear
-- [ ] PR-body skipped-labels list reviewed (decide if renthub/LI need a findings-doc update later)
+_Regression tests passing locally on branch `fix/trf-reality-sync-data-safety`:_
+`test:acquisition-safety` (20 checks), `test:scraper-datasafety` (20 checks),
+`test:checkup-message` (6 checks), plus `tsc --noEmit` and the offline parser smokes.
+These are code-level and need no environment; the checkboxes above are the physical ones.

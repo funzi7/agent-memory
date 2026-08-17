@@ -12,6 +12,17 @@ This is the follow-up commit `bccce40` on top of the milestone commit `3b7dd10`
 head, so its green gate did NOT prove no defects — the manager manually reviewed and
 found the gaps fixed below.
 
+> **Agent-memory documentation cleanup (2026-08-17, memory-only).** No project code
+> changed and the project HEAD is unchanged (`bccce40`); PR #93 remains the current
+> project PR (OPEN, not merged, not deployed). `roadmap.md` was converted to a
+> historical-change-history document (its stale "current status" runtime block, obsolete
+> crons/counts, and old "pending PR"/bug/UX lists-as-future were removed). `pending-tests.md`
+> was reconciled to a current verification queue (old "merge PR #82/#84/#85/#88" step-lists,
+> the Hebrew-search-matches-English expectation, and Lazudi-scheduled-run checks removed).
+> Genuine private-name references were removed from the whole TRF agent-memory directory
+> (roadmap + scraper-findings). Current source of truth: root `TODO.md` + this file +
+> `state.md`.
+
 ## PR #92 isolation (still honored)
 
 PR #92 (`chore(automation): sync from automation-core`) OPEN, head

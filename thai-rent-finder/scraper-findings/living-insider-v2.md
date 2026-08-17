@@ -119,7 +119,7 @@ for (const [sourceId, anchorGroup] of byId) {
 - Tolerate `anchorGroup.length !== 3` (skip those, log them)
 - Verify that `anchorGroup[2]` text contains "Sq.m." or "Rooms" before treating it as the specs row; if not, fall back to scanning all 3 for the one with specs-like text
 
-### One-shot probe to recover the actual class name (if Dima wants to fix this properly)
+### One-shot probe to recover the actual class name (if the owner wants to fix this properly)
 
 In the production scraper, before writing the listing, log the wrapper class for the first card found:
 
@@ -164,7 +164,7 @@ The site's `assets18/` versioning suggests a 2018-era jQuery/Bootstrap codebase.
 ## What's verified vs guessed (this session)
 
 ### Verified
-- ✅ `detail_en` is the active pattern; `livingdetail_en` is absent from current cards (Dima's debug log: 1079 vs 0)
+- ✅ `detail_en` is the active pattern; `livingdetail_en` is absent from current cards (owner's debug log: 1079 vs 0)
 - ✅ source_id pattern: trailing `-(\d+)` on the URL path (verified across 3+ different listing URLs in observable traffic)
 - ✅ Multiple anchors per card pointing to the same href — confirmed in the Spotlight Copacabana card observed via markdown extraction
 - ✅ Index page is server-rendered with anchors visible to plain HTTP fetcher
