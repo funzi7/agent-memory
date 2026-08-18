@@ -1,48 +1,35 @@
 # thai-rent-finder — State
 
 > Living document. Auto-updated daily at 02:00 UTC by `auto-update-state.yml`.
-> Manually reconciled 2026-08-17 (reliability milestone, PR #93). The generator was
-> fixed in that same PR; once it merges, the next auto-run reproduces this table. Until
-> then the daily run still uses the old (deployed) generator and may revert the fixes
-> below (TP shown as Vercel, LI/Lazudi as "no fresh listings").
+> Last auto-update: 2026-08-18
 > Production: https://thai-rent-finder.vercel.app
-> Active listings (live /api/health 2026-08-17): 949
+> Total listings in DB: 2367
 
 ## Sources status (current)
 
-Every scraper runs on **GitHub Actions (Tier 2)** — there is no Vercel-cron scraping.
-
 | Source | Tier | Cron (ICT) | Status | Listings 7d |
 |--------|------|------------|--------|-------------|
-| RENTHUB | 2 (GH Actions) | 03:30 | ✅ active | 491 |
 | FAZWAZ | 2 (GH Actions) | 03:00 | ✅ active | 65 |
-| THAILAND_PROPERTY | 2 (GH Actions) | 09:00 | ✅ active | ~32 |
-| LIVING_INSIDER | 2 (GH Actions) | paused | ⏸️ paused (runner-IP HTTP 403) | n/a |
-| LAZUDI | 2 (GH Actions) | paused | ⏸️ paused (runner-IP Cloudflare 403) | n/a |
-| HIPFLAT | 2 (GH Actions) | paused | ⏸️ disabled_manually (Cloudflare 403) | n/a |
+| RENTHUB | 2 (GH Actions) | 03:30 | ✅ active | 550 |
+| THAILAND_PROPERTY | 2 (GH Actions) | 09:00 | ✅ active | 27 |
+| LIVING_INSIDER | 2 (GH Actions) | paused | ⏸️ paused (access blocked) | n/a |
+| LAZUDI | 2 (GH Actions) | paused | ⏸️ paused (access blocked) | n/a |
+| HIPFLAT | 2 (GH Actions) | paused | ⏸️ paused (access blocked) | n/a |
 
 ## Recently merged PRs (last 7 days)
 
-_No PRs merged in last 7 days_
-
-## Open PRs
-
-- **#93** — reliability milestone (data-safety, honest status, pause LI/Lazudi,
-  state/health/docs reconciliation) — OPEN, not merged.
-- **#92** — `chore(automation): sync from automation-core` (7 workflow files) — OPEN.
+- **#93** — fix(reliability): fail-closed data-safety, honest scraper status, pause LI/Lazudi, reconcile state/health/docs
 
 ## Open issues
 
-- **#83** — Site Health Alert — 2026-07-05 _(site-health, auto-detected, claude-fix)_ —
-  keep OPEN until post-deploy proof of health (the `homepage (HTTP 307)` false alert is
-  fixed in #93; `stale sources: LI/Lazudi` now represented as PAUSED).
+_No open issues_
 
 ## Active workflows
 
 - `scrape-fazwaz.yml` — cron `0 20 3-31/3 * *` UTC
-- `scrape-hipflat.yml` — **disabled_manually** (schedule commented out)
-- `scrape-lazudi.yml` — **paused** in #93 (schedule commented out; workflow_dispatch kept)
-- `scrape-living-insider.yml` — **paused** in #93 (schedule commented out; workflow_dispatch kept)
+- `scrape-hipflat.yml` — **disabled_manually**
+- `scrape-lazudi.yml`
+- `scrape-living-insider.yml`
 - `scrape-renthub.yml` — cron `30 20 2-31/3 * *` UTC
 - `auto-update-state.yml` — cron `0 2 * * *` UTC
 - `ci-doctor.yml` — cron `0 6,18 * * *` UTC
