@@ -1,158 +1,144 @@
-# Private Media TV — F2C.4 Handoff
+# Private Media TV — F2C.4.1 Handoff (emergency mobile startup crash hotfix)
 
 ## Identity and release state
 
 | Field | Value |
 | --- | --- |
 | Application repository | funzi7/private-media-tv |
-| Milestone | F2C.4 — first-class SAF Local Library, Deep per-source history rescue, text-free exact binding, runtime start-or-attach idempotence + stale lease-error cleanup, offline local-first downloads, Source Inspector + truthful index/FAST-live UX |
+| Milestone | F2C.4.1 — Emergency mobile startup crash hotfix (release blocker): fixes the code-23 immediate-open crash from F2C.4 |
 | Branch / tracking branch | main / origin/main |
-| Starting application HEAD | 259a51252aeb077f8de631b493d361120054ccb4 |
-| Final application HEAD | bb0b9d7e78e024e3c5a93aca1ee0d4aa978cd6e2 |
-| Exact-head Android CI | 32096140914 — success |
-| Mobile identity | com.funzi7.privatemediatv.mobile, 0.4.4-phone-test, versionCode 23 (updates code 22 in place) |
-| TV regression identity | com.funzi7.privatemediatv, 0.6.4-f2c4, versionCode 27 (regression build only, not delivered) |
+| Starting application HEAD | bb0b9d7e78e024e3c5a93aca1ee0d4aa978cd6e2 (F2C.4 final = broken code 23) |
+| Final application HEAD | 519c4468770439ccf9fb7a5d97a0b8d4f3d7f9ac |
+| Exact-head Android CI | 32107205729 — success (wrapper validation + build) |
+| Mobile identity | com.funzi7.privatemediatv.mobile, 0.4.5-phone-test, versionCode 24 (updates broken code 23 in place) |
+| TV regression identity | com.funzi7.privatemediatv, 0.6.4-f2c4, versionCode 27 (UNCHANGED; no shared production code changed; not delivered) |
 | Development signer SHA-256 | 2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0 |
 
-One cohesive F2C.4 commit on main, pushed without force; final application HEAD matches origin/main.
-Exact-head Android CI passed and uploaded both signed artifacts; only the mobile artifact was
-downloaded and published. No TV export/delivery, no Shield, no adb device attached.
+One cohesive F2C.4.1 commit on main, pushed without force; final application HEAD matches origin/main.
+The exact-head Android CI initially failed 4 times at the Gradle-wrapper-validation job (~3 s, empty
+logs, no steps) because the account's GitHub Actions minutes were exhausted; the owner raised the
+limit and a re-run of the same HEAD passed both jobs and uploaded the signed artifacts. Only the mobile
+artifact was downloaded and published. No TV export/delivery, no Shield, no adb device attached.
 
-## What F2C.4 implemented (application HEAD bb0b9d7)
+## Root cause (confirmed by code inspection; no fabricated Android stack)
 
-Decision record: `docs/adr/0024-f2c4-local-library-deep-rescue-binding-runtime-offline-inspector.md`;
-narrative in CHANGELOG, README, TODO, PROJECT_STATE / HANDOFF / RELEASE_REVIEW F2C.4 sections,
-TEST_PLAN / MOBILE_ACCEPTANCE F2C.4 matrices, ARCHITECTURE / DATA_MODEL / UX_DECISIONS /
-OFFLINE_DOWNLOADS / PLAYBACK_CONTINUITY / PRODUCT_SPEC / TMDB_INTEGRATION.
+F2C.4 (code 23) passed CI (run 32096140914) but crashed IMMEDIATELY on open on the physical device.
+The F2C.4 SAF Local Library added an eagerly-created Compose ViewModel
+`MobileLocalLibraryViewModel = viewModel()` to the initial `MobileAcceptanceApp` composition. Its only
+constructor was `(Application, CoroutineDispatcher = Dispatchers.IO)`. A Kotlin default argument does
+NOT synthesize the exact `(Application)` JVM constructor that the Android
+`ViewModelProvider.AndroidViewModelFactory` reflectively requires
+(`modelClass.getConstructor(Application::class.java)`); the factory threw "Cannot create an instance of
+MobileLocalLibraryViewModel" at first composition and Android killed the process. The pre-existing
+unit/Robolectric tests constructed the ViewModel DIRECTLY, never through the production factory path,
+so CI never exercised the failing reflective construction. No Telegram session, catalog/local-library
+Room, credential, or native-artifact corruption was involved.
 
-Driven by physical code-22 owner evidence (A: Deep missed a file later found by a Known Source; B:
-AUTOMATIC `זה הפרק` failed on the text requirement; C: recurring stale runtime-lease presentation; D:
-Downloads falsely showed zero while a COMPLETE download existed; E: ambiguous index-build progress;
-F/G: FAST-live wording + uninspectable sources) plus owner request H (Local Library).
+## What F2C.4.1 changed (final HEAD 519c446)
 
-1. **Text-free exact binding.** `bindSource()` no longer requires `ownerSourceSearchText` or a derived
-   confirmation phrase; `ownerSearchText` is nullable through every layer
-   (`F2bCatalogDataSource` → `SourceDiscoveryService` → `RoomSourceIntelligenceRepository.bindExactSource`).
-   A binding persists from the index row's durable locators + `media.identity.stableKey` and its
-   identity-derived PROVEN affinity in one transaction; the optional alias is learned in a SEPARATE
-   best-effort transaction AFTER commit, so alias-learning failure never rolls back the binding.
-   `BIND_CONFIRMATION_UNAVAILABLE_NOTICE` removed. AUTOMATIC and POSSIBLE both bind on
-   `זה הפרק`/`זה הסרט` with no literal search on screen.
-2. **Deep per-source bounded history rescue.** In the Deep group loop, every searchable source the
-   live phase left without an accepted candidate runs ONE bounded `GetChatHistory` rescue for THAT
-   source, reusing the F2B.5.1 history-fallback path (`runLiveGroup(historyFallback=true,
-   knownSourceGroup=true)` → adapter `searchSelectedChatHistoryFallback` / `historyFallbackOnly`),
-   through the same `TmdbAwareSourceMatcher` + `KnownSourcePossibleRelevancePolicy` floor and bounds
-   (≤5 pages × ≤100 raw messages, per-op timeout, cancellable). The rescue is additive (a throwaway
-   `DeepGroupOutcomes` isolates it so one source's rescue never downgrades another's live terminal),
-   Deep continues through the remaining sources, and the owner never has to pre-configure the channel
-   as a Known Source. New `SourceDiscoverySafeStage.DEEP_HISTORY_RESCUE` +
-   `SourceSearchV2Budgets.deepHistoryRescueMillis` (5 s/source).
-3. **Runtime start-or-attach idempotence.** Reaching Running health or authorization Ready supersedes
-   a stale `runtimeAttempt.terminalFailure` (new `MobileRuntimeAttempt.clearedStaleFailure()`);
-   `restartFailedRuntimeFromVault` treats an already-owned HEALTHY runtime as a successful attach
-   (`reconcileHealthyOwnedRuntime`) instead of synthesizing `CLIENT_ALREADY_ACTIVE`; a new serialized
-   `MobileProcessRuntimeOwner.startOrAttach` makes create-vs-attach atomic under the one owner mutex.
-   `ProcessTelegramRuntimeLease` is unchanged and still rejects a real second client; the discovery
-   backend still drives the coalesced `recover()` for runtime-gated operations (ADR 0019).
-4. **Offline Downloads local-first.** `F2bCatalogDataSource.offlineDownloads()` observes the
-   account-scoped `offline_downloads` Room store DIRECTLY (persisted active account via
-   `RoomSourceDiscoveryRepository.persistedActiveAccountState()` → `observeOfflineDownloads`) as a
-   long-lived `F2bLocalDownloadsProjection` (Available / NoActiveAccount / AccountConflict /
-   TransientReadFailure). No provider/runtime gate; never a false empty; a NoActiveAccount projection
-   never wipes a valid list; a transient DB read failure keeps the last valid list and shows
-   `לא ניתן לרענן כרגע`; the fail-soft observer reattaches on normal completion. The F2C.3
-   zero-Telegram COMPLETE local-playback happy path is unchanged.
-5. **Source Inspector + truthful UX.** Clickable source cards → a new `SOURCE_INSPECTOR` route
-   (`פרטי מקור`): per-source indexed video rows newest-first (a per-channel DAO query, pure-local —
-   no Telegram fanout), an in-source search over that source's local index, a bounded `רענן מדיה`
-   catch-up, and a RAW test-play that resolves an indexed row by token alone
-   (`resolveRawIndexedSource`, no identity/binding/media-association commit) so it never creates
-   catalog progress (nullable `F2bPlayableLaunch.identity` + `raw` flag). The index one-liner shows
-   scanned/found/pages, an explicit history-progress cue, and a `ממתין לתגובה מ-Telegram…` waiting
-   state (never a fake completion), with per-state actions. FAST live-search reworded to
-   `חיפוש מהיר בזמן אמת` with an explanation that a not-pinned source still participates in the local
-   index and Deep (the three mechanisms named distinctly).
-6. **First-class SAF Local Library** in a new provider-neutral `:core-locallibrary` module
-   (device-local DB v1, NOT the Telegram account-scoped catalog): SAF `OPEN_DOCUMENT_TREE` folder
-   grants (persistable read, write where granted); ONE initial recursive video scan, then incremental
-   reconciliation (new/changed/deleted; an unchanged file is never re-extracted; a lost permission
-   retains metadata and marks the folder INACCESSIBLE) — never a full re-scan on launch. Stable
-   fingerprint = document id + size + lastModified (no whole-file hashing). `LocalFilenameParser`
-   proposes catalog identities (SxxEyy/NxMM/natural/Hebrew episode, movie title+year) without
-   fabricating markers. Local MP4/MKV play through the common Media3 player via a seekable SAF
-   `ProviderRangeSource` (`SafLocalFileRangeSource`, `ContentResolver.openFileDescriptor` +
-   `Os.pread`/`Os.fstat`) — no multi-GB copy, no coercion into a Telegram token. Explicit physical
-   delete (`DocumentsContract.deleteDocument`) is confirmed (`למחוק את הקובץ מהמכשיר?`), never
-   automatic; a read-only provider fails truthfully; removing a folder deletes only indexed rows.
+Decision record: ADR 0024 amendment (F2C.4.1). Narrative in CHANGELOG, README, TODO, and the F2C.4.1
+sections/matrices of PROJECT_STATE / RELEASE_REVIEW / HANDOFF / TEST_PLAN / MOBILE_ACCEPTANCE.
+
+1. **Production ViewModel factory contract (the crash fix).** `MobileLocalLibraryViewModel` now has an
+   explicit `constructor(application: Application)` that pins the exact `(Application)` reflective JVM
+   signature the Android factory needs — mirroring the same pattern already used by `MobileViewModel`
+   and `F2bCatalogViewModel`. Default arguments must never be relied on to satisfy reflection-based
+   Android ViewModel construction. An injectable constructor is retained for tests.
+2. **Local Library startup fail-soft.** Opening the device-local Room DB is contained (a DB that cannot
+   open yields a null repository and the truthful notice `הספרייה המקומית אינה זמינה כרגע.`), and the
+   two eager folder/file observers now run under a supervised fail-soft wrapper (reusing the house
+   `launchFailSoftObserver` shape): a Room open/query/observe failure degrades to the contained notice
+   and can NEVER terminate the process (HOME stays alive by invariant); one observer's failure never
+   kills its sibling; `CancellationException` always propagates; a failed observer reattaches only
+   after a bounded delay (no hot loop). A small injectable observation seam (the two folder/file flows,
+   defaulting to the repository's flows) makes the observer-failure path deterministically testable
+   without depending on Room's self-healing behaviour on a closed DB. F2B.5.2.1 startup survivability
+   (Telegram STARTING/NOT_READY at launch) is preserved and now co-exercised with the Local Library.
+3. **Regression coverage that reproduces the physical failure.**
+   `MobileLocalLibraryStartupRegressionTest` (Robolectric) creates the ViewModel through the REAL
+   production `ViewModelProvider.AndroidViewModelFactory` reflective path (never the Kotlin constructor)
+   over a JVM `BundledSQLiteDriver` Local Library process DB: production-factory creation with the
+   `Application` injected (G), empty fresh library (I), existing seeded DB observable with no launch
+   rescan (J), forced DB-open-failure fail-soft (K), independent folder/file observer-failure
+   containment (L). `MobileStartupCompositionSmokeTest` renders the REAL initial `MobileAcceptanceApp`
+   composition through the host activity's default factory, building all three default ViewModels
+   (`MobileViewModel`, `F2bCatalogViewModel`, `MobileLocalLibraryViewModel`) with NO Telegram runtime —
+   HOME composes and survives (H + Telegram-not-ready M). Every "no crash" claim is asserted via a
+   default `UncaughtExceptionHandler`.
+4. **Delivery blocklist (rollback safety).** Mobile code 23 (`0.4.4-phone-test:23`) is classified
+   physically broken in `scripts/lib/mobile-apk-delivery.sh`: added to
+   `pmtv_mobile_version_is_physically_broken` (so publishing code 24 over it is a `superseded` rotation
+   that keeps the known-good code-22 `previous`) and to the rotation-identity allow-list (so the
+   installed broken-code-23 `latest` is recognized and publication over it is possible) — exactly the
+   code-17→18 precedent. New `test-mobile-apk-phone-delivery.sh` case
+   `test_broken_code_twentythree_is_never_promoted_to_previous` (15 cases total).
+
+Files: `app-mobile/.../MobileLocalLibraryViewModel.kt`, `MobileModels.kt`, `app-mobile/build.gradle.kts`;
+new tests `MobileLocalLibraryStartupRegressionTest.kt`, `MobileStartupCompositionSmokeTest.kt`;
+`scripts/lib/mobile-apk-delivery.sh`, `scripts/verify-mobile-apk.sh`,
+`scripts/export-latest-mobile-apk-to-phone.sh`, `scripts/download-latest-ci-mobile-apk-to-phone.sh`,
+`scripts/test-mobile-apk-phone-delivery.sh`, `scripts/test-download-latest-ci-mobile-apk-rejections.sh`,
+`scripts/test-verify-upgrade-apks.sh`; `.github/workflows/android-ci.yml` (mobile build-metadata
+version only); CHANGELOG/README/TODO/PROJECT_STATE/RELEASE_REVIEW/HANDOFF/TEST_PLAN/MOBILE_ACCEPTANCE
+and the ADR 0024 amendment.
 
 ## Validation evidence
 
-- Broad: `./gradlew test lint :app-mobile:assembleDebug :app-tv:assembleDebug` BUILD SUCCESSFUL — all
-  module unit tests green (core-metadata / core-telegram / core-catalog / **core-locallibrary (19
-  tests)** / app-mobile / app-tv), lint clean, both debug APKs assembled; `git diff --check` clean.
-- Focused F2C.4 regressions (new/updated, all green): binding — `OwnerDirectedSourceSearchTest`
-  (null-text bind + proven affinity), `F2c1SourcePanelViewModelTest` (BN-A AUTOMATIC bind, BN-B
-  text-less POSSIBLE binds); Deep — `SearchEngineV2IntegrationTest` (M/BN-D synthetic false-negative:
-  live miss + bounded history hit found WITHOUT Known-Source config; three prior Deep-coverage tests
-  updated to filter `historyFallbackOnly` requests); runtime — `MobileViewModelTest` (Running/Ready
-  supersede stale lease failure, Retry-while-healthy attaches without restart/lease error,
-  `startOrAttach` attach + single-creation); offline — `F2c3ViewModelTest` (local-first Available
-  without backend, TransientReadFailure keeps last list + notice, NoActiveAccount does not wipe);
-  inspector — `F2c3ViewModelTest` (open/search, raw test-play never arms a catalog identity);
-  `:core-locallibrary` — `LocalLibraryRepositoryTest` (BL 1-8/12-16) + `LocalFilenameParserTest`.
-- Script harnesses: credential scan 41, mobile delivery 14, mobile CI rejections 20+1, upgrade
-  verifier 13, TV delivery 9 — all passed. TDLib verify-only (NO rebuild): pinned commit unchanged,
-  ARM64 AAR SHA-256 025313d2a7cdbf148e5c700e8ef6c9d384f2301aff043c844997e0c23eb9abd2.
-- Local mobile debug APK verified 0.4.4-phone-test (23), ARM64-only, one `lib/arm64-v8a/libtdjni.so`,
-  Development signer.
-- CI: exact-head `Android CI` run 32096140914 for bb0b9d7… completed success (wrapper validation;
-  official TDLib, tests, lint, and signed TV/mobile assemblies).
+- Focused startup regressions green (17 tests): the two new suites above plus the retained
+  `ProductionStartupCrashRegressionTest`, `F2bStartupFailSoftViewModelTest`, and
+  `MobileManifestContractTest` (mobile 0.4.5-phone-test/24; TV 0.6.4-f2c4/27 unchanged).
+- Broad: `./gradlew test lint :app-mobile:assembleDebug` BUILD SUCCESSFUL — all module unit tests green,
+  lint clean, mobile debug APK assembled; `git diff --check` clean. No shared/core or TV production code
+  changed, so TV was not rebuilt and stays at code 27.
+- Script harnesses: mobile delivery 15 (incl. the new code-23 `superseded` case), mobile CI rejections
+  20+1, upgrade verifier 13, credential scan 41, `bash -n scripts/*.sh scripts/lib/*.sh` — all passed.
+- TDLib verify-only (NO rebuild): packaged JNI unchanged; local mobile debug APK verified
+  0.4.5-phone-test (24), ARM64-only, one `lib/arm64-v8a/libtdjni.so`, Development signer.
+- CI: exact-head `Android CI` run 32107205729 for 519c446 completed success (wrapper validation;
+  official TDLib, tests, lint, signed TV/mobile assemblies, mobile artifact upload).
 
 ## Delivery evidence (mobile only)
 
-Published via `./scripts/download-latest-ci-mobile-apk-to-phone.sh` from CI run 32096140914,
-artifact `private-media-tv-mobile-apk-bb0b9d7e78e024e3c5a93aca1ee0d4aa978cd6e2`:
+Published via `./scripts/download-latest-ci-mobile-apk-to-phone.sh` from CI run 32107205729, artifact
+`private-media-tv-mobile-apk-519c4468770439ccf9fb7a5d97a0b8d4f3d7f9ac`:
 
 - Latest: `/storage/emulated/0/Download/PrivateMediaTV/Mobile/private-media-tv-mobile-latest.apk` —
-  0.4.4-phone-test (23), APK SHA-256
-  8cd07aa8bac7474d5a6d3764ad91c81b466617c2021584c5893eb190e64ae0c8, 59,067,955 bytes, modified
-  2026-08-18 03:56 UTC, ARM64-only, one `lib/arm64-v8a/libtdjni.so` (packaged JNI sha
+  0.4.5-phone-test (24), APK SHA-256
+  3456626dedfae5a7aa22aa8c80bd9d3d1ea5e8a2a0606be0f7f300e451e55685, 59,067,959 bytes, modified
+  2026-08-18 07:17:40 UTC, ARM64-only, one `lib/arm64-v8a/libtdjni.so` (packaged JNI SHA
   790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f), Development signer verified.
-- Rotation result: `rotated` — previous is now the code 22 build (0.4.3-phone-test), 58,904,060
-  bytes. Only the two canonical Mobile files exist; TV files untouched. latest = code 23, previous =
-  code 22.
+- Rotation result: `superseded` — the broken code 23 `latest` was replaced in place and NOT promoted;
+  `previous` remains the known-good code 22 build (0.4.3-phone-test, versionCode 22, APK SHA-256
+  dbd43e27e938a88beaa86419e783a2f1946a8093d4d1bccede736229e7ad962e, 58,904,060 bytes, unchanged).
+  Only the two canonical Mobile files exist; the TV `PrivateMediaTV/*.apk` files are untouched.
+  Canonical rollback state: latest = code 24, previous = code 22.
 
 ## Not done / pending
 
-- **Physical code-23 acceptance is PENDING** on the owner's phone — gates in
-  `docs/MOBILE_ACCEPTANCE.md` F2C.4: in-place install over code 22 (no uninstall/clear-data); no stale
-  PMTV-TDLIB-RUNTIME-LEASE while the runtime is healthy; the pre-existing COMPLETE download visible +
-  locally playable before/without Telegram Ready; AUTOMATIC `זה הפרק` binds with no identifying text;
-  Deep finds a previously-missed title via the per-source rescue; index build shows live
-  scanned/media/page counters + active/waiting/completed; FAST-live label clarity; Source Inspector
-  list/search/test-play; Local Library add folder → one initial scan → local MP4/MKV play with no
-  Telegram search → restart shows the library from the DB with no rescan → add-new-file incremental →
-  explicit confirmed physical delete; exact-Back after Inspector/Local Library/Player; the retained
-  F2C.3 regressions.
-- Bounded follow-ups (documented truthfully, NOT physical defects): full
+- **Physical code-24 startup acceptance is PENDING** on the owner's phone — minimal first gate in
+  `docs/MOBILE_ACCEPTANCE.md` F2C.4.1: install code 24 over the broken code 23 (no uninstall, no Clear
+  Data); tap the icon; the app must open, stay open several minutes, HOME usable, no immediate crash.
+  Then preservation smoke: Telegram/session present, Catalog opens, Downloads not wiped, Local Library
+  (`ספרייה מקומית`) opens without a process crash. **F2C.4 physical acceptance is NOT claimed by this
+  hotfix** and its full gates remain PENDING/re-run separately.
+- F2C.4's documented bounded follow-ups are unchanged and out of scope here: full
   Continue-Watching/resume/auto-next parity for a catalog-BOUND local file and local-source priority
-  ahead of Telegram discovery (AY) — the `:core-locallibrary` scan/reconcile/delete/match/range-source
-  core and the standalone local player are complete and tested; the neutral catalog-playable
-  generalization that threads a bound local file through `F2bPlayableLaunch`'s progress machinery is
-  the next step. The Source-Inspector structured-episode-code local lookup (requirement I) is an
-  additive follow-up; the physical false-negative is already fixed by the per-source history rescue.
+  ahead of Telegram discovery (AY); Source-Inspector structured-episode-code local lookup (I).
 - TV code 27 is compile/regression evidence only; no TV delivery, no Shield.
 
 ## Continuation instructions
 
-Next agent: obtain the owner's physical code-23 result first (MOBILE_ACCEPTANCE F2C.4 gates). If a
-gate fails, pull a real Android bug report before changing anything. Architecture decisions live in
-ADR 0024. Environment/bump reminders (see also the manager's private notes and the repo memory): the
-new `:core-locallibrary` tests need `@ConscryptMode(OFF)` + `@SQLiteMode(LEGACY)` + BundledSQLiteDriver
-under Robolectric (framework driver fails), and the module's `build.gradle.kts` wires
-`sourceSets { getByName("test").assets.directories.add("schemas") }`; version bumps touch 10+ pin
-sites and the mobile rotation allow-list needs the outgoing build (now `0.4.3-phone-test:22`); never
-trust `./gradlew … | tail` exit codes. The Local Library DB starts at v1 with a strictly-additive
-migration policy (dual `migrate` overrides + committed exported schema for any future version); do not
-couple the SAF lifecycle to the Telegram catalog schema.
+Next agent: obtain the owner's physical code-24 startup result first (MOBILE_ACCEPTANCE F2C.4.1 minimal
+gate). If it still crashes, pull a real Android bug report before changing anything — do NOT re-guess.
+Then re-run the full F2C.4 physical acceptance gates. Architecture decisions live in ADR 0024 (+ the
+F2C.4.1 amendment). Reminders (see repo memory): mobile ViewModels reached by Compose `viewModel()`
+MUST expose an exact `(Application)` JVM constructor — never rely on a Kotlin default argument for
+reflection-based Android ViewModel construction; app-mobile Robolectric startup tests use
+`@ConscryptMode(OFF)` + `@GraphicsMode(LEGACY)` + `@SQLiteMode(LEGACY)` and install a
+BundledSQLiteDriver process DB reflectively (the framework driver fails under Robolectric); the
+CI-authoritative mobile downloader is the final publication and it fails fast with empty logs when the
+account's GitHub Actions minutes are exhausted (owner action, not a code fix); version bumps touch
+~10 pin sites plus the mobile rotation allow-list, and a build proven physically broken must be added
+to BOTH the rotation-identity allow-list and `pmtv_mobile_version_is_physically_broken`. The Local
+Library DB stays at v1 (strictly-additive migration policy); do not couple the SAF lifecycle to the
+Telegram catalog schema.
