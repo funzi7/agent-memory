@@ -1,20 +1,20 @@
-# LinkDrop — Milestone 3 Handoff (Shizuku optional · Home URL autofill · one-at-a-time · truthful notifications)
+# LinkDrop — Milestone 4 Handoff (Clipboard autofill fix · truthful yt-dlp version/freshness · update-assisted retry · clear-on-success)
 
 ## Identity and release state
 
 | Field | Value |
 | --- | --- |
 | Application repository | funzi7/linkdrop-android |
-| Milestone | 3 — manual use without Shizuku, foreground Clipboard autofill, immediate downloads, truthful notifications, queue/UI fixes |
+| Milestone | 4 — fix v0.1.3 physical findings: foreground Clipboard autofill, truthful yt-dlp version + auto freshness, update-assisted retry; clear Home field only after a true completion |
 | Branch / tracking | main / origin/main |
-| Starting application HEAD | `045d007460f3260b0d9e530e3f08ea3cdda03551` (Milestone 2) |
-| Final pushed application HEAD | `571095449f1a4c5719ecc89f95cde2181df15b2c` |
-| Starting agent-memory HEAD | `3c43c97423f881eae6ebfb9c39309b2ecd1eb6d2` |
-| Identity | com.funzi7.linkdrop, 0.1.3-feasibility, versionCode 4, minSdk 30 / targetSdk 36 / compileSdk 37, arm64-v8a only |
-| APK (release asset) | LinkDrop-v0.1.3-feasibility-arm64-debug.apk — 125,879,091 bytes |
-| APK SHA-256 | `6561145e0221414408c063edbeffec64512e7a55629087c31dd871980f6f5184` |
-| Release | prerelease `v0.1.3-feasibility`, target = final HEAD, asset attached; downloaded asset SHA re-verified == source |
-| Phone delivery | `/storage/emulated/0/Download/LinkDrop/LinkDrop-v0.1.3-feasibility-arm64-debug.apk` (SHA matches source) |
+| Starting application HEAD | `571095449f1a4c5719ecc89f95cde2181df15b2c` (Milestone 3) |
+| Final pushed application HEAD | `97f21c2173ad0b4be330c19c8db329bfe14dd850` |
+| Starting agent-memory HEAD | `378fe47d81351f0843b915c3ebf934db9a24ae8b` |
+| Identity | com.funzi7.linkdrop, 0.1.4-feasibility, versionCode 5, minSdk 30 / targetSdk 36 / compileSdk 37, arm64-v8a only |
+| APK (release asset) | LinkDrop-v0.1.4-feasibility-arm64-debug.apk — 125,959,939 bytes |
+| APK SHA-256 | `ac83b12dab8fb59a20b6be9d5fad8ebbe4f9c82983228c5e9e9cb5868d35a250` |
+| Release | prerelease `v0.1.4-feasibility`, target = final HEAD, asset attached; downloaded asset SHA re-verified == source |
+| Phone delivery | `/storage/emulated/0/Download/LinkDrop/LinkDrop-v0.1.4-feasibility-arm64-debug.apk` (SHA matches source) |
 | Git author identity | funzi7 <207505227+funzi7@users.noreply.github.com> (repo-local) |
 
 One coherent commit on main, pushed without force; `git ls-remote` confirms remote main == local HEAD.
@@ -22,108 +22,112 @@ No device or emulator was attached to the build.
 
 ## Physical evidence carried in (real device — Samsung Galaxy S25 Ultra · Android 16 / One UI · arm64)
 
-On `v0.1.2`: the interrupted `v0.1.1` X download **recovered and completed**; the file physically exists
-under the configured `X/` folder; a second X URL copied while Shizuku monitored was auto-detected,
-extracted (title shown), and completed; re-copying a completed URL was skipped as a **duplicate**;
-Advanced-Diagnostics manual URL download works. **Shizuku stops when the temporary hotspot/Wi-Fi that
-starts it via Wireless Debugging is removed** — so on cellular it cannot be an always-available
-prerequisite. That drove the Milestone-3 "Shizuku is optional" correction.
+Confirmed working (do not re-test): real X download completes, file exists under `X/`; duplicate skip works;
+Advanced-Diagnostics manual download works; Shizuku automatic background clipboard ingestion worked while
+Shizuku was active; **Shizuku stops when the hotspot/Wi-Fi that starts it is removed** (so optional). The
+permanent Home URL field is usable; with Shizuku off, Home truthfully shows auto-detection disabled.
 
-## What was implemented (application HEAD 5710954)
+The three v0.1.3 defects this milestone fixed:
+1. **Foreground Clipboard autofill did NOT work** — v0.1.3 read the clipboard in `MainActivity.onResume()`,
+   but since Android 10 a foreground app can read the clipboard only once its window has **input focus**.
+2. **Running yt-dlp version invisible (`yt-dlp ?`)** — a manual update returned DONE but the UI still showed `?`.
+3. **A specific X URL failed twice with `I/O operation on closed file`, then downloaded after a manual engine
+   update** — consistent with the upstream yt-dlp urllib closed-file regression (2025.11.12 → fixed 2025.12.08,
+   PR #15049), NOT proof (pre/post versions not captured). The bundled Python env uses stdlib urllib only.
 
-- **Shizuku optional in onboarding (§3/§4):** `OnboardingStateMapper` gains `requiredReady`
-  (folder+overlay), `REQUIRED_STEPS`/`OPTIONAL_STEPS`, and an `OnboardingSnapshot.requiredReady` field;
-  `allReady` still means "all incl. Shizuku". Wizard finishes on `requiredReady`, offers
-  *"המשך בלי זיהוי אוטומטי"*, labels Shizuku steps *"(רשות)"*, never shows a not-running Shizuku as done.
-  `finishOnboarding` starts monitoring only if Shizuku READY and leaves `autoMonitorAttempted=false`
-  otherwise so the `init{}` collector auto-starts monitoring if Shizuku later becomes READY.
-- **Permanent Home URL card (§5)** + **foreground Clipboard autofill (§6):** Home field + *"הורד"* routes
-  through the same `UrlIngestPipeline` via new `IngestSource.HOME_MANUAL`. `MainActivity.onResume` reads
-  the clipboard (no Shizuku) → `vm.onForegroundClipboard`; pure `ClipboardAutofillPolicy` decides
-  Fill/Ignore, never submits, never overwrites deliberate edits (fills only empty field or its own prior
-  autofilled value). Pure `HomeUrlPolicy` reflects an already-active/completed identity (*"כבר הורד"*).
-- **Strict single ingestion:** all sources converge on the mutex-serialized idempotent `ingest()` +
-  `DuplicatePolicy`; `enqueueUniqueWork(workName, KEEP)` keeps exactly one WorkRequest per canonical
-  identity (workName = `linkdrop_dl_$dedupKey`, stable across the row's life).
-- **Deterministic one-at-a-time (§10/§11):** KEY INSIGHT — `DownloadWorker` is a `CoroutineWorker`; its
-  `doWork()` runs on `Dispatchers.Default`, NOT the WorkManager main executor, so the old single-thread
-  `setExecutor` did NOT serialize transfers. Removed it (default executor). New fair-`Mutex`
-  `DownloadCoordinator.withTransferSlot`: second item → `WAITING` ("ממתין") → FIFO auto-release on
-  completion/failure/cancellation (`finally`), no Activity needed. New `WAITING` `QueueStatus` (stored as
-  TEXT name — NO Room migration; converter maps unknown→FAILED) is an active hold in
-  `DuplicatePolicy.ACTIVE_STATUSES` + `WorkReconciliationPolicy.isInFlight` + `QueueRepository.inFlightRows`.
-- **Immediate background start (§9)** + **cellular (§14):** `DownloadScheduler` sets
-  `setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)` (preserves the request); only
-  `NetworkType.CONNECTED` constraint (never UNMETERED). `NetworkPolicy` documents/asserts it.
-- **Truthful notifications & stages (§12/§13):** start notification only at `DOWNLOAD_START`, posted
-  explicitly (appears even when FGS promotion fell back / Activity never opened); ongoing notification one
-  id per row (`fgsId`), completion only after SAF write. Pure `DownloadNotificationPolicy` is the tested
-  contract. New `DownloadStage`: `WORK_ENQUEUE_REQUESTED`, `WORK_RUNNING`, `WAITING`, `COMPLETED`,
-  `DUPLICATE_SKIPPED`; the false "…ההורדה החלה" enqueue message is gone.
-- **Honest queue wording (§8):** Home active section *"הורדות"* (non-terminal only); `queueStatusHebrew`
-  maps `WAITING→"ממתין"`, `DOWNLOADING→"מוריד"`, `QUEUED/EXTRACTING/DETECTED→"מכין הורדה"` — never *"בתור"*.
-  Advanced Diagnostics *"כל הרשומות (N)"*.
+Deferred (explicitly NOT done): the `adb tcpip 5555` / localhost Shizuku-persistence experiment.
 
-New pure files: download/{DownloadCoordinator,DownloadNotificationPolicy,NetworkPolicy}.kt,
-ingest/{ClipboardAutofillPolicy,HomeUrlPolicy}.kt.
+## What was implemented (application HEAD 97f21c2)
 
-## Internal 4-track adversarial review — confirmed findings, all fixed
+- **Clipboard autofill fix:** read in `MainActivity.onWindowFocusChanged(true)` (not onResume);
+  lifecycle-scoped `OnPrimaryClipChangedListener` (STARTED-only, focus-guarded, unregistered in onStop);
+  pure `ingest/ClipTextExtractor` (direct text, else coerceToText). `ClipboardAutofillPolicy.evaluate`
+  adds a Reason; VM emits bounded, deduped `clipboard/CLIPBOARD_*` diagnostics + records last result for
+  Advanced Diagnostics. Strictly UI-only (never submits).
+- **Clear Home field only after success:** `HomeUrlFieldState` gains submittedKey/submittedText; submit no
+  longer clears; a VM always-on queue collector edge-detects newly terminal-success rows (baseline on first
+  emission) + pure `ingest/HomeFieldClearPolicy` (clear only watched-submission-complete-and-unchanged, or an
+  external COMPLETED matching the exact AUTOFILLED value; never a typed value, never a duplicate-skip externally).
+- **Truthful version:** `YtDlpDownloaderEngine.probeVersion()` runs `yt-dlp --version` via `execute()` (fallback
+  `version(context)`), on init and after update. `EngineState.Updating(prev)`; null version → "גרסת yt-dlp לא זמינה"
+  never `?`. `MediaRepository.updateEngine` → Ready→Updating→Ready reactively; a FAILED update restores the prior
+  state (a failed init stays Failed — do NOT fabricate Ready). Structured `EngineUpdateResult` +
+  `EngineUpdateClassifier` (UPDATED only from a real before/after change; unknown before/after → NO_CHANGE).
+- **engineMutex** serializes extract/download/update (download holds it whole transfer). Separate from initMutex
+  and MediaRepository.updateMutex; acquired without nesting → no deadlock.
+- **Auto freshness:** `download/EngineFreshnessPolicy` (24h) from `LinkDropApp.onCreate` in appScope,
+  non-blocking, once/interval, STABLE only. lastEngineCheckAt persisted only when the update did NOT fail.
+- **Failure classification + bounded retry:** `downloader/EngineErrorClassifier` (exact `I/O operation on closed
+  file` → IO_CLOSED_FILE candidate; filesystem/no-output/postprocessing/cancel never retried).
+  `download/EngineUpdateRetryPolicy` (one bounded transient retry via WorkManager runAttemptCount; one controlled
+  update + one retry for a stale engine candidate; afterEngineUpdate retries only on a genuine UPDATED).
+  `DownloadWorker.handleFailure` uses `Result.retry()` (same row + unique work → no dup job/file); new RETRYING
+  status; per-identity engine-retry tracked in-process by `download/EngineRetryTracker` (dedupKey, no migration);
+  worker aborts on a terminal row (no cancelled-row resurrection). Concise Home "ההורדה נכשלה" / "נסה שוב".
 
-- **MAJOR:** `retry()` bypassed the duplicate policy → could download a second file for a since-COMPLETED
-  identity / orphan a QUEUED row. Now runs `DuplicatePolicy.decide` over sibling rows first (skip/refuse).
-- **HIGH:** cancellation cleanup ran suspend Room calls in an already-cancelled coroutine → row never
-  marked CANCELLED / notification never cleared. Now wrapped in `withContext(NonCancellable)`.
-- **MEDIUM-HIGH:** failure notifications posted at the FGS id were wiped by WorkManager's foreground-service
-  teardown on `Result.failure()`. Terminal (completed/failed) notifications now post at a disjoint id
-  (`TERMINAL_DOWNLOAD_BASE` [3000,3999] vs. ongoing [2000,2999]); ids never collide.
-- **MEDIUM:** on API 30 (minSdk) expedited work runs as an FGS, so `getForegroundInfo()` posts before
-  `doWork()` — it returned a "מוריד"/progress notification for a pre-gate/WAITING item. Now returns a
-  neutral *"מכין הורדה"* notification, upgraded to the real one only at `DOWNLOAD_START`.
-- **LOW:** the Home automation notice + an onboarding KDoc were reworded to be truthful (the notice reads
-  the real Shizuku phase — *"האזנה אינה פעילה"* when Shizuku is up but not monitoring).
-- **Known limitation (not fixed, pre-existing overlay path):** an `AWAITING_SELECTION` row stranded by
-  process death permanently blocks its identity (recoverable via the diagnostics cancel button) — TODO.
+New pure files: downloader/{EngineErrorClassifier,EngineUpdateClassifier}.kt,
+download/{EngineFreshnessPolicy,EngineUpdateRetryPolicy,EngineRetryTracker}.kt,
+ingest/{HomeFieldClearPolicy,ClipTextExtractor}.kt. New QueueStatus.RETRYING (TEXT — no DB migration; added to
+DuplicatePolicy.ACTIVE_STATUSES, WorkReconciliationPolicy.isInFlight, QueueRepository.inFlightRows).
+
+## Internal 4-track adversarial review — confirmed findings, all fixed and re-tested
+
+- **HIGH:** a failed engine update flipped a failed init into `Ready(version unavailable)` and reported the
+  downloader ready → `updateEngine` restores the prior state on FAILED.
+- **MEDIUM-HIGH:** persisting the freshness clock on a FAILED update suppressed the proven recovery for 24h →
+  persist only on a non-failed update (LinkDropApp + assisted-retry).
+- **MEDIUM-HIGH (clipboard):** anti-refill guard stored the canonical URL while the clipboard holds the raw
+  value → re-filled a just-cleared URL. Fixed: don't overwrite the last-seen raw clipboard key at clear time.
+- **MEDIUM:** a manual update queued behind an active download mislabeled Home "updating" → `homeStatusLine`
+  shows an in-progress transfer ("מוריד כעת") ahead of the updating label.
+- **LOW:** EngineUpdateClassifier claimed UPDATED with an unknown before-version → NO_CHANGE.
+- **LOW:** cancelled row could be resurrected by a racing retry run → worker aborts on a terminal row.
 
 ## Automated tests / lint / build
 
-- `./gradlew testDebugUnitTest` → **178 tests, 0 failures** (136 M2 + 42 new). New: ClipboardAutofillPolicy
-  7, HomeUrlPolicy 8, DownloadCoordinator 4 (coroutines-test), DownloadNotificationPolicy 7, NetworkPolicy 2,
-  OnboardingOptionalShizuku 5, QueueActiveSemantics 6, AutoDetectionNotice 3.
-- `./gradlew lintDebug` → **0 errors, 33 warnings**. `./gradlew assembleDebug` → arm64-v8a APK
-  (libpython.so + libffmpeg.so). `git diff --check` clean. All heavy builds via the device-wide lock.
-- Merged manifest: versionCode 4, versionName 0.1.3-feasibility, SystemForegroundService keeps
-  `foregroundServiceType="dataSync"`, FOREGROUND_SERVICE_DATA_SYNC present, NO wifi/UNMETERED token.
+- `./gradlew testDebugUnitTest` → **231 tests, 0 failures** (178 M3 + 53 new). New/extended: ClipboardAutofillPolicy
+  (+5 evaluate/Reason), ClipTextExtractor 4, HomeFieldClearPolicy 9, EngineErrorClassifier 7, EngineUpdateRetryPolicy 7,
+  EngineFreshnessPolicy 5, EngineUpdateClassifier 5, EngineVersionLabel 4, MediaRepositoryEngineState (+5), QueueActiveSemantics
+  (+1 RETRYING), QueueStatus (+1). `./gradlew lintDebug` → 0 errors. `assembleDebug` → arm64 APK (libpython.so + libffmpeg.so).
+  `git diff --check` clean. All heavy builds via the device-wide lock. Merged manifest: versionCode 5, versionName
+  0.1.4-feasibility, SystemForegroundService keeps dataSync, NO wifi/UNMETERED token.
+
+## Reused hard-won facts (still true / newly confirmed)
+
+- Build host ARM + x86_64 SDK under qemu: `buildFeatures.aidl=false` + committed pre-generated AIDL Java
+  (`scripts/gen-aidl.sh`); AGP 9.3.1 built-in Kotlin 2.3.21, KSP 2.3.7, Hilt 2.60.1, Room 2.8.4, WorkManager
+  2.11.2, Compose BOM 2026.08.00, youtubedl-android 0.18.1. Heavy Gradle auto-routes through `/root/work/bin/heavy-run`.
+- **youtubedl-android 0.18.1 (primary-source confirmed):** `version(context)`/`versionName(context)` read
+  SharedPreferences ("youtubedl-android", keys dlpVersion/dlpVersionName) written ONLY by an update → **null on a
+  never-updated bundled install** (that was the `?`). Run `YoutubeDLRequest(listOf()).addOption("--version")` +
+  `execute()` and read `getOut().trim()` for the REAL runtime version. `UpdateStatus.DONE` ≠ a version change
+  (compares GitHub tag vs the stored pref). Updated yt-dlp binary lives in `noBackupFilesDir/youtubedl-android/yt-dlp/`,
+  SURVIVES app updates (init_ytdlp copies the bundled binary only if none exists), wiped on uninstall/clear-data.
+  Bundled Python = stdlib urllib + OpenSSL (no requests/urllib3). `execute(req, id)` 2-arg overload exists.
+- **yt-dlp `I/O operation on closed file`:** real urllib request-handler regression (introduced stable 2025.11.12,
+  fixed PR #15049 in stable 2025.12.08), hit during HLS/m3u8 (X video uses HLS). Update on STABLE to fix.
+- **Android clipboard:** since Android 10, foreground clipboard reads require window INPUT FOCUS (or default IME);
+  `onResume()` does not guarantee focus — use `onWindowFocusChanged(true)`. Android 12 paste-toast fires only on the
+  first cross-app read.
+- Adding a QueueStatus value needs NO Room migration (TEXT via converter; DB v1; unknown→FAILED). Release: `gh release
+  create` of the ~120 MB APK can time out mid-upload; create the release first, then `gh release upload --clobber`. The
+  `file#name` rename syntax did NOT apply here — physically copy the APK to the versioned name before uploading, or the
+  asset lands as `app-debug.apk`. `scripts/copy-apk-to-downloads.sh` default name bumped to v0.1.4.
 
 ## Not physically tested (PENDING — the next device test)
 
-**No device/emulator attached.** Home Clipboard autofill, Shizuku-free manual/Share download, immediate
-expedited background start, the new start/progress/completion notifications, FIFO multi-download, TikTok,
-screen-off, recents-removal, reboot — all pending `docs/PHYSICAL_TEST_PLAN.md` (Tests A–E first). JVM
-coordinator tests do NOT prove Android's real expedited/FGS/notification behaviour. Do NOT claim any of the
-new flows work until the user physically verifies `0.1.3-feasibility`.
+**No device/emulator attached.** The Clipboard autofill fix (focus read + live listener + no-overwrite),
+clear-on-success, real `--version` reporting + the runtime updater, automatic freshness, the update-assisted retry,
+Share without Shizuku, FIFO two-URL, TikTok, screen-off, recents-removal, reboot — all pending
+`docs/PHYSICAL_TEST_PLAN.md` (Tests A–F first). JVM tests do NOT prove Android's real Clipboard/focus timing, the
+yt-dlp updater/version query, notifications, or WorkManager retry timing. Do NOT claim any new flow works until the
+user physically verifies `0.1.4-feasibility`.
 
-## Reused hard-won facts (still true)
+## Continuation (Milestone 5)
 
-- Build host ARM + x86_64 SDK under qemu: `android.aapt2FromMavenOverride` set globally; native `aidl`
-  SIGILLs → `buildFeatures.aidl=false` + committed pre-generated AIDL Java (`scripts/gen-aidl.sh`). SDK
-  at `/opt/android-sdk` via `local.properties`.
-- Toolchain unchanged: AGP 9.3.1 built-in Kotlin 2.3.21, KSP 2.3.7, Hilt 2.60.1, Room 2.8.4,
-  WorkManager 2.11.2, Compose BOM 2026.08.00, youtubedl-android 0.18.1. `data object` works.
-- WorkManager 2.11.2: `CoroutineWorker.doWork()` runs on `Dispatchers.Default`, NOT the `setExecutor`
-  executor — so a single-thread executor does not serialize coroutine transfers (use app-level
-  coordination). On API < 31, expedited work runs as an FGS and calls `getForegroundInfo()` before
-  `doWork()`. SystemForegroundService still needs the merged `dataSync` type (M2 fix retained).
-- Adding a `QueueStatus` enum value needs NO Room migration (stored as TEXT via converter; DB version 1;
-  `stringToStatus` maps unknown→FAILED). Heavy Gradle auto-routes through `/root/work/bin/heavy-run` lock
-  via the global PreToolUse hook. Release: `gh release create` of the ~120 MB APK can exceed a 2-min
-  timeout mid-upload; the release is created but assetless — finish with `gh release upload --clobber`.
-- APK delivery: `scripts/copy-apk-to-downloads.sh` (default name bumped to v0.1.3) verifies src↔dst SHA.
-
-## Continuation (Milestone 4)
-
-Run `docs/PHYSICAL_TEST_PLAN.md` Tests A–E on the configured device: Shizuku OFF Home autofill + manual
-download on cellular (start + completion notifications + file under X/); Share without Shizuku; automatic
-mode with Shizuku up (app not opened); two URLs (second shows "ממתין", starts automatically); duplicate
-skip. Only after A–E: screen-off / recents / reboot / TikTok. Then harden the winning clipboard path, real
-multi-video + thumbnails, periodic engine-update worker, Compose/instrumented tests, and reconcile stranded
-`AWAITING_SELECTION` rows. Never claim the new flows work until physically confirmed.
+Run `docs/PHYSICAL_TEST_PLAN.md` Tests A–F: Clipboard autofill on focus + live update + no-overwrite (Shizuku OFF);
+manual Home download + clear-only-after-completion; real yt-dlp version + before/after on update; update-assisted
+retry (bounded, no loop, no dup) if a compatible failure occurs; Share without Shizuku; FIFO two-URL. Only after A–F:
+screen-off / recents / reboot / TikTok, and the deferred persistent-Shizuku experiment. Then real multi-video +
+thumbnails, restore a stranded AWAITING_SELECTION, Compose/instrumented tests. Never claim the new flows work until
+physically confirmed.
