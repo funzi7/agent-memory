@@ -1,140 +1,158 @@
-# Private Media TV — F2C.3 Handoff
+# Private Media TV — F2C.4 Handoff
 
 ## Identity and release state
 
 | Field | Value |
 | --- | --- |
 | Application repository | funzi7/private-media-tv |
-| Milestone | F2C.3 — offline COMPLETE-download playback, unified exact-back navigation, Israel arrival semantics, always-actionable POSSIBLE sources + multi-variant, Deep failure attribution/recall |
+| Milestone | F2C.4 — first-class SAF Local Library, Deep per-source history rescue, text-free exact binding, runtime start-or-attach idempotence + stale lease-error cleanup, offline local-first downloads, Source Inspector + truthful index/FAST-live UX |
 | Branch / tracking branch | main / origin/main |
-| Starting application HEAD | d3b833f34702c3da1a53d6e411e5edd3400e7981 |
-| Final application HEAD | 259a51252aeb077f8de631b493d361120054ccb4 |
-| Exact-head Android CI | 31992502597 — success |
-| Mobile identity | com.funzi7.privatemediatv.mobile, 0.4.3-phone-test, versionCode 22 (updates code 21 in place) |
-| TV regression identity | com.funzi7.privatemediatv, 0.6.3-f2c3, versionCode 26 (regression build only, not delivered) |
+| Starting application HEAD | 259a51252aeb077f8de631b493d361120054ccb4 |
+| Final application HEAD | bb0b9d7e78e024e3c5a93aca1ee0d4aa978cd6e2 |
+| Exact-head Android CI | 32096140914 — success |
+| Mobile identity | com.funzi7.privatemediatv.mobile, 0.4.4-phone-test, versionCode 23 (updates code 22 in place) |
+| TV regression identity | com.funzi7.privatemediatv, 0.6.4-f2c4, versionCode 27 (regression build only, not delivered) |
 | Development signer SHA-256 | 2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0 |
 
-One cohesive F2C.3 commit on main, pushed without force; final application HEAD matches origin/main.
+One cohesive F2C.4 commit on main, pushed without force; final application HEAD matches origin/main.
 Exact-head Android CI passed and uploaded both signed artifacts; only the mobile artifact was
 downloaded and published. No TV export/delivery, no Shield, no adb device attached.
 
-## What F2C.3 implemented (application HEAD 259a5125)
+## What F2C.4 implemented (application HEAD bb0b9d7)
 
-Decision record: `docs/adr/0023-f2c3-offline-playback-navigation-israel-arrival-deep-recall.md`;
-narrative in CHANGELOG, PROJECT_STATE / HANDOFF / RELEASE_REVIEW F2C.3 sections, TEST_PLAN /
-MOBILE_ACCEPTANCE F2C.3 matrices, ARCHITECTURE / DATA_MODEL / UX_DECISIONS / TMDB_INTEGRATION /
-PRODUCT_SPEC / OFFLINE_DOWNLOADS / PLAYBACK_CONTINUITY.
+Decision record: `docs/adr/0024-f2c4-local-library-deep-rescue-binding-runtime-offline-inspector.md`;
+narrative in CHANGELOG, README, TODO, PROJECT_STATE / HANDOFF / RELEASE_REVIEW F2C.4 sections,
+TEST_PLAN / MOBILE_ACCEPTANCE F2C.4 matrices, ARCHITECTURE / DATA_MODEL / UX_DECISIONS /
+OFFLINE_DOWNLOADS / PLAYBACK_CONTINUITY / PRODUCT_SPEC / TMDB_INTEGRATION.
 
-1. **UI-visible POSSIBLE is always owner-actionable.** Removed the hidden `ownerConfirmable=false`
-   no-Play gate in `F2bSessionSourceVariantCard` and the `ownerConfirmable` requirement in
-   `ownerConfirmationText`; the engine now marks every presented local-index POSSIBLE confirmable.
-   Every shown POSSIBLE offers `ניגון מקור זה` (confirm+play) and `זה הפרק`/`זה הסרט` (bind-only);
-   hard rejects stay filtered upstream. Sibling variants remain individually selectable (token-keyed
-   replace preserves them).
-2. **COMPLETE downloads are first-class offline playback.** New
-   `resolveOfflineDownloadForPlayback(record)` (data source + backend) resolves through the
-   runtime-independent local path FIRST and accepts only `COMPLETE_LOCAL_PLAYABLE` — the happy path
-   is zero Telegram runtime / GetMessage / SearchChatMessages / network, and existing code20/21
-   COMPLETE records play without re-download. The Downloads screen gained primary Play, card-tap
-   Play, a resume bar, identity metadata (movie / `SxxExx` / quality / size / state) and Remove as a
-   SECONDARY action; a missing physical file shows `הקובץ המקומי אינו זמין` + `הורד מחדש` (never a
-   silent network switch). Offline play emits the normal `F2bPlayableLaunch`, joining
-   progress/resume/Continue Watching/completion/auto-next.
-3. **One coordinated exact-back catalog stack.** `F2bCatalogNavStack` (payload-carrying `F2bNavEntry`
-   = route + selected identity/season/episode) replaces the route-name stack; `navigateBack` restores
-   the exact previous destination (reloading details only on a resident-content mismatch) and two
-   distinct same-route destinations get distinct slots. A deep link from the outer diagnostic Home
-   (`markOuterCatalogEntry`) returns to the OUTER origin; the Catalog button (`enterCatalogHome`)
-   lands on a clean Catalog HOME. Inline Back#1-collapse/Back#2-pop, scroll/anchor restoration, and
-   the player round-trip are preserved; Android + header Back share one dispatch.
-4. **Compact Series/Player visuals.** A compact Favorite/Want/Seen owner-action icon cluster sits
-   under the series title; the player groups rotate/fullscreen into the single top bar with Back and
-   title. Centered Play/Pause, LTR-isolated −10 (left) / +10 (right), keep-screen-on, fullscreen, and
-   the diagnostics-behind-INFO-panel rule are unchanged.
-5. **Israel arrival semantics.** New `TerritoryArrivalClass`
-   (FIRST_ISRAEL_ARRIVAL / NEW_SEASON_IN_ISRAEL / RETURNED_TO_CATALOG / DAY_ONE_GLOBAL_AVAILABILITY)
-   + additive territory-availability DB v1→v2 (arrivalClass, reappeared flag, first/latest season,
-   worldReleaseEpochMillis, unavailableAfterEpochMillis; `markUnavailable`; `observeTerritoryArrivals`).
-   The combined Home row `חדש בישראל` = FIRST + NEW_SEASON only (day-one worldwide launches, returned
-   reappearances, baseline titles, intra-Israel provider moves excluded); the
-   per-international-provider `X — סדרות חדשות בישראל` rows are REMOVED (Netflix/Prime/Disney+/Apple
-   TV+/HBO Max keep their ordinary rows). Local-operator rows (`חדש ב-HOT/yes/STING+/FreeTV/Cellcom
-   TV+/Partner TV+`) are structural with provenance OFFICIAL_PROVIDER_FEED and render only with a
-   verified feed — none integrated today (coverage recorded per operator; no scraper fabricated).
-6. **Deep failure attribution + recall.** The Telegram adapter reports protected/unsupported chats in
-   a distinct `notSearchableSourceChats` bucket (transient inaccessible/hydration-timeout stay
-   retryable failures); the engine threads it into the checkpoint/group accounting and
-   `deepNotSearchableSourceCount` (invariant `completed+timedOut+failed+notSearchable+inFlight+
-   remaining==planned`), so a protected source never inflates FAILED or forces a false PARTIAL — a
-   pass with only completed + not-searchable terminates EXHAUSTED. The EXTENDED query plan adds
-   natural-Hebrew `עונה N פרק M` and dotted-filename forms.
-7. **Versions/delivery plumbing.** Mobile 21→22 and TV 25→26 across build.gradle.kts, MobileModels,
-   MobileManifestContractTest, android-ci.yml assertions/metadata, verify/export/download scripts,
-   both delivery harnesses, CI rejection fixtures, and upgrade-verifier fixtures; rotation allow-list
-   adds `0.4.2-phone-test:21`.
+Driven by physical code-22 owner evidence (A: Deep missed a file later found by a Known Source; B:
+AUTOMATIC `זה הפרק` failed on the text requirement; C: recurring stale runtime-lease presentation; D:
+Downloads falsely showed zero while a COMPLETE download existed; E: ambiguous index-build progress;
+F/G: FAST-live wording + uninspectable sources) plus owner request H (Local Library).
+
+1. **Text-free exact binding.** `bindSource()` no longer requires `ownerSourceSearchText` or a derived
+   confirmation phrase; `ownerSearchText` is nullable through every layer
+   (`F2bCatalogDataSource` → `SourceDiscoveryService` → `RoomSourceIntelligenceRepository.bindExactSource`).
+   A binding persists from the index row's durable locators + `media.identity.stableKey` and its
+   identity-derived PROVEN affinity in one transaction; the optional alias is learned in a SEPARATE
+   best-effort transaction AFTER commit, so alias-learning failure never rolls back the binding.
+   `BIND_CONFIRMATION_UNAVAILABLE_NOTICE` removed. AUTOMATIC and POSSIBLE both bind on
+   `זה הפרק`/`זה הסרט` with no literal search on screen.
+2. **Deep per-source bounded history rescue.** In the Deep group loop, every searchable source the
+   live phase left without an accepted candidate runs ONE bounded `GetChatHistory` rescue for THAT
+   source, reusing the F2B.5.1 history-fallback path (`runLiveGroup(historyFallback=true,
+   knownSourceGroup=true)` → adapter `searchSelectedChatHistoryFallback` / `historyFallbackOnly`),
+   through the same `TmdbAwareSourceMatcher` + `KnownSourcePossibleRelevancePolicy` floor and bounds
+   (≤5 pages × ≤100 raw messages, per-op timeout, cancellable). The rescue is additive (a throwaway
+   `DeepGroupOutcomes` isolates it so one source's rescue never downgrades another's live terminal),
+   Deep continues through the remaining sources, and the owner never has to pre-configure the channel
+   as a Known Source. New `SourceDiscoverySafeStage.DEEP_HISTORY_RESCUE` +
+   `SourceSearchV2Budgets.deepHistoryRescueMillis` (5 s/source).
+3. **Runtime start-or-attach idempotence.** Reaching Running health or authorization Ready supersedes
+   a stale `runtimeAttempt.terminalFailure` (new `MobileRuntimeAttempt.clearedStaleFailure()`);
+   `restartFailedRuntimeFromVault` treats an already-owned HEALTHY runtime as a successful attach
+   (`reconcileHealthyOwnedRuntime`) instead of synthesizing `CLIENT_ALREADY_ACTIVE`; a new serialized
+   `MobileProcessRuntimeOwner.startOrAttach` makes create-vs-attach atomic under the one owner mutex.
+   `ProcessTelegramRuntimeLease` is unchanged and still rejects a real second client; the discovery
+   backend still drives the coalesced `recover()` for runtime-gated operations (ADR 0019).
+4. **Offline Downloads local-first.** `F2bCatalogDataSource.offlineDownloads()` observes the
+   account-scoped `offline_downloads` Room store DIRECTLY (persisted active account via
+   `RoomSourceDiscoveryRepository.persistedActiveAccountState()` → `observeOfflineDownloads`) as a
+   long-lived `F2bLocalDownloadsProjection` (Available / NoActiveAccount / AccountConflict /
+   TransientReadFailure). No provider/runtime gate; never a false empty; a NoActiveAccount projection
+   never wipes a valid list; a transient DB read failure keeps the last valid list and shows
+   `לא ניתן לרענן כרגע`; the fail-soft observer reattaches on normal completion. The F2C.3
+   zero-Telegram COMPLETE local-playback happy path is unchanged.
+5. **Source Inspector + truthful UX.** Clickable source cards → a new `SOURCE_INSPECTOR` route
+   (`פרטי מקור`): per-source indexed video rows newest-first (a per-channel DAO query, pure-local —
+   no Telegram fanout), an in-source search over that source's local index, a bounded `רענן מדיה`
+   catch-up, and a RAW test-play that resolves an indexed row by token alone
+   (`resolveRawIndexedSource`, no identity/binding/media-association commit) so it never creates
+   catalog progress (nullable `F2bPlayableLaunch.identity` + `raw` flag). The index one-liner shows
+   scanned/found/pages, an explicit history-progress cue, and a `ממתין לתגובה מ-Telegram…` waiting
+   state (never a fake completion), with per-state actions. FAST live-search reworded to
+   `חיפוש מהיר בזמן אמת` with an explanation that a not-pinned source still participates in the local
+   index and Deep (the three mechanisms named distinctly).
+6. **First-class SAF Local Library** in a new provider-neutral `:core-locallibrary` module
+   (device-local DB v1, NOT the Telegram account-scoped catalog): SAF `OPEN_DOCUMENT_TREE` folder
+   grants (persistable read, write where granted); ONE initial recursive video scan, then incremental
+   reconciliation (new/changed/deleted; an unchanged file is never re-extracted; a lost permission
+   retains metadata and marks the folder INACCESSIBLE) — never a full re-scan on launch. Stable
+   fingerprint = document id + size + lastModified (no whole-file hashing). `LocalFilenameParser`
+   proposes catalog identities (SxxEyy/NxMM/natural/Hebrew episode, movie title+year) without
+   fabricating markers. Local MP4/MKV play through the common Media3 player via a seekable SAF
+   `ProviderRangeSource` (`SafLocalFileRangeSource`, `ContentResolver.openFileDescriptor` +
+   `Os.pread`/`Os.fstat`) — no multi-GB copy, no coercion into a Telegram token. Explicit physical
+   delete (`DocumentsContract.deleteDocument`) is confirmed (`למחוק את הקובץ מהמכשיר?`), never
+   automatic; a read-only provider fails truthfully; removing a folder deletes only indexed rows.
 
 ## Validation evidence
 
-- Focused F2C.3 regressions (new/updated), all green: `F2c3ViewModelTest` (offline play +
-  missing-file, deep-link→outer, in-catalog back, series→downloads→back, non-flagged POSSIBLE plays),
-  `F2c1SourcePanelComposeTest` (every visible POSSIBLE actionable), `F2c2IsraelAvailabilityDataSourceTest`
-  (`חדש בישראל`, per-international-provider IL rows removed, local rows empty without a feed),
-  `TerritoryAvailabilityStoreTest` (first-arrival / day-one-excluded / returned / new-season /
-  provider-move / baseline), `TerritoryAvailabilityMigration1To2Test` (additive v1→v2),
-  `TelegramCatalogSourceAdapterTest` (protected → not-searchable, never failed), plus the retained
-  F2C.2 Deep/auto-next/watched/MKV suites.
-- Broad pass at the final HEAD: `./gradlew test lint :app-mobile:assembleDebug :app-tv:assembleDebug`
-  BUILD SUCCESSFUL — all module unit tests green (core-metadata / core-telegram / core-catalog /
-  app-mobile / app-tv), lint clean, both debug APKs assembled; `git diff --check` clean. Local mobile
-  debug APK verified 0.4.3-phone-test (22), ARM64-only, one `lib/arm64-v8a/libtdjni.so`, Development
-  signer.
-- Script harnesses: credential scan 41, TV delivery 9, mobile delivery 14, mobile CI rejections
-  20+1, TV CI rejections 8, upgrade verifier 13, pmtprov 4 — all passed; `bash -n` clean.
-- TDLib verify-only (NO rebuild): pinned commit unchanged, ARM64 AAR SHA-256
-  025313d2a7cdbf148e5c700e8ef6c9d384f2301aff043c844997e0c23eb9abd2.
-- CI: exact-head `Android CI` run 31992502597 for 259a5125… completed success (wrapper validation,
-  script self-tests, TDLib verify, full tests, lint, both assemblies, version/signer/payload
-  verification, artifact upload).
+- Broad: `./gradlew test lint :app-mobile:assembleDebug :app-tv:assembleDebug` BUILD SUCCESSFUL — all
+  module unit tests green (core-metadata / core-telegram / core-catalog / **core-locallibrary (19
+  tests)** / app-mobile / app-tv), lint clean, both debug APKs assembled; `git diff --check` clean.
+- Focused F2C.4 regressions (new/updated, all green): binding — `OwnerDirectedSourceSearchTest`
+  (null-text bind + proven affinity), `F2c1SourcePanelViewModelTest` (BN-A AUTOMATIC bind, BN-B
+  text-less POSSIBLE binds); Deep — `SearchEngineV2IntegrationTest` (M/BN-D synthetic false-negative:
+  live miss + bounded history hit found WITHOUT Known-Source config; three prior Deep-coverage tests
+  updated to filter `historyFallbackOnly` requests); runtime — `MobileViewModelTest` (Running/Ready
+  supersede stale lease failure, Retry-while-healthy attaches without restart/lease error,
+  `startOrAttach` attach + single-creation); offline — `F2c3ViewModelTest` (local-first Available
+  without backend, TransientReadFailure keeps last list + notice, NoActiveAccount does not wipe);
+  inspector — `F2c3ViewModelTest` (open/search, raw test-play never arms a catalog identity);
+  `:core-locallibrary` — `LocalLibraryRepositoryTest` (BL 1-8/12-16) + `LocalFilenameParserTest`.
+- Script harnesses: credential scan 41, mobile delivery 14, mobile CI rejections 20+1, upgrade
+  verifier 13, TV delivery 9 — all passed. TDLib verify-only (NO rebuild): pinned commit unchanged,
+  ARM64 AAR SHA-256 025313d2a7cdbf148e5c700e8ef6c9d384f2301aff043c844997e0c23eb9abd2.
+- Local mobile debug APK verified 0.4.4-phone-test (23), ARM64-only, one `lib/arm64-v8a/libtdjni.so`,
+  Development signer.
+- CI: exact-head `Android CI` run 32096140914 for bb0b9d7… completed success (wrapper validation;
+  official TDLib, tests, lint, and signed TV/mobile assemblies).
 
 ## Delivery evidence (mobile only)
 
-Published via `./scripts/download-latest-ci-mobile-apk-to-phone.sh` from CI run 31992502597,
-artifact `private-media-tv-mobile-apk-259a51252aeb077f8de631b493d361120054ccb4`:
+Published via `./scripts/download-latest-ci-mobile-apk-to-phone.sh` from CI run 32096140914,
+artifact `private-media-tv-mobile-apk-bb0b9d7e78e024e3c5a93aca1ee0d4aa978cd6e2`:
 
 - Latest: `/storage/emulated/0/Download/PrivateMediaTV/Mobile/private-media-tv-mobile-latest.apk` —
-  0.4.3-phone-test (22), APK SHA-256
-  dbd43e27e938a88beaa86419e783a2f1946a8093d4d1bccede736229e7ad962e, 58,904,060 bytes, modified
-  2026-08-17 04:10 UTC, ARM64-only, one `lib/arm64-v8a/libtdjni.so` (packaged JNI sha
+  0.4.4-phone-test (23), APK SHA-256
+  8cd07aa8bac7474d5a6d3764ad91c81b466617c2021584c5893eb190e64ae0c8, 59,067,955 bytes, modified
+  2026-08-18 03:56 UTC, ARM64-only, one `lib/arm64-v8a/libtdjni.so` (packaged JNI sha
   790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f), Development signer verified.
-- Rotation result: `rotated` — previous is now the code 21 build (0.4.2-phone-test), 58,871,292
-  bytes. Broken code 17 remains blocklisted from any canonical slot.
-- Only the two canonical Mobile files exist; TV files untouched. latest = code 22, previous = code 21.
+- Rotation result: `rotated` — previous is now the code 22 build (0.4.3-phone-test), 58,904,060
+  bytes. Only the two canonical Mobile files exist; TV files untouched. latest = code 23, previous =
+  code 22.
 
 ## Not done / pending
 
-- **Physical code-22 acceptance is PENDING** on the owner's phone — gates in
-  `docs/MOBILE_ACCEPTANCE.md` F2C.3: in-place install over code 21 (no uninstall/clear-data), the
-  offline COMPLETE-download Play (zero-search local playback + the pre-existing complete download
-  playing), Downloads metadata/Play/Remove, exact-back navigation (Catalog↔Downloads, Series↔Player,
-  deep-link My Sources → outer Home), the compact series/player visuals, the Deep no-match diagnostics
-  distinguishing completed/timeout/failure/not-searchable, the Israel rows (`חדש בישראל` meaningful
-  arrival; no per-international-provider IL rows; a returned old title not treated as first arrival),
-  and the retained auto-next/keep-screen-on/session-index regressions.
-- Deferred, documented truthfully: a per-source Deep recent-history rescue (the known/manual-source
-  history rescue is unchanged); live ingestion for the six Israeli operators (none has a verified
-  stable public source today — recorded in `IsraelAvailabilityRegistry.localOperatorCoverage`); the
-  full per-source private Deep diagnostics UI (aggregate counters already distinguish completed /
-  no-match / timeout / failed / not-searchable and raw-vs-mapped-vs-relevant).
-- The final TV D-pad rendering of the playback-first flow remains the standing open TV-side item;
-  TV code 26 is compile/regression evidence only.
+- **Physical code-23 acceptance is PENDING** on the owner's phone — gates in
+  `docs/MOBILE_ACCEPTANCE.md` F2C.4: in-place install over code 22 (no uninstall/clear-data); no stale
+  PMTV-TDLIB-RUNTIME-LEASE while the runtime is healthy; the pre-existing COMPLETE download visible +
+  locally playable before/without Telegram Ready; AUTOMATIC `זה הפרק` binds with no identifying text;
+  Deep finds a previously-missed title via the per-source rescue; index build shows live
+  scanned/media/page counters + active/waiting/completed; FAST-live label clarity; Source Inspector
+  list/search/test-play; Local Library add folder → one initial scan → local MP4/MKV play with no
+  Telegram search → restart shows the library from the DB with no rescan → add-new-file incremental →
+  explicit confirmed physical delete; exact-Back after Inspector/Local Library/Player; the retained
+  F2C.3 regressions.
+- Bounded follow-ups (documented truthfully, NOT physical defects): full
+  Continue-Watching/resume/auto-next parity for a catalog-BOUND local file and local-source priority
+  ahead of Telegram discovery (AY) — the `:core-locallibrary` scan/reconcile/delete/match/range-source
+  core and the standalone local player are complete and tested; the neutral catalog-playable
+  generalization that threads a bound local file through `F2bPlayableLaunch`'s progress machinery is
+  the next step. The Source-Inspector structured-episode-code local lookup (requirement I) is an
+  additive follow-up; the physical false-negative is already fixed by the per-source history rescue.
+- TV code 27 is compile/regression evidence only; no TV delivery, no Shield.
 
 ## Continuation instructions
 
-Next agent: obtain the owner's physical code-22 result first (MOBILE_ACCEPTANCE F2C.3 gates). If a
-gate fails, pull a real Android bug report before changing anything; an empty combined `חדש בישראל`
-right after install is conservative arrival truth (day-one launches are excluded by design), not a
-defect, and an empty local-operator row is truthful (no verified feed). Architecture decisions live
-in ADR 0023. Environment/bump reminders (see also the manager's private notes): territory DB
-migrations tested with MigrationTestHelper need the module's `sourceSets` schema-assets wiring and a
-driver-based `migrate(SQLiteConnection)` override; version bumps touch 10+ pin sites and the rotation
-allow-list needs the outgoing build added; never trust `./gradlew … | tail` exit codes.
+Next agent: obtain the owner's physical code-23 result first (MOBILE_ACCEPTANCE F2C.4 gates). If a
+gate fails, pull a real Android bug report before changing anything. Architecture decisions live in
+ADR 0024. Environment/bump reminders (see also the manager's private notes and the repo memory): the
+new `:core-locallibrary` tests need `@ConscryptMode(OFF)` + `@SQLiteMode(LEGACY)` + BundledSQLiteDriver
+under Robolectric (framework driver fails), and the module's `build.gradle.kts` wires
+`sourceSets { getByName("test").assets.directories.add("schemas") }`; version bumps touch 10+ pin
+sites and the mobile rotation allow-list needs the outgoing build (now `0.4.3-phone-test:22`); never
+trust `./gradlew … | tail` exit codes. The Local Library DB starts at v1 with a strictly-additive
+migration policy (dual `migrate` overrides + committed exported schema for any future version); do not
+couple the SAF lifecycle to the Telegram catalog schema.
