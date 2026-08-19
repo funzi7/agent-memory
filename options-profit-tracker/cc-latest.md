@@ -2,64 +2,69 @@
 
 > Rolling single-file handoff. Every future prompt OVERWRITES this file with a fresh, complete summary of the just-finished task and then prints its commit SHA. Read this first for the newest context, then `state.md` (full commit chain), `pending-tests.md` (device-test checklists), and `roadmap.md` (backlog + owner rules).
 
-## Latest task: S1 — Phone-only Android dev setup + reboot-crash diagnostic (2026-08-19, Claude Code)
-**OPT HEAD after S1: `5445921`** (main; "docs: phone-only (Termux/PRoot) build/install/debug runbook + reboot-crash diagnostic (S1)"). Parent `ac3f4e8`. **Docs only — no app / P&L / IV / Room / DB / prefs code changed** (locked core untouched).
+## Latest task: S1-CONTINUATION — Signing verification + (attempted) first phone-only install (2026-08-19, Claude Code)
+**OPT HEAD after S1-cont: `5445921` (unchanged)** — full SHA `5445921d52b59938aa63d7cf5c541abb7b827832`, main. **No app / docs / P&L / IV / Room / DB / prefs code changed this continuation** (ADB read-only inspection + agent-memory handoff only; locked core untouched). No new OPT commit was invented.
 
-Goal: move the complete practical Android dev loop off Android Studio and onto this phone (Termux/PRoot), AND diagnose the reported post-reboot "app opened empty and crashed."
+Goal: prove signing compatibility between the installed `com.dima.optionstracker` and the phone-built debug APK, and ONLY if they match, `install -r` in place, launch, and verify data survives — all from the phone. No reboot in this continuation.
+
+### Result in one line
+The signing identities **DO NOT MATCH** (real certificate evidence). Per the task's CASE B, work **STOPPED before install** — no `adb install`, no uninstall, no clear-data, no reboot. The install is blocked on one non-destructive manual step: copy the computer's original debug keystore onto the phone.
 
 ---
 
-## What environment was found
-- **aarch64** Termux/PRoot. **JDK 21 only** (`/usr/lib/jvm/java-21-openjdk-arm64`; no JDK 17 — Gradle 8.7 + AGP 8.6.1 build clean on 21). `JAVA_HOME` was empty → set per-build.
-- **Two SDK dirs:** `/usr/lib/android-sdk` holds ONLY `adb`; the real SDK is **`/opt/android-sdk`** (shared with sibling `linkdrop-android`) — has `platform-tools`, `build-tools/{35,36,37}.0.0`, `cmdline-tools/latest` (sdkmanager), `platforms/{26,36,37}` and, after S1, **`platforms/android-35`**.
-- ARM aapt2 override already global in `~/.gradle/gradle.properties`: `android.aapt2FromMavenOverride=/opt/android-sdk/aapt2-wrapper/aapt2` (mandatory on ARM — Google's Maven aapt2 is x86_64-only).
-- `local.properties` is **tracked** (shipped with a Windows `sdk.dir=C:\…`) yet gitignored; it was wrong for the phone.
-- Heavy-build serialization lock available: `/root/work/bin/heavy-run -- <cmd>` (+ `queue-status`).
-- App: compileSdk/targetSdk 35, minSdk 26, versionCode 1, versionName 1.0.0, applicationId com.dima.optionstracker, **no custom signingConfig** (debug builds use `~/.android/debug.keystore`).
+## ADB self-connection status: LIVE / WORKING
+- The phone is paired to itself and connected: `adb devices -l` shows **`172.20.10.3:42677   device   product:pa3qxxx  model:SM_S938B  device:pa3q  transport_id:1`** (Samsung Galaxy S25 Ultra), state **`device`**.
+- Seen by BOTH plain `adb` AND `ANDROID_NO_USE_FWMARK_CLIENT=1 fakeroot adb` (the documented Samsung/Termux form). All read-only ADB commands this session ran from the phone with zero Android Studio: `pm path`, `dumpsys package`, and a full `adb pull` of the installed base.apk (267 MB/s over local Wi-Fi). **So install / launch / logcat CAN now run entirely from the phone** — the ONLY remaining blocker is the signature mismatch below, not connectivity.
 
-## What was installed / configured
-- Installed `platforms;android-35` via `sdkmanager --sdk_root=/opt/android-sdk` (was missing; blocked compileSdk 35). `android-35/android.jar` (27 MB) now present.
-- Set `local.properties` → `sdk.dir=/opt/android-sdk` **on disk only (NOT committed** — machine-specific; left unstaged).
-- No other global/destructive changes. No toolchain replaced.
+## Installed app (read-only, unmodified)
+- `pm path` → `/data/app/~~Z718Q0KfDZmaQsOrJ5qXgg==/com.dima.optionstracker-Q-qw4bC0Jm_8on8l7LpmLA==/base.apk`
+- versionCode **1**, versionName **1.0.0**, minSdk 26, targetSdk 35.
+- **firstInstallTime 2026-04-22 22:53:57**, lastUpdateTime 2026-08-17 20:46:43. dataDir `/data/user/0/com.dima.optionstracker`.
+- `apkSigningVersion=2`. Installed base.apk size ≈ 35.7 MB (the new phone build is ≈ 63.2 MB — a size difference only; size has NO bearing on signing identity).
 
-## Signing continuity — NOT PROVEN (likely differs)
-- Phone `~/.android/debug.keystore` SHA-1 **`0E:B5:14:FE:32:13:15:70:80:D3:FA:82:69:A7:4E:83:E3:4E:BD:08`**, **generated on the phone 2026-07-22**. The built APK is v2-signed with exactly this cert.
-- The installed app has run for **months from the computer's Android Studio** → its cert is the computer's debug keystore, almost certainly **different** (a copied keystore would keep an older valid-from, not 2026-07-22).
-- Could NOT compare against the installed cert — **no ADB device connected** (see below). So continuity is **assumed to differ**; `adb install -r` will likely fail `INSTALL_FAILED_UPDATE_INCOMPATIBLE`. Non-destructive remedy (documented, not performed): copy the computer's `debug.keystore` to `~/.android/debug.keystore`, rebuild, verify SHA-1 matches the installed app, then `install -r`. **Uninstall/clear-data forbidden.**
+## Certificate fingerprints (apksigner --print-certs on BOTH real APKs — gold-standard evidence, not inferred)
+- **INSTALLED `com.dima.optionstracker`** (pulled base.apk): DN `C=US, O=Android, CN=Android Debug`
+  - **SHA-1 `5d3d855c6c6c397f817df2bd0c62f16f940b1551`**
+  - SHA-256 `9e5307e1344917f0cdc495c5cc04a80d23a92c5965c779b6efb0faa1135b8221`
+  - This is the **computer's Android Studio debug keystore** (the app was first installed 2026-04-22).
+- **NEW phone build `app/build/outputs/apk/debug/app-debug.apk`**: DN `C=US, O=Android, CN=Android Debug`
+  - **SHA-1 `0eb514fe3213157080d3fa8269a74e83e34ebd08`**
+  - SHA-256 `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`
+  - This is the **phone `~/.android/debug.keystore`** — `keytool` confirms SHA-1 `0E:B5:14:FE:…:BD:08`, **Valid from 2026-07-22 14:20**. That valid-from POSTDATES the 2026-04-22 install, so this keystore could not possibly have signed the installed app — corroborating the mismatch.
 
-## APK built? YES
-- `:app:assembleDebug` (via heavy-run) → **`app/build/outputs/apk/debug/app-debug.apk`** (~63 MB), package `com.dima.optionstracker`, versionCode 1 / versionName 1.0.0, signed (APK Signature Scheme v2) with the phone debug keystore.
+## Did the signatures match? NO
+- SHA-1 and SHA-256 **both differ**. Both certs are self-signed `CN=Android Debug` certs, but they are **two different debug keystores** (computer vs phone). This is exactly what S1 predicted; it is now proven with certificate evidence, not assumption.
 
-## Installed from the phone? NO (blocked, non-Studio)
-- `adb devices` is **empty** (daemon starts, no device; no mDNS wireless service). `~/.android/adbkey` exists from a prior 2026-07-22 auth, but nothing is connected now.
-- Install / launch / logcat were **not** run this session. They need a **one-time manual** Android action: Developer options → Wireless debugging → Pair device with pairing code, then `adb pair <IP>:<PORT>` (+ code) and `adb connect <IP>:<PORT>`. Command shapes are in PHONE_BUILD.md; **no IP/port/code was invented**.
+## Was `install -r` attempted? NO — install result: NOT ATTEMPTED (CASE B stop)
+- Because the signatures differ, `adb install -r` was **not run**. It would fail **`INSTALL_FAILED_UPDATE_INCOMPATIBLE`**, and the task forbids forcing past a signature mismatch, uninstalling, or clearing data. So: no install, no uninstall, no `pm clear`, no data touched.
+- App launched? **NO** (nothing was installed to launch). Process alive after launch? **N/A** (not launched).
+- Owner needs to visually confirm data? **Not applicable to this session** — nothing was installed, so the existing app + its data are **completely untouched**. Data-survival verification only becomes relevant AFTER a successful `install -r`, which is blocked below.
 
-## Is Android Studio still required? NO — for the build loop
-- source → Gradle → **compile gate → tests → APK** is fully proven on the phone with zero Android Studio.
-- The **install/launch/logcat** portion needs a paired ADB device (a one-time Wireless-debugging pairing in Android Settings) and, if signing differs, a one-time keystore copy — **neither is Android Studio**. Once paired, `install -r` / launch / logcat run entirely on the phone.
+## Reboot performed? NO
+- No reboot in this continuation (a real reboot kills the Termux/PRoot session). Reboot remains an owner-gated device test; do NOT reboot until explicitly instructed.
 
-## Reboot test performed? NO
-- A real reboot of THIS phone would kill the Termux/PRoot session and strand the task, so it was **not** performed (per the task's own "don't strand" rule). Diagnosis is **code + agent-memory** evidence; device-log confirmation is left as an owner device-test (exact capture commands in PHONE_BUILD.md §5 and pending-tests.md).
+## Remaining manual step (ONE, one-time, non-destructive) — the ONLY blocker to install/launch
+The build has **NO custom `signingConfig` / `storeFile`** in any Gradle file (verified) — debug builds sign with the default **`~/.android/debug.keystore`** (on this phone: `/root/.android/debug.keystore`). So overwriting that single file IS the entire signing path; no other signing config exists.
 
-## Reboot crash — root cause (evidence-backed, ranked)
-Single defect: **DB-version-vs-APK-version mismatch across reboot**, made fatal by the deliberate removal of destructive fallback, and made fragile by `MIGRATION_30_31` living in only **1 of 11** hand-maintained Room builders.
-- **H1 (most likely):** an Android-Studio "Apply Changes"/streamed deploy (v31 code) does not persist as a full package; on **reboot** the OS reverts to the last fully-installed older APK (`@Database version 30`) while the on-disk Room DB is already **v31** → Room **downgrade** → uncaught `IllegalStateException` (no destructive fallback to absorb it). `DashboardViewModel.openPositions` `.catch { emit(emptyList()) }` renders the dashboard **EMPTY**, then a concurrent **unguarded** DB open (inline-composable DBs in `MainActivity.kt:764/787/818`, auto-backup) **CRASHES** the process. "Android Studio fixed it" = it re-deployed a v31 APK so code matched the on-disk v31 DB again; it did **not** repair data. Confirmed by memory: `roadmap.md` "Deploy note", `gotchas.md:95-100`, `current-session.md:79`.
-- **H2 (same defect, upgrade direction):** v30-on-disk / v31-code opened by a worker (`FlexSyncWorker.kt:187`, `AlertWorker.kt:153`) or an inline-composable DB → "migration from 30 to 31 not found" (workers swallow it and just fail sync; an inline-composable DB crashes).
-- **H3 (contributing):** BootReceiver enqueues a boot-time full Flex sync that auto-expires open options (`FlexSyncWorker.kt:559-571`) → dashboard looks sparse. No deletion — nothing at boot wipes rows.
-- **Ruled out:** WorkManager "not initialized" (default init intact, plain `CoroutineWorker`s), BootReceiver wiping/ANR (all off-main-thread, `goAsync()`), DataStore main-thread ANR (all suspend on IO), destructive-migration wipe (removed).
-- **Durable fix = the S1 loop itself:** deploy a real APK (`assembleDebug` + `adb install -r`), never Apply Changes. **No code fix in S1** (touches locked P&L/DB/Room core + has design choices) — owner options recorded in roadmap (process-only / versionCode bump / consolidate 11 builders / guarded-downgrade[rejected]).
+To make `install -r` succeed while preserving all data:
+1. On the COMPUTER that signed the installed app, get its **original** debug keystore. Standard location on that Windows box (per the tracked `local.properties` `sdk.dir=C:\Users\DELL\…`): **`C:\Users\DELL\.android\debug.keystore`** — this is the STANDARD Android debug-keystore location, **not a path verified on that machine**.
+2. Copy it onto the phone, overwriting **`/root/.android/debug.keystore`**.
+3. Rebuild: `./gradlew assembleDebug` (via `/root/work/bin/heavy-run -- …`).
+4. Re-verify: `apksigner verify --print-certs app/build/outputs/apk/debug/app-debug.apk` — its SHA-1 must now equal the installed app's **`5d3d855c6c6c397f817df2bd0c62f16f940b1551`** BEFORE any install.
+5. Then `ANDROID_NO_USE_FWMARK_CLIENT=1 fakeroot adb install -r app/build/outputs/apk/debug/app-debug.apk` (no `-d`, no uninstall flags). Launch via `am start` / `monkey -p com.dima.optionstracker -c android.intent.category.LAUNCHER 1`, then logcat.
+- **Uninstall / clear-data remain forbidden.** Do NOT bypass the mismatch by wiping the app.
 
-## Tests
-- Compile gate `:app:compileDebugKotlin` — **BUILD SUCCESSFUL**, 0 `^e:` lines (42 warnings only).
-- `:app:testDebugUnitTest` — **23/23 pass** (CoveredPutCalculatorTest 15, ProfitCalculatorCoveredPutTest 8; 0 failures/errors/skips).
-- `git diff --check` — clean. Final gate re-run before commit — UP-TO-DATE, still green.
+## Alternative (owner decision, NOT done here)
+If the computer's keystore is unavailable, the only other way to run the phone-signed APK is a fresh install of the phone build under a **different package** or **after an uninstall** — but uninstall DESTROYS the existing data and is FORBIDDEN by this task, so it is not an option without explicit owner approval and a data-export first.
 
-## Not physically tested (needs a device)
-- ADB pairing, `install -r`, launch-from-ADB, logcat, and the real reboot repro. Signing-cert comparison against the installed app.
+## Tests / verification this session
+- Pre-work git gate: OPT HEAD `5445921…` == expected; branch main; upstream origin/main; only `local.properties` dirty (`sdk.dir=/opt/android-sdk`, phone-local, left uncommitted). agent-memory HEAD `0dd61db…` == expected.
+- APK present: `app/build/outputs/apk/debug/app-debug.apk` (63,194,072 B). NO new heavy Gradle build run (the S1 APK already passed compile/tests/assemble; task says don't rebuild before the keystore is supplied).
+- `git diff --check` — clean.
 
-## Remaining risks / manual steps
-1. Pair ADB (one-time, Android Settings). 2. Likely copy the computer's `debug.keystore` to the phone before `install -r`. 3. Keep `local.properties` = `sdk.dir=/opt/android-sdk` locally (never commit). 4. Reboot crash persists until the owner adopts full-APK installs (option 1) — code hardening (options 2-4) needs owner approval as it touches locked core.
+## Not done / still needs a device action
+- `install -r`, launch-from-ADB, logcat capture, and the reboot repro — all blocked on the one keystore-copy step (install) or owner instruction (reboot).
 
 ## Pointers
-- `PHONE_BUILD.md` (in the OPT repo) — the full on-device build/install/debug runbook + reboot capture commands.
-- `state.md` — full dated commit chain. `pending-tests.md` — S1 device-test checklist (no regression tests). `roadmap.md` — S1 owner fix options + preserved backlog (F1/F2, R1/R2, banner, buy-to-cover, D1 findings). `gotchas.md` — Room-builder-drift + destructive-fallback-removal lessons.
+- `PHONE_BUILD.md` (OPT repo) — on-device build/install/debug runbook + reboot capture commands.
+- `state.md` — full dated commit chain (S1-cont bullet appended). `pending-tests.md` — S1 device-test status (SIGNING now = mismatch-confirmed; INSTALL/LAUNCH blocked on keystore). `roadmap.md` — S1 signing/install/reboot status + preserved backlog (F1/F2, R1/R2, dashboard banner, buy-to-cover, social-feed, D1 findings). `gotchas.md` — Room-builder-drift + destructive-fallback-removal + debug-keystore-continuity lessons.

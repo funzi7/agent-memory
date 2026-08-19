@@ -570,3 +570,10 @@ Setup/diagnostic only; no app code changed. Full handoff in cc-latest.md; runboo
   2. Bump `versionCode` on each real install (build.gradle) so the OS never silently reverts a streamed deploy to an older package. Small, non-locked, complements #1.
   3. Consolidate the 11 hand-maintained Room builders into the single Hilt-provided DB so `MIGRATION_30_31` (and future migrations) can't drift (roadmap "DI" item). Touches Room/DB LOCKED core → needs-dima PR.
   4. Add a guarded downgrade path (`fallbackToDestructiveMigrationOnDowngrade`) — REJECTED direction historically (it silently WIPES data; that was the old "all data lost after reboot" bug). Only reconsider with explicit owner sign-off. Touches locked DB core.
+
+### 2026-08-19 S1-cont status — signing / install / reboot (Claude Code)
+- SIGNING: RESOLVED to a CONFIRMED MISMATCH via certificate evidence (apksigner --print-certs on both APKs). Installed cert SHA-1 5d3d855c6c6c397f817df2bd0c62f16f940b1551; new phone-built APK SHA-1 0eb514fe3213157080d3fa8269a74e83e34ebd08. Different debug keystores (computer vs phone). No longer an assumption.
+- INSTALL: BLOCKED (not attempted) on the one-time keystore copy. Owner action = copy the computer's original ~/.android/debug.keystore onto the phone at /root/.android/debug.keystore (no custom signingConfig, so this is the whole signing path), rebuild, verify SHA-1 == 5d3d855c... , THEN adb install -r. Uninstall/clear-data forbidden.
+- REBOOT: NOT performed in S1-cont (owner-gated; do not reboot until instructed). Durable reboot-crash fix still = full-APK install loop (this same install path, once unblocked), NOT Android Studio Apply Changes.
+- ADB self-connection is LIVE and proven; install/launch/logcat now run entirely from the phone once the keystore step is done.
+- BACKLOG PRESERVED (unchanged): F1, F2, R1/R2, dashboard banner-reappear (GP1 diagnosis), buy-to-cover import gap, social-feed items, D1 findings (A1 yield-banner, A2 CALL assignment-prob, Covered-Put money-path ruling), and all prior roadmap entries.
