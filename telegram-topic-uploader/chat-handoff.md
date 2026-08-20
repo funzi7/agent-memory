@@ -165,6 +165,16 @@ cp /root/work/telegram-topic-uploader/app/build/outputs/apk/debug/app-debug.apk 
 still `74e78654979a76704d8036d5768359fea92dde6a7e6551e204c13d0e8f3cdfd4`. **D6A7e8 (code 50,
 `0.13.25-d6a7e8`) supersedes every earlier build; no intermediate version needs installing first.**
 
+**D6A8e does not move the Room schema — it stays at 17, and no migration runs on this install.**
+The topic Queue is a projection and snapshot predicate over the existing queue, and live SAF access
+is resolved from exact identity plus the grants already stored in `source_directories`; neither
+needs a new table or column. Build **62 / `0.14.11-d6a8e`** supersedes 61. Install it over 61 — do
+not uninstall and do not re-add a removed nested folder merely to make an old card readable.
+
+**D6A8d does not move the Room schema — it stays at 17, and no migration runs on this install.**
+Its counts are projections and its delivery wording is presentation state. Build **61 /
+`0.14.10-d6a8d`** supersedes 60.
+
 **D6A8c does not move the Room schema — it stays at 17, and no migration runs on this install.**
 The inline player's expansion state is UI state and needs no column. Build **60 /
 `0.14.9-d6a8c`** supersedes 59.
@@ -258,6 +268,50 @@ build reads identically to one answered against this one.
 item, confirmation, ignore marker and deletion tombstone.
 
 ## 4. Current completed milestone
+
+**D6A8e** — one global Queue viewed by topic, and an exact document that remained reachable through
+its mapped parent after the nested mapping that discovered it was removed.
+
+> **The topic Queue is not another queue.** Room's `upload_jobs` and its durable reservation remain
+> the only job identity and exactly-once authority. `UploadJobDao.findClaimCandidates` supplies the
+> canonical total order — due time, creation time, then job ID — and an optional stable destination
+> ID predicate filters that order without changing it. `RoomBatchRepository` freezes the same
+> press-time snapshot and `BatchUploadCoordinator` / `DefaultBatchUploadRunner` execute it through
+> the same single-item launcher and application-wide ownership guard as global *Upload all*.
+> Destination labels are presentation only. Confirmed and `RESULT_UNKNOWN` jobs remain ineligible,
+> album-owned members remain excluded from the generic runner, and only one active batch slot exists.
+>
+> **The nested SAF defect was an access-routing defect, not a missing-file defect.** Media kept the
+> exact provider authority and document ID discovered through the child, but byte consumers tried
+> the child-derived URI directly after unmapping released that permission. One canonical live
+> resolver now prefers the usable original tree, otherwise asks active candidate trees to prove
+> access to that exact document and deterministically chooses the narrowest proven ancestor. It
+> never searches by name, metadata or path, never enumerates siblings, and never assumes that a
+> shared authority is enough. Read and write are separate capabilities; deletion still needs its
+> frozen policy and every existing proof. A fallback is transient and does not rewrite provenance.
+> Shared-tree permission release is reference-aware, and parent/child rescans retain one logical
+> media row and its queue/history/evidence.
+>
+> **D6A8d physical evidence carried into this milestone:** the repaired TikTok backlog delivered
+> naturally through `AUTO_SEND`, **10/10**, and the user physically confirmed all ten arrivals; none
+> of those ten showed the white/blank-card presentation. No manual Send or Check now was used.
+> Instagram is deliberately **partial**: **20** deliveries were physically observed and **4** were
+> still in automatic retry at observation, so its backlog is not recorded complete. Remote History
+> physically read **All 169 / Sent 101 / Failed 68 / Unknown 0**, and pending cards used truthful
+> not-sent-yet / automatic-retry wording. The code maps one carousel to one media group and calls
+> `sendMediaGroup`; physical Telegram album rendering remains **UNVERIFIED**.
+>
+> Final release values: Android code
+> `9c836182bc86056a0ea8a407568fe015d1d0113b`, Android HEAD
+> `6f6b49be51d84a39c5825334b8faae97d171d4c8`, server docs HEAD
+> `cbb687c99ec50073fc365ddec7bb6f33a1d3012f`; gate **3838 tests / 0 failures /
+> 0 errors / 0 skipped / 242 suites / 2 lint warnings and 0 lint errors**; APK SHA-256
+> `555e43572887b1c2ff441c8d8681654148b1eadf1c01cbfc6cecfd54aa7e018a` at **17,331,566
+> bytes**, source/destination identical and signer certificate matched to D6A8d. The adversarial
+> review classified **19 atomic claims: 3 confirmed and fixed, 16 refuted, 0 not applicable**.
+> Server production stays deployed at
+> `0e18506fbe8bd8695cea73128dc83d7c71e0c673`, migration
+> `0009_d6a7f1a_video_poster`; D6A8e does not deploy server code or its documentation.
 
 **D6A8d** — the white/blank Telegram video card on every Remote delivery this service has ever made,
 a confirmed delivery that still published its earlier failure, a card that claimed a delivery on an

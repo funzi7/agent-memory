@@ -7,6 +7,82 @@
 > **When the user supplies SHAs, read agent-memory before responding**, verify each against
 > `origin/main`, and only then answer. A supplied SHA is a claim to verify, never a fact to repeat.
 
+## D6A8e — one Queue seen through a topic, and one document reached through its surviving parent
+
+**Android production change: yes.** `62` / `0.14.11-d6a8e`, Room schema **17**, **no migration**.
+**Server production change: no.** Its deployed production code remains
+`0e18506fbe8bd8695cea73128dc83d7c71e0c673`, and migration head remains
+`0009_d6a7f1a_video_poster`. Any server change in this milestone is documentation only and is not
+deployed.
+
+| Field | Value |
+| --- | --- |
+| Android code commit | `9c836182bc86056a0ea8a407568fe015d1d0113b` |
+| Android HEAD | `6f6b49be51d84a39c5825334b8faae97d171d4c8` |
+| Version | **62** / `0.14.11-d6a8e`, Room schema **17**, **no migration** |
+| Gate | **3838** tests, **0** failures, **0** errors, **0** skipped, **242** suites; lint **2 warnings, 0 errors**. `assembleDebug` and `assembleDebugAndroidTest` build; instrumentation **compiles and was not run** |
+| Adversarial review | **19 atomic claims: 3 confirmed and fixed, 16 refuted, 0 not applicable.** Fixed: generic bulk album splitting, album-driven stale eligibility, and ambiguous URI-only grant release |
+| APK | `/sdcard/Download/TelegramTopicUploader-0.14.11-d6a8e.apk`, **17,331,566 bytes**, SHA-256 `555e43572887b1c2ff441c8d8681654148b1eadf1c01cbfc6cecfd54aa7e018a`; source/destination size and SHA-256 match and signer certificate SHA-256 matches D6A8d; **not installed** |
+| Server | production/deployed code `0e18506fbe8bd8695cea73128dc83d7c71e0c673`; docs HEAD `cbb687c99ec50073fc365ddec7bb6f33a1d3012f`; migration `0009_d6a7f1a_video_poster`; docs-only commit not deployed |
+| Hardware | **`docs/D6A8E_DEVICE_CHECKLIST.md`.** New D6A8e behavior remains unchecked; only the explicitly reported D6A8d evidence below is carried as already observed |
+
+### One global Queue, filtered by destination ID
+
+There is no topic table, shadow job, topic sequence or second uploader. `upload_jobs` and its
+existing idempotency reservation remain the one durable source of truth. The canonical selection is
+`UploadJobDao.findClaimCandidates`: `ORDER BY COALESCE(nextAttemptAt, 0), createdAt, id`, with an
+optional exact `topicDestinationId` predicate applied before that unchanged total order. Queue tabs
+and their Room-backed counts use the stable destination ID; a destination name is presentation only,
+so a rename cannot split a logical topic.
+
+Topic *Upload all* calls the existing `BatchUploadCoordinator`, which asks
+`RoomBatchRepository.createSnapshot(destinationId)` for the same press-time snapshot as global
+*Upload all*, then gives it to the existing `DefaultBatchUploadRunner`. That runner still calls the
+single-item `UploadLauncher`, so the application-wide transfer arbiter and durable claim remain the
+owners. Passive jobs for other topics are not in the filtered snapshot and cannot block it; an
+already active send or batch does block a second owner. Global *Upload all* is the null-predicate
+case and is otherwise unchanged. Confirmed and `RESULT_UNKNOWN` rows cannot be selected, and a
+member still owned by a live/unknown/confirmed album shell is excluded rather than split.
+
+### One exact live document-access resolver
+
+The defect was proven in the old route: media retained the exact authority and document ID, but its
+stored URI was derived from the child tree. Removing the child mapping released that grant and Room
+set the media's former source owner to null; preview and other byte consumers kept opening the stale
+child-derived URI and never tried a still-active covering parent.
+
+`LiveDocumentAccessResolver` is now the one access boundary. It prefers the original tree only when
+that tree is still active and usable. Otherwise it considers active persisted grants with the exact
+same authority and asks the provider to address the stored exact document through each candidate;
+the narrowest provider-proven ancestor wins deterministically. It never searches a filename or
+display name, parses or guesses a relative path, lists siblings, or treats same-provider/same-volume
+as proof. A sibling and a different authority fail closed.
+
+Read and write permission modes are tested separately. Preview, video/image/thumbnail, inline
+playback, hashing/re-proof, queue preflight, upload dispatch, repair, albums and share staging resolve
+fresh READ access at their byte boundary. Deletion resolves READ for re-proof and WRITE separately
+for the exact delete, after its existing policy, confirmation, evidence and busy gates. A writable
+fallback never donates deletion policy: KEEP stays KEEP. Resolution is transient; ordinary fallback
+does not rewrite the media's source or URI provenance, and an access loss between resolution and
+open fails rather than searching elsewhere.
+
+Unmapping releases only permission modes no surviving active mapping needs. A child removal cannot
+release its parent, and duplicate mappings of one tree URI are reference-aware. The media row,
+queue/history/reservation/confirmation/ignore/delete evidence survive unmap. Parent rescan and later
+child re-add match the same exact durable document identity and keep one logical media row and job.
+
+### D6A8d physical evidence recorded now
+
+* **TikTok: PASSED.** All **10/10** repaired items were delivered naturally by `AUTO_SEND`; the user
+  physically confirmed all ten arrivals. None of the observed ten showed the white/blank-card
+  presentation. No manual Send and no Check now was used.
+* **Instagram: PARTIAL.** **20** deliveries were physically observed; **4** remained in automatic
+  retry at observation. Do not record the Instagram backlog complete.
+* **Remote History:** physically observed **All 169 / Sent 101 / Failed 68 / Unknown 0**. Pending
+  cards used truthful not-sent-yet / automatic-retry wording.
+* **Carousel:** the code path is one carousel → one remote item → media group → `sendMediaGroup`.
+  Physical Telegram album rendering remains **UNVERIFIED**.
+
 ## D6A8d — the topic a card said it had gone to, and a tab with no number on it
 
 **Android production change: yes.** `61` / `0.14.10-d6a8d`, Room schema **17**, **no migration** —
@@ -48,10 +124,13 @@ so comparing it release to release proves nothing. The **certificate inside it**
 identity; extract it and compare its SHA-256 fingerprint. D6A8c's block digest and D6A8d's differ;
 their certificate fingerprints are identical.
 
-### What is still unproven
+### What later hardware proved, and what remains unproven
 
-Everything a Telegram client draws. No live send was made by any agent, the thirty-three re-armed
-items were not sent, and the previously blank cards were not touched.
+D6A8e records the later device observation without rewriting what this milestone itself did:
+TikTok's ten repaired items all arrived naturally and none of the observed ten showed the
+white/blank-card presentation. Instagram had 20 observed deliveries with four still retrying, so it
+is not complete. The Remote History counts and pending wording were also physically observed as
+recorded above. Telegram's rendering of an Instagram carousel as one album remains **UNVERIFIED**.
 
 ## D6A8c — a tile that opened a player and nothing that closed it
 

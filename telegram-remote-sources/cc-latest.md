@@ -1,5 +1,35 @@
 # Remote Sources server — latest handoff
 
+## D6A8e — Android-only queue and SAF work; D6A8d physical delivery evidence recorded
+
+**Server production change: no.** The production and deployed code remains
+`0e18506fbe8bd8695cea73128dc83d7c71e0c673`; migration head remains
+`0009_d6a7f1a_video_poster`. The only permitted server-repository change is documentation recording
+the physical results below. It is not deployed. Final docs HEAD:
+`cbb687c99ec50073fc365ddec7bb6f33a1d3012f`.
+
+The D6A8e implementation is Android-local: topic Queue controls filter the phone's existing durable
+queue by stable destination ID, and nested SAF access resolves one exact stored provider document
+through a surviving active parent grant. There is no wire change, server queue, server migration,
+server process change, production deployment or Telegram action here. Android is build **62** /
+`0.14.11-d6a8e`, Room schema **17**, no migration; final Android code is
+`9c836182bc86056a0ea8a407568fe015d1d0113b` and final Android HEAD is
+`6f6b49be51d84a39c5825334b8faae97d171d4c8`.
+
+### D6A8d physical evidence, reported after release
+
+* **TikTok: PASSED.** The repaired backlog was **10** and all **10/10** delivered naturally through
+  `AUTO_SEND`. The user physically confirmed all ten arrivals; none of those observed ten showed the
+  white/blank-card presentation. No manual Send and no Check now was used.
+* **Instagram: PARTIAL.** **20** deliveries were physically observed and **4** remained in automatic
+  retry at observation. This is not evidence that the complete Instagram backlog finished.
+* **Remote History:** the physical screen showed **All 169 / Sent 101 / Failed 68 / Unknown 0**.
+  Pending cards used truthful not-sent-yet / automatic-retry wording.
+* **Carousel:** code maps one carousel to one `RemoteItem`, then `MEDIA_GROUP`, then
+  `sendMediaGroup`. Physical Telegram album rendering remains **UNVERIFIED**.
+
+No private identity, topic, filename, URL or screenshot is retained in this record.
+
 ## D6A8d — the decoder this service already had, and the failure a confirmed delivery kept
 
 **Server production change: yes, deployed.** Migration head **unchanged** at
