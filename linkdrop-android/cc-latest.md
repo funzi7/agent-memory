@@ -7,9 +7,9 @@
 | Application repository | `funzi7/linkdrop-android` |
 | Branch / tracking | `main` / `origin/main` |
 | Starting application HEAD | `97f21c2173ad0b4be330c19c8db329bfe14dd850` |
-| Final pushed application HEAD | `fb34f2977b3f0e1622875b92e606d651f74506ae` |
+| Final pushed application HEAD | `1e323c3069bb68ff848693254fbda7deed0e6b62` |
 | Known LinkDrop agent-memory starting HEAD | `ff0f8dbe57e5ed87b492616d81821ac0fab79e30` |
-| Agent-memory repository base at finalization | `a063ab791b97dc2ebed087d99f3da2c835d37e2b` (other project handoffs had advanced the shared repository) |
+| Shared agent-memory HEAD first observed during this task | `a063ab791b97dc2ebed087d99f3da2c835d37e2b` (other project handoffs had advanced the shared repository) |
 | Android identity | `com.funzi7.linkdrop`, versionCode 6, versionName `0.1.5-feasibility`, minSdk 30 / targetSdk 36 / compileSdk 37, arm64-v8a only |
 | Git identity | `funzi7 <207505227+funzi7@users.noreply.github.com>` |
 | Prerelease | [`v0.1.5-feasibility`](https://github.com/funzi7/linkdrop-android/releases/tag/v0.1.5-feasibility), target and tag both resolve to the final application HEAD |
@@ -17,7 +17,7 @@
 | APK SHA-256 | `ef006039ee30ec5d6b15b566bb349a9bd64d95e1d42f45bdfd941152be2fce9e` |
 | Phone delivery | `/storage/emulated/0/Download/LinkDrop/LinkDrop-v0.1.5-feasibility-arm64-debug.apk` |
 
-The project commit was pushed without force. Local `main`, remote `main`, the release tag, and the release target
+The project commits were pushed without force. Local `main`, remote `main`, the release tag, and the release target
 were independently verified as the same full application SHA. The source APK, phone-storage copy, GitHub API
 digest, and an independently downloaded release asset all have the size and SHA-256 above. The release is marked
 as a prerelease and contains one correctly named asset.
@@ -148,6 +148,11 @@ each physical v0.1.4 failure.
 - `./gradlew lintDebug`: **0 errors, 35 warnings**.
 - `./gradlew assembleDebug`: **passed**.
 - All heavy Gradle work ran through the installed phone-wide heavy-build queue.
+- GitHub Android CI run `32459536835` passed every configured step on the final application HEAD: Android SDK
+  provisioning, unit tests, lint, assembly, diff check, checksum, and artifact/report upload. The workflow now
+  uses `android-actions/setup-android@v4` and the published minor-SDK package path
+  `platforms;android-37.0`; earlier runs had stopped before build because the obsolete `platforms;android-37`
+  package identifier was unavailable.
 - `git diff --check`: clean before commit; final project worktree is clean after push.
 - Packaged metadata: versionCode 6, versionName `0.1.5-feasibility`, application ID `com.funzi7.linkdrop`.
 - APK native libraries are arm64-v8a only and include Python, FFmpeg, ffprobe, and QuickJS.
