@@ -1,187 +1,177 @@
-# Private Media TV — F2C.6 Handoff
+# Private Media TV — F2C.6.1 Handoff
 
 ## Identity and release state
 
 | Field | Value |
 | --- | --- |
 | Application repository | `funzi7/private-media-tv` |
-| Milestone | F2C.6 — My List/Liked semantic split; unified Continue Watching progression; saved-series new-season reactivation; exact relationship-rail Back restoration; eventual Israel-badge coverage; Specials-last |
+| Milestone | F2C.6.1 — physical code-28 defect fixes: derived tri-state series Eye with reversible SERIES_EYE provenance; Continue Watching convergence; shared library-card four-action strip; `חדש בישראל` evidence floor + historical repair + structural placement; Local Library parent-folder identity evidence; cross-platform architecture audit |
 | Branch / tracking branch | `main` / `origin/main` |
-| Starting application HEAD | `f4e5d65003cc36ccf145c9ce752f6ba1bea85026` |
-| Final application HEAD | `e0bd44e56b35a08ca2aacf6b23cd5d15ca59f1e2` |
-| Exact-head Android CI | `32349900412` — success, exact head `e0bd44e56b35a08ca2aacf6b23cd5d15ca59f1e2` |
-| Mobile identity | `com.funzi7.privatemediatv.mobile`, `0.4.9-phone-test`, versionCode 28 (update over code 27) |
-| TV regression identity | `com.funzi7.privatemediatv`, `0.6.8-f2c6`, versionCode 31 (shared regression build only; not delivered) |
-| Schemas | Catalog/FTS 11; UserState v6 (strictly additive v5→v6); territory availability v2; Local Library v2 |
+| Starting application HEAD | `e0bd44e56b35a08ca2aacf6b23cd5d15ca59f1e2` |
+| Final application HEAD | `b5785d4f622699f4c905807ac96ad53761cf00ab` |
+| Exact-head Android CI | `32613768659` — success, exact head `b5785d4f622699f4c905807ac96ad53761cf00ab` (both jobs green; exact-head mobile + TV artifacts uploaded, unexpired) |
+| Mobile identity | `com.funzi7.privatemediatv.mobile`, `0.4.10-phone-test`, versionCode 29 (updates code 28 in place) |
+| TV regression identity | `com.funzi7.privatemediatv`, `0.6.9-f2c61`, versionCode 32 (shared regression build only; not delivered) |
+| Schemas | Catalog/FTS 11; UserState **v6 unchanged** (watch-mark provenance via new persisted `reason` values); territory availability **v2→v3** additive + fail-closed arrival repair; Local Library v2 unchanged |
 | Development signer SHA-256 | `2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0` |
-| Published mobile APK SHA-256 | `f9c3a24e78242bd0a54860004f28be56198f18474f4ecdc484e32f52e234cc7f` |
-| Published mobile APK size/time | 59,332,692 bytes; `2026-08-20 08:54:41.226516428 +0000` |
-| Published mobile TDLib JNI SHA-256 | `790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f` |
+| Local mobile APK | 59,382,512 bytes, SHA-256 `5e1e606ab450a06ad2e05db6c7bceb58648b7191a809f0b724b1e13a4df0735d` |
+| Local TV regression APK | 59,082,747 bytes, SHA-256 `89dbbc4f1174f559251a99f554c742fca445474c9c6e7676be56057ced134182` |
+| TDLib | Pinned official commit `022d60202e446ad1287b9fb68e687c8a0760788b`, verify-only (no rebuild); AAR `025313d2a7cdbf148e5c700e8ef6c9d384f2301aff043c844997e0c23eb9abd2`, JNI `21d59ebfeba4edc62ea74cefaa79b08650e796530f3d5e57804105cc44cb65dc` |
 
-One cohesive application commit was pushed normally, without force. Final application HEAD equals
-`origin/main`. Exact-head CI passed every job and uploaded both signed artifacts. Only the exact-head
-mobile artifact was downloaded and published. No TV export/delivery, Shield action, uninstall,
-downgrade, or Clear Data operation occurred. `adb devices -l` found no attached device, so installation,
-launch, and physical acceptance are not claimed.
+One cohesive application commit was pushed normally (no force). Final HEAD equals `origin/main`.
+Exact-head CI passed and uploaded both exact-head artifacts.
+
+**PUBLICATION IS WITHHELD (release gate).** The milestone made real runtime validation of the
+live `חדש בישראל` data path a release gate. No TMDB credential exists anywhere on this host
+(environment, configs, other local repos, and shared storage were all searched) and
+`adb devices -l` lists no device, so the live positive-path TMDB region-IL smoke could not run —
+by the milestone's own rule this is a release blocker. Therefore the exact-head mobile code-29
+APK was NOT published: the phone keeps latest = verified code 28
+(`f9c3a24e78242bd0a54860004f28be56198f18474f4ecdc484e32f52e234cc7f`) and previous = code 27
+(`a2450b1479277e1c4328a4d0b187756332ec4d347edaa4f379415d73f97a1866`), verified read-only after
+CI. Broken code 23 remains excluded. No TV export/delivery, Shield action, uninstall, downgrade,
+or Clear Data occurred.
 
 ## Product behavior delivered
 
-1. **Legacy Favorite becomes My List, never Liked.** The persisted v5 `favorite` bit remains the
-   storage-compatible representation of My List (`הרשימה שלי`) and renders on Plus. Every existing old
-   Heart/Favorite selection therefore appears as active Plus after upgrade. New Liked (`אהבתי`) is a
-   separate durable bit and starts false for all legacy rows. Bookmark remains Want to Watch and Eye
-   remains Seen.
-2. **Four independent owner actions.** Plus/My List, Bookmark/Want, Heart/Liked, and Eye/Seen persist
-   independently on movie and TV cards and Details. They are separate checked accessibility/click
-   targets; action taps never open the card underneath. My List removal/re-add does not change Liked,
-   and Liked does not reorder an unchanged My List collection.
-3. **Recommendation semantics are split.** Typed signals distinguish My List, Liked, Want, Seen,
-   playback, and Not Interested with field-specific occurrence clocks. Only explicit Liked supplies
-   the strong positive affinity boost; all old saved titles are not misread as likes.
-4. **UserState v5→v6 is strictly additive.** New columns hold Liked, its timestamp, and exact-candidate
-   continuation suppression. The physical Favorite key/columns remain intact. A real Room
-   `MigrationTestHelper` v5 fixture plus store-open assertions prove legacy Favorite→My List true,
-   Liked false, and preservation of Want, Not Interested, Seen, snapshots, watched rows, playback
-   progress, continuation targets, and journal rows.
-5. **One standard-series continuation engine.** Real playback completion and durable manual Watched
-   evidence combine only to select the next regular episode; the registers remain separate. Manual
-   Watched never fabricates progress. Manual Unwatched can move the target backward. Actual episode
-   metadata drives ordering and cross-season selection; old gaps win over a new season.
-6. **Target-before-Resume cleanup.** Playback/manual/bulk paths persist a replacement or truthful
-   terminal decision before removing the consumed Resume. Metadata/commit failure retains the Resume.
-   Later metadata recovery promotes only retained real automatic-completion evidence, never a manual
-   Watched row, and removes the old membership only after the new target/terminal decision commits.
-   Real Resume wins dedup when it represents the same target episode.
-7. **Explicit removal remains meaningful.** Suppression is scoped to the exact current candidate.
-   Atomic upsert/reveal plus a per-series mutex and owner-action generation make the later owner action
-   win both pre-lock and in-lock races. A materially changed target may re-enter; removal is not a
-   permanent series ban.
-8. **Saved-series new-season recovery.** My List TV series receive deduped, cache-first metadata
-   freshness with concurrency at most four. A later regular season can create a continuation target
-   even when the prior target row is null and the old metadata looked finished. This never starts
-   Telegram and never jumps over older unwatched regular content.
-9. **Specials are last and opt-in.** One shared presentation policy orders regular seasons ascending,
-   then season 0/`מיוחדים`. Specials-only titles still render and default correctly. Season 0 can be
-   opened, played, and marked Watched, but normal continuation never crosses into it.
-10. **Exact relationship-rail Back.** Collection, Franchise, Similar, and Recommendations use stable
-    contexts derived from parent `MediaIdentity` plus relationship kind. The click path synchronously
-    captures first-visible identity anchor, bounded index, pixel offset, and parent Details vertical
-    offset before navigation. Existing `NavigationPositionMemory` restores anchor first, then exact
-    offset; a bounded index is only the fallback when the anchor disappeared. Series vertical restore
-    waits for the selected season layout, including Specials-only pages.
-11. **Eventual Israel badge coverage.** A generation-owned deduped queue admits currently loaded Home,
-    owner-library, relationship, end-screen, and Search cards plus appended pages. It drains 24-item
-    batches until empty, with provider concurrency at most four (including stale revalidation). One
-    identity shown in four rows causes one lookup per epoch. Timestamped evidence distinguishes
-    included access, authoritative fresh negative, and unknown/failure; a known positive remains while
-    refresh is pending and only newer authoritative negative evidence removes it. Details and Catalog
-    share the same cache/evidence. Subscription/flatrate, free, and ads qualify; rent/buy-only does not.
+1. **Derived tri-state series Eye (owner-chosen model).** On a STANDARD series the top Eye is
+   derived from durable regular-episode watched/playback evidence plus truthful TMDB metadata:
+   OFF (an aired regular episode is unwatched), CAUGHT_UP (indeterminate — everything aired
+   watched but the latest season's released run not provably complete; a real
+   `triStateToggleable` state with its own Hebrew state description, never a false binary),
+   COMPLETE (positive completion evidence only — closed series, or last-aired provably closing
+   the fully-aired latest declared season; every insufficiency fails closed to CAUGHT_UP).
+   Season 0 never participates; a newly aired unwatched episode returns the Eye to OFF
+   automatically. Movies and recurring-dated titles keep the binary title register; historical
+   series title-Seen bits are preserved and never converted into watched episodes.
+2. **Safe reversible Eye bulk with durable provenance — no schema bump.** The Eye-OFF tap loads
+   all regular seasons (fail-closed abort if any fails), marks only aired regular episodes not
+   already watched with the new persisted `SERIES_EYE` reason value (season bulk now writes
+   `MANUAL_SEASON_BULK` and skips already-watched rows), fabricates no playback/Resume rows,
+   starts no Telegram work, and recomputes continuation once. Undo removes ONLY marks still
+   solely SERIES_EYE-owned; real playback completion upgrades a mark's ownership in place; later
+   explicit episode/season actions always win; no timestamp heuristics. UserState stays v6 —
+   the lenient reader means a code-28 rollback reads new marks as unwatched instead of failing
+   to open a bumped schema.
+3. **Continue Watching convergence.** The physically observed stale-aired-target shape
+   (S02E09-style) is reproduced and fixed as a pinned regression: after a caught-up bulk no
+   older aired gap survives as a target or Resume; a known future episode becomes the truthful
+   waiting card; a proven finale leaves nothing; undoing an evidence-empty series also removes
+   its continuation target. Older-gap priority, manual-unwatched authority, My List new-season
+   re-entry, Resume dedup, and Specials exclusion are unchanged.
+4. **Shared four-action strip on collection cards.** Cards in `הרשימה שלי`/`אהבתי`/`רוצה לראות`
+   (rows and full pages) render THE catalog strip via one shared implementation
+   (`F2bCardActionStrip`): Plus/Bookmark/Heart/Eye independent, the collection's own action
+   active, action taps never open Details, geometry/2:3 poster/title-year slot/RTL/Israel badge
+   unchanged.
+5. **`חדש בישראל` evidence floor + repair + placement.** An arrival now requires genuine
+   evidence: an authoritative available-since/season date, or a genuinely monitored per-title
+   authoritative absence→presence transition (a per-title watch-provider response is COMPLETE
+   for that title, unlike a bounded Discover page; the badge worker's fresh per-title results
+   feed a durable evidence store — territory v2→v3 additive with the reserved
+   `authoritative-title-evidence:v1` scope). First-observation time is never arrival proof;
+   RETURNED and DAY_ONE stay excluded. The v3 migration repairs historically unprovable arrival
+   classes fail-closed while preserving every current-availability row, so the 🇮🇱 badge (dedup
+   queue, 24-batches, ≤4 concurrency, included subscription/free/ads only, newer-negative-only
+   removal) loses nothing and is regression-pinned unchanged. The combined row renders
+   structurally (by `CatalogSection` identity, never display-string matching) before every
+   broadcaster/streaming rail, after Continue Watching and the owner-library rows.
+6. **Local Library folder-context recognition.** The production SAF traversal carries a bounded
+   relative ancestor-folder chain (nearest 4, root excluded, length-capped, never persisted or
+   logged) into the parser: filename evidence has priority; `Season N`/`עונה N`/`SNN` folders
+   contribute season context only; the nearest meaningful non-generic ancestor supplies the
+   series-title fallback; season contradictions keep filename values but fail closed to an
+   owner-confirmable match. New bare `Episode N`/`E NN` forms. Reconcile reclassifies
+   fingerprint-unchanged rows via pure re-parse — no media re-extraction, bindings and
+   playback/identity keys byte-identical. Local Library DB stays v2.
 
 ## Architecture and security decisions
 
-- ADR 0026 records compatibility-first My List storage, independent Liked, additive UserState v6,
-  evidence-derived continuation, exact candidate suppression, target-free My List refresh, shared
-  season ordering, reuse of NavigationPositionMemory, and the bounded Israel queue.
-- TMDB remains the metadata/identity and watch-provider authority. My List freshness and Israel badge
-  enrichment use the normal TMDB cache/freshness infrastructure. No Telegram search or history scan is
-  triggered by Home, Details, continuation refresh, or badge work.
-- No ML, local-file catalog playback bridge, OMDb credential provisioning, Wikidata population, Local
-  Library scan redesign, player redesign, or Deep Search redesign was added.
-- TDLib remained pinned to official commit `022d60202e446ad1287b9fb68e687c8a0760788b` and was verified
-  only. No native rebuild was run. No credentials, signing material, private identifiers, media names,
-  screenshots, sessions, or private URLs were committed or copied into this handoff.
-
-## Main implementation areas
-
-- `core-catalog`: UserState v6 schema/migration, My List/Liked contracts and Room stores, independent
-  clocks/journal semantics, series watched lookup, atomic continuation suppression/reveal, migration and
-  persistence tests.
-- `core-metadata`: shared season presentation and regular-series progression policies; timestamped
-  territory-availability evidence; progression/order/ranking tests.
-- `app-mobile`: four-action state/presentation, library rows, Liked-only reranking, unified continuation
-  recomputation and saved-series freshness, restoration-aware Details navigation, Israel queue/evidence
-  handling, card/Details/Search badges, and focused ViewModel/Compose/data-source regressions.
-- `app-tv`: versionCode 31 / `0.6.8-f2c6` regression pin only.
-- CI/release: exact mobile 28 and TV 31 assertions/metadata, safe mobile code27→28 rotation, verifier and
-  downloader harness pins, ADR and release/acceptance/product/data/playback/test documentation.
+- ADR 0027 records the derived-Eye model, the reason-column provenance choice (explicitly chosen
+  over a v7 bump for rollback safety), the shared strip contract, the Israel evidence
+  floor/transition model and fail-closed historical repair, the structural row placement, the
+  folder-context rules, and the opt-in live-smoke design.
+- `docs/ARCHITECTURE.md` gains the F2C.6.1 cross-platform audit: pure-JVM vs Android-bound
+  module map, what `app-tv` actually implements (engineering shell + real Telegram streaming
+  surface; zero catalog/metadata usage), Shield full-product prerequisites (TV catalog rendering
+  is the only prerequisite package), the factual Windows abstraction map (no desktop target
+  exists; none was created), and non-overlapping parallel work packages.
+- No Telegram work was added to any browsing/continuation/badge path. No scraper was fabricated.
+  TDLib was verified only. No credentials, tokens, private identifiers, media names,
+  screenshots, sessions, or private URLs were committed or copied into this handoff. The live
+  smoke reads its token only from the invocation-time `PMTV_TMDB_SMOKE_TOKEN` environment
+  variable and never persists or prints it.
 
 ## Validation actually run
 
-- `./gradlew --version` and `./gradlew projects` passed (Gradle 9.5, JDK 21).
-- Focused migration, owner-state, recommendation, continuation, season-order, navigation Compose,
-  Israel queue/data-source, startup, and retained regression tests passed. Four independent read-only
-  final audits (owner state, continuation, navigation/season order, Israel coverage) reported no
-  concrete remaining F2C.6 defect.
-- One broad `./gradlew test` passed: **1,517 discovered; 1,514 passed; 3 skipped; 0 failures/errors**.
-  The skipped cases were environment-dependent private-LAN socket-listener tests because this host had
-  no eligible private IPv4 interface. Counts: mobile 439, TV 74, catalog 349, Local Library 34,
-  metadata 109, model 19, playback 96, provider 27, provisioning 48, security 98, Telegram 224.
-- `./gradlew lint`, `./gradlew :app-mobile:assembleDebug`, and
-  `./gradlew :app-tv:assembleDebug` passed.
-- Release/security harnesses passed: credential scanner 41 cases; TV delivery 9; mobile delivery 16;
-  TV CI downloader rejection 8; mobile CI downloader 20 rejection + 1 success; upgrade verifier 13;
-  provisioning inspector 4; Bash syntax for 26 scripts; all three browser/WebCrypto interoperability
-  verifiers.
-- Real retained code27→local-code28 and code27→published-CI-code28 upgrade verification passed:
-  package continuity, increasing versionCode, same signer, ARM64-only, exactly one TDLib JNI, and
-  update-preserving `adb install -r` policy with no downgrade/uninstall/clear-data behavior.
-- Local mobile APK: 60,754,927 bytes, SHA-256
-  `f52b04e6e6427a87a24fdb645119aa0ae0cd156eb8d2e6b088e9cf11fbd2e582`, built
-  `2026-08-20 08:28:58.970881268 +0000`.
-- Local TV regression APK: 59,066,359 bytes, SHA-256
-  `e467f2c1f51d07ca7e58c42e6db6572074f011136ec7f6d31be954161017c79c`, built
-  `2026-08-20 07:50:10.970882156 +0000`. It was not delivered.
-- `./scripts/bootstrap-tdlib-android.sh --verify-only` and
-  `./scripts/verify-tdlib-artifact.sh` both passed. Local official AAR SHA-256:
-  `025313d2a7cdbf148e5c700e8ef6c9d384f2301aff043c844997e0c23eb9abd2`; local artifact JNI SHA-256:
-  `21d59ebfeba4edc62ea74cefaa79b08650e796530f3d5e57804105cc44cb65dc`.
-- `git diff --check`, staged scope review, credential-shape scan, binary-file scan, APK private-material
-  checks, and final repository cleanliness checks passed.
-- Exact-head Android CI `32349900412` succeeded in 11m12s. Wrapper validation, pinned TDLib verification,
-  rejection/security gates, aggregate/focused tests, lint, signed ARM64 TV/mobile assemblies,
-  package/version/signer/JNI checks, metadata/checksums, and both artifact uploads passed. The only
-  annotation was a non-failing GitHub-hosted Node.js action-runtime deprecation notice.
+- Full `./gradlew test`: **1,564 discovered; 1,559 passed; 0 failures; 0 errors; 5 skipped** —
+  3 environment-dependent private-LAN listener cases (no eligible private IPv4 interface on this
+  host) plus the 2 OPT-IN live TMDB smoke tests (gated off in normal/CI runs; skipped is
+  reported as skipped, not passed). Module counts: mobile 446, TV 74, catalog 357, locallibrary
+  48, metadata 127, model 19, playback 96, provider 27, provisioning 48, security 98,
+  telegram 224.
+- Aggregate `./gradlew lint`, `:app-mobile:assembleDebug`, `:app-tv:assembleDebug` passed.
+- Harnesses: credential scanner 41; TV delivery 9; mobile delivery 16 (outgoing-rotation case
+  now 28→29); TV CI downloader rejections 8; mobile CI downloader 20 rejections + 1 success;
+  upgrade verifier 13; provisioning inspector 4; `bash -n` for 27 scripts; pmtprov WebCrypto
+  interop self-test, LAN crypto fallback, and provisioning-HTML verifiers.
+- REAL published-code28 → built-code29 upgrade verification passed (same package, increasing
+  code, same signer, ARM64-only, single pinned JNI, update-preserving `adb install -r` policy).
+- Built APK identities verified: mobile `0.4.10-phone-test`/29 and TV `0.6.9-f2c61`/32, both
+  ARM64-only with the pinned JNI and Development signer.
+- **Real integration smokes:** the Local Library smoke drove ACTUAL nested directories/files
+  (including Hebrew names) through the production SAF-contract provider, the production
+  `AndroidLocalDocumentProvider` recursive traversal, parser, matcher, repository, and Room
+  store end to end — passed (only the OS permission-grant check is bypassed on the JVM host).
+  The live TMDB smoke ran against the REAL api.themoviedb.org service through production
+  transport/parsing/classification: the unauthenticated failure path passed (typed failure;
+  fabricates no availability and no arrival); the positive included-access checks were BLOCKED —
+  no TMDB credential and no device.
+- Exact-head Android CI `32613768659` succeeded for `b5785d4f…` (wrapper validation +
+  TDLib/tests/lint/signed TV+mobile assembly job) and uploaded both exact-head artifacts
+  (mobile 59,383,588 bytes; TV 59,083,689 bytes, per the GitHub artifacts API).
+- `git diff --check`, staged-scope review, and final repository cleanliness checks passed.
+- `adb devices -l`: no device attached at any point; no installation/launch/physical claims.
 
 ## Phone publication
 
-- Exact-head CI mobile downloader published:
-  `/storage/emulated/0/Download/PrivateMediaTV/Mobile/private-media-tv-mobile-latest.apk`.
-- `latest` is verified code 28 (`0.4.9-phone-test`), SHA-256
-  `f9c3a24e78242bd0a54860004f28be56198f18474f4ecdc484e32f52e234cc7f`, 59,332,692 bytes,
-  timestamp `2026-08-20 08:54:41.226516428 +0000`.
-- `previous` is verified code 27 (`0.4.8-phone-test`), SHA-256
-  `a2450b1479277e1c4328a4d0b187756332ec4d347edaa4f379415d73f97a1866`, 59,249,482 bytes.
-- Exactly those two mobile APKs remain. Broken code 23 is excluded and remains blocklisted. The TV
-  download-directory APKs were not changed by the mobile-only publisher.
+**Not performed (release gate).** The canonical mobile directory was verified read-only after
+CI and is unchanged: latest = code 28 (`0.4.9-phone-test`, SHA-256 `f9c3a24e…`, 59,332,692
+bytes), previous = code 27 (`0.4.8-phone-test`, SHA-256 `a2450b14…`, 59,249,482 bytes). Broken
+code 23 remains excluded and blocklisted. TV download files untouched.
 
 ## Pending, limitations, and risks
 
-- **Physical code28 acceptance is pending.** No device was attached, so install/update, launch, state
-  preservation on the physical phone, action behavior, continuation behavior, rail restoration, and
-  far-row Israel coverage have not been owner-verified yet.
-- **Local Library scanning remains physically pending** unless the owner performs that separate test.
-  It is not claimed as passed by this milestone.
-- Israel availability is only as complete/current as authoritative region-IL watch-provider evidence.
-  Failures remain unknown and retry only on a later bounded refresh; they are never treated as a fresh
-  negative. Rent/buy-only offers intentionally never show the flag.
-- A continuation metadata/target commit failure intentionally retains the old Resume rather than
-  showing a potentially false next card. Normal later metadata refresh provides the recovery path.
-- The successful CI run emitted a non-blocking notice that some pinned third-party GitHub actions are
-  being forced from deprecated Node.js 20 to Node.js 24 by the runner. This did not affect artifacts or
-  validation but should be revisited when those actions publish a reviewed update.
+- **Release gate (blocker): live positive-path TMDB smoke.** To finish the release: run
+  `PMTV_TMDB_SMOKE_TOKEN=<owner token> ./gradlew :core-metadata:testDebugUnitTest --tests
+  '*F2c61LiveTmdb*' -Ppmtv.live.tmdb.smoke=true` (token never persisted/printed) or perform a
+  real-device E2E; on success run `./scripts/download-latest-ci-mobile-apk-to-phone.sh` against
+  exact head `b5785d4f622699f4c905807ac96ad53761cf00ab` (CI artifacts retained 30 days) to
+  publish code 29 with rotation latest=29 / previous=28.
+- **Physically verified from code 28 (owner):** recursive Local Library tree scanning, nested
+  file discovery, and file recognition. **Not physically verified:** local playback/delete/
+  reconcile, all code-29 outcomes (the F2C.6.1 procedure in `docs/MOBILE_ACCEPTANCE.md`), and
+  the remaining code-28 checks that continue during normal usage.
+- With TMDB-only sources, `חדש בישראל` fills only as monitored per-title transitions accumulate
+  (or when a dated official feed is integrated); this is deliberate truthful precision over
+  fabricated recall, and the historical false rows were repaired away.
+- A code-29→28 rollback reads SERIES_EYE/SEASON_BULK marks as unwatched under code 28 (lenient
+  reader; data physically preserved and restored on re-upgrade) — the deliberate safest
+  direction versus an unopenable bumped schema.
+- TV code 32 remains a regression build only; no Shield delivery or acceptance is claimed.
 
 ## Exact next step / continuation
 
-1. Owner installs code28 over code27 with no uninstall or Clear Data and performs the F2C.6 procedure in
-   `docs/MOBILE_ACCEPTANCE.md`: legacy Hearts→Plus, four-action independence, My List/Liked rows,
-   episode/season/new-season continuation, older-gap protection, Specials-last, exact relationship
-   Back, far-row/appended Israel coverage, and badge stability. Scanning stays a separate pending gate.
-2. If a concrete physical defect appears, make only a scoped F2C.6.x follow-up and preserve the exact
-   migration/delivery semantics above.
-3. After acceptance, the next substantive roadmap item still requires an owner architecture decision:
-   the deferred provider-neutral local-file first-class catalog playback bridge. Do not infer approval
-   for OMDb provisioning, Wikidata population, scan/player redesign, or Deep Search redesign.
+1. Complete the release gate (live TMDB smoke with owner token, or device E2E), then publish
+   code 29 via the exact-head CI mobile downloader and verify rotation 29/28.
+2. Owner installs code 29 over code 28 (no uninstall/Clear Data) and runs the F2C.6.1 procedure
+   in `docs/MOBILE_ACCEPTANCE.md` (tri-state Eye states/bulk/undo, CW convergence, collection
+   card strip, Israel row behavior/placement, folder-context recognition via `סרוק שינויים`).
+3. Deferred and untouched: local-file catalog playback bridge (needs the owner architecture
+   decision), local source priority/CW-reopen/progress/auto-next parity, OMDb provisioning,
+   Wikidata franchise population, Windows implementation, final Shield rollout.
 
-Preserve all permanent constraints: `funzi7` only; no reset/clean/restore/stash/force push; no alternate
-checkout/worktree; no speculative TDLib rebuild; no Telegram work from browsing/continuation/badge paths;
-mobile-only publication for this milestone; never claim physical or scanning evidence without the owner.
+Preserve all permanent constraints: `funzi7` only; no reset/clean/restore/stash/force push; no
+alternate checkout/worktree; no speculative TDLib rebuild; no Telegram work from
+browsing/continuation/badge paths; mobile-only publication; never claim physical or runtime
+evidence without the owner/device.
