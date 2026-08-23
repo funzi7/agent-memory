@@ -1,136 +1,119 @@
-# LinkDrop — v0.1.7-test1 media-validator blocker handoff
+# LinkDrop — v0.1.8-test1 Facebook/progress handoff
 
-## Identity and state
+## Identity and delivery
 
 | Field | Value |
 | --- | --- |
 | Repository | `funzi7/linkdrop-android` |
 | Branch / upstream | `main` / `origin/main` |
-| Verified starting application HEAD | `90d3fc26480b506645c3aa7524667bfb98388573` (v0.1.6-feasibility release commit) |
-| Final pushed application HEAD | `f37d66fdb18a97629dc076997c3a7b92d61a8c6f` |
-| Android identity | `com.funzi7.linkdrop`; versionCode 8; versionName `0.1.7-test1` |
+| Starting application HEAD | `f37d66fdb18a97629dc076997c3a7b92d61a8c6f` |
+| Final pushed application HEAD | `9223fe52889f56f6a28ec104905b7fd4099bb86e` |
+| Android identity | `com.funzi7.linkdrop`; versionCode 9; versionName `0.1.8-test1` |
 | SDK / ABI | minSdk 30 / targetSdk 36 / compileSdk 37 / `arm64-v8a` only |
-| Build type | TEST build for physical validation — **NO GitHub release was published** |
-| APK | `LinkDrop-v0.1.7-test1-arm64-debug.apk`, 126,750,424 bytes |
-| APK SHA-256 | `01a3e90cf2834efb71f1be8cb24a9258c3697816d01794cee4f26bc8c2d2913a` |
-| Phone delivery | `/storage/emulated/0/Download/LinkDrop/LinkDrop-v0.1.7-test1-arm64-debug.apk` (SHA-verified copy) |
+| Build type | TEST build for focused Facebook physical acceptance; **no GitHub release was published** |
+| APK | `LinkDrop-v0.1.8-test1-arm64-debug.apk`, 127,337,384 bytes |
+| APK SHA-256 | `dbd07774443fd69ed8710c2314db6c3991f509f4e40c3dc105038263d2f85ea4` |
+| Phone delivery | `/storage/emulated/0/Download/LinkDrop/LinkDrop-v0.1.8-test1-arm64-debug.apk`; source/destination SHA-256 and byte comparison match |
 
-## The physical finding that forced this build
+## New physical facts from v0.1.7-test1
 
-On the Samsung S25 Ultra, v0.1.6 Retry starts a real download, progress reaches 100%, then the row fails at
-`failureStage = MEDIA_PROBE` ("בדיקת מדיה") across multiple X/TikTok items. Bytes download fine; the
-validation of the downloaded file itself fails. **v0.1.6 is NOT physically accepted.**
+The Samsung Galaxy S25 Ultra on Android 16/current One UI now reports
+`מאמת מדיה (ffprobe) = READY`. Multiple real X downloads and multiple real TikTok downloads reached
+`COMPLETED`, exercising extraction -> download -> Android media probe -> SAF -> completion. The old global
+v0.1.6 `MEDIA_PROBE` blocker is therefore **physically fixed**.
 
-## Root cause (established statically from the packaged APK — not guessed)
+Some individual X/TikTok sources still fail during `EXTRACTION` as `TEMPORARY_FAILURE` or `UNKNOWN`.
+These source-specific extraction results are not validator failures. Another physical observation was a
+successful job visibly reaching 100%, resetting to 0%, and reaching 100% again. With
+`bestvideo*+bestaudio/best`, yt-dlp can transfer separate video and audio components; the old UI flattened
+both callbacks into one unexplained percentage.
 
-`FfprobeMediaIntegrityProbe` launches `nativeLibraryDir/libffprobe.so` (arm64 Android PIE, PT_INTERP
-`/system/bin/linker64` — a supported exec method; python exec demonstrably works on this phone) via
-`ProcessBuilder`, but v0.1.6 set the child `LD_LIBRARY_PATH` to only
-`noBackupFilesDir/youtubedl-android/packages/ffmpeg/usr/lib` + `nativeLibraryDir`. The binary's transitive
-DT_NEEDED closure (readelf over the APK payloads, honoring the zips' symlink entries) needs five libraries
-that exist ONLY in `packages/python/usr/lib`:
-`libcrypto.so.3` (via libssh), `libc++_shared.so` + `libandroid-posix-semaphore.so` (via libx265),
-`libandroid-support.so` (via libunistring), `libexpat.so.1` (via libfontconfig).
-The Android linker therefore aborts the child ("CANNOT LINK EXECUTABLE") → exec succeeds, exit ≠ 0 →
-probe kind `PROCESS_FAILED` → `MEDIA_INTEGRITY_PROBE_FAILED` → stage `MEDIA_PROBE`, on every item.
-yt-dlp's own ffmpeg invocations kept working because youtubedl-android 0.18.1's `ENV_LD_LIBRARY_PATH`
-(decompiled `YoutubeDL.class`) is `packages/python/usr/lib : packages/ffmpeg/usr/lib :
-packages/aria2c/usr/lib` — which is why downloads reached 100%. The M6 host smoke used Debian ffprobe and
-could never exercise this path.
+## Focused v0.1.8-test1 changes
 
-## What v0.1.7-test1 changes (one blocker only)
+1. **First-class public Facebook video** — `Platform.FACEBOOK` uses display/folder name `Facebook` and the
+   existing ingest, queue, dedup, source-state, validated download, ffprobe/audio, SAF, retry, Download
+   Again, and FIFO paths. Supported identities include singular `/reel/<id>`, concrete
+   `/<owner>/videos/<id>`, `watch/?v=<id>`, and `video.php?v=<id>`; tracking parameters are discarded while
+   `v` identity is preserved. Current `pfbid...` video IDs are also accepted. Arbitrary Facebook pages,
+   profiles, photo-only URLs, lookalike hosts, credentials, cookies, and login workarounds are not.
+2. **Bounded Facebook redirects** — unresolved `fb.watch` and Facebook `/share/r|v/...` forms have no
+   invented post ID and require controlled HTTPS resolution. Every hop must remain on a legitimate
+   Facebook host; the resolver stops as soon as a concrete supported Facebook video/reel is reached, so a
+   later login redirect cannot erase a proven public identity.
+3. **Truthful progress** — youtubedl-android 0.18.1's third callback value is its raw stdout line, not an
+   unused opaque value. A small process-local current-work store interprets download destinations,
+   merger/postprocessor lines, and component resets without a Room migration. For the fixed primary
+   selector, the UI can label the first two objectively ordered downloads `מוריד וידאו` and
+   `מוריד אודיו`; merge is `ממזג וידאו ואודיו`. Unknown later components remain generic. A structural
+   validation fallback first publishes `מנסה פורמט חלופי`, separately from a new component. The same
+   Room row and one WorkRequest remain in use.
+4. **Cleaner Home source semantics** — a completed row with a present local file no longer looks broken
+   because a later online check is `UNKNOWN` or `TEMPORARY_FAILURE`. Failed extraction rows show one concise
+   explanation rather than a duplicate failure-stage line. Advanced Diagnostics retains source state,
+   failure stage, code/detail, timestamps, and truthful transient progress.
+5. **Restricted access** — factual private/login/friends-only Facebook results map to `RESTRICTED` and stop
+   new transfer work. Generic 403/ambiguity is not called deleted. A completed local file remains usable;
+   stale restricted/not-available source-gate errors are cleared only on the narrowly eligible completed
+   rows.
 
-1. **Root fix** — `FfprobeLibraryPath` (pure, unit-tested) now builds the child `LD_LIBRARY_PATH` exactly
-   like the wrapper: python, ffmpeg, aria2c package `usr/lib` dirs, then `nativeLibraryDir`, then any
-   inherited path, de-duplicated.
-2. **Validator preflight** — `MediaValidatorPreflight` self-tests the SAME singleton
-   `FfprobeMediaIntegrityProbe` (now Hilt-provided; the engine injects the same instance) against a tiny
-   bundled known-good fixture `assets/validator/linkdrop_probe_fixture.mp4` (4,871 bytes, one h264 video +
-   one aac audio stream, host-ffprobe-verified). It runs at app startup (after engine init extracts the
-   packages) and in `DownloadWorker` immediately after `ensureEngineReady()` — BEFORE source
-   check/extraction and any byte transfer. Success is cached per process; failure is never cached.
-3. **Fail-closed gate** — on preflight failure the row fails immediately with new code
-   `MEDIA_VALIDATOR_UNAVAILABLE` → user message "בדיקת המדיה אינה זמינה כרגע", stage `MEDIA_PROBE`
-   (`FailureStageMapper`), while the persisted technical detail keeps the REAL probe failure kind + detail
-   (e.g. `PROCESS_FAILED: CANNOT LINK EXECUTABLE …`). No large download starts when the validator cannot run.
-4. **Diagnostics** — new `מאמת מדיה (ffprobe)` StatusRow (READY / FAILED — kind: detail / טרם נבדק / בודק…)
-   next to the FFmpeg row, plus a manual `בדיקת מאמת מדיה` action that re-runs the preflight.
-5. **Packaged-APK inspection** — committed `scripts/inspect-apk-validator.py`: pure-stdlib ELF parser that
-   asserts arm64 PIE ffprobe/ffmpeg, the fixture asset, arm64-v8a-only payload, and the FULL linker closure
-   resolving against exactly the fixed LD path dirs (symlink-aware). Its negative control (ffmpeg-only
-   path) reproduces exactly the five missing libraries on the v0.1.6 APK.
-6. Version bump to versionCode 8 / `0.1.7-test1`; copy-script and CI artifact names updated. No
-   source-availability/dedup/replacement/history feature was touched.
+TikTok/X behavior, validator preflight-before-transfer, cellular permission, optional Shizuku, UI-only
+foreground clipboard autofill, direct Android Share ingestion, local/source state independence, safe
+replacement, and one-transfer-at-a-time FIFO remain intact. There is no Facebook-specific downloader and
+no validator bypass.
 
-## Exact-HEAD automated validation (all via /root/work/bin/heavy-run)
+## Automated validation
 
-| Check | Result at `f37d66fdb18a97629dc076997c3a7b92d61a8c6f` |
+All heavy Gradle commands used `/root/work/bin/heavy-run` on the final application source set:
+
+| Check | Result |
 | --- | --- |
-| `./gradlew testDebugUnitTest` | PASS — 424 tests, 0 failures, 0 errors, 0 skipped |
-| `./gradlew lintDebug` | PASS — 0 errors, 39 warnings |
+| `./gradlew testDebugUnitTest` | PASS — 458 tests, 0 failures/errors/skips |
+| `./gradlew lintDebug` | PASS — no errors (39 reported findings) |
 | `./gradlew assembleDebug` | PASS |
-| `git diff --check` / worktree | PASS / clean |
-| `scripts/inspect-apk-validator.py` on the built APK | PASS — fixture packaged; ffprobe/ffmpeg arm64 PIE; 81-library linker closure fully resolved (76 packaged); also wired into CI |
-| Live runtime smoke (real TikTok + X, Debian ffprobe) | PASSED — 5 validated real outputs (see below) |
-| Adversarial review (3 independent tracks incl. root-cause refutation) | PASS — root cause independently CONFIRMED; 4 accepted findings fixed pre-commit |
+| `git diff --check` / cached check | PASS |
+| `python3 scripts/runtime-smoke.py --self-test` | PASS |
+| `scripts/inspect-apk-validator.py app/build/outputs/apk/debug/app-debug.apk` | PASS — 4,871-byte fixture; arm64 ffprobe/ffmpeg; all 81 closure libraries resolved from 76 packaged libraries |
+| APK metadata | PASS — `com.funzi7.linkdrop`, versionCode 9, versionName `0.1.8-test1`, arm64-only |
+| APK delivery | PASS — source/destination SHA-256 and `cmp` match |
 
-The mandatory live smoke ran `2026-08-22T09:02:14Z`–`09:04:17Z` on the host over live public internet at
-exact clean HEAD `f37d66fdb18a97629dc076997c3a7b92d61a8c6f` (verified at start and end, worktree clean),
-with official checksum-verified stable yt-dlp (runtime target `official_stable_after_in_app_update`; APK
-bundled yt-dlp `2025.11.12`, payload SHA-256 `89a0d9058ea9018e380b7771898ff46e393a1986dcd13fef331693c87ce1fca4`)
-and Debian ffmpeg/ffprobe `7.1.5-0+deb13u1`. Validated real outputs — every one ffprobed with a video AND
-an audio stream, all via `NORMAL_BEST`:
+Targeted tests cover Facebook concrete/query/share identities, equivalent-form dedup, strict redirect
+platform fences, malicious/profile/photo rejection, Facebook SAF mapping, image-only rejection, component
+and merge progress, fallback distinction, one row/WorkRequest, single-file behavior, Home warning
+suppression, concise extraction errors, and retained Diagnostics detail. SQLite contract tests exercise the
+100 -> 0 -> 100 update on one row/generation and the narrow completed-row source-gate cleanup.
 
-| Source | Streams | Bytes | SHA-256 |
-| --- | --- | ---: | --- |
-| `tiktok.com/@intjatarot/video/7649459254197292310` (audio case) | HEVC + MP3 | 30,504,082 | `7c0d8886fda8179d05dcdaa33899faa19fb8c5c1b4761a50dd4bbed65e30a8bb` |
-| `x.com/Fun_Viral_Vids/status/2089115673515507916` | H264 + AAC | 458,853 | `a6e0a1658d26de9bca31953abcf274961e2a0ec461e450784090d9cc6c4a4295` |
-| `tiktok.com/@zetazuri/video/7407465424998157600` | HEVC + AAC | 5,766,775 | `85955eae01e61651bb498fe16f5d7018b4be6165a565fd25503b8a012044d0a2` |
-| `tiktok.com/@gkidsfilms/video/7306281397784694059` | HEVC + AAC | 16,472,623 | `2a1400b834c1413cdc4dae0bdc44eef588c2978fd1301e43db1536b0248dde1a` |
-| `tiktok.com/@sigmafemalethings/video/7642782992565275926` (audio case) | HEVC + MP3 | 16,230,367 | `8b34de63b0e01e51292f2c5396bd37638462aedb606648765c56cc2fe3d6871b` |
+## Mandatory live runtime smoke
 
-The mandatory known-rehydration URL (`@israel_edits151`) remained `TEMPORARY_FAILURE` after three bounded
-attempts — recorded, never labelled deleted. An earlier same-HEAD run (`~09:00Z`) FAILED because both
-default TikTok URLs returned rehydration; that failing run is preserved evidence that the gate blocks, and
-the passing run added the documented fallback URLs. **This smoke used Debian ffprobe — it does NOT validate
-the Android `libffprobe.so` execution path** (see the validation boundary below).
+The final rebuilt APK was supplied explicitly to the smoke gate. It ran from
+`2026-08-23T17:37:02Z` through `17:38:58Z` using checksum-verified official stable yt-dlp `2026.08.19`
+and ffmpeg/ffprobe `7.1.5`, with no credentials, cookies, login, proxy, remote service, or device. The JSON
+report is `build/runtime-smoke/v0.1.8-test1-report-final.json`; temporary media was removed after validation.
 
-## Adversarial review outcome
+| Platform / exact source | Extraction and transfer | ffprobe result | Bytes / SHA-256 |
+| --- | --- | --- | --- |
+| Facebook — `https://www.facebook.com/reel/1370361647863285` | AVAILABLE; `NORMAL_BEST`; source evidence expects audio | AV1 video + AAC audio; 2 streams; 26.604 s | 7,814,691 / `21e566d3fddd931a24298183849c804787b698b946e5dc9927702261a1480e71` |
+| TikTok — `https://www.tiktok.com/@intjatarot/video/7649459254197292310` | AVAILABLE; `NORMAL_BEST`; source evidence expects audio | HEVC video + MP3 audio; 2 streams; 422.164898 s | 30,504,082 / `7c0d8886fda8179d05dcdaa33899faa19fb8c5c1b4761a50dd4bbed65e30a8bb` |
+| X — `https://x.com/Fun_Viral_Vids/status/2089115673515507916` | AVAILABLE; `NORMAL_BEST`; source audio evidence unknown | H264 video + AAC audio; 2 streams; 3.784853 s | 458,853 / `a6e0a1658d26de9bca31953abcf274961e2a0ec461e450784090d9cc6c4a4295` |
 
-Three independent tracks reviewed the uncommitted change set:
+The regression URL `https://www.tiktok.com/@israel_edits151/video/7665458835611520276` also passed in
+this final run: AVAILABLE, `NORMAL_BEST`, source evidence expects audio, HEVC + MP3, 5,868,980 bytes,
+SHA-256 `148bdbbf697524c578cc7de7440ec420d850c50da727ff0d744c11b9feeea5e1`.
 
-1. **Root-cause refutation** — CONFIRMED the claim from the actual phone-delivered v0.1.6 APK: readelf
-   closure reproduces exactly the five missing libraries with the ffmpeg-only path and zero missing with
-   python+ffmpeg; decompiled 0.18.1 `ZipUtils.unzip(File,File)` recreates zip symlink entries via
-   `Os.symlink` (and that overload is the one used for packages); `ENV_LD_LIBRARY_PATH` is byte-for-byte
-   `python:ffmpeg:aria2c`; `extractNativeLibs=true`; linker abort maps to `PROCESS_FAILED` (exec succeeds,
-   exit ≠ 0), never `START_FAILED`; every alternative kind (BINARY_MISSING/TIMEOUT/OUTPUT_LIMIT/
-   READ_FAILED/INVALID_JSON/SOURCE_MISSING/SELinux) was mechanically ruled out. `libffmpeg.so` shares the
-   identical direct NEEDED set and demonstrably links on-device under the wrapper env during yt-dlp merges —
-   the strongest available no-device evidence that the fixed ffprobe will link on the S25.
-2. **Concurrency/correctness** — two accepted findings, both fixed before commit: the validator gate now
-   runs only when engine init succeeded (a transient init failure keeps its pre-existing retryable
-   extraction path instead of becoming a terminal validator failure) and before
-   `preparePersistedRehydrationRetry` (a broken validator can no longer burn the one-shot engine-update
-   budget); a cancelled preflight now restores the previous published state instead of stranding `Running`
-   (regression-tested). Ready-is-absorbing-per-process was reviewed and kept deliberately.
-3. **Android runtime** — Hilt graph acyclic/complete, asset packaging safe, 5-arity combine exact,
-   ProcessBuilder env verified against the decompiled wrapper, version bump consistent. Accepted finding,
-   fixed: CI now actually runs `scripts/inspect-apk-validator.py` after assembling the APK.
+No structural fallback happened in the live sources; deterministic tests verify that a fallback attempt is
+labelled separately from component transfer. An earlier Facebook harness attempt rejected yt-dlp's valid
+metadata URL because it contained Facebook's own `_rdr` query noise. The gate was corrected to normalize
+extracted metadata through the same strict application identity policy; user input acceptance remains
+strict. The passing run above generated and ffprobed a real Facebook media file.
 
-## Explicit validation boundary
+## Remaining physical acceptance (small and Facebook-only)
 
-The Android `libffprobe.so` execution path CANNOT be executed on this host (Android bionic binary; the
-Debian-ffprobe smoke does not validate it). What is proven without the device: the packaged binary is a
-correct arm64 PIE, its full linker closure resolves under the fixed LD path (statically), the preflight
-logic is unit-tested, and the gate blocks downloads on failure. What is NOT proven: that ffprobe actually
-runs on the S25 Ultra. **Do not claim the runtime bug fixed** until physical acceptance passes.
+There is currently no ADB transport. The prior S25 validator, X, and TikTok facts above are accepted and do
+not need repetition unless a regression appears. Install the delivered TEST APK and run only:
 
-## Physical acceptance for the user (docs/PHYSICAL_TEST_PLAN.md, PRIORITY section)
+- **F-A** — paste or share one public Facebook video/reel (the smoke URL above is current). Expect Facebook
+  recognition -> validated download -> `Facebook/` SAF file -> `COMPLETED`.
+- **F-B** — open the saved file. Expect working video and audio because this source has audio.
+- **F-C** — submit the exact same Facebook source again. Expect dedup and no second physical file.
 
-- **V-A** — Launch LinkDrop → אבחון מתקדם: `מאמת מדיה (ffprobe)` must read `READY`. If `FAILED`, the row
-  shows the exact kind/detail — report it verbatim.
-- **V-B** — Retry ONE previously failing X video: 100% → probe passes → SAF write → `COMPLETED`.
-- **V-C** — Retry ONE previously failing TikTok: same pipeline.
-
-The v0.1.6 A–G plan remains pending and unchanged after V-A..V-C.
+Facebook has not yet passed F-A/F-B/F-C on the phone, so v0.1.8-test1 remains a diagnostic TEST build and
+must not be promoted or released until those checks pass.
