@@ -1,17 +1,17 @@
 # thai-rent-finder — State
 
 > Living document. Auto-updated daily at 02:00 UTC by `auto-update-state.yml`.
-> Last auto-update: 2026-08-18
+> Last auto-update: 2026-08-24
 > Production: https://thai-rent-finder.vercel.app
-> Total listings in DB: 2367
+> Total listings in DB: 2373
 
 ## Sources status (current)
 
 | Source | Tier | Cron (ICT) | Status | Listings 7d |
 |--------|------|------------|--------|-------------|
-| FAZWAZ | 2 (GH Actions) | 03:00 | ✅ active | 65 |
-| RENTHUB | 2 (GH Actions) | 03:30 | ✅ active | 550 |
-| THAILAND_PROPERTY | 2 (GH Actions) | 09:00 | ✅ active | 27 |
+| FAZWAZ | 2 (GH Actions) | 03:00 | 🔴 broken (0 fresh, stale) | 0 |
+| RENTHUB | 2 (GH Actions) | 03:30 | ✅ active | 524 |
+| THAILAND_PROPERTY | 2 (GH Actions) | 09:00 | 🔴 broken (0 fresh, stale) | 0 |
 | LIVING_INSIDER | 2 (GH Actions) | paused | ⏸️ paused (access blocked) | n/a |
 | LAZUDI | 2 (GH Actions) | paused | ⏸️ paused (access blocked) | n/a |
 | HIPFLAT | 2 (GH Actions) | paused | ⏸️ paused (access blocked) | n/a |
@@ -22,12 +22,12 @@
 
 ## Open issues
 
-_No open issues_
+- **#94** — Site Health Alert — 2026-08-24 _(site-health, auto-detected, claude-fix)_
 
 ## Active workflows
 
 - `scrape-fazwaz.yml` — cron `0 20 3-31/3 * *` UTC
-- `scrape-hipflat.yml` — **disabled_manually**
+- `scrape-hipflat.yml`
 - `scrape-lazudi.yml`
 - `scrape-living-insider.yml`
 - `scrape-renthub.yml` — cron `30 20 2-31/3 * *` UTC
