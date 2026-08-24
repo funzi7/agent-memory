@@ -1,116 +1,109 @@
-# Private Media TV — F2C.7.1 Final (published code 31; physical owner acceptance pending)
+# Private Media TV — F2C.7.2 Final (mobile-test phase; published code 32; physical owner acceptance pending)
 
 ## Identity and release state
 
 | Field | Value |
 | --- | --- |
 | Application repository | `funzi7/private-media-tv` |
-| Milestone | F2C.7.1 — physical code-30 runtime fixes: process-durable background downloads + `dataSync` foreground service, near-complete stall reconciliation, **explicit-download retention/detection/recovery** (reproduced code-30 defect: COMPLETE record persists but bytes vanished within hours), full persisted download identity, series-centric Known Sources with inheritance restoration, no-discovery Continue Watching tap, Local Library auto-binding, עב on CW/next-episode cards |
+| Milestone | F2C.7.2 — mobile-test phase: §8 protected-source playback capability, §10 index-backed availability, §12 CW exact-index tap, §17 background auto-download, §6/§19 runtime retention re-assertion, verified-physical offline-play, Series-Eye latency, recommendation ranking, §20 `חדש בישראל` monitored absence→presence, and a §5 watchdog test-infra hang fix |
 | Branch / tracking branch | `main` / `origin/main` |
-| Starting application HEAD (this session) | `ec44de8c77dd220c424cdad5f8179fb1fd676205` (F2C.7 / code 30) |
-| Final application HEAD | `76ee1561f6c1da90719c30f0d2dc814c02d85649` — equals `origin/main`; two commits pushed normally (no force): `769cad6` (milestone, 43 files) + `76ee156` (scoped CI-fix follow-up after post-push CI exposed a stale workflow version assertion) |
-| Exact-head Android CI | `32738295230` — **success** for `76ee156` (Gradle wrapper validation + Official TDLib verify + unit tests + focused F2B.5 tests + lint + signed TV/mobile ARM64 assembly + APK identity/version/signer/TDLib-payload verify all green; exact-head TV+mobile artifacts uploaded). The prior run `32736133019` (`769cad6`) FAILED only at the TV APK version-name verify (workflow still asserted 0.6.10-f2c7/33). |
-| Mobile identity | `com.funzi7.privatemediatv.mobile`, `0.4.12-phone-test`, versionCode 31 (updates code 30 in place — NO uninstall / NO Clear Data) |
-| TV regression identity | `com.funzi7.privatemediatv`, `0.6.11-f2c71`, versionCode 34 (regression build only; **NOT delivered**) |
-| Schemas | **Catalog v11→v12 additive** (offline_downloads presentation + localBytesMissing + lastProgressAt/retryCount/nextRetryAt columns; DELETE empty child affinity overrides); UserState v7 / Local Library v3 unchanged; 12.json committed |
+| Starting application HEAD (this session) | `76ee1561f6c1da90719c30f0d2dc814c02d85649` (F2C.7.1 / code 31) |
+| Final application HEAD | `da3b612a95666fd22098e8e267a4e729e35ed20f` — equals `origin/main`; ONE commit `da3b612` pushed normally (no force), 48 files changed +3 new |
+| Exact-head Android CI | `32764321654` — **success** for `da3b612` (Gradle wrapper validation + Official TDLib verify + unit tests + focused tests + lint + signed TV/mobile ARM64 assembly + APK identity/version/signer/TDLib-payload verify + mobile delivery/rejection bash suites all green; exact-head TV+mobile artifacts uploaded) |
+| Mobile identity | `com.funzi7.privatemediatv.mobile`, `0.4.13-phone-test`, versionCode 32 (updates code 31 in place — NO uninstall / NO Clear Data) |
+| TV identity | `com.funzi7.privatemediatv`, `0.6.11-f2c71`, versionCode 34 — **UNCHANGED** (no TV bump). TV/Shield application + delivery deferred to a LATER phase per owner correction |
+| Schemas | **No migration this milestone.** Catalog v12, UserState v7, Local Library v3, territory-availability v3 all unchanged (§10/§17/§20 use existing schema) |
 | Development signer SHA-256 | `2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0` |
-| Published mobile code-31 APK (CI build) | 59,546,512 bytes, SHA-256 `98bbebad3760001f67f13edb4669f340dbb033aad1df530116ddc053e8c0060e`, ARM64-only, pinned JNI `790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f`, Development signer; rotated to `/storage/emulated/0/Download/PrivateMediaTV/Mobile/private-media-tv-mobile-latest.apk` (code 30 → previous) |
+| Published mobile code-32 APK (CI build) | 59,843,480 bytes, SHA-256 `82c5c1681ac12aa24eba04e2d97e6c4418470e4604090a22a0764f3632764dab`, ARM64-only, pinned JNI `790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f`, Development signer; rotated to `/storage/emulated/0/Download/PrivateMediaTV/Mobile/private-media-tv-mobile-latest.apk`. **latest=code 32; previous=code 31** (SHA `98bbebad3760001f67f13edb4669f340dbb033aad1df530116ddc053e8c0060e`, byte-identical to the F2C.7.1 published code-31 APK); broken **code 23 excluded** from promotion; TV/Shield delivery files untouched |
 | TDLib | Pinned official commit unchanged; CI verified/packaged the pinned artifact; no rebuild |
 
-## What changed this session (F2C.7.1; ADR 0029)
+## Truthful physical code-31 owner evidence (this milestone's targets)
 
-Physical code-30 owner evidence. Preserved: shared Local Library player + full controls,
-Back-to-library, recursive scan/folder mapping, and the COMPLETE download RECORD surviving reopen.
-Reproduced defect (fixed): that COMPLETE record's physical BYTES became unavailable within hours —
-the card stayed COMPLETE yet offline playback failed with `הקובץ המקומי אינו זמין` / `הורד מחדש`.
+`עב` Hebrew-language badge = **PASS**. `חדש בישראל` row = **FAIL** (entirely absent on Home).
+COMPLETE-download Play = **FAIL** (hangs on `מכין ניגון…`). `זמין מהמכשיר` from `COMPLETE` state alone =
+**FAIL** (not verified bytes). Series-Eye tap = **FAIL** (visibly slow). End-screen recommendation
+ranking = **FAIL** (near-raw TMDB order).
 
-1. **Process-durable downloads (§2/§3/§16).** New `MobileDownloadCoordinator` (process singleton)
-   owns the engine scope, FIFO `Semaphore(2)`, controllers, and status→Room persistence OFF the
-   ViewModel; `DownloadForegroundService` (`dataSync`, `FOREGROUND_SERVICE_DATA_SYNC` +
-   `POST_NOTIFICATIONS`) keeps the process alive with the OS-required ongoing notification (canonical
-   title incl. SxxEyy; tap → Downloads). Single TDLib client/runtime lease unchanged.
-2. **Stall reconciliation (§5).** Real-byte no-progress watchdog + `ProviderOfflineDownloadController.reconcile()`
-   re-queries TDLib `GetFile`: a genuinely-complete file promotes to COMPLETE (659/660 MiB fix), a
-   stalled transfer resumes. Owner PAUSE never auto-resumed; complete never restarted from zero.
-3. **Explicit-download retention/detection/recovery (§6 — the headline).** Retention chain audited
-   factually: the COMPLETE record lives in Room; the playable bytes live behind the TDLib cache
-   ledger + physical file; `TdLibMediaCacheManager` already excludes `explicitlyPinned` entries from
-   eviction under BOTH the 30-day TTL and low storage, and its only DeleteFile path is double-guarded
-   — now PROVEN by regression tests, so the app's own maintenance is not the deleter. Added:
-   (a) proactive launch-time runtime-free presence reconciliation
-   (`reconcileCompletedOfflineDownload` → `TelegramOfflineLocalPlayback`, ledger+files only)
-   distinguishing COMPLETE_AND_PRESENT vs COMPLETE_RECORD_BUT_LOCAL_FILE_MISSING WITHOUT a play-tap →
-   truthful durable `localBytesMissing` marker (schema v12; `clearOfflineDownloadLocalMissing` on
-   recovery), never deleting the record/pin; (b) `reconcile()` no longer skips COMPLETE so a TDLib
-   path/file-id refresh no longer orphans the pinned file and a vanished complete file is re-added to
-   recover its bytes.
-4. **Full persisted download identity (§7)** `<Series>·SxxEyy·<Episode>` / `<Movie> (year)` +
-   quality/state/bytes/percent, schema v12, offline, never a raw Telegram filename.
-5. **Series-centric Known Sources (§9)** — SERIES-level affinity by default; clearing a child scope
-   RESTORES inheritance; v12 migration repairs accidental empty per-season/episode overrides.
-6. **No discovery from a Continue Watching tap (§12)** — opens details and stops.
-7. **Local Library auto-binding (§13)** — single-safe TMDB resolve → AUTOMATIC bind → progress
-   reconcile → Continue Watching. **עב on CW/next-episode cards + recommendation-card
-   original_language (§14).** **`חדש בישראל` placement verified unchanged (§15).**
+## What changed this session (F2C.7.2; ADR 0030)
 
-Test/infra correctness fixed this session (were failing the full build after the F2C.7 base):
-- `F2bCatalogViewModel` now INJECTS the download coordinator (production = process singleton; host
-  tests = isolated coordinator over the injected data source + `NoOpDownloadForegroundController`),
-  so constructing the ViewModel with a fake data source no longer NPEs on real Android/OS resources
-  (this had broken ~196 host ViewModel tests).
-- Catalog v11→v12: `CatalogDatabaseTest` asserts user_version 12; the shared JVM helper
-  `openTestCatalogDatabase` registers the full migration set so reopening an older on-disk fixture
-  migrates forward.
-- `DownloadForegroundService` assigns `intent.flags` (not `.setFlags(`) and carries no forbidden
-  window-flag token — satisfying the mobile screenshot-policy source scan (which matches comments).
-- `F2cPlaybackFirstViewModelTest` AF Test 10 rewritten to the §12 contract (definitive failure →
-  open details, zero discovery, no pointer commit) — the old test asserted the removed CW-discovery.
-- Mobile-delivery rotation allow-list (`scripts/lib/mobile-apk-delivery.sh`) recognizes
-  `0.4.11-phone-test:30` now that expected is `0.4.12-phone-test:31`.
-- `.github/workflows/android-ci.yml` TV verify assertion + TV/mobile metadata printf blocks bumped
-  to 0.6.11-f2c71/34 and 0.4.12-phone-test/31 (the CI-fix follow-up commit).
+1. **§8 protected sources are a capability, not a global reject.** A protected chat is discoverable,
+   selectable and **playable (streaming)** when TDLib permits. `TelegramMediaSummary.playbackOnly`
+   (`!message.canBeSaved || chat.hasProtectedContent`) yields a playable `TelegramPlayableMedia` with a
+   **null** offline controller, so forward/save/export restrictions are never bypassed. Catalog
+   `usableAsSource` (SUPPORTED ∪ PROTECTED); adapter merges PROTECTED into the eligible branch; gateway
+   no longer short-circuits protected. Mobile `F2bSourceEligibility.selectable`/`.playbackOnly`;
+   Add-Sources shows the truthful `מוגן — ניגון בלבד (ללא הורדה/ייצוא)` status (via `sourceStatusLabel`)
+   with an ENABLED add action; INACCESSIBLE/UNSUPPORTED stay disabled.
+2. **§10 index-backed availability.** `SourceIntelligence.passiveAvailability` → AVAILABLE/LIKELY/
+   UNKNOWN from local state only, **zero** passive Telegram search; UNKNOWN never renders as
+   "no source"; annotated on Home/Search/Details/CW (`sourceAvailabilityByKey` + `verifiedPresentDownload`).
+3. **§12 CW exact-index tap.** complete download → exact bound/auto local → exact indexed playable
+   Telegram → warm/last-known → else Episode Details; no discovery from the Home-row tap.
+4. **§17 background auto-download.** Durable WorkManager (`work-runtime-ktx` 2.10.0) unique periodic
+   worker drives the ONE `MobileDownloadCoordinator` engine; OFF by default (UserState v7); one enqueue
+   per newly-aired REGULAR episode; no Specials/future; bounded backoff; re-armed at launch.
+5. **§6/§19 runtime retention re-assertion.** On launch every COMPLETE is re-asserted against TDLib
+   `reconcile()`: present → re-pin + persist COMPLETE (clears stale missing marker); reclaimed →
+   recover through the one engine (never a restart from zero); record never dropped; idempotent per key.
+6. **Verified-physical offline-play.** COMPLETE record ≠ verified bytes: local-first resolve against
+   `verifyOfflineDownloadPresent` into the ONE shared player, no discovery/no hang; `זמין מהמכשיר` and
+   `פרקים זמינים` reflect verified bytes; preparing has terminal states (generation token, bounded
+   `withTimeoutOrNull(25s)`, success→player, missing→`הקובץ המקומי אינו זמין`+`הורד מחדש`, Back cancels).
+7. **Series-Eye optimistic transition** (immediate UI, async single-transaction persist, reversible
+   `SERIES_EYE` provenance) + **recommendation ranking** (similarity → genre/theme → franchise/
+   collection → language/origin/network → vote/popularity → recency, with a recency penalty).
+8. **§20 `חדש בישראל` monitored authoritative absence→presence.** Durable negatives re-checked on
+   refresh (`titlesWithDurableAbsence`, bounded) establish real arrivals going forward; F2C.6.1 fix
+   preserved (no "first observation" false positives; no fabricated past dates; RETURNED/DAY_ONE out).
 
-Deferred to F2C.7.2 (documented, NOT implemented): protected-source capability model (§8),
-index-backed AVAILABLE/LIKELY/UNKNOWN passive availability + CW exact-indexed probe (§10), background
-auto-download scheduler trigger (§17), and runtime-driven re-assertion of TDLib download-list
-membership on every launch (the strongest OS-reclamation defense; the §6 detection/recovery layer
-landed this milestone).
+**Test-infra bug fixed (root cause + fix — remember this class).** A retention-recovery unit test
+drove the intentionally-recurring §5 stall watchdog on a virtual `StandardTestDispatcher`; the test
+body used `runCurrent()` correctly, but `runTest`'s implicit end-of-test `advanceUntilIdle()` spun the
+watchdog's `while(isActive){ delay(15s); reconcile() }` loop forever under virtual time (ONE test
+consumed CPU for 80+ minutes; the real-time `runTest` timeout can't fire during a virtual-time spin).
+Fix: the watchdog **self-terminates when no transfer is active** (`hasActiveTransfer()`; re-armed by
+`ensureWatchdog` on new work) — also removes a real production waste — plus
+`MobileDownloadCoordinator.shutdown()` cancels the engine scope; affected tests call `shutdown()` as
+explicit completion signalling. NOT a timeout bump/skip/delete.
 
-Docs updated: ADR 0029 (retention-chain audit + §6 upgrade), CHANGELOG, PROJECT_STATE, HANDOFF,
-MOBILE_ACCEPTANCE (14-item code-31 checklist).
+Docs updated: ADR 0030, CHANGELOG, PROJECT_STATE, HANDOFF, MOBILE_ACCEPTANCE (F2C.7.2 code-32
+checklist), TODO, UX_DECISIONS (§8), RELEASE_REVIEW.
 
 ## Validated vs pending
 
-- **Validated locally:** `heavy-run -- ./gradlew test lint :app-mobile:assembleDebug
-  :app-tv:assembleDebug` → BUILD SUCCESSFUL (all module unit/Robolectric/migration tests, lint, both
-  signed debug APKs). New retention tests green: cache-manager pin-never-evicted (TTL + low storage),
-  ledger survives restart, locator refresh preserves pin; resolver present/missing/locator-refresh;
-  repo mark/clear missing marker; ViewModel startup presence reconciliation (present→clear /
-  missing→mark). Mobile delivery/rejection/upgrade-verifier bash suites pass; `git diff --check` clean.
-- **Validated remotely:** exact-head Android CI `32738295230` success for `76ee156`; exact-head
-  mobile APK downloaded + rotated to the phone (code 30 → previous, code 31 → latest).
-- **PENDING (no ADB on host — owner physical acceptance):** on-device background-download
-  continuation AND long-horizon completed-byte retention (a completed download's bytes staying
-  available over hours). The owner runs the 14-item `docs/MOBILE_ACCEPTANCE.md` code-31 checklist.
-- **NOT done (by constraint):** NO TV delivery, NO Shield delivery, NO TV/mobile APK rebuild of
-  pinned TDLib.
+- **Validated locally (mobile-only per owner correction):** `:app-mobile:testDebugUnitTest`
+  (0 failures across all suites; `F2c71DownloadAndBindTest` now 16 tests / 2.9s, no hang;
+  `MobileManifestContractTest` 9/9 post-bump), changed-core module tests (core-catalog/-metadata/
+  -telegram/-locallibrary/-provider, 0 failures), `:app-mobile:lintDebug` (no Error/Fatal),
+  `:app-mobile:assembleDebug` (59.8 MB APK), mobile delivery/rejection/upgrade bash suites, `git diff
+  --check` clean. **Did NOT build app-tv locally** (owner correction); CI builds it (green).
+- **Validated remotely:** exact-head Android CI `32764321654` success for `da3b612`; exact-head mobile
+  code-32 APK downloaded + rotated (code 31 → previous, code 32 → latest; code 23 excluded).
+- **PENDING (no ADB on host — owner physical acceptance):** the code-31 FAILs above (offline-play,
+  `חדש בישראל`, Series-Eye latency, ranking) + protected playback (§8), passive availability (§10),
+  background auto-download (§17), and long-horizon byte retention. **No code-32 physical acceptance is
+  claimed.** Owner runs the `docs/MOBILE_ACCEPTANCE.md` F2C.7.2 code-32 checklist.
+- **NOT done (by constraint):** NO TV bump, NO TV delivery, NO Shield delivery, NO TDLib rebuild.
 
-## Exact next milestone (F2C.7.2)
+## Exact next steps
 
-Runtime-driven re-assertion of TDLib download-list membership on every launch (strongest defense
-against OS/TDLib byte reclamation) building on the §6 detection/recovery already shipped; the
-protected-source capability model (§8) replacing global PROTECTED rejection with
-DISCOVERABLE/PLAYABLE/OFFLINE_DOWNLOADABLE/EXPORTABLE; index-backed passive availability
-AVAILABLE/LIKELY/UNKNOWN with the CW exact-indexed-source probe (§10) and zero passive Telegram
-search; the background auto-download scheduler trigger (§17). Await the owner's code-31 physical
-results first and fold any new evidence in.
+Await the owner's code-32 physical results and fold new evidence in. The **later phase** is the
+TV/Shield application: bump TV, build/regress app-tv, and deliver to the Shield — only after the owner
+accepts this mobile-test build.
 
 ## Continuation instructions
 
-Start at HEAD `76ee156` on `main` (== origin/main). Do NOT reset/clean/stash/force-push or rebuild
+Start at HEAD `da3b612` on `main` (== origin/main). Do NOT reset/clean/stash/force-push or rebuild
 TDLib. Heavy builds via `/root/work/bin/heavy-run -- ./gradlew …` (device-wide build lock; not on
-PATH). Preserve the working completed-download RECORD persistence and the §6 retention invariants.
-When bumping versions, also touch `.github/workflows/android-ci.yml` (TV verify assertion + both
-metadata printf blocks) and the mobile rotation allow-list in `scripts/lib/mobile-apk-delivery.sh` —
-both are easy-to-miss pin sites that only fail in CI / the delivery bash suite. Publication is the
-exact-head mobile CI downloader after `Android CI` passes; never deliver TV/Shield.
+PATH) — ALWAYS wrap a test run in `timeout` so a future virtual-scheduler spin can't burn hours.
+`heavy-run` swallows gradle stdout to a 28-byte tail; read the JUnit XML under
+`*/build/test-results/*/*.xml` for authoritative pass/fail. When bumping mobile versions, touch every
+pin: `app-mobile/build.gradle.kts`, `MobileModels.kt`, `.github/workflows/android-ci.yml` MOBILE
+metadata printf (leave TV assertion/metadata), `scripts/lib/mobile-apk-delivery.sh` rotation allow-list
+(add the PREVIOUS `name:code`), `verify/export/download` scripts' `EXPECTED_VERSION_NAME`+
+`EXPECTED_VERSION_CODE`, and `test-mobile-apk-phone-delivery.sh` (header + self-assert grep +
+`CODE_*_BASELINE` version()/code() maps + rotation-test rename) / `test-download-latest-ci-mobile-apk-
+rejections.sh` (`valid_version_name`+`valid_version_code`) / `test-verify-upgrade-apks.sh`.
+`MobileManifestContractTest` reads `build.gradle.kts` at RUNTIME — never edit versions mid-test-run.
+Publication is the exact-head mobile CI downloader after `Android CI` passes; NEVER deliver TV/Shield
+this phase; never bypass TDLib forward/save/export restrictions.
