@@ -1,7 +1,7 @@
 # Trading Tracker — Architecture
 
 > Update only when architecture itself changes.
-> Verified against codebase: 2026-08-25 (Round 4, app 0.4.0 / schema 4).
+> Verified against codebase: 2026-08-25 (Round 5, app 0.5.0 / schema 5).
 
 ## Stack
 
@@ -25,8 +25,8 @@
   source of realized P&L → `LedgerView{roundTrips, slices, openPositions}`),
   `stats/StatsEngine` (TickerStats), `positions/CurrentPositions` (broker-truth resolver
   + PositionDiagnostic).
-- `data/db/` — Room. `AppDatabase` (version 4, exportSchema), `Entities`, `Daos`,
-  `Migrations` (MIGRATION_1_2, _2_3, _3_4; all additive, no destructive fallback).
+- `data/db/` — Room. `AppDatabase` (version 5, exportSchema), `Entities`, `Daos`,
+  `Migrations` (MIGRATION_1_2, _2_3, _3_4, _4_5; all additive, no destructive fallback).
 - `data/sync/` — IBKR Flex. `FlexHttp` (SendRequest/GetStatement, deadline-aware),
   `FlexParser` (FlexQueryData/FlexStatementData/FlexRow), `FlexNormalizer` (pure
   normalization + semantic hash), `FlexIngest` (transactional idempotent apply →

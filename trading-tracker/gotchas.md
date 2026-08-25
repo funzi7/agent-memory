@@ -77,3 +77,41 @@
   keystore, so all cross-app integration must live entirely in trading-tracker.
 - Backup shape: `com.dima.optionstracker.data.BackupService.BackupData` (schema v4);
   entities `PositionEntity`/`PortfolioHistoryEntity`/`PortfolioEventEntity`.
+- The owner's real full backup is at `/sdcard/Download/TradingTracker/opt_backup_2026-08-25.json`
+  (NOT directly in `/sdcard/Download/`, where only older ones live). `RealOptBackupSmokeTest` reads
+  it (system property `OPT_BACKUP` overrides) and skips if absent. It contains 13 secrets; only
+  sanitized aggregates are ever printed.
+
+## Round 5 (sync + OPT correctness)
+
+- **The 365-day replay** came from the checkpoint being null-derivable: no `SUCCESS+CURRENT` →
+  `currentPlan` bootstrap → null fd/td → the Flex query's configured ~365-day period, and PARTIAL
+  never advances the checkpoint. Fix lives in `FlexSyncEngine.resolveCurrentAnchor()` + the
+  `SyncAnchor` sealed type. **Only `SyncAnchor.Bootstrap` (a truly empty broker DB) may use null
+  fd/td.** The recovery anchor is DERIVED from `broker_position_snapshots.reportDate` /
+  `portfolio_snapshots.reportDate` (new DAO `latestSnapshotReportDate`/`latestReportDate`) — no column.
+- `NyTime.latestCompletedActivityDate(now)`: before 21:00 NY → prev completed date; ≥21:00 → today;
+  weekends walk back. 21:00 ET is an *earliest attempt* (securities cutoff 20:20 ET); the broker
+  response `toDate` (`data.toDate` → `canonicalTo`) is authoritative and can be earlier. Never device TZ.
+- **The physical `errors=1`** was IBKR OpenPositions **lot detail**: SUMMARY + repeated LOT rows share
+  an instrument key → the old duplicate-key guard → INVALID → snapshot not replaced → new positions
+  missing. `PositionSnapshotEvaluator.collapseByLevelOfDetail` keeps SUMMARY (or net-aggregates LOT)
+  before the guard. `NormalizedRecord.Position` gained `levelOfDetail`. Keep the non-`OpenPosition`
+  element guard (fail-closed).
+- **The ~12,207 warnings** were unhandled Flex sections (ConversionRates, AccountInformation, …). The
+  `FlexNormalizer` else-branch now tags them `"audit-only: section … not ingested"`, which
+  `FlexIngest.issueSeverity` maps to UNSUPPORTED (not WARNING), so they don't inflate `rowsWarned`.
+- `runPlan` continues past a deterministic PARTIAL window so the final CURRENT window still runs
+  (Open Positions/checkpoint advance). A PARTIAL still doesn't satisfy the daily obligation.
+- **OPT reconciler v2 is over `RoundTrip`s** (already flat-to-flat, carry `source`/opened-closed
+  micros/realized/commissions). Filter `source == BROKER && type == OPTION`. OPT rows fold into
+  episodes by open date; CLOSED and OPEN reconcile separately per `(contractKey, direction)`. The
+  ONLY reliable IBKR-provenance signal is `ibkrRealizedPnl != null` (sparse); `syncSource` is NOT
+  (MANUAL/IMPORTED/TRADESTATION, no IBKR value). Micros: 1 option contract = 1_000_000 micros.
+- `stockSyncSnapshot` is now DECLARED in `OptBackup` as `String?` and parsed by `OptStockCodec`
+  (transient, never persisted). It is non-secret. `OptBackupCodecTest`'s reflective guard bans field
+  names containing token/key/secret/cash/… — `stockSyncSnapshot` passes (no banned substring). The
+  summary-export path needs `OptBackupCodec.parse` to NOT reject `version<=0 && empty` when summary
+  markers (`exportDate`/`nav`/`holdingsValue`/`openPositions`) are present.
+- Room v5: `Migration4To5Test` validates against exported `5.json` (generated at build). Additive
+  columns must match the entity `@ColumnInfo(defaultValue=…)` exactly (Boolean→INTEGER DEFAULT 0).

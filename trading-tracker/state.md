@@ -1,7 +1,7 @@
 # Trading Tracker — Current state
 
-> Verified: 2026-08-25. App 0.4.0 (versionCode 4), Room schema 4.
-> HEAD after Round 4: 317db7a17a11e5193c3cc9a28cd7583fa0b53747 (parent bc1d683).
+> Verified: 2026-08-25. App 0.5.0 (versionCode 5), Room schema 5.
+> HEAD after Round 5: d1f71c7024aa2b875b6c4ea1042aea7aaac482d5 (parent 317db7a).
 
 ## Rounds
 
@@ -9,7 +9,33 @@
 - R2: dark-theme readability, stale-ticker removal, notification permission (owner-accepted).
 - R3 (bc1d683): broker truth, dividend alerts/evidence, FX, NAV, daily NY 21:00 scheduling,
   pull-to-refresh, presentation rules, per-ticker stats. Room 2→3 (`sync_runs.operation`).
-- R4 (317db7a): this round — below.
+- R4 (317db7a): incremental sync + derived checkpoint, 5-min deadline/terminal-result/stale
+  recovery, financial-vs-metadata restatement, sanitized diagnostics, money 2dp/percent 1dp,
+  comparison-only OPT bridge. Room 3→4.
+- R5 (d1f71c7): sync-correctness + OPT-reconciliation-correctness — below.
+
+## Round 5 (2026-08-25) — what shipped
+
+- **Killed the 365-day replay.** `FlexSyncEngine.resolveCurrentAnchor()` + `SyncAnchor` (Checkpoint
+  → Recovery(snapshot/portfolio report date) → BoundedRecovery 30-day → Bootstrap): a missing
+  SUCCESS+CURRENT checkpoint never falls back to null fd/td when broker data exists. `NyTime.
+  latestCompletedActivityDate` (21:00 America/New_York boundary) targets a completed Activity date;
+  broker `toDate` stays authoritative; request is the explicit 7-day overlap.
+- **The physical errors=1** was a legit lot-detail OpenPositions rejected as duplicate keys →
+  `PositionSnapshotEvaluator.collapseByLevelOfDetail`. **The ~12,207 warnings** were unhandled
+  sections → now `audit-only`/UNSUPPORTED. Diagnostics show `N types · M occurrences`.
+- **Visibility:** last-attempt vs last-successful-CURRENT (Settings + Sync); diagnostics bound to the
+  newest TERMINAL run + always shown for non-SUCCESS with a message fallback. `BrokerRefreshProgress`
+  gained `recovery`/`confirmedToDate`.
+- **OPT bridge is lifecycle-aware:** broker-only scope, partial-close aggregation, episode matching,
+  P&L-delta attribution (no $0.02 auto-conflict), freshness NEWER_IN_OPT, stock reconciliation from
+  the non-secret `stockSyncSnapshot`, dual full/summary format, per-row reasons. Room 4→5 additive.
+- **Gate:** 284 JVM tests pass, lint 0 errors, APK 0.5.0 delivered (sha256 9c834c36…b2b3b9e). Real
+  OPT backup smoke ran the actual codec on the owner's file (257 pos / 320 hist / 8 stocks / 13
+  secrets dropped). NO ADB → live IBKR sync, on-device migration/data-survival, and the OPT full
+  comparison vs the installed ledger remain UNVERIFIED release blockers.
+
+## Round 4 (2026-08-25) — what shipped
 
 ## Round 4 (2026-08-25) — what shipped
 
