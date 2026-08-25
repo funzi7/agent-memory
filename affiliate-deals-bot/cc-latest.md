@@ -3,118 +3,91 @@
 > Rolling handoff for `funzi7/affiliate-deals-bot`. Read this first, then the
 > repository documentation linked below.
 
-## Latest milestone: backend foundation and verified KSP category logic
+## Latest milestone: Telegram mirror activation + KSP `/link` & `/sku` conversion
 
-- Date: 2026-08-24
-- Branch: `main`, tracking `origin/main`
-- Project commit: `40cf2d780e0b2c4fedfc4e3569f49deb6cf3f00a`
-- Commit message: `Build affiliate deals backend foundation`
-- Project push: verified; local `HEAD` and `origin/main` matched the full SHA.
+- Date: 2026-08-25
+- Branch `main`, tracking `origin/main`.
+- Project commit (pushed, verified local == origin/main):
+  `6849ee9bef36e4f350c774df47597df2ff47674f`
+  (parent `40cf2d780e0b2c4fedfc4e3569f49deb6cf3f00a`).
 
-The repository began as a clean, empty, unborn `main` branch with an empty
-remote. There was no existing code, documentation, handoff, or project memory
-to preserve.
+This milestone committed the previously-uncommitted Telegram mirror runtime and
+resolved the production blocker where every recent `@KSPcoil` post is `/link/`
+and `/sku/` alias-only.
 
-## Implemented
+## The KSP alias fix (key result)
 
-- Python 3.12+ backend foundation with immutable Telegram-oriented source,
-  message/edit/album, UTF-16 entity, media, button, target, processing, retry,
-  failure, notification, and analytics models.
-- Explicit ports for ingestion, extraction, resolution, classification,
-  recognition, merchant adapters/deep links, persistence, owner notification,
-  publication/edit synchronization, analytics, and future marketing work. No
-  real Telegram runtime or publisher was added.
-- Location-preserving URL extraction, including malformed HTTP(S) candidates
-  and schemeless Telegram URL entities retained/normalized for fail-closed
-  handling.
-- Manual HTTPS redirect resolution for 301/302/303/307/308 with bounded depth,
-  loop/malformed-location/timeout/connection handling, per-hop DNS rechecks,
-  all-answer IP policy, and DNS-pinned TLS transport.
-- SSRF rejection for localhost/internal hostnames, loopback/link-local/private
-  and other non-global addresses, transition ranges, legacy numeric IPv4 forms,
-  mixed unsafe DNS answers, and Azure platform VIP `168.63.129.16`.
-- Conservative URL classification. KSP root hosts and real KSP subdomains are
-  conversion-required; only exact approved hosts reach `KSPAdapter`. Deceptive
-  suffixes such as `ksp.co.il.evil.example` do not match.
-- `KSPAdapter` only: affiliate ID `14095`; verified single/multi-category
-  conversion with exact identifier preservation; observed `/web/cat/` alias
-  destination support; existing `/cat/14095-...` and
-  `/appkey/14095/cat/...` candidates; separate fresh validation requiring safe
-  2xx KSP category behavior and exactly one `appKey=14095`.
-- No `affToken` synthesis. A real opaque server-generated token may remain only
-  on an existing candidate, is not identity proof, and is redacted from
-  evidence. Credential-shaped KSP query parameters fail closed.
-- Permanent all-or-nothing gate: every commercial decision must replace with
-  the exact converted URL and validation must apply to that same URL. One
-  failed required link blocks the entire post. Exceptions and unsuccessful
-  resolver result values both fail closed.
-- SQLite migrations through v3 for source identities/versions, attempts,
-  targets, decisions, validations, failures, retries, cursors, analytics, and
-  outbox. Writes are fenced to the exact active attempt. Expired final attempts
-  become failed, newer edits supersede older in-flight work, late older edits
-  cannot become current, and post-tombstone deliveries are not processable.
-- Source deletion records a tombstone and never deletes target mappings. No
-  target auto-deletion path exists for source deletion, stock, expiry, or later
-  URL failure.
-- Dummy recording owner notifier and future website planning only in
-  `docs/FUTURE_WEBSITE.md`, referenced by `TODO.md`.
+- `/link/<alias>` and `/sku/<id>` convert by **appending `appKey=14095`** to the
+  original URL query — **no HTTP/browser resolution**. Path preserved; **never**
+  `/appkey/14095/link|sku/...` (owner-tested INVALID); `affToken` **never
+  synthesized** (KSP mints it server-side). Existing query preserved, single
+  appKey; foreign/unsafe/afftoken/malformed fail closed; validation structural
+  only. Direct `/web|mob/cat|item|shops/` and existing verified forms unchanged.
+- Owner-verified (manual, Android Chrome Incognito, same IP `72.251.215.16`):
+  opening the four aliases with `?appKey=14095` produced **four affiliate visits
+  in the authenticated KSP dashboard** with server-generated
+  `/mob/link|sku/...?affToken=14095...` forms. `/sku/<id>` is **not** an identity
+  map to `/item/<id>`.
 
-## Validation evidence
+## Real Telegram activation (physically verified)
 
-- Pytest: `232 passed in 3.29s`.
-- Ruff lint and format checks: passed for `src` and `tests`.
-- Strict mypy: passed across all 38 Python modules in `src` and `tests`.
-- Final staged `git diff --check`: passed.
-- Final staged secret/session/runtime-artifact scan: passed. `.env.example`
-  contains placeholders; public affiliate ID `14095` is intentional.
+- `@KSPcoil` (id `-1001495211401`) → `@AffiIsrael`; owner chat resolved via the
+  project's own bot. `check-setup` passed.
+- First E2E: 16511 → `@AffiIsrael` **msg 5** (read, parse hidden TextUrl/caption/
+  formatting/photo, Hebrew/emoji UTF-16, `/web/cat/`→`/cat/14095-…`, partial
+  owner alert, mapping/cursor, restart/dedup).
+- Original 24h backfill (pre-fix): found **11**, published **0**, blocked **11**.
+- Reprocessed backlog (post-fix): found **11**, **published 11** → dest msgs
+  6–16; destination messages verified to carry `/link|sku/…?appKey=14095`; E2E
+  post not duplicated; cursor `16535`. Newer posts 16532–16534 published
+  (17–19); realtime resumed; restart/dedup and owner alerts confirmed.
+- 16535 converted but its transformed photo caption is 1050 UTF-16 units (>
+  Telegram's 1024) → `MediaCaptionTooLong` → blocked + owner-alerted (graceful).
 
-Real smoke ran at `2026-08-24T18:36:56.002534Z` through the production SSRF and
-pinned HTTPS path against:
+## Client-context finding (documented limitation, NOT a blocker)
 
-- `https://ksp.co.il/appkey/14095/cat/3689`
-- `https://ksp.co.il/cat/14095-98682..98766`
-- `https://ksp.co.il/cat/14095-100348`
-- `https://ksp.co.il/link/PhilipsHairDryers`
+Same IP `72.251.215.16`: normal Android Chrome reaches KSP; `aiohttp`/headless
+Chromium get `403 "KSP Forbidden 403"`; stock headful Chromium is intermittently
+challenged by **Cloudflare Turnstile**. Exact discriminator **not proven**;
+IP-reputation hypothesis **disproven**. No stealth/CAPTCHA/Turnstile/WAF/cookie
+bypass used or needed — aliases carry `?appKey=14095` directly, so browser
+resolution is **not** a production dependency. The 403/Turnstile is an HTTP/
+browser **probing** limitation only; **not solved**, **not** an alias blocker.
 
-All four returned terminal HTTP 403 with zero redirects. No final
-`appKey=14095` marker was observable. The three category candidates failed
-validation retryably; the non-redirected alias remained an unsupported `/link/`
-shape and was blocked. This is failed live affiliate validation/access control,
-not a contradiction of the supplied owner-verified category facts. Purchase or
-commission attribution was not—and cannot be—proven by this URL smoke.
+## Validation
 
-## Still out of scope / not physically verified
+- Offline: pytest **454 passed**; ruff + ruff-format clean (63 files); strict
+  mypy clean (63 files); `git diff --check` clean; secret/session scan clean
+  (`.env`, `.local/` session+databases+backup untracked/gitignored).
+- Live: E2E, backlog reprocess, newer posts, realtime, restart/dedup, owner
+  notifications — all recorded above.
 
-- Real Telegram user login/session, source-channel ingestion/catch-up,
-  destination publication, production owner notification, album publishing,
-  and complete edit synchronization.
-- Telegram remote-success/local-crash reconciliation and exactly-once delivery.
-- Live KSP category redirect plus `appKey=14095` behavior from an allowed
-  network, any purchase/commission, or any `affToken` relationship.
-- Product/item or other non-category KSP conversion. These remain typed,
-  publication-blocking failures until an official verified deep-link mechanism
-  is supplied.
-- LastPrice and Rozenfeld recognition/conversion/validation; no formats or
-  adapters were guessed.
-- Marketing-agent decisions, paid ads, autonomous spend, revenue reinvestment,
-  dashboard/UI, website implementation, and automatic expiry/deletion.
+## Remaining / not verified
 
-## Next work and cautions
+- **Live edit-sync round-trip** (edit a published source → same destination
+  message edited, not duplicated): not physically performed (no controlled test
+  source channel; no natural KSP edit in-window; bot auth was temporarily
+  FloodWait-limited from diagnostic logins). Covered by deterministic tests +
+  the edit-publish path (16511 from an EDITED batch). To close: controlled
+  `live-smoke` on a reader-owned test channel, or a natural edit.
+- Over-limit photo captions (16535) → block+alert; future: classify
+  `MediaCaptionTooLong` non-retryable / caption handling.
+- KSP automated 403/Turnstile probing limit; purchase/commission attribution
+  (never provable by automation); **no persistent production hosting/deployment**
+  (do not claim continuous operation).
 
-1. Re-run KSP smoke from a network KSP permits and retain sanitized final URL,
-   status, redirect count, and exact affiliate-marker evidence.
-2. Obtain real LastPrice/Rozenfeld affiliate examples before implementing
-   either merchant.
-3. Add Telegram ingestion/catch-up, then a durable publication/outbox runtime.
-   The publisher must re-check that an eligible version is current and not
-   tombstoned when claiming an outbox item.
-4. Add production owner-notification delivery, complete edit sync, deployment,
-   monitoring, and database backup/restore procedures.
+## Next work / cautions
 
-Canonical source snapshots intentionally retain source text/buttons for future
-mirroring; protect the database and backups as source content even though
-diagnostic URL evidence is redacted.
+- Close the live edit-sync gap.
+- LastPrice & Rozenfeld await real affiliate examples (no formats guessed);
+  AliExpress future; Amazon policy/research-gated. Future Telegram search bot +
+  cross-store discovery engine and `affi.co.il` website assistant/widget are
+  documented, unbuilt. Marketing agent + ad spend require a hard Budget
+  Controller first.
+- Never commit `.env`, sessions, runtime DBs/backups, tokens, API hash, login
+  codes, cookies, or logs. Protect the runtime database as source content.
 
 Repository references: `README.md`, `TODO.md`, `docs/ARCHITECTURE.md`,
-`docs/KSP_LIVE_SMOKE.md`, `docs/PROJECT_STATE.md`, `docs/RELEASE_REVIEW.md`,
-`docs/RUNBOOK.md`, `docs/HANDOFF.md`, and `docs/FUTURE_WEBSITE.md`.
+`docs/RUNBOOK.md`, `docs/PROJECT_STATE.md`, `docs/RELEASE_REVIEW.md`,
+`docs/HANDOFF.md`, `docs/KSP_LIVE_SMOKE.md`, `docs/BRAND.md`,
+`docs/FUTURE_WEBSITE.md`, `docs/FUTURE_DISCOVERY.md`.
