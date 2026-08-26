@@ -1,9 +1,16 @@
 # Trading Tracker — Current state
 
-> Verified: 2026-08-25. App 0.5.0 (versionCode 5), Room schema 5.
-> HEAD after Round 5: d1f71c7024aa2b875b6c4ea1042aea7aaac482d5 (parent 317db7a).
+> Verified: 2026-08-26. App 0.6.0 (versionCode 6), Room schema 6.
+> HEAD after Round 6: 88206c9dafa0ff7f2cf5f6132e62130d28b45e08 (parent d1f71c7).
 
 ## Rounds
+
+- R6 (88206c9): calendar daily-activity journal + inline day detail (no nav); keyless live prices
+  (Yahoo v8 chart, stocks + option OCC) with market_quotes cache + extended-hours; rich clickable
+  position cards; Position Detail + fast Close; broker-backed pending-close layer reconciled to real
+  IBKR closes (no double count); English strategy resolver + tag/strategy filtered list; trimmed unit
+  prices; versioned APK; scroll-capture (single LazyColumns, best-effort). Room 5→6 additive. See below.
+
 
 - R1: broker-first ledger, IBKR Flex sync, legacy import, full Hebrew RTL app.
 - R2: dark-theme readability, stale-ticker removal, notification permission (owner-accepted).

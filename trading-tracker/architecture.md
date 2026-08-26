@@ -1,7 +1,17 @@
 # Trading Tracker — Architecture
 
 > Update only when architecture itself changes.
-> Verified against codebase: 2026-08-25 (Round 5, app 0.5.0 / schema 5).
+> Verified against codebase: 2026-08-26 (Round 6, app 0.6.0 / schema 6).
+>
+> Round 6 packages: `data/quote/` (YahooChart pure codec + QuoteRepository coordinator; keyless v8
+> chart for stocks + option OCC symbols; market_quotes cache), `domain/journal/` (DayActivity +
+> DayActivityBuilder; fed by new `LedgerView.executionEffects` OPEN/ADD from LotMatcher),
+> `domain/strategy/` (StrategyResolver evidence ladder), `domain/close/` (CloseCalc + CloseMethod +
+> PendingCloseReconciler), `ui/positions/` (PositionCard/Detail/Close/TagPositions).
+> Round 6 repos in `data/repo/`: PositionUiProvider, PendingCloseRepository, StrategyRepository.
+> `domain/positions/PositionValuation` = unrealized P&L. Live quotes/pending-close never touch the
+> ledger or broker sync (display/Layer-C only). Pull-to-refresh (`ui/refresh/AppRefresh`) joins a
+> quote refresh; broker stays a single-flight (no new Flex).
 
 ## Stack
 

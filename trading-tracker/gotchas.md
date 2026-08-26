@@ -115,3 +115,44 @@
   markers (`exportDate`/`nav`/`holdingsValue`/`openPositions`) are present.
 - Room v5: `Migration4To5Test` validates against exported `5.json` (generated at build). Additive
   columns must match the entity `@ColumnInfo(defaultValue=…)` exactly (Boolean→INTEGER DEFAULT 0).
+
+## Round 6 (journal + live prices + position detail/close + strategy/tags)
+
+- **Live prices are KEYLESS via ONE endpoint for both stocks and options.** `GET query1.finance.
+  yahoo.com/v8/finance/chart/{SYMBOL}?interval=1m&range=1d&includePrePost=true` with a `User-Agent`.
+  Stock SYMBOL = ticker; OPTION SYMBOL = OCC = `UNDERLYING + yyMMdd + (C|P) + zeroPad8(strikeMicros/1000)`
+  (strikeMicros = strike×1e6, so /1000 = strike×1000; verified incl. non-round strikes, e.g. $12.67 →
+  `…P00012670`). The v7 options/quote endpoints now 401 "Invalid Crumb" — do NOT use them; OPT itself
+  doesn't handle the crumb. So §24 needed NO STOP/keyed provider. `YahooChart.parse` is pure/tested;
+  the network lives in `QuoteRepository` (display-only; failures swallowed; never breaks sync/ledger).
+- **Extended-hours selection is by candle-ts vs meta.regularMarketTime**, not marketState. In pre/post
+  the baseline switches to today's regularMarketPrice (NOT the older previousClose). Null baseline ⇒
+  `dayChangePercent()` returns null ⇒ Fmt.percent(null)="—". Never carry current→baseline.
+- **`Fmt.price`/`priceNative` now use `PRICE_PATTERN="#,##0.00##"`** (2–4 dp) — a change from the old
+  6-dp DECIMAL_PATTERN. `qty()` STILL uses DECIMAL_PATTERN (no 2-dp floor). per-share evidence
+  (`decimal()`/`perShare()`) keeps 12 dp. A price test asserting 6 dp was updated (Round 6 §10).
+- **`LotMatcher.build` now returns `LedgerView.executionEffects`** (per-exec OPEN/ADD, emitted in the
+  opening phase). It is append-only — it does NOT change slices/P&L/commissions. `DayActivityBuilder`
+  marks a slice full-CLOSE only when `slice.closeInstant == rt.closeInstant` (the exec that zeroed the
+  round trip); earlier partials are REDUCE even if the round trip later closes. All day dating via NyTime.
+- **Broker-backed close = `pending_position_closes` ONLY** (Layer-C, like field_overrides): never a
+  fake BROKER exec, never a duplicate MANUAL exec. Realized P&L is ALWAYS only from broker/manual
+  ClosedSlices, so `estimatedPnlMicros` can never double-count. Manual position close writes a real
+  MANUAL `ex_mc_<uuid>` close (FIFO-matches the open lot). `PendingCloseReconciler` matches a later
+  broker ClosedSlice (source==BROKER, conid/instrumentKey + opposite direction + ±7d + qty≈) → flips
+  status; a broker match already consumed by another confirmed pending ⇒ SUPERSEDED (duplicate).
+- **Strategy: OPT contractKey == `Instrument.key`** ("OPT:TICKER:expiry:C|P:strikeMicros"), so OPT
+  strategyType maps to a live position by instrument key. Short PUT alone ⇒ "Sell Put" (NEVER a
+  fabricated CSP); CSP only from metadata/OPT; Covered Call only with enough covering long shares.
+  Manual override → `position_strategy` (source=LOCAL_OVERRIDE), never rewrites broker truth.
+- **AppRoot**: Calendar is `CalendarScreen()` (no onOpenDay — inline detail). `DayDetailRoute`/screen
+  kept for compat. New routes PositionDetailRoute/ClosePositionRoute/TagPositionsRoute; PositionDetail
+  + TagPositions added to `refreshable`. `PullRefreshWorkflow` internal ctor + SharedPullRefresh have a
+  DEFAULTED `quoteRefresh = {}` param so the Round-3 pull tests still compile.
+- **RTL ticker-left** = `CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr)`
+  around the card header (OPT's technique). Real quote smoke: `QUOTE_SMOKE=1` env var (read via
+  getenv/getProperty) — Gradle -D does NOT reach the forked test JVM; use the env var.
+- APK is born versioned via `applicationVariants.all { outputs.all { (this as BaseVariantOutputImpl)
+  .outputFileName = "TradingTracker-$versionName.apk" } }`. Delivered TradingTracker-0.6.0.apk; old
+  unversioned TradingTracker.apk left in place (don't delete). `am broadcast` media-scan can't reach a
+  framework from PRoot → never claim My Files visibility without a device.
