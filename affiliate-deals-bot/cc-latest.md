@@ -3,118 +3,114 @@
 > Rolling handoff for `funzi7/affiliate-deals-bot`. Read this first, then the
 > repository documentation linked below.
 
-## Latest milestone: Telegram caption-overflow split + continuation persistence + edit reconciliation
+## Latest milestone: 24/7 production deployment of the caption-split Telegram mirror
 
 - Date: 2026-08-26
 - Branch `main`, tracking `origin/main`.
-- Parent commit: `6849ee9bef36e4f350c774df47597df2ff47674f`.
-- Project commit (pushed, verified local == origin/main):
-  `14c4038c9a1052425603867f5fad8ae52ff91c34`.
+- Feature commit: `14c4038c9a1052425603867f5fad8ae52ff91c34` (caption-overflow
+  split + continuation persistence + edit reconciliation — see below).
+- Deploy-surfaced runtime fix: `abfc0b90106232fdc4ea5a4594c5b89db24fd941`.
+- Final commit (pushed, verified local == origin/main):
+  `841a5ed9c512ba9355752d5a8fa7a2608ee65d84`.
 
-This milestone makes an over-limit transformed caption **split rather than
-block**, persists the synthetic continuation messages distinguishably, and
-reconciles them on edit — then verifies the whole round-trip live against real
-Telegram. It resolves the 16535-class blocker (a converted photo caption reached
-1050 UTF-16 units, above Telegram's 1024 limit, and was previously blocked).
+The mirror is now **deployed as a persistent 24/7 `systemd` service and running**
+on the owner's existing VPS, fully isolated from the unrelated Remote Sources
+application (`/opt/remote-sources`) that shares the host. All fourteen server-side
+checkpoints passed.
 
-## What changed (key results)
+## How the server was reached (no secrets recorded)
 
-- **Splitter** (`telegram/chunking.py`, `split_overflowing_messages`): media
-  caption budget 1024, text 4096 UTF-16 units. Prefers paragraph/newline →
-  whitespace → hard UTF-16-safe boundary; **never** splits a surrogate pair or an
-  entity (link/emoji/formatting); rebases entity offsets per chunk; preserves all
-  content (Hebrew/RTL, emojis, visible URLs, hidden `TextUrl`, formatting,
-  affiliate URLs). A single indivisible over-limit entity → block + alert
-  (`telegram_caption_unsplittable`), never truncate. Albums split each member's
-  caption independently, continuations appended after the album in member order.
-- **Plan/serialization**: `DeliveryPlan.continuations` carried through the durable
-  outbox payload (backward-compatible), so the split survives restart.
-- **Persistence**: schema **v5** adds `mapping_role`
-  (`primary`/`album_member`/`continuation`) to `target_mappings` and
-  `target_mapping_history`. Verified on a fresh DB and on a backup snapshot of the
-  production DB (15 rows → all `primary`, zero loss). `TargetMappingWrite` /
-  `PublishedMapping` carry `mapping_role` (`MappingRole` enum).
-- **Publisher**: new `publish_continuations`, `edit_continuations`,
-  `delete_messages`; `_translate_error` maps `MediaCaptionTooLong`/
-  `MessageTooLong` → non-retryable (`telegram_content_too_long`) as a safety net.
-- **Runtime reconciliation** (`_deliver_telegram_claim`): publish = primary +
-  continuations; edit = edit primary in place (id stable) + edit overlap + publish
-  new (grow) or **delete only obsolete synthetic continuations** (shrink), then
-  persist. Retry-safe via stable MTProto random ids + idempotent edit/delete.
-- **Narrow deletion exception**: the ONLY destination deletion is of obsolete
-  synthetic continuations this mirror created during overflow splitting, during
-  reconciliation. The primary post is **never** deleted (not on source deletion,
-  product gone, offer expired, broken URL, merchant removal). A failed remote
-  delete → reconciliation failure (fenced retry → owner alert), never silent
-  stale text.
+Reused the sibling `telegram-remote-sources` production SSH configuration
+(`deploy/production.env` → `RS_DEPLOY_HOST`/`RS_DEPLOY_KEY`) **read-only** as the
+trusted connection reference for the same VPS, over the Android host's already
+active Tailscale path — **no local Tailscale binary is needed or was installed**.
+The host-reference file `~/.telegram_vps_host` lives in the Termux/devagent HOME
+context (absent under the current `/root` HOME, which is why an earlier session
+reported the tailnet path unreachable — that was a HOME-context problem, not a
+missing Tailscale). Host positively identified by confirming Remote Sources at
+`/opt/remote-sources` (`RELEASE_COMMIT 0e18506…`, Docker stack healthy). **No
+host, IP, tailnet name, or SSH key value was printed, committed, or documented.**
 
-## Live validation (physically verified)
+## Deployment (isolated; shares nothing with Remote Sources)
 
-Real Telegram API, real `@AffiIsrael`, isolated temp DB, ephemeral private test
-channel (created + deleted; production DB untouched). Media source, 986-unit
-caption + 12 KSP `/sku/` links → conversion pushed the transformed caption past
-1024 → published primary **msg 22** + continuation **msg 23** (roles
-`[primary, continuation]`), both verified present. Shrink edit → primary edited
-in place (still **22**), obsolete continuation **23 deleted**. Grow edit → **22**
-stable, new continuation **24** published. Restart (fresh runtime, same DB) →
-mapping `[22, 24]` survived; edit-after-restart updated **22** and deleted **24**.
-All 3 test destination messages + the ephemeral channel cleaned up; **no real KSP
-mirror posts touched**. Owner reachability confirmed by `check-setup`.
+- Host: Ubuntu 24.04.4 x86_64, 1 CPU, ~2 GiB RAM (~1.25 GiB free with both apps),
+  ~39 GiB free disk, Python 3.12.3, systemd 255.
+- `/opt/affiliate-deals-bot` (git repo at the pushed HEAD, `affideals`-owned),
+  dedicated `.venv` (Telethon 1.44.0), `/etc/affiliate-deals-bot/affiliate-deals.env`
+  (`0600`), `/var/lib/affiliate-deals-bot/` (`0700`) with the user session, the
+  SQLite DB, and `backups/` (all `0600`), user `affideals`, unit
+  **`affiliate-deals-telegram.service`** (enabled + active). Outbound-only, no
+  inbound port. Source `@KSPcoil`, destination `@AffiIsrael`, KSP id `14095`;
+  LastPrice/Rozenfeld disabled.
 
-**Honest scope**: only 0↔1 continuation transitions are reproducible live (a real
-source caption cannot exceed 1024, and bounded conversion growth yields at most
-one split). Multi-continuation grow/shrink is covered by the offline suite only.
+Safe corrections required by real host evidence:
+1. `apt install python3-venv` (host lacked ensurepip/pip; RS is Docker-isolated).
+2. Private repo → transferred via `git bundle` (committed objects only) + clone,
+   not `git clone` (unauthenticated clone refused).
+3. Unit gained `SuccessExitStatus=130` so a clean `systemctl stop` is *inactive*,
+   not *failed* (a real crash still triggers `Restart=on-failure`).
+4. **Runtime fix `abfc0b9`:** a best-effort owner alert whose dedup key already
+   carried a prior alert with a different reason raised `RepositoryConflictError`
+   from `enqueue_outbox` and crash-looped the service on startup against the
+   migrated DB; now tolerated (owner already alerted). +1 test.
 
-## Deployment (Part 2): NOT performed — blocker
+## State migration — no republish
 
-The target host is the owner's existing VPS that also runs the unrelated
-`remote-sources` app at `/opt/remote-sources`. It is Tailscale-fronted, SSH over
-the private tailnet only. This automation environment had **no Tailscale path and
-no server identifier** (`~/.telegram_vps_host` absent), so the server was
-unreachable/unidentifiable — deployment was **stopped, not guessed**. The other
-app was inspected read-only from its committed deploy config only and NOT touched.
+A consistent SQLite `.backup` snapshot of the local runtime DB was pre-migrated
+v4→v5 (verifying the real production rows) and transferred with the user session
+and a path-corrected `.env` (all `0600 affideals`). Preserved: **15
+source→destination mappings (dest msgs 5–19), cursor 16535**, the dedup/source
+journal, outbox/retry state, and the continuation-mapping schema. On startup
+nothing already-published was republished; cursor stayed 16535. The one stale
+pre-split outbox event (pending `telegram_edit` for 16535, old 1050-unit un-split
+caption, already exhausted+alerted before) terminalized gracefully as
+non-retryable `telegram_content_too_long` — no duplicate.
 
-Ready artifacts committed: `deploy/affiliate-deals-telegram.service` (hardened
-systemd unit — `Restart=on-failure` + `StartLimit` backoff, isolated paths,
-outbound-only, `systemd-analyze verify` clean) and `docs/DEPLOYMENT.md` (isolated
-layout `/opt/affiliate-deals-bot` + `/var/lib/affiliate-deals-bot` +
-`/etc/affiliate-deals-bot` + `affideals` user; secret/session migration; sqlite
-`.backup`; restore/upgrade/rollback; observability; do-not-disturb checklist).
-Service unit name: **`affiliate-deals-telegram.service`**; enabled/running status:
-**not installed**. To deploy later, run the DEPLOYMENT.md steps from a
-tailnet-connected session (or the owner runs them).
+## Server-side validation (14/14 passed)
+
+enabled; active; user session + bot connect from the server; `@KSPcoil` readable;
+`@AffiIsrael` writable; mappings+cursor survived migration; no duplicate on
+startup; catch-up deduplicated (no new posts in window); **owner notification
+from the server** delivered (message id returned); stop/start preserves state;
+forced `SIGKILL` → `Restart=on-failure` recovery (new PID) → healthy; **Remote
+Sources unchanged** (containers Up 13 days healthy, `RELEASE_COMMIT 0e18506`,
+its units untouched). Host after deploy: ~715 MiB used / ~1.25 GiB free, load ~0.06.
+
+## The underlying feature (commit 14c4038)
+
+Over-limit media captions **split instead of block**: media keeps the first
+chunk (≤1024 UTF-16), the remainder becomes ordered synthetic continuation text
+messages (≤4096); UTF-16/entity/surrogate-safe; never truncates; unsplittable
+single-entity → block+alert. Schema **v5** `mapping_role`
+(`primary`/`album_member`/`continuation`) persists continuations distinguishably.
+Edit reconciliation edits the primary in place, grows/shrinks continuations, and
+deletes **only** obsolete synthetic continuations (the primary is never deleted;
+a failed delete → reconciliation failure). Physically validated live against real
+`@AffiIsrael` in the prior session (primary+continuation publish, in-place edit,
+obsolete-continuation delete, restart durability).
 
 ## Validation
 
-- Offline: pytest **477 passed** (+23 new); ruff check + ruff-format clean (66
-  files); strict mypy clean (66 files); `git diff --check` clean; secret/session
-  scan clean (`.env`, `.local/` session+DBs untracked/gitignored);
-  `systemd-analyze verify` clean on the unit.
-- Live: caption-overflow split + edit-reconcile round-trip above.
+- Offline: pytest **478 passed**; ruff check + ruff-format clean (66 files);
+  strict mypy clean; `git diff --check` clean; `systemd-analyze verify` clean;
+  secret/session/host/key scan clean.
+- Server: the 14 checkpoints above.
 
 ## Remaining / not verified
 
-- Server deployment and everything that depends on it: persistent service
-  running, server process-restart recovery, server-side dedup/cursor continuity,
-  owner notification **from the server**, boot autostart, other-app post-deploy
-  health. **Do not claim 24/7 operation.** No server reboot performed.
-- Live multi-continuation grow/shrink (offline only, physical source-limit).
-- KSP automated 403/Turnstile — probing-only limitation, not a publication
-  blocker (aliases carry `?appKey=14095` / structural forms directly).
-- Purchase/commission attribution — never provable by automation.
+- Shared VPS **not rebooted** (autostart via enablement only); no **new**
+  `@KSPcoil` post appeared during the window, so a fresh live server publish/split
+  was not observed (split/edit validated live prior + offline).
+- Live multi-continuation grow/shrink is offline-only (physical source limit).
+- KSP 403/Turnstile — probing-only limitation. Purchase/commission never provable.
 
 ## Next work / cautions
 
-- Deploy the 24/7 service (needs tailnet/SSH access to the host); then perform the
-  server-side production validation and owner-from-server alert.
-- LastPrice & Rozenfeld await real affiliate examples (never guess formats).
-  AliExpress future; Amazon policy/research-gated. Future Telegram search bot +
-  cross-store discovery engine and the `affi.co.il` website assistant/widget are
-  documented, unbuilt. Marketing agent + ad spend require a hard Budget
-  Controller first.
-- Never commit `.env`, sessions, runtime DBs/backups, tokens, API hash, login
-  codes, cookies, logs, or any server identifier/SSH key. Protect the runtime
-  database as source content.
+- Watch the running service (`journalctl -u affiliate-deals-telegram`); confirm
+  it mirrors the next real `@KSPcoil` post (and splits an overflow) live.
+- Never commit `.env`, sessions, runtime DBs/backups, tokens, API hash, cookies,
+  logs, or any **server host / SSH key / tailnet** value. Deployment/ops:
+  `docs/DEPLOYMENT.md`. LastPrice/Rozenfeld await real affiliate examples.
 
 Repository references: `README.md`, `TODO.md`, `docs/ARCHITECTURE.md`,
 `docs/RUNBOOK.md`, `docs/DEPLOYMENT.md`, `docs/PROJECT_STATE.md`,
