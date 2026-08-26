@@ -1,6 +1,46 @@
 # Trading Tracker — Gotchas
 
-> Non-obvious things that will bite a future agent. Verified 2026-08-25.
+> Non-obvious things that will bite a future agent. Verified 2026-08-26.
+
+## Round 7 (realized P&L + quotes + calendar)
+
+- **IBKR `fifoPnlRealized` is GROSS (commissions EXCLUDED).** Confirmed on the owner's real data:
+  `OptReconciler.explainedByCommission` treats broker−(TT net) ≈ TOTAL commissions, i.e. broker ≈ gross.
+  So the app's realized P&L (Round 7) is broker GROSS, with commissions shown separately — do NOT
+  re-subtract commission from it. This was the MULL fix ($52.53 net → $55.47 gross).
+- `brokerFifoPnlMicros` was ALREADY persisted on `executions` since v1; the Round-7 change is that
+  `LedgerRepository.toDomain` now propagates it into `ExecEvent` (+ signedCommission + grossCash +
+  hasEconomicOverride). No schema change for the P&L itself.
+- **Distribute the broker figure per CLOSING EXECUTION, not per slice.** One closing exec can close many
+  FIFO lots → many slices; `LotMatcher.distributeBrokerPnl` splits the exec's single fifoPnl across its
+  slices qty-proportionally with the remainder on the LAST slice, so Σ slice = broker total EXACTLY,
+  counted once. `ClosedSlice.selectedPnlMicros = resolvedPnlMicros ?: pnlMicros`; `RoundTrip
+  .realizedPnlMicros` = Σ selected. Consumers use `selectedPnlMicros`, NOT `pnlMicros` (which stays the
+  LOCAL net for the reconciliation delta).
+- **JUnit `assertEquals(Int, Long?)` FAILS** (boxes Integer vs Long). Nullable-Long assertions need an
+  `L` suffix on the literal; non-nullable Long args widen an Int fine. Bit me on the MULL test.
+- **StatsScreen FX conversion must convert `resolvedPnlMicros` too**, not just `pnlMicros` — StatsEngine
+  reads `selectedPnlMicros`, so a `.copy(pnlMicros=converted)` alone leaves selected pointing at the
+  unconverted broker micros. Set `resolvedPnlMicros = converted(it.selectedPnlMicros, ...)`.
+- **Calendar arrows:** wrap the arrow Row in `CompositionLocalProvider(LocalLayoutDirection provides
+  Ltr)` so auto-mirrored `Icons.AutoMirrored.Filled.KeyboardArrowLeft/Right` render UN-mirrored →
+  left=previous, right=next (owner's RTL expectation). Do NOT import `Icons.Filled.KeyboardArrowLeft as
+  X` and use `X` bare — it's an extension property on `Icons.Filled`, "receiver type mismatch".
+- **Calendar swipe** = `Modifier.pointerInput{ detectHorizontalDragGestures(...) }` on the LazyColumn;
+  RIGHT (dx>0)→nextMonth, LEFT→previousMonth; the horizontal touch slop is the orientation lock so a
+  vertical scroll never fires it. Owner DELIBERATELY wants right=next (not the generic RTL pager order).
+- **NyTime market hours:** `optionsMarketPhase` = REGULAR 09:30–16:00 ONLY (no pre/post — OPRA); equities
+  add PRE 04:00 / POST 20:00. Holidays NOT modeled (label only, never ledger). `MarketPhase` enum is a
+  TOP-LEVEL type (outside the NyTime object).
+- **Quote 2d fallback** fires only when `1d` `parse` returns null (illiquid option overnight with no
+  candles AND no regularMarketPrice). MULL overnight HAS regularMarketPrice=0.5 so 1d already yields a
+  price; 2d is a safety net. Real smoke: `MULL260918P00015000` overnight → HTTP 200, 0.5, empty series.
+- **OPT publishes nothing consumable:** FileProvider is `exported="false"` (manual share only);
+  auto-backup → app-private `getExternalFilesDir/auto_backups` (unreadable by other apps). So the
+  granted-location monitor scans a USER-granted shared folder, not OPT's dir. No direct sync w/o OPT change.
+- **Scroll capture** needs Compose Foundation ≥1.8 (ScrollCaptureCallback support). Project = BOM
+  2024.11.00 = Foundation 1.7.5 → impossible app-side. Fix = BOM bump; no FLAG_SECURE; long screens are
+  single scroll containers already. Unverifiable without a Samsung device.
 
 ## Environment / workflow
 

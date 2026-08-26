@@ -1,9 +1,20 @@
 # Trading Tracker — Current state
 
-> Verified: 2026-08-26. App 0.6.0 (versionCode 6), Room schema 6.
-> HEAD after Round 6: 88206c9dafa0ff7f2cf5f6132e62130d28b45e08 (parent d1f71c7).
+> Verified: 2026-08-26. App 0.7.0 (versionCode 7), Room schema 7.
+> HEAD after Round 7: 25adf4d1f7729930c9b9526da662eadc9eeee753 (parent 88206c9).
 
 ## Rounds
+
+- R7 (25adf4d): broker-authoritative realized P&L — IBKR fifoPnlRealized (GROSS, excl. commissions) is
+  the SELECTED realized P&L for broker closes, distributed once per closing exec across its FIFO slices
+  (fixes MULL +$52.53 net → +$55.47 IBKR). Signed broker commissions (executions.signedCommissionMicros,
+  backfilled from RAW at startup). Trade-detail commission/P&L breakdown + Settings IBKR-vs-local audit
+  view. Explicit QuoteStatus (closed market shows last price, not "unavailable"; NY options/equities
+  hours; 2d overnight fallback). All-Open-Positions screen (Home card clickable). Calendar arrows fixed
+  + swipe (right=next/left=prev, orientation lock) + sticky היום. OPT granted-location monitoring
+  (opt_source_monitors + OptSourceMonitor; OPT publishes no consumable interface — direct sync needs
+  OPT-side change). Room 6→7 additive. 350 JVM tests pass, lint 0. Scroll capture blocked on Compose
+  1.7.5 (<1.8). NO ADB → on-device broker/UI + Samsung long-screenshot remain blockers.
 
 - R6 (88206c9): calendar daily-activity journal + inline day detail (no nav); keyless live prices
   (Yahoo v8 chart, stocks + option OCC) with market_quotes cache + extended-hours; rich clickable

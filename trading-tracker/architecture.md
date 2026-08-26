@@ -1,7 +1,13 @@
 # Trading Tracker — Architecture
 
 > Update only when architecture itself changes.
-> Verified against codebase: 2026-08-26 (Round 6, app 0.6.0 / schema 6).
+> Verified against codebase: 2026-08-26 (Round 7, app 0.7.0 / schema 7).
+>
+> Round 7: `LotMatcher` broker-authoritative realized-P&L resolver (IBKR fifoPnlRealized GROSS, selected
+> + distributed per closing exec; ClosedSlice.resolvedPnlMicros/pnlSource/brokerFifoPnlMicros derived);
+> `executions.signedCommissionMicros` + `data/sync/CommissionBackfill`; `data/quote/QuoteStatus` +
+> NyTime market hours; `ui/positions/OpenPositionsScreen`, `ui/reconcile/PnlReconScreen`,
+> `ui/components/PnlBreakdown`; `data/optbridge/OptSourceMonitor` + `opt_source_monitors`. Room 6→7.
 >
 > Round 6 packages: `data/quote/` (YahooChart pure codec + QuoteRepository coordinator; keyless v8
 > chart for stocks + option OCC symbols; market_quotes cache), `domain/journal/` (DayActivity +
