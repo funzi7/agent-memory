@@ -1,5 +1,50 @@
 # Remote Sources server — latest handoff
 
+## D6A8f — one shared Instagram contact gate, deployed; renewal awaits fresh material
+
+The handset physically established the shared Instagram viewing session as **rejected / connection
+rejected**. The old server projected that state but only installed a finite `blocked_until`; after
+expiry, scheduled feed/Story discovery, rosters, Check now / ordinary validation, authenticated
+media and retry paths, and live maintenance could contact Instagram again. No account, source,
+destination, post, cookie, filename/path or screenshot identity is retained here.
+
+**Server production change: yes, deployed.** Production/deployed code is
+`d35fce0ccf83001577a812600e8cebe18056cb2d`; final documentation HEAD is
+`9d7cd6009a6d1829919ec53be35bb8acbe19182c`. Migration head remains
+`0009_d6a7f1a_video_poster`; no new durable fact or migration was needed.
+
+| Field | Value |
+| --- | --- |
+| Canonical gate | `connected` ordinary-eligible; `configured_unverified` explicit-validation-only; `rejected` / `challenged` renewal-required; `absent` / `unreadable` local refusal; durable rate-limit/backoff authoritative |
+| Exact-tree gate | ruff format/check clean over 170 files; mypy clean over **146** source files; **1,927 passed, 3 skipped** of 1,930 tests; **68** archive modules; one changed shell script syntax-clean; diff check clean |
+| Integration smoke | **PASSED** — actual service + scheduler + API + delivery composition, isolated network, scheduled starts 0, retries dispatched 0, Check now locally refused, process/socket/HTTP starts 0, exact durable preservation |
+| Deployment | Guarded backup/build/idempotent migration/restart/API/edge/release verification passed; Local Bot API stayed running; no logout, backend migration, credential change or Telegram request |
+| Production observation | shared state still `rejected`; 3 enabled Instagram sources preserved; 0 retry-wait operations at observation; two already-overdue rejected rows produced 0 CheckRuns and 0 recent session uses under a healthy scheduler |
+| Gates | `UNIT_CI=PASSED`; `INTEGRATION_SMOKE=PASSED`; `DEVICE_E2E=AWAITING_USER_NORMAL_USE`; `INSTAGRAM_RENEWAL_RUNTIME=BLOCKED_NEEDS_FRESH_CREDENTIAL` |
+| Live-use budget | live Instagram validations **0**; repeated rejected-session probes **0**; Telegram test sends **0** |
+| Adversarial review | **15 claims: 3 confirmed and fixed, 11 refuted, 1 not applicable**; generation-signal ordering, validation-marker failure containment and unrelated-work lease timing were fixed and regression-pinned |
+
+### Gate and preservation contract
+
+One generation-bound cross-process lease spans credential materialisation, permitted use and
+credential replacement. Every feed/Story/roster, Check now/current-or-old validation, preview/media,
+manual/automatic staging, due retry and confirmed maintenance path asks the same policy before an
+extractor or HTTP boundary. The scheduler excludes non-contactable Instagram sources without
+disabling them, moving `next_check_at`, creating failed checks/items or moving cursors. Non-Instagram
+platforms never consult this gate.
+
+A retry that still needs Instagram remains the same `DeliveryOperation`, destination, attempt
+history, due time and ladder. Shared-session blocking consumes no rung, creates no replacement,
+sends nothing and leaves `RESULT_UNKNOWN` alone. Work already fully staged and no longer needing
+Instagram remains governed by ordinary delivery policy.
+
+Import remains a secure server-only operator action. It takes the same lease, changes generation,
+sets configured-unverified and contacts nothing; an old in-flight use cannot settle the new
+generation and ordinary workers cannot race the import. One explicit metadata-only validation may
+establish connected for a genuinely new credential. No fresh operator-provided credential existed
+in D6A8f, so renewal was not run and is not runtime-verified. Any future rejected, challenged,
+rate-limited or runtime-failure result means stop, never retry automatically.
+
 ## D6A8e — Android-only queue and SAF work; D6A8d physical delivery evidence recorded
 
 **Server production change: no.** The production and deployed code remains

@@ -7,6 +7,52 @@
 > **When the user supplies SHAs, read agent-memory before responding**, verify each against
 > `origin/main`, and only then answer. A supplied SHA is a claim to verify, never a fact to repeat.
 
+## D6A8f — one rejected viewing session, one shared pause, one guarded renewal
+
+The handset physically reported the shared Instagram viewing session as **rejected / connection
+rejected**. This is one shared account/session fact. It is not recorded here with any account,
+source, destination, post, cookie, file/path or screenshot identity.
+
+**Android production change: yes.** **63 / 0.14.12-d6a8f**, Room schema **17**, no migration.
+**Server production change: yes, deployed.** Server migration remains
+`0009_d6a7f1a_video_poster`.
+
+| Field | Value |
+| --- | --- |
+| Android production code | `9d9d864c4d75b1b345c248b365ab4f32121e86d8` |
+| Android exact gate commit | `f03a6d22cf753815ac6f7b06b536c6add78e72dd` — test-only version assertion correction; production sources unchanged |
+| Android HEAD | `65e00d0a953a88b76c384530b9a388710c1ffd54` — final release evidence documentation |
+| Android gate | **3,864 tests, 0 failures, 0 errors, 0 skipped, 245 suites; lint 2 warnings / 0 errors;** `assembleDebug` and `assembleDebugAndroidTest` passed. Instrumentation compiled and was not run |
+| APK | `/sdcard/Download/TelegramTopicUploader/TelegramTopicUploader-0.14.12-d6a8f.apk`, **17,361,748 bytes**, SHA-256 `eaaf5dfc06c3625749cbe415e31e33265b1e952f096f97ebdb34a1fe31df665d`; source/destination and prior-release signer match; **not installed**; old APKs untouched |
+| Server | production/deployed code `d35fce0ccf83001577a812600e8cebe18056cb2d`; docs HEAD `9d7cd6009a6d1829919ec53be35bb8acbe19182c`; migration `0009_d6a7f1a_video_poster` |
+| Runtime gates | `UNIT_CI=PASSED`; `INTEGRATION_SMOKE=PASSED`; `DEVICE_E2E=AWAITING_USER_NORMAL_USE`; `INSTAGRAM_RENEWAL_RUNTIME=BLOCKED_NEEDS_FRESH_CREDENTIAL` |
+| Live-use budget | live Instagram validations **0**; repeated rejected-session probes **0**; Telegram test sends **0** |
+| Adversarial review | **15 claims: 3 confirmed and fixed, 11 refuted, 1 not applicable**; follow-up review found no remaining blocker |
+
+### Android behavior
+
+The shared viewing-session card is authoritative. Rejected/challenged uses the Hebrew renewal
+concept **נדרש לחדש את חיבור הצפייה של Instagram**, explains that all Instagram sources are
+paused, configuration is preserved and repeated Check now cannot fix rejection. A
+configured-but-unverified generation says explicit validation is still required. Per-source cards
+show a compact shared pause instead of independent network failures. Android disables ordinary
+Instagram Check now in all three states while non-Instagram actions remain unchanged. Remote Review,
+History and pending retry work stay visible and non-terminal. Android has no cookie, username,
+password, WebView, import/export, credential path or account-identity surface.
+
+### Runtime and remaining physical evidence
+
+The upstream-denied real server smoke exercised service, scheduler, API and delivery boundaries and
+observed zero extractor/process, socket and HTTP-client starts with exact source, cursor, item,
+operation, retry-ladder and `RESULT_UNKNOWN` preservation. The server was deployed under the fresh
+no-active-work / Local Bot API guard. Post-deploy, two already-overdue rejected source rows produced
+zero Instagram CheckRuns and zero recent session uses while the scheduler remained healthy.
+
+ADB was available but had no connected device, so nothing was installed, cleared or exercised on
+the active handset. No fresh operator-provided viewing credential existed, and the old rejected
+generation was deliberately not validated again. The ten D6A8f device-checklist lines remain
+unchecked; renewal and resume/duplicate-delivery behavior await the user's normal future workflow.
+
 ## D6A8e — one Queue seen through a topic, and one document reached through its surviving parent
 
 **Android production change: yes.** `62` / `0.14.11-d6a8e`, Room schema **17**, **no migration**.

@@ -39,6 +39,56 @@ Recorded in each session's final report. **Never invent or predict a HEAD before
 one written down early is a fabrication, and downstream sessions will try to verify it. Verify any
 supplied HEAD against GitHub before trusting it.
 
+### D6A8f current handoff — the shared Instagram viewing session is rejected and contained
+
+The handset physically showed the one shared Instagram viewing session as **rejected / connection
+rejected**. This is an account/session fact shared by every Instagram source, not a network,
+pairing, per-source or missing-setting failure. No account, source, destination, post, cookie,
+filename/path or screenshot identity is retained here.
+
+The server now has one generation-bound, cross-process-leased contact gate. Rejected/challenged
+blocks scheduled feed and Story discovery, rosters, Check now (including old clients), ordinary
+validation, authenticated media resolution, automatic retry and live maintenance before any
+extractor or HTTP start. Configured-but-unverified is validation-only; absent/unreadable fails
+locally; rate-limit/backoff remains authoritative. Sources stay enabled and keep destination,
+schedule, mode, Story setting, cursor, items, Review, History and backlog. Credential-blocked work
+parks under the same delivery operation and retry ladder, consumes no rung, creates no duplicate and
+never re-arms `RESULT_UNKNOWN`.
+
+Server production code and deployed release are
+`d35fce0ccf83001577a812600e8cebe18056cb2d`; the documentation HEAD is
+`9d7cd6009a6d1829919ec53be35bb8acbe19182c`; migration remains
+`0009_d6a7f1a_video_poster`. The exact-tree gate passed ruff format/check, mypy over 146 source files,
+1,927 passed / 3 skipped tests, the 68-module archive preflight, shell syntax and diff checks. The
+real isolated service/runtime smoke passed with zero process, socket and HTTP-client starts and
+exact durable preservation. Guarded production deployment passed; afterwards a healthy scheduler
+left two already-overdue rejected rows untouched with zero Instagram CheckRuns and zero recent
+session uses. Production retained three enabled Instagram sources and no retry-wait operation at
+the observation.
+
+Android is **63 / 0.14.12-d6a8f**, Room **17**, no migration. Production code is
+`9d9d864c4d75b1b345c248b365ab4f32121e86d8`; the exact green gate included the test-only correction
+at `f03a6d22cf753815ac6f7b06b536c6add78e72dd`; documentation HEAD is
+`65e00d0a953a88b76c384530b9a388710c1ffd54`. The shared card owns the renewal explanation, source
+cards show only a compact shared pause, Instagram Check now is locally unavailable, stored Review /
+History / pending work stays visible, and non-Instagram actions are unchanged. The gate passed 3,864
+tests / 245 suites with no failure, error or skip, lint with 2 warnings / 0 errors, and both debug
+assemblies. Instrumentation compiled and did not run.
+
+The uninstalled APK is
+`/sdcard/Download/TelegramTopicUploader/TelegramTopicUploader-0.14.12-d6a8f.apk`, 17,361,748 bytes,
+SHA-256 `eaaf5dfc06c3625749cbe415e31e33265b1e952f096f97ebdb34a1fe31df665d`; source and destination match
+and the signing certificate matches the prior release. Older APKs were untouched.
+
+Release truth is deliberately split: `UNIT_CI=PASSED`, `INTEGRATION_SMOKE=PASSED`,
+`DEVICE_E2E=AWAITING_USER_NORMAL_USE`, and
+`INSTAGRAM_RENEWAL_RUNTIME=BLOCKED_NEEDS_FRESH_CREDENTIAL`. ADB had no connected device. No fresh
+operator-provided credential existed, so there were zero live Instagram validations, zero repeat
+probes of the rejected session and zero Telegram test sends. Future renewal imports a genuinely new
+server-only generation, observes configured-unverified locally, then uses one explicit validation;
+anything other than connected means stop. The ten checks in `docs/D6A8F_DEVICE_CHECKLIST.md` remain
+unmarked until normal physical observation.
+
 ## 2. Working model
 
 - **ChatGPT is the manager, planner and verifier.** It writes the milestone specification, checks the
