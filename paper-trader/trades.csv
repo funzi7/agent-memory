@@ -187,3 +187,5 @@ date,portfolio_id,strategy,ticker,side,shares,fill_price,commission,cash_after,e
 2026-08-26,swing_10k,swing,CLX,SELL,11.0,105.0275,1.0,2516.28,9145.2,המהלך נגמר — מתחת לממוצע 10
 2026-08-26,pullback_10k,pullback,CRWD,SELL,6.0,182.6586,1.0,1189.9,9992.16,התמיכה נשברה — מתחת לממוצע 50
 2026-08-26,pullback_10k,pullback,PANW,BUY,3.0,330.3951,1.0,197.72,10017.91,משיכה #1 — חוזק יחסי 99% · מרחק מממוצע 50 +0.4%
+2026-08-27,leveraged_momentum_100,leveraged_momentum,KORU,SELL,1.0,21.6492,0.2165,29.9,79.75,מומנטום אישי שלילי — תשואת 6-1 ירדה ל--9.0%
+2026-08-27,swing_10k,swing,GEHC,SELL,57.0,72.8386,1.0,6667.08,9124.08,המהלך נגמר — מתחת לממוצע 10
