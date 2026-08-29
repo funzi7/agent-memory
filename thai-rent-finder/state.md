@@ -1,7 +1,7 @@
 # thai-rent-finder — State
 
 > Living document. Auto-updated daily at 02:00 UTC by `auto-update-state.yml`.
-> Last auto-update: 2026-08-28
+> Last auto-update: 2026-08-29
 > Production: https://thai-rent-finder.vercel.app
 > Total listings in DB: 2451
 
@@ -22,7 +22,7 @@ _No PRs merged in last 7 days_
 
 ## Open issues
 
-- **#95** — Site Health Alert — 2026-08-28 _(site-health, auto-detected, claude-fix)_
+_No open issues_
 
 ## Active workflows
 
