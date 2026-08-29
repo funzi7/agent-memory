@@ -1,4 +1,47 @@
-# paywall-bot handoff — 2026-08-29 UTC (PR #101: provider portfolio + alert lifecycle + flood safety)
+# paywall-bot handoff — 2026-08-29 UTC (PR #101 MERGED: provider portfolio + alert lifecycle + flood safety)
+
+## MERGE + FIRST PRODUCTION EVIDENCE (final update, supersedes the
+"OPEN/blocked" framing below)
+
+- **Owner exception**: Codex capacity stayed exhausted, and the owner
+  EXPLICITLY removed the Codex-review/Gate requirement for THIS PR and
+  authorized a one-time SHA-pinned manual squash merge after a strict
+  independent review. That review (hunk-by-hunk over every runtime file)
+  found and fixed TWO real P2-equivalent defects pre-merge: both incident
+  layers stored an escalated signature BEFORE the update-DM sent (failed
+  send would silently absorb the material change until the 24h reminder).
+  Fixed to store-only-after-successful-send + escalation-only update DMs
+  (improvements silent) + parts-based signatures in source_health; +3
+  regression tests (575 total). No Gate/Merge-Bot/automation-core change,
+  no fake review, no quota-notice-as-approval, no override labels — the
+  Gate simply stayed red on an owner-merged PR (like the #100 precedent).
+- Final head **`61c619c6d2efd222e64c2be8959040f7b7b629bf`** (CI green) →
+  **MERGED 2026-08-29T16:55:03Z as squash
+  `718145dd39503f31c3d6a713c83f6aae97e2449b`**.
+- **First post-merge scheduled TheMarker Poll (run 33264345142, 17:00Z,
+  new code) verified LIVE**: discovery `newly_discovered=2 admitted=2`;
+  fairness `1 representative probe + 19 newest local-only of 93 ready`;
+  `0 bumped, 0 permanent_fail` (retry-neutral); **one3ft warm retry
+  executed** (503 → 8s wake wait → bounded 2nd attempt; instance stayed
+  asleep this round); **wayback availability pre-check live** — outage
+  evidence now `wayback=no_snapshot` (deterministic ITEM_MISS, latch still
+  correct); and the headline: `alert suppressed (unchanged incident
+  pipeline_outage), next reminder after 24h` — legacy code would have
+  re-DMed right there (last DM 11:28, 6h cooldown long expired). Seeding
+  absorbed the 503→no_snapshot reason change with NO false escalation DM.
+  Committed state `bf1c61f` shows the seeded incident: volatile-free
+  signature_parts, true started_at 2026-08-26T13:53, last_notified 11:28
+  (next reminder ≈ tomorrow 11:28 unless material change/recovery).
+- **Tech Feed IL hourly poll on merged code (run 33264441506, 16:59Z)**:
+  posted=7 via direct, routine transient feed errors only, ZERO owner-alert
+  DMs, no crash — the shared check_and_alert lifecycle is provably inert on
+  a healthy publishing tenant.
+- **Still PENDING (natural schedule)**: first post-merge Tech Feed IL
+  Source Health daily run (03:37Z) for the aggregated-DM/digest volume
+  contract; a live provider-recovery poll to demonstrate the recovery DM +
+  post cap + current-first drain (mechanisms test/GHA-verified and armed);
+  retrospective Codex review of #100 AND #101 when capacity returns
+  (`@codex review`; any real P1/P2 → normal forward-fix).
 
 ## Task and scope
 
