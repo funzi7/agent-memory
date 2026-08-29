@@ -1,126 +1,132 @@
-# paywall-bot handoff — 2026-08-15 UTC (PR #100, continued)
+# paywall-bot handoff — 2026-08-29 UTC (PR #101: provider portfolio + alert lifecycle + flood safety)
 
-## Task
+## Task and scope
 
-Continue the EXISTING TheMarker reliability PR #100 (do not replace, do not
-merge, do not bypass Codex). Fix a newly-surfaced production URL-contamination
-bug, recover the one damaged identity, re-verify the starvation fixes, refresh
-stale status docs, and make #100 fully ready for a future exact-head Codex
-review. No Tech Feed IL change; no quality gate weakened; no Backfill; no
-production state hand-edited; automation-core code untouched.
+One integrated reliability PR per the 2026-08-29 task: (A) owner-alert
+noise/dedupe/aggregation, (B) TheMarker alternative full-body provider
+portfolio, (C) archive.today/BypassPaywallReader ecosystem investigation,
+(D) provider-aware outage semantics, (E) recovery flood safety, plus probe
+tooling, docs, and backlog reconciliation. DEVELOPMENT_RULES_FULL.md was
+read in full FIRST — canonical copy: `agent-memory/DEVELOPMENT_RULES_FULL.md`
+(added by the owner as agent-memory commit `eec6ece` on 2026-08-29; it did
+not exist anywhere before that upload).
 
-## PR #100 state
+## Git/PR state (exact)
 
-- PR: https://github.com/funzi7/paywall-bot/pull/100 — branch
-  `claude/themarker-queue-starvation`, base `main`, **OPEN** (not merged).
-- Current exact head: `0585dc1d9c56279df5b35507020a53d9f76d61a9`
-  (7957fce starvation fixes → 48b2c62 URL fix + recovery → 0585dc1 candidacy
-  docs).
-- Exact-head application CI (`test-message-format`) **PASSED** on the head.
-- Codex review capacity is UNAVAILABLE: the connector posted only a usage-limit
-  notice (2026-08-15T18:14:54Z), never a review. Per policy that is not a review
-  signal, so `check-codex-status` / `codex-gate-evaluator` are RED
-  (fail-closed). No owner merge, no `codex-p1-acknowledged`, no `no-automerge`,
-  no `automerge` label applied.
+- Starting `origin/main`: `69102a134263935b358d03532c1e45037c43cd8f`
+  (state commits on top of #100 merge `f200759…`).
+- Branch: `fix/themarker-provider-alert-reliability-20260829` (owner-ns,
+  NOT claude/* — legitimate Merge Bot candidate without any label).
+- PR: https://github.com/funzi7/paywall-bot/pull/101 — **OPEN**.
+- Heads: `f66bc87` (implementation) → `bb6f2b8` (temp probe trigger) →
+  **`fcffc13a9213fc937de67800e790c547bdda8626`** (GHA evidence + report +
+  reconciliation + trigger removal; final at handoff time).
+- Exact-head application CI: green on ALL THREE heads — `f66bc87`
+  (run 33258837365), `bb6f2b8` (run 33258866717), and the final
+  `fcffc13` (confirmed success 2026-08-29).
+- **Codex: capacity EXHAUSTED again.** chatgpt-codex-connector posted a
+  usage-limit notice on #101 (2026-08-29, comment 5463117008-adjacent
+  thread) — per policy NOT a review signal; `check-codex-status`/Gate
+  correctly fail-closed. NO exception used, no label games, nothing forged.
+  **Exact unblock path:** when quota returns → fresh exact-head Codex review
+  of the FINAL #101 head (post `@codex review` if the connector doesn't
+  auto-review; established trigger, cf. PRs #72/#73/#87/#93) → resolve any
+  real P1/P2 → Gate green → normal SHA-pinned Merge Bot auto-merge.
+- **Retrospective #100 review (merge `f200759…`) still PENDING** on the same
+  quota. Do it AFTER #101's own review (merge-critical first):
+  `@codex review` on #100; any real P1/P2 → normal forward-fix.
 
-## Malformed-URL bug (root cause + fix)
+## What changed (all code-verified by 572-test discover; production
+verification PENDING merge)
 
-A real Poll recorded `.../.highlight/0000019f-eb24-da6c-a9df-eba630800000Share`
-— the UI word `Share` glued directly onto the terminal 8-4-4-4-12 hex article
-UUID. Root cause is UPSTREAM: the @themarkeronline channel post's own `<a href>`
-(present in both the Telethon message and the public `t.me/s` HTML) carried the
-contaminated URL — not a DOM-adjacency parse error. That URL fetched HTTP 400,
-burned all 5 retries, and reached `permanent_fail` unrelated to the article.
+1. **Owner-alert incident lifecycle** (`core/alerting.py` +
+   `core/source_health.py`): DM only on incident start / material change
+   (reason change, NEW failing element, queue magnitude bucket 0|1-9|10-49|50+
+   crossing, severity escalation) / one bounded reminder per
+   `alerting.incident_reminder_hours` (24) / one recovery. Signatures strip
+   volatile numerics (root cause of n12 consec=27 + theverifier consec=36
+   every-run re-alerts). Tech Feed IL aggregates by ROOT incident
+   (`source:<publisher>`; extraction > discovery > baseline > production_poll
+   > pipeline > production_visibility > blocked_queue), ≤ ONE aggregated
+   urgent/recovery DM + the daily digest per run; additive `incidents` key in
+   health state; deploy-time seeding from existing last_alert_at → rollout
+   re-sends NOTHING. Criticals stay immediate; owner-DM failure stays hard.
+   TheMarker `pipeline_outage`: same lifecycle (production evidence of the
+   noise: ≥11 identical DMs 08-24→08-29).
+2. **Visibility false positive**: `_production_identity_semantics` — known
+   includes `suppressed_items` + publication events/ledger/equivalents;
+   published stays events-only. Exact Gadgety fixture
+   (`gadgety.co.il/367635`, `stale_at_discovery:64.9h`, live in production
+   suppressed_items) now healthy `newest_item_intentionally_suppressed`.
+3. **Provider portfolio**: `core/providers.py` registry (local
+   telegram/direct; external jina/smry/one3ft/wayback/archive_today);
+   archive.today mirror family = ONE domain (≤2 mirrors, family-stop on
+   429/challenge, READ-ONLY /newest/ + existing snapshots, UUID wrong-article
+   guard, NOT in fetch_chain); taxonomy SUCCESS/CONTENT_REJECT (health) vs
+   ITEM_MISS (distinct from PROVIDER_UNAVAILABLE; latches, never clears) vs
+   SERVICE_SHELL/RATE_LIMITED/TRANSPORT_ERROR/PROVIDER_UNAVAILABLE (fail
+   closed). Outage classifier now takes `external_sources=` derived from the
+   configured fetch_chain. Per-run unavailable latch (2 systemic fails →
+   `unavailable_cached_for_run`, classifier-complete, zero requests). one3ft
+   warm retry (once/run, 8s+45s). wayback availability-API pre-check
+   (definitive no-snapshot → ITEM_MISS; API outage → legacy /web/2026/).
+   No secret ever reaches third-party adapters (regression-tested).
+4. **Flood safety**: `posting.max_posts_per_run: 4` + newest-first recovery
+   selection when no outage and ready>30 (`themarker_recovery_current_first`);
+   rows past the cap never attempted; nothing discarded. Simulated on a COPY
+   of live state (93 deferred; 63 >72h; first recovery poll touches only
+   ≤45h-old rows; drain ≈24 polls).
+5. **Probe**: `tools/themarker_provider_probe.py` + dispatch-only
+   `TheMarker Provider Probe` workflow (no secrets, body-free, cannot import
+   tg/telegraph, temp logging). Operator tool, never scheduled.
 
-Fix (TheMarker-only, host-gated, idempotent):
-`url_utils.sanitize_themarker_article_url` strips a letter-led suffix glued onto
-the complete 8-4-4-4-12 hex identifier plus embedded control/zero-width chars.
-The hyphenated UUID structure anchors the match, so query strings (incl. genuine
-`?gift=` tokens), percent-encoding, and non-TheMarker hosts are never damaged.
-Applied at the channel-source trust boundaries:
-`telethon_client._extract_urls_from_message` (covers every Telethon consumer:
-discovery `_telethon_source_items`, `resolve_themarker_urls/index`, the
-extraction index), the short-link resolver outputs, and
-`telegram_index._candidate_urls` (public-HTML path). A malformed identity can
-never enter discovery/state or burn retries.
+## GHA probe evidence (authoritative for enablement)
 
-## Damaged-state audit + recovery
+Run **33258865312** (success, head `bb6f2b8`, runner egress), artifact +
+`reports/themarker-provider-portfolio-20260829.md`:
+- **one3ft: 3 gate-passing FULL BODIES after wake-up** (magazine-highlight
+  45¶/10,435/0.775; premium 9¶/2,499/0.795; live 10¶/1,799/0.648; title+UUID
+  verified) + one 2xx content-reject; first attempt reproduced cold-start →
+  `one3ft_warm_retry` ENABLED (runner-verified).
+- wayback: 6/6 deterministic ITEM_MISS → `wayback_availability_precheck`
+  ENABLED (runner-verified).
+- archive_today: 6/6 RATE_LIMITED (family wall, one-mirror fast-fail) →
+  DIAGNOSTIC_ONLY (no full-body runner proof; NOT enabled).
+- Periscope/Corsfix: HTTP 400 `invalid_origin` from the runner — browser-only
+  + paid registered Origin by design → REQUIRES_OWNER_CONFIGURATION, not
+  implemented (no key/secret created).
+- RemovePaywall + BypassPaywallReader router: HTTP-200 shells → REJECTED.
+  1ft.io: NXDOMAIN → REJECTED (one3ft IS a self-hosted 13ft).
+- **No NEW third-party provider passed acceptance as of 2026-08-29.**
 
-Audit of current production state (`state/themarker.json`) found EXACTLY ONE
-affected article: the eb24 magazine piece, present as 2 malformed entries — one
-`terminal_failures` row (retry 5, `fetch_chain_exhausted`,
-`direct=http_status:400`) plus its `posted_guids` suppression. The corrected
-identity was NOT posted/deferred/terminal/published.
+## Validation
 
-Recovery `themarker_2026_08_15_malformed_url_v1`
-(`state.migrate_themarker_malformed_url_recovery`, gated by
-`features.themarker_malformed_url_recovery_v1`) detects contamination via the
-same sanitizer (never a broad guess), removes the malformed variants from
-deferred/terminal/posted, and re-admits the corrected article at retry 0 — or
-dedupes if the corrected identity is already published/deferred/terminal/posted.
-It never sends, never creates a Telegraph page, never fabricates a
-`publication_events` row, and is a second-run no-op. Verified on a copy of live
-state: 1 corrected, 1 re-admitted, 0 publication events changed, idempotent.
-Recovery count: **1 identity**.
+572-test `unittest discover` OK (+67 new: lifecycle 21, portfolio 37 incl.
+adversarial guards, flood 9); message_format OK; compileall; 16 workflow
+YAMLs parse; bash -n; node gate tests; `git diff --check`; tracked state/
+byte-clean. Docs: README (3 new reliability sections), ADR
+`docs/themarker-provider-portfolio-20260829.md`, report above, CONTEXT.md
+new top section + §6 backlog reconciliation (DONE/PENDING/SUPERSEDED).
 
-## Starvation fixes (re-verified, unchanged)
+## Production reality at handoff
 
-Discovery admission (`exclude_deferred_from_discovery_cap` +
-`admit_all_discovered_identities`), active-outage phase-2 fairness
-(`themarker_active_outage_queue_fairness`), and the read-only Telethon
-extraction index (`telegram_extraction_telethon_index`) are unchanged by this
-follow-up and still covered by `tests/test_themarker_queue_starvation.py` (14).
-Content floor (4 paragraphs / 1,500 chars / 0.5 Hebrew ratio) unchanged.
+Outage ACTIVE since 2026-08-26T13:53Z; 93 deferred (63 >72h, 76 retry-0);
+poll 33250172369 (2026-08-29T11:27Z): discovery admits fine, fairness 1
+probe + 19 local-only of 90 ready, chain jina=403/smry=no_body/one3ft=503/
+wayback=503, posted=2 that day via direct. Latest legacy `pipeline_outage`
+DM 2026-08-29T11:28Z.
 
-## Provider + production status (INTERMITTENT, not dead)
+## PENDING (physical evidence required, in order)
 
-Providers periodically recover; publications occur during recovery; then the
-outage can re-latch. Latest verified real publication:
-`https://themarker.com/wallstreet/2026-08-15/ty-article/0000019f-e71f-dfd7-a19f-e7dfd2790000`
-→ Telegram message **829**, `posted_at 2026-08-15T17:12:13Z`, source **direct**,
-Telegraph `telegra.ph/סין-הצליחה-לשקם-...-08-15`. As of the last poll (21:11Z)
-the outage was re-latched (`active`, probe_count 7, 16 parked). No new reliable
-body provider on re-check → none added.
-
-## Telegraph header — production verified by owner inspection
-
-The owner manually inspected the production Telegraph article "סין הצליחה
-לשקם…" and confirmed: native top `TheMarker` header links to the Telegram
-channel; footer has the original TheMarker source link; the adapted external
-original source (The Economist) link is separately present. PR #93 header
-requirement is now **production verified by owner inspection** (not
-machine-verified), no longer pending. The production article was not edited or
-republished.
-
-## Auto-merge candidacy (Section 11)
-
-`merge-bot.yml` `isAutoMergeCandidate` blocks any `claude/*` PR marked
-`claudeGenerated` unless it carries the explicit `automerge` label. That label
-is the success-only signal applied ONLY by the trusted `claude.yml` workflow to
-PRs it delivers. PR #100 is owner-authored on a `claude/*` branch, so it
-legitimately has no `automerge` label — and this task does NOT apply one (not
-part of a trusted automated workflow; forging provenance is forbidden).
-**Exact next action when Codex quota returns:** fresh exact-head Codex review
-with no active P1/P2 → `check-codex-status` green on the exact head → Merge Bot
-recognizes candidacy only once `automerge` is present (owner explicit opt-in or
-trusted Claude-delivery re-label) → normal SHA-pinned auto-merge. Until then
-#100 correctly stays open/fail-closed.
-
-## Tests / validation
-
-`tests/test_themarker_malformed_url.py` (19) + `test_themarker_queue_starvation.py`
-(14). Full `unittest discover` = **491** all OK; `tests.test_message_format`
-"All tests passed."; `compileall`; all workflow YAML parse; `git diff --check`
-clean. No production state mutated by tests; Telegram/Telegraph write boundaries
-mocked.
-
-## Corrected PR #98 merge evidence (unchanged from prior handoff)
-
-#98 head `012824a7b8d710cd4fd06245ac19afc27a4de09d`; exact-head CI `31711027957`
-and Gate `31711220444` green. Merge Bot run `31711250348`'s SHA-pinned merge
-request surfaced a 502 client-side (`#98: unexpected merge error (502),
-skipping this PR: Server Error`) while GitHub independently recorded #98 merged
-at `2026-08-13T14:40:09Z` as `73c2d3875e49aa038f0ed9790d610eb063e4e90d`; the
-next Merge Bot run found no candidate because #98 was already merged. Run
-`31711250348` did NOT receive a normal successful merge response. Corrected in
-`handoffs/CONTEXT.md` (in PR #100) and `automation-core/cc-latest.md`.
+1. Codex quota → fresh exact-head review of #101 final head `fcffc13`
+   (CI already green there) → Gate → normal Merge Bot SHA-pinned merge.
+2. Post-merge §36: next scheduled TheMarker Polls — expect warm-retry one3ft
+   successes/2xx-rejects (outage clears on positive capability only),
+   wayback=no_snapshot ITEM_MISS lines, newest-first recovery selection +
+   `post_cap_reached` when applicable, no historical flood, no retry burn.
+3. Post-merge §37: next Source Health daily run — ONE aggregated
+   urgent/recovery DM max + digest; no Verifier feed+publisher duplicates;
+   TheMarker outage DM silence until 24h reminder/recovery.
+4. Retrospective #100 Codex audit (after #101 review).
+5. If archive.today is ever to be enabled: re-run the probe (operator
+   dispatch) and require a genuine full-body runner result first.
