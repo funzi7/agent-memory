@@ -19,11 +19,12 @@ not exist anywhere before that upload).
   NOT claude/* — legitimate Merge Bot candidate without any label).
 - PR: https://github.com/funzi7/paywall-bot/pull/101 — **OPEN**.
 - Heads: `f66bc87` (implementation) → `bb6f2b8` (temp probe trigger) →
-  **`fcffc13a9213fc937de67800e790c547bdda8626`** (GHA evidence + report +
-  reconciliation + trigger removal; final at handoff time).
-- Exact-head application CI: green on ALL THREE heads — `f66bc87`
-  (run 33258837365), `bb6f2b8` (run 33258866717), and the final
-  `fcffc13` (confirmed success 2026-08-29).
+  `fcffc13` (GHA evidence + report + reconciliation + trigger removal) →
+  **`786dc5097361e6782170bbbb8034c6d1b48e8326`** (historical health-doc
+  pointer; FINAL at handoff time).
+- Exact-head application CI: green on `f66bc87` (run 33258837365),
+  `bb6f2b8` (run 33258866717), `fcffc13`, and the final `786dc50`
+  (all confirmed success 2026-08-29).
 - **Codex: capacity EXHAUSTED again.** chatgpt-codex-connector posted a
   usage-limit notice on #101 (2026-08-29, comment 5463117008-adjacent
   thread) — per policy NOT a review signal; `check-codex-status`/Gate
@@ -118,7 +119,7 @@ DM 2026-08-29T11:28Z.
 
 ## PENDING (physical evidence required, in order)
 
-1. Codex quota → fresh exact-head review of #101 final head `fcffc13`
+1. Codex quota → fresh exact-head review of #101 final head `786dc50`
    (CI already green there) → Gate → normal Merge Bot SHA-pinned merge.
 2. Post-merge §36: next scheduled TheMarker Polls — expect warm-retry one3ft
    successes/2xx-rejects (outage clears on positive capability only),
