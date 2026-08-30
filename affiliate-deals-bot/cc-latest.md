@@ -3,76 +3,110 @@
 > Rolling handoff for `funzi7/affiliate-deals-bot`. Read this first, then the
 > repository documentation linked below.
 
-## Latest milestone: Affi Core — the Deal Engine behind the publisher
+## Latest milestone: Affi Admin + Core Shadow Mode + Radar Scheduler + Source Manager + Governor Control Plane
 
-- Date: 2026-08-29
+- Date: 2026-08-30
 - Branch `main`, tracking `origin/main`.
 - Final commit (pushed, verified local == origin/main == deployed server HEAD):
-  **`55f8bee78fbf837b55f623d167e67c2412de74ee`** ("Record the Affi Core
-  milestone production deployment"), whose parent is the milestone commit
-  **`9e580a0959e67c31f030aaee5e45c6efe056a87f`** (parent
-  `c450cbe94899ec1f9bdccd35776e54e250ee4d35`).
+  **`c46bd25181ae31ba2fbf3bbe14096344b33a53f3`** ("Make Affi Core observable
+  and controllable: admin PWA, shadow mode, 24/7 radar scheduler, governor
+  control plane"), parent `55f8bee78fbf837b55f623d167e67c2412de74ee`.
 
-## What was built (all additive, flag-gated, production byte-identical when off)
+## Production state (the important part)
 
-- **`src/affiliate_deals_bot/affi_core/`** (~20 strict-typed modules): Money
-  (Decimal; unknown = None, never 0), canonical products + check-digit-validated
-  identifiers (UPC-12→GTIN-13) + variant attributes, evidence-based matcher
-  (hard id > merchant identity > brand+model+variant > fuzzy-review-only;
-  variant contradictions and **equal-or-stronger-tier conflicts** block merges;
-  SKU vs product-id are distinct namespaces), offers (affiliate_url only when
-  `affiliate_ready` — a `go.bee.deals` link structurally cannot become Affi's
-  link; regular_price only when verified), append-only observations + metrics
-  (median/low need ≥3 real samples), BeeDeals radar parser/aggregator
-  (allowlisted retailer hosts — `amazon.evil.com` can't mint identifiers;
-  discount/threshold amounts never become prices; tracking links with query
-  strings stay provenance-only), four workers, deterministic Governor (six
-  actions, recorded decisions, hidden score), radar pacing (20-min gap +
-  volume bands; KSP feed never delayed), Hebrew/RTL rendering (UTF-16 running
-  cursor, hidden affiliate TEXT_LINK only when publishable, list price =
-  `מחיר מחירון`, tags last, no persuasion), taxonomy, store over **schema
-  v7+v8** (16 additive tables; idempotent writes; repository gained a public
-  `transaction()` seam), and the channel-independent `AffiCoreService`.
-- **Locked thread UX plumbing** behind `AFFI_CORE_ENABLED` (default false;
-  `reply_to=None` proven byte-identical at MTProto level): optional reply on
-  the three raw send requests with a **same-random_id plain fallback** when
-  Telegram rejects the anchor (a deleted ROOT never strands a deal);
-  `DeliveryPlan.reply_to_message_id` with backward-compatible outbox payloads;
-  `GovernedSourceBatchProcessor` decorating the mirror processor (live +
-  backfill paths) with lazy ROOT indexing from existing destination mappings;
-  imports are inside the flag gate so the mirror can't be affected even at
-  import time. One ROOT per (product, channel) is schema-unique.
+- **`AFFI_CORE_ENABLED=true` + runtime mode `SHADOW`** — the completion state.
+  The engine polls/binds/decides/simulates 24/7 with ZERO automatic public
+  writes (`core_publications` = 0; the only publisher remains the KSP mirror).
+  Mode is durable in `core_runtime_state`, changed from the Admin without
+  restart, audited. LIVE is NOT enabled (requires typing `LIVE` in the Admin).
+- Schema **v9** live in production (migrated v8→v9 automatically on first
+  open; pre-deploy backup `db-predeploy-20260830T174222Z.sqlite3` in
+  `backups/`, integrity+quick_check ok). Mirror state preserved; it published
+  genuinely new posts during the deploy (cursor 16569→16574, mappings 84→89,
+  0 duplicate destination ids after restart).
+- Radar sources (DB rows, managed from the Admin): `beedealslive` —
+  parser=beedeals, **shadow, enabled** (real cycles observed: 31 posts → 18
+  signals → candidates, all conservatively `needs_review`; a new live post
+  was ingested mid-validation). `kspcoil` — generic-parser probe used for the
+  §37 validation (30 posts → 23 signals), then **disabled + archived** so KSP
+  stays mirror-only. All admin actions (incl. one deliberately rejected
+  wrong-name attempt) are in `admin_audit_log`.
+- **Admin service** `affiliate-deals-admin` installed + enabled, loopback-only
+  `127.0.0.1:8642`, env `/etc/affiliate-deals-bot/affiliate-deals-admin.env`
+  (0600 affideals; holds a generated ADMIN_CSRF_SECRET;
+  ADMIN_ALLOWED_EMAILS=diman7@duck.com). It is **fail-closed**: without
+  CF_ACCESS_TEAM_DOMAIN + CF_ACCESS_AUDIENCE it refuses to start (verified:
+  "Cloudflare Access configuration is incomplete"). No insecure fallback is
+  running; the temporary triple-gated loopback instance used for validation
+  was stopped and its env deleted (port 8642 closed).
+- **PENDING OWNER (the only open steps)** — Cloudflare edge for
+  `https://admin.affi.co.il`: on the server run `cloudflared tunnel login`
+  (browser authorize for zone affi.co.il), then `cloudflared tunnel create
+  affi-admin`, fill `<TUNNEL_ID>` into
+  `/etc/cloudflared/config.yml.pending-owner` → rename to `config.yml`,
+  `cloudflared tunnel route dns affi-admin admin.affi.co.il`,
+  `cloudflared service install && systemctl enable --now cloudflared`; create
+  the Zero Trust **Access application** for admin.affi.co.il (allow only the
+  owner), then put the team domain + Application AUD tag into the admin env
+  and `systemctl restart affiliate-deals-admin`. cloudflared 2026.8.2 is
+  already installed. Until then the panel stays loopback-only by design.
 
-## Validation (all passed)
+## What was built (schema v9, all additive)
 
-- Offline: **767 pytest**, ruff + format + strict mypy (104 files),
-  `git diff --check`, secret/identity scan — clean. Two independent
-  adversarial reviews: production-path (0 blockers / 1 minor) and affi_core
-  (2 blockers / 8 minors) — **every finding fixed with regression tests**
-  (details in `docs/RELEASE_REVIEW.md`).
-- Migration: v6→v8 verified on a **real production backup** (73 mappings /
-  103 versions / 121 outbox / cursor 16558 preserved bit-for-bit).
-- Physical (real Telegram): **root/reply E2E 11/11** on a controlled ephemeral
-  private channel (root; on-wire UTF-16 text/entity fidelity incl. the hidden
-  affiliate TextUrl offset; tags last; updates 1+2 and a post-restart update 3
-  all replying to the SAME root; edit isolated to its update with reply kept;
-  restart-preserved root; no duplicate root; same-idempotency-key republish
-  returned the same message id). Channel deleted after; production untouched.
-- BeeDeals live smoke (read-only): 25 real posts → 15 signals (merchants
-  aliexpress 7 / ksp 4 / amazon 2 / ace 2); all tracking links internal-only;
-  15 distinct candidates (4 KSP publishable); idempotent; scratch DB deleted.
+- `affi_core/modes.py` — hard gate vs durable OFF/SHADOW/LIVE; per-source
+  modes cap at the runtime mode. `affi_core/control.py` — typed control-plane
+  values (policy config, thread state, source records/health, publications,
+  shadow outcomes, audit, commands, heartbeats).
+- `admin/` — aiohttp Hebrew-RTL mobile-first PWA (no SPA/Node/external
+  assets): CF Access JWT via team JWKS (iss/AUD/RS256; email header never
+  trusted alone), HMAC CSRF + same-origin on every POST, strict CSP,
+  `no-store`, static-only service worker, full audit; pages: dashboard (click
+  tracking honestly "עדיין לא מופעל"), system/mode (LIVE type-to-confirm),
+  sources, source test (read-only ~20 posts, NO cursor mutation), candidates
+  (internal score; reprocess/ignore/manual-publish — manual bypasses score
+  only, never caps/FloodWait), products, links (KSP appKey=14095), pubs +
+  chain view, governor editor (hot-reload), audit, errors. Admin↔engine via
+  durable `admin_commands` queue — the admin process NEVER talks to Telegram.
+- `infrastructure/telegram/radar_collector.py` + `radar_scheduler.py` —
+  generic collector (any public channel, no code changes), 24/7 scheduler
+  (cursors/health/backoff 60·2ⁿ≤1800/FloodWait), `AdminCommandExecutor`,
+  `CoreThreadExecutor` (durable intents: CREATE keyed by chain state — crash
+  can never double-post; EDIT keyed by rendered-content digest — same content
+  dedups, new content re-edits), `HeartbeatRunner`.
+- `affi_core/orchestrator.py` — §14 pipeline; bound-listing ladder tier 2b
+  (a `merchant_products` binding resolves NO_MATCH; conflicts →
+  `bound_listing_conflict` NEEDS_REVIEW; matcher caution never overridden).
+- `affi_core/channel_policy.py` — locked policy 10 soft/14 hard per 24h,
+  45-min gap, ≤2/rolling-hour, quiet 00:00–07:00 Asia/Jerusalem
+  (zoneinfo/DST), exceptional bypass (quiet-only, ≥15-min gap, recorded);
+  actual public posts incl. legacy mirror count toward volume; ranked queue.
+- `affi_core/thread_chain.py` — sequential chain **SUPERSEDES
+  reply-to-ROOT**: permanent ROOT → 24h window edits latest in place (never
+  extends window; expiry alone never posts) → replies chain to previous
+  latest. `governed.py` v2 anchors mirror threading to the chain LATEST.
+- `telegram/transform.py` — TEXT_LINK locked rule: URL-equivalent displayed
+  text replaced together with the target (UTF-16-correct); labels keep text.
 
-## Production deployment (verified)
+## Validation (all physically performed)
 
-Same mechanism as prior milestones (fresh online `.backup` → stop → git-bundle
-fetch → detached checkout of the exact pushed HEAD → `pip install -e` → start).
-After upgrade: schema **8** live, mappings 73→78 + cursor 16558→16562 purely
-from genuinely new `@KSPcoil` posts (nothing republished), restart left state
-byte-identical with **0 duplicate destination ids**, journal clean, Remote
-Sources containers Up/healthy. `AFFI_CORE_ENABLED` is **not set** in the
-production env (mirror byte-identical). Backups on host:
-`backups/db-premilestone-20260829T084036Z.sqlite3` and
-`backups/db-preupgrade-20260829T121032Z.sqlite3`.
+- Offline: **1026 pytest**, ruff + format + strict mypy (135 files),
+  `git diff --check`, secret scan — clean. v8→v9 verified on a real
+  production backup copy (31 tables digest-identical, cursor preserved).
+- Real Telegram (local): BeeDeals SHADOW smoke via the committed engine path
+  with a raising sentinel publisher (30 posts → 17 candidates; idempotent
+  re-poll; tracking links internal-only; controlled bound-listing resolution;
+  zero publisher calls). **12-step sequential-chain E2E** on an ephemeral
+  channel (SHADOW physically refused; ROOT; same-content dedup; in-place
+  edit; window never extended; expiry posts nothing; u1→u0, u2→u1, restart,
+  u3→u2; one ROOT ever; chain re-read from Telegram; channel deleted).
+  **TEXT_LINK smoke** on ephemeral channels (displayed URL text + target both
+  → appKey=14095; label kept; UTF-16 with astral emoji).
+- Server (§35–39): admin origin headers/bind/healthz; real Admin flows for
+  mode/sources/tests through the command queue executed by the telegram
+  service; scheduler heartbeat paused→running on mode change WITHOUT restart;
+  generic second channel validated then archived; governor config served with
+  locked defaults; KSP mirror regression (published new posts throughout,
+  restart clean, 0 dup ids); Remote Sources untouched; VPS not rebooted.
 
 ## Server access (unchanged; no secrets recorded)
 
@@ -86,24 +120,20 @@ A `mode=ro` diagnostic connection can lag rapid WAL writes — stable-state read
 only. Never open a second Telethon client against the live user session. Never
 print/commit host/IP/tailnet/key values.
 
-## Enabling Affi Core later (deliberate steps, not automatic)
-
-1. `AFFI_CORE_ENABLED=true` in `/etc/affiliate-deals-bot/affiliate-deals.env`
-   → threads eligible single-product KSP posts **only after** their listing is
-   bound to a canonical product (`merchant_products.product_id`); until
-   bindings exist, behavior is unchanged.
-2. Deal-Radar ingestion additionally needs `radar_sources.enabled=1` per
-   source **and a worker loop that does not exist yet** (parser/aggregator/
-   store are ready; no scheduled radar runner ships in this milestone).
-
 ## Remaining / future work
 
-- Radar worker loop + product-binding/enrichment orchestration (workers exist,
-  no scheduler); Governor-driven radar publications end-to-end.
-- Future search bot + affi.co.il website on `AffiCoreService` (docs:
-  FUTURE_DISCOVERY.md / FUTURE_WEBSITE.md). AliExpress adapter mechanism
-  pending owner input (`affiliate_adapter_unavailable`); Amazon policy-gated.
-- Multi-source root indexing orders by message id (fine for the single KSP
-  source; revisit per-channel ordering if a second mirror source is added).
-- Threaded posts' overflow continuations publish un-anchored (cosmetic).
-- Shared VPS still not rebooted (autostart verified via enablement only).
+- Owner Cloudflare steps above (tunnel login + Access app) — then verify the
+  edge: unauthenticated curl to https://admin.affi.co.il must 302 to
+  `<team>.cloudflareaccess.com`, never serve admin content.
+- LIVE mode: owner decision later, via the Admin, after reviewing shadow
+  outcomes vs policy. Shadow outcomes appear once candidates resolve
+  (currently all needs_review — correct conservatism; curation/binding will
+  unlock them; the WOULD_* simulation itself is unit- and physically-proven).
+- Click analytics: future only; no numbers are invented anywhere.
+- Repo docs: README, TODO (reconciled backlog incl. SUPERSEDED reply-to-ROOT),
+  docs/PROJECT_STATE, ARCHITECTURE, RUNBOOK, DEPLOYMENT (admin + cloudflared
+  runbook), HANDOFF, RELEASE_REVIEW, FUTURE_*, new docs/ADMIN.md +
+  docs/SHADOW_MODE.md.
+- Shared VPS still not rebooted (autostart of both units verified via
+  enablement only). A production-organic caption split still hasn't occurred
+  naturally (real E2E + offline suite cover it).
