@@ -1,183 +1,374 @@
-# Private Media TV — F2C.7.4 Final (mobile-test correction; code 34 published; physical acceptance pending)
+# Private Media TV — F2C.7.5 Final (mobile code 35 published; physical acceptance pending)
 
 ## Identity and release state
 
 | Field | Value |
 | --- | --- |
 | Application repository | `funzi7/private-media-tv` |
-| Milestone | F2C.7.4 — episode truth, Continue Watching semantics, season completeness/direct refresh, source identity integrity, exhaustive Deep, protected capability separation, stale-index catch-up, forward Israel observation, and factual versioned mobile-test delivery |
-| Branch / tracking branch | `main` / `origin/main` |
-| Starting application HEAD | `c246b55cc8e1979dcac573b1ef323c27addb63ad` (F2C.7.3 / mobile code 33) |
-| Final application HEAD | `7ea85b19fa4c07946043adf0d41b3e08f71242f4` — equals `origin/main`; pushed normally, no force |
-| Application commits | `9a5bc88c155eac72f0cb354c63935d1a0de59e98` (correction implementation) and `7ea85b19fa4c07946043adf0d41b3e08f71242f4` (owner-required versioned Test delivery) |
-| Exact-head Android CI | run `33157574547` — **SUCCESS** for final HEAD; wrapper validation plus one explicit mobile/mobile-used build job; no TV/Shield job or artifact |
-| Mobile identity | `com.funzi7.privatemediatv.mobile`, `0.4.15-phone-test`, versionCode 34; updates code 33 without uninstall or Clear Data |
-| TV identity | `com.funzi7.privatemediatv`, `0.6.11-f2c71`, versionCode 34 — unchanged and untouched; no TV build/test/lint/verify/publication/delivery and no Shield action |
-| Schemas | Catalog v12, UserState v7, Local Library v3, territory v3 — unchanged; legacy continuation repair uses scoped row reconciliation, not a migration |
+| Milestone | F2C.7.5 — stable catalog browsing, provider-neutral metadata and sources, SmartTube-compatible boundaries, Israeli provider contracts, Proton Israel access, managed offline, Connections, trailers, and spoiler-free Sports |
+| Branch / tracking | `main` / `origin/main` |
+| Starting application HEAD | `7ea85b19fa4c07946043adf0d41b3e08f71242f4` (F2C.7.4 / mobile code 34) |
+| Final application HEAD | `01f758ee90edcfb6d943fc0f7ba689444ef51dad` — equals `origin/main`; pushed normally, no force |
+| Application commit | `01f758ee90edcfb6d943fc0f7ba689444ef51dad` — `Implement F2C.7.5 mobile catalog and provider architecture` |
+| Agent-memory starting HEAD | `f886ca82b277bb8c981aa2a69ef005597f54ccc7`; unrelated projects advanced the shared memory repository to `95000a81e92f4e90913d78c8581c37c7b093d1fe` before this final update, without changing this handoff |
+| Exact-head Android CI | run `33302984143` — **SUCCESS** for final application HEAD; wrapper validation plus one mobile/mobile-used job; no TV/Shield job or artifact |
+| Mobile identity | `com.funzi7.privatemediatv.mobile`, `0.4.16-phone-test`, versionCode 35; updates code 34 in place |
+| TV identity | `com.funzi7.privatemediatv`, `0.6.11-f2c71`, versionCode 34 — no direct `app-tv` file, TV task/build/test/lint/version/artifact/publication/delivery, or Shield action; additive shared contracts changed and TV behavior is unvalidated |
+| Persistence | Catalog v12→v13; territory v3→v4; YouTube index v1→v2; new YouTube account-feed v1, broadcaster index v1, and supplemental catalog metadata/crosswalk/evidence/search/trailer v1; UserState v7 and Local Library v3 retained |
 | Development signer SHA-256 | `2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0` |
-| Local code-34 APK | 61,581,551 bytes; SHA-256 `71e2d43259263d939b24c6d0398321d5e07a83fe83a1a383af515acf715f6b9b`; ARM64-only; verified local official TDLib JNI SHA-256 `21d59ebfeba4edc62ea74cefaa79b08650e796530f3d5e57804105cc44cb65dc` |
-| Published exact-head CI code-34 APK | 59,926,581 bytes; SHA-256 `68c78e393560e91ea316b682bbc5f0e7ce390275df3c75c004dfd837cd8b040b`; ARM64-only; verified workflow-produced official TDLib JNI SHA-256 `790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f`; expected signer |
-| Delivered path | `/storage/emulated/0/Download/PrivateMediaTV/Test/private-media-tv-mobile-0.4.15-phone-test.apk` — real regular file, exact-head CI bytes, fresh publication epoch `1787908628` |
+| Delivered exact-head CI APK | 65,158,296 bytes; SHA-256 `1ae7f3a6d4e560eefb69479dcac33df389bf55c823e0039e666d0866a3a7890b`; ARM64-only; TDLib JNI SHA-256 `790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f` |
+| Delivered path | `/storage/emulated/0/Download/PrivateMediaTV/Test/private-media-tv-mobile-0.4.16-phone-test.apk` — exact CI bytes, regular file, same-version target replaced atomically |
 
-The owner cancelled the mobile latest/previous slot contract while the first pushed run was active.
-That obsolete run (`33156185065`) was cancelled, not treated as final evidence. ADR 0033 and the
-delivery tooling now use one factual versioned Test filename. The two obsolete unversioned mobile
-slot files and their empty `Mobile/` directory were removed only after the new versioned code-34 copy
-was verified. No older versioned or unrelated file was removed. Frozen TV APK SHA-256 values remained
-`11bca1c3333cebcb5f08e10d5361b586cb7e7d8341b5aa0b4ff00908ba8f24aa` and
-`48095b075917c756eece8689c3684780a083018e5c03bf0568ae1261aac18877`.
+## Truthful physical code-34 owner evidence
 
-## Truthful physical code-33 owner evidence
+**PASS:** Fallout no longer fabricates S02E09; Continue Watching no longer fabricates
+`טרם הוכרז` cards; the real past-date E06 is no longer explicitly `טרם שודר`; Deep found one
+correct E06 immediately and another correct E06 from another source group; reopening Sources later
+showed the two correct persisted files and not the earlier unrelated `סוכן תרבות`; immediate Series
+Eye, one-press Back/icon, Downloads indicator, pull refresh, high `חדש בישראל`, mobile-only CI, and
+the recovery mechanism remain PASS.
 
-**PASS:** Series Eye reacted immediately; top Back icon existed; top Downloads icon existed;
-`חדש בישראל` was in the requested high Home position; CI was mobile-only; missing COMPLETE bytes
-could automatically start recovery.
+**FAIL/new requirement evidence:** E06 still lacked useful episode information and a still; FAST
+initially surfaced unrelated `סוכן תרבות`; FAST missed real E06 files in two configured Known Sources;
+Known priority/catch-up remained insufficient; a catalog title disappeared; Home rows and Continue
+Watching jumped; an already-opened/CW title could block on TMDB too long; and Israel history remained
+sparse at about five titles. The owner additionally required full category grids/taxonomy/season
+count, title-first multi-provider architecture, SmartTube-compatible YouTube/Kan/account/trailers,
+Kan/12+/Reshet official provider contracts, Proton Israel, authoritative history, provider-aware
+downloads and encrypted vault, unified Connections, provider-neutral metadata/non-TMDB titles, and a
+spoiler-free Sports domain.
 
-**FAIL:** a real episode with a past displayed air date still appeared unaired; an incomplete season
-appeared as one episode / `1/1 watched`; Continue Watching showed speculative future episodes,
-including a fabricated S02E09 after real S02E08; an E06 search displayed explicit E05 files as E06
-matches; the real E06 in a configured Known Source was missed by normal and Deep search; physical
-Deep planned about 53 sources, completed 0, failed about 53, and ended
-`PARTIAL_SOURCE_FAILURE`; `חדש בישראל` still contained only two proven entries.
+These are physical code-34 facts. Host tests, CI, and APK publication do not convert them into a
+physical code-35 PASS. **Physical code-35 acceptance is pending.**
 
-These remain code-33 facts. Host/CI validation does not convert them into physical code-34 PASS
-evidence. **Code-34 physical acceptance is pending.**
+## Root causes established
 
-## Root causes
+1. Home rows mixed mutable provider ordering, page completion, enrichment, and background refresh in
+   one presented list. Page/branch completion could prepend or replace items under the viewport.
+   Continue Watching also had lead-change snap behavior rather than an interaction-owned anchor.
+2. Partial refresh/branch failure could be treated as authority to shrink a cached row; Details could
+   replace stale content with a blocking reload instead of rendering cache first and refreshing SWR.
+3. FAST could treat a weak generic POSSIBLE/local alias as sufficient before completing configured
+   Known/manual phases, so an unrelated result could suppress the real Known Source copies.
+4. TMDB identity and whole-record presentation were too closely coupled. Incomplete TMDB episodic
+   presentation lacked field-level exact-source reconciliation, and programs absent from TMDB had no
+   safe provider-neutral catalog foundation.
+5. Forward Israel absence→presence monitoring could only accumulate history from installation time;
+   no authoritative, strong-ID historical import path existed.
+6. Source discovery and capability modeling were Telegram-centric. Independent physical providers,
+   provider failure isolation, media role, stream/offline/export rights, and catalog identity needed
+   separate contracts.
+7. Remote download ownership and physical storage were not sufficient for provider failover and an
+   app-private encrypted, seekable, integrity-checked managed copy.
+8. External configuration was fragmented and lacked one status/setup/replacement surface. Candidate
+   secret/config replacement also needed validate-before-atomic-publish semantics.
+9. Sports lacked canonical Competition/Season/Match identity and a centralized spoiler firewall;
+   raw provider titles, thumbnails, and score fields could not be trusted as presentation.
+10. Security review found that account sign-out cleanup had to remain independent across provider,
+    feed-cache, Keystore, and cursor state; unreviewed/manual WebSource data must never self-authorize;
+    descriptor-wide playback headers could cross redirects; and device authorization needed an exact
+    browser endpoint allowlist.
 
-1. Progression could derive `latest episode + 1` and persist/render that guess as a real episode.
-2. A persisted FUTURE label and independently implemented date checks could outlive the air-date
-   boundary, while direct nested metadata routes did not reliably revalidate stale/contradictory
-   season structure.
-3. A one-row cached/provider snapshot could be treated as proof that a season total was one.
-4. Local-index learned-alias and owner-context paths could convert a hard wrong-episode/identity reject
-   into POSSIBLE, allowing explicit E05 evidence to surface for target E06.
-5. A pure Deep request excluded normal-pool sources as if a FAST phase had already run. Empty
-   post-hydration work lacked per-source attribution and was charged as wholesale failure, so the
-   observed 0-completed/about-53-failed result did not prove that 53 provider searches executed.
-6. Protected-content status was conflated with searchability instead of independent official
-   index/search/stream/download/export capabilities.
-7. Explicit search could conclude from a stale/partial tail checkpoint without a bounded current-head
-   catch-up, missing a newly posted episode.
-8. Israel observation covered too few catalog encounter paths to build useful future evidence.
-9. Mutable mobile slot filenames obscured factual version identity; the owner replaced that delivery
-   contract during finalization.
+## Implemented candidate
 
-## Implemented
+### Catalog UX, state, and cache
 
-1. **Central episode truth.** `core-metadata` owns an injected-Clock
-   `EpisodeAirStatePolicy`: valid ISO date on/before today = AIRED, later = FUTURE,
-   missing/invalid = UNKNOWN. Series, Season, Episode Details, Continue Watching, Series Eye,
-   bulk/auto-download, progression, and unaired labels consume it; persisted targets are re-evaluated
-   against today.
-2. **No fabricated episode identity.** Progression returns only a real provider episode, real
-   announcement, or identity-free waiting state. Legacy placeholders are decode/purge-only. A real
-   S02E08 completion with no announced successor produces no S02E09 card or target.
-3. **Continue Watching semantics.** In-progress/actionable/aired entries are first. Real future
-   announcements are last, dated nearest-first then unknown-date. The same real target moves forward
-   when it airs; ordering never invents playback progress.
-4. **Truthful season structure and direct refresh.** COMPLETE/PARTIAL/UNKNOWN structure prevents false
-   exact totals while retaining a verified one-episode season. Stale Series/Season/Episode content
-   stays visible during bounded coalesced revalidation; successful writes update the visible route.
-   Foreground/date-boundary/Home refresh recomputes continuing metadata without Telegram work.
-5. **Hard source identity precedence.** VALIDATED may be automatic; only non-contradictory
-   PARSER_REJECT may become owner-confirmable POSSIBLE in strong Known/manual context;
-   IDENTITY_REJECT and DATE_EPISODE_REJECT are discarded across index, aliases, bindings, live,
-   history, Known, Deep, and persisted paths. Unsafe legacy bindings are conditionally reconciled.
-6. **Owner-bound recall.** Exact title-less season/episode markers are supported inside a strongly
-   bound series source; bare Hebrew episode markers additionally require unambiguous season context.
-   Explicit wrong episode/season/series always wins.
-7. **Deep correctness.** Every selected searchable source is planned exactly once, Known/manual
-   first even with normal-pool overlap, with at most four concurrent operations. Deterministic order,
-   checkpoint/resume, per-source bounds, cancellation, and failure isolation remain. Zero completed
-   is FAILED. Privacy-safe counters distinguish hydration, availability, unsupported, provider,
-   account, completed-empty, and completed-with-media outcomes.
-8. **Capabilities and catch-up.** Officially readable protected sources can index/search/stream while
-   offline download/export remain false. Explicit normal/Deep search performs at most two bounded
-   incremental pages for relevant stale/partial/interrupted selected indexes, Known first and four
-   concurrent; passive Home remains zero Telegram.
-9. **Israel forward coverage.** Epoch-deduped, TTL/coalesced observations now include discovery,
-   personal lists, continuing series/targets, and catalog-search results. Only authoritative fresh
-   region-IL absence→included-access evidence can become an arrival; first positive, production year,
-   and stale transitions remain non-evidence.
-10. **Factual mobile-test delivery.** The publisher derives
-    `private-media-tv-mobile-<versionName>.apk`, writes only beneath `PrivateMediaTV/Test`, stages and
-    re-verifies in the same directory, atomically replaces only the exact same-version target, and
-    preserves all sibling entries. There is no mobile slot rotation, rollback promotion, or directory
-    cleanup. Symbolic/non-regular exact targets fail closed. Broken code23 cannot be delivered because
-    only the exact current identity is accepted.
+- Stable keyed row epochs now make existing order immutable, merge pages append-only, enrich keyed
+  cards in place, retain stale valid content on partial failure, and preserve exact key/pixel anchors
+  across explicit replacement. Continue Watching captures/restores its interacted anchor through
+  Details/player round trips and chooses a deterministic neighbor only if the anchor is removed.
+- Every catalog Home heading opens an additive vertically paged category grid. Deterministic query
+  identity covers family/media/sort/provider/broadcaster/genre/origin semantics; invalid combinations
+  remain unavailable rather than fabricated. Query pages dedupe by identity, preserve prior pages on
+  retry/failure, and restore per-query grid position and Home position.
+- TV cards reserve a season-count line from first render and use `עונה אחת` / `N עונות`; movies have
+  no season line and unknown never displays zero. Visible enrichment is bounded, coalesced, cached,
+  and never changes card geometry/order.
+- Resident/persistent Details, season, episode, image, season-count, provider, personal and recent
+  metadata render stale-first. Bounded hot queues and identical-request coalescing provide SWR without
+  navigation reset or row reorder. Exact aired episodes get bounded direct reconciliation.
 
-ADR 0032 records episode/search/Deep decisions; ADR 0033 records the owner-updated delivery contract.
+### Provider-neutral catalog and metadata
+
+- PMTV now owns canonical movie/program/season/episode/edition entities, program-type semantics, a
+  conservative external-ID crosswalk, durable owner mappings, field-level provenance/conflicts, and a
+  unified local metadata index. Existing TMDB stable keys remain compatibility identities, so My List,
+  progress, Continue Watching, downloads, bindings, and sources are not destructively re-keyed.
+  Non-TMDB titles are valid; title-only/fuzzy merge is forbidden and explicit identity contradiction
+  hard-rejects.
+- TMDB remains a major discovery/metadata provider, not universal truth. Central merge policy retains
+  provider/record/time/locale/authority evidence and does not let stale incomplete structure replace
+  stronger complete evidence.
+- TVmaze production wiring is deliberately narrow: exact external-ID show lookup and exact
+  episode-by-number/date fallback only from an existing exact crosswalk, with bounded rate/429 backoff,
+  cached-first stale retention, public-HTTPS image safety, source-link attribution, and CC BY-SA /
+  ShareAlike presentation. No live TVmaze result is claimed.
+- TheTVDB v4 connection/provider boundary supports project-key login token, optional subscriber PIN,
+  license/attribution status and safe replacement, but remains disabled pending approved real project
+  access/license. Its API grant is not treated as artwork/trailer/programming rights. EDB and Israel
+  Film Center remain disabled boundaries pending an official documented API/license or written
+  authorization; they are not scraped.
+- Exact official/secondary episode evidence may enrich missing title/still/synopsis/duration and only
+  a missing date, with field provenance. It cannot change TMDB/canonical series, season, or episode
+  coordinates or overwrite conflicting stronger evidence. The aired E06 enrichment path is a
+  deterministic regression target, but live upstream repair is not claimed.
+
+### Search and independent sources
+
+- Search Engine V2 no longer blocks on a metadata-index prepass. FAST stops locally only for strong
+  bound/automatic evidence, completes all unresolved Known/manual work before the independent normal
+  pool budget, keeps multiple Known physical copies, rejects explicit wrong episodes, and reuses
+  persisted Deep results only after current selected/indexed exact validation.
+- One catalog item can retain simultaneous Local Library, verified managed, Telegram, SmartTube-
+  compatible YouTube, Kan VOD, 12+/mako, and Reshet 13 resources. Provider/resource identity is
+  preserved; one provider failure never removes siblings; the provider never owns catalog progress.
+- Kan/Keshet/Reshet adapters have isolated checkpoint/index/classification/matching/manual-mapping,
+  metadata-enrichment, playback/offline/geo, and concurrent merge contracts. All production operational
+  capabilities remain false until documented reusable endpoints or written authorization plus playback,
+  auth, DRM, offline-rights, and site audits exist. There is no live archive/stream/download claim,
+  arbitrary scraper, paywall bypass, auth bypass, or DRM bypass.
+
+### SmartTube-compatible YouTube and trailers
+
+- The only approved YouTube architecture is a SmartTube-compatible/derived provider behind native
+  PMTV UI. Public archive/search/resolver, exact episode/movie matching, Kan checkpoint/index,
+  concurrent source merge, adaptive capability projection, account/session/feed/channel/search/action
+  contracts, and deterministic fixtures are isolated in `core-youtube`.
+- Exact upstream revisions/notices are recorded. SmartTube is MIT; current MediaServiceCore and
+  SharedModules revisions did not expose a verified published license, so their code was not copied and
+  the production backend fails closed until license/provenance is resolved. No competing extractor was
+  invented.
+- There is no YouTube Data API key, Google SDK/Play Services, official app launch, embedded website,
+  IFrame/WebView player, Google UI/controls, telemetry, yt-dlp, or YouTube download capability.
+  SmartTube account device authorization is optional and uses only exact reviewed HTTPS `/activate`
+  or `/device` endpoints with no alternate path, query, fragment, user-info, or explicit port.
+- Account sign-out independently attempts remote/provider removal, personal feed-cache deletion,
+  Keystore session deletion, and all in-memory cursor cleanup; one failure cannot skip later cleanup
+  and only a safe aggregate result is presented.
+- Details projects exact TMDB video evidence into a nonblocking cached Trailer button/list. Multiple
+  trailer/teaser resources remain distinct, localized/official ranking is deterministic, no autoplay
+  occurs, and title progress is untouched. Broadcaster supplemental discovery and SmartTube public
+  lookup/playback remain authorization/license gated rather than falsely live.
+
+### Israel access, history, connections, and offline
+
+- Native Accounts & Connections unifies SmartTube account, Proton Israel, TMDB, TVmaze, TheTVDB,
+  historical Israel, and optional secondary episodic status/setup. Provider-specific forms validate
+  and encrypt candidates before atomic replacement; a failed replacement preserves the previous
+  working value. Need-based prompts route to the relevant page, and connection status is never treated
+  as content success.
+- Proton setup accepts owner-generated WireGuard configuration by paste/manual fields or optional SAF,
+  never Proton credentials. The official maintained WireGuard Android dependency and Apache-2.0 notice
+  are pinned. Config is Keystore-backed/app-private; Android `VpnService.prepare()` consent, exact
+  mobile-package allowlist, on-demand/ref-counted leases, grace stop, direct-first geo retry exactly
+  once, and logout/disable cleanup are implemented. No real Proton config/tunnel/content success is
+  claimed.
+- Optional authoritative Israel history imports only strong external IDs into the existing territory
+  evidence store, preserves forward history, dedupes provider arrivals, and reports the provider's
+  truthful maximum documented window (currently at most 31 days). First observation, release year,
+  and fuzzy title never become arrival dates. Live credentialed backfill is pending.
+- One download coordinator selects only exact, lawful download-capable sources and can fail over before
+  material progress without changing catalog identity. Stream/offline/auto/offline-play/export flags
+  are independent; unsupported DRM and YouTube remain non-downloadable.
+- The managed app-private Offline Vault uses random per-resource keys wrapped by Android Keystore,
+  authenticated bounded chunk/segment encryption, integrity manifests, interruption recovery,
+  decrypt-on-read seeking through the player, one managed copy per exact catalog item, and no plaintext
+  temp/public MediaStore/export. Provider app-private encryption is not a DRM bypass.
+- The exact CI APK packages the complete WireGuard Apache-2.0 notice with SHA-256
+  `e49563a755120b7a09b600ee7d1de8526fb60a02d96f5f04dba6885a71334717`; packaged `libwg-go.so`
+  SHA-256 is `68730e8c81b613113249574e22838fd6ce9b1c4da2be2f5fe7c71d651e32b005`, matching the pinned
+  reviewed dependency.
+
+### Spoiler-free Sports
+
+- Sports is Competition → Season → strong provider-neutral MatchIdentity → zero or more independent
+  LIVE/FULL_REPLAY/EXTENDED_HIGHLIGHTS/HIGHLIGHTS/CLIP resources. Editable/reorderable defaults are
+  Beitar Jerusalem, Manchester United, Real Madrid and the Israeli Premier League, Premier League,
+  LaLiga, and UEFA Champions League.
+- Home order is permanently personal rows → Sports → `חדש בישראל` → generic discovery. Sports remains
+  available without a live match; relevant live matches lead and favorite-team live matches lead that
+  set. Tapping always opens spoiler-free Match Details before explicit source choice.
+- A centralized spoiler firewall generates neutral fixture titles/cards and forbids scores, winners,
+  events, result summaries, score-bearing provider titles/thumbnails, notifications, accessibility,
+  Continue Watching, and downloads presentation. Strong MatchIdentity handles rescheduling and prevents
+  fuzzy duplicate fixtures.
+- Source contracts distinguish PMTV `NATIVE_STREAM` from lawful non-YouTube `WEB_SOURCE`, media role,
+  official/third-party/manual provenance, health, login/region/DRM/subscription, and sibling failure
+  isolation. SmartTube never uses WebView.
+- `core-sports` currently has provider interfaces and in-memory references only. The verified IPFL
+  SmartTube descriptor is `BOUNDARY_ONLY`, with every live capability false. No Sportmonks credential,
+  Israeli coverage claim, PL/LaLiga/UEFA schedule/live backend, protected archive integration, scraper,
+  or live source claim exists.
+- App-mobile includes native Sports/Match Details/Settings, app-private ordered preferences, exact-match
+  encrypted manual HTTPS attachment, shared progress/player/Proton lease boundaries, and a gated
+  isolated Website Playback surface. Production has no reviewed Web-provider trust resolver, so an
+  unreviewed or manual URL fails before VPN/session/event/WebView. A future authorized adapter must
+  attest exact HTTPS origins, confined redirects, and no YouTube embed; the GET-only policy blocks
+  service workers, popups, YouTube, unsafe requests, and cross-origin navigation. No live Web playback
+  is claimed.
+- Adaptive descriptors reject non-empty request headers. A future licensed header-bearing provider
+  must use origin-scoped redirect-aware transport rather than Media3 descriptor-wide defaults.
+
+## Migration and preservation evidence
+
+- Catalog 12→13 adds provider-neutral source/offline ownership state while preserving all prior rows.
+- Territory 3→4 adds authoritative historical provider evidence/sync state and retains all forward
+  observations.
+- YouTube index 1→2 plus new account-feed v1, broadcaster index v1, and supplemental metadata v1 are
+  additive. Existing TMDB keys seed compatibility/internal IDs without rewriting My List, likes,
+  watched/progress, Continue Watching, downloads, local/source bindings, or cache ownership.
+- WireGuard/session/API/content keys remain in separate Keystore-backed app-private envelopes, never
+  Room/plain preferences. No destructive migration, uninstall, Clear Data, or owner-data deletion was
+  used or assumed.
+- Migration tests from the physical current schemas and required chained tests passed.
 
 ## Validation evidence
 
 ### Local mobile/mobile-used validation
 
-- Focused correction rerun:
-  `/root/work/bin/heavy-run -- timeout 900 ./gradlew :core-catalog:testDebugUnitTest :app-mobile:testDebugUnitTest`
-  — PASS.
-- Complete explicit module matrix — 1,608 discovered, 1,606 passed, two opt-in live-metadata tests
-  skipped, zero failures/errors: app-mobile 506; catalog 384; metadata 141; Telegram 233; playback 96;
-  Local Library 56; provisioning 48; security 98; model 19; provider 27.
-- `:app-mobile:lintDebug`, `:core-catalog:lintDebug`, `:core-metadata:lintDebug`, and
-  `:core-telegram:lintDebug` — PASS.
-- `:app-mobile:assembleDebug` — PASS on the final production tree; exact package/version/signer/
-  ARM64/JNI/native-layout/private-material verification passed.
-- Delivery/security harnesses — credential scanner 41; versioned mobile publisher 13; exact-head CI
-  downloader 20 rejection + one success; provisioning inspector 4; mobile-only upgrade 8; real
-  retained code33→34 update compatibility; 28 shell scripts syntax; browser provisioning/crypto
-  interoperability; both TDLib verify-only commands — PASS.
-- `git diff --check` — PASS before each commit and at final verification.
-- `adb devices -l` listed no device. No installation, launch, live catalog/provider behavior, or
-  physical code-34 acceptance is claimed.
+- All substantial Gradle work ran through `/root/work/bin/heavy-run -- timeout ...`; no root aggregate
+  `test`/`lint` and no `:app-tv:*` task ran.
+- Final explicit 15-target unit-test matrix: **1,946 discovered, 1,944 passed, 0 failures/errors, 2
+  intentionally disabled opt-in live-TMDB smokes**. Module totals: app-mobile 596; broadcaster 26;
+  catalog 402; Israel access 27; Local Library 56; metadata 197; model 24; offline 13; playback 103;
+  provisioning 48; provider 32; security 100; Sports 41; Telegram 233; YouTube 48.
+- Full changed mobile/mobile-used Android lint matrix passed: app-mobile, broadcaster, catalog,
+  Israel access, Local Library, metadata, offline, playback, provisioning, security, Telegram, and
+  YouTube. `:app-mobile:assembleDebug` passed.
+- Focused hardening: Sports service/Web 15/15; Sports + YouTube account/sign-out combined 24/24;
+  sign-out cleanup 9/9. Stable snapshots, category navigation, hot cache, FAST Known priority,
+  multi-provider merge, migrations, metadata provenance/E06, trailers, Connections, WireGuard leases,
+  vault encryption/seeking/recovery, and spoiler invariants all have deterministic tests.
+- Harnesses passed: credential/private-material scanner 41; exact-head CI downloader 20 rejection + 1
+  success fixture; mobile delivery 13; mobile upgrade 8; provisioning inspector 4; LAN/browser crypto
+  and provisioning interoperability; shell syntax; pinned official TDLib verification.
+- Local APK package/version/signer/ARM64/JNI/native-layout/private-material checks and retained physical
+  code34→code35 update verification passed. `git diff --check` passed before commit. `adb devices -l`
+  listed no device.
 
-All substantial Gradle commands used `/root/work/bin/heavy-run -- timeout ...`. No root aggregate
-`test`/`lint` and no `:app-tv:*` command ran.
+### Exact-head CI and authoritative publication
 
-### Exact-head CI and publication
+- Android CI run `33302984143` completed **SUCCESS** for exact final HEAD
+  `01f758ee90edcfb6d943fc0f7ba689444ef51dad` in 19m46s. It passed wrapper validation, official
+  pinned TDLib verification, mobile delivery/security/upgrade harnesses, browser crypto, Development
+  signer reconstruction/verification, explicit mobile/mobile-used tests, mobile lint, signed ARM64
+  code35 assembly, package/version/signer/JNI verification, checksum/metadata creation, artifact upload,
+  and runner signing-material cleanup. There was no TV/Shield job or artifact.
+- The normal downloader selected exact run/artifact
+  `private-media-tv-mobile-apk-01f758ee90edcfb6d943fc0f7ba689444ef51dad`; its first network
+  transfer was aborted before verification at about 30 MB and did not replace the destination. The
+  same artifact ID was then downloaded with authenticated resumable/retrying transport, ZIP-tested,
+  required to contain exactly the APK/checksum/metadata tuple, and checked against commit, package,
+  version, ABI, signer, APK hash, and TDLib hash before invoking the same atomic delivery helper.
+- Exact CI artifact metadata and post-copy verification agree:
+  package `com.funzi7.privatemediatv.mobile`; `0.4.16-phone-test`/35; signer
+  `2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0`; ARM64-only; TDLib JNI
+  `790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f`; size 65,158,296; APK
+  SHA-256 `1ae7f3a6d4e560eefb69479dcac33df389bf55c823e0039e666d0866a3a7890b`.
+- Final delivered path:
+  `/storage/emulated/0/Download/PrivateMediaTV/Test/private-media-tv-mobile-0.4.16-phone-test.apk`.
+  It is byte-identical to the exact CI APK. The existing code34 versioned file remains; no latest,
+  previous, old-version rotation, or TV file was created/deleted. Real code34→delivered code35
+  package/signer/version/ARM64 upgrade verification passed.
+- No installation, launch, account authorization, provider live response, VPN tunnel, playback,
+  download, WebSource, phone UX, TV, Shield, or physical code35 acceptance is claimed.
 
-- Android CI run `33157574547` completed **SUCCESS** for exact final HEAD
-  `7ea85b19fa4c07946043adf0d41b3e08f71242f4`.
-- Passed steps included wrapper validation, pinned official TDLib verification, delivery/security/
-  upgrade harnesses, browser crypto, Development signer verification, explicit mobile/mobile-used
-  unit tests, mobile lint, signed ARM64 mobile assembly, package/version/signer/JNI verification,
-  checksum/metadata generation, and mobile artifact upload.
-- `./scripts/download-latest-ci-mobile-apk-to-phone.sh` selected only that exact-head successful run,
-  verified the artifact, and replaced the same-version local Test file with authoritative CI bytes.
-- Final delivered path and SHA-256:
-  `/storage/emulated/0/Download/PrivateMediaTV/Test/private-media-tv-mobile-0.4.15-phone-test.apk` —
-  `68c78e393560e91ea316b682bbc5f0e7ce390275df3c75c004dfd837cd8b040b`.
-- The obsolete mobile slot directory is absent. Retained TV APKs and the offline provisioning tool
-  remained untouched. Shield was not attempted.
+## External configuration and live gates
 
-## External decisions and remaining risks
+- **No YouTube Data API key exists or is required.** Public/account behavior uses only the approved
+  SmartTube-compatible boundary. The owner may optionally complete SmartTube-style account device
+  authorization after the unresolved upstream component licenses/provenance are cleared and the
+  production backend is enabled.
+- The owner still needs to import/paste a Proton-generated Israel WireGuard config and grant Android
+  VPN consent for physical VPN validation. Never store the config/private key outside the secure app
+  envelope or this device.
+- Historical Israel live backfill needs the owner's supported-provider API credential and truthful
+  coverage validation. The provider must never claim more than its documented available window.
+- TheTVDB needs approved project access/license and its project credential (plus subscriber PIN only
+  if genuinely required). Any other secondary episodic provider needs a separately approved lawful
+  credential/integration. TVmaze needs no credential but still needs a redacted live/physical
+  attribution and ShareAlike check.
+- Kan/Keshet/Reshet need documented reusable official interfaces or written authorization and a full
+  auth/playback/DRM/offline-rights audit before operational capabilities can be enabled.
+- Sports needs a real provider credential/coverage audit (including Israeli Premier League coverage),
+  authorized official media/source evidence, any legitimate provider account/subscription, and a
+  reviewed exact WebSource trust/origin policy before a live claim. VPN does not replace entitlement,
+  authentication, subscription, or DRM.
+- Physical code35 acceptance must validate the original code34 failures plus category position,
+  season counts, cache-first reopen, provider-source concurrency, E06 metadata, Connections, optional
+  configured providers, vault behavior, Sports order/spoiler safety, and no-jump invariants. Record only
+  observed results.
 
-- No secondary episodic provider is integrated or credentialed. A bounded structural fallback needs
-  an owner-selected lawful provider, credential/terms decision, and authoritative external-ID
-  mapping; TMDB remains catalog identity. Truthful incomplete UI/direct TMDB refresh are complete now.
-- Historical Israel-arrival backfill needs a separately owner-authorized authoritative region-IL
-  historical feed with licensing/credential terms. No scraping, invented dates, or inferred history
-  was added; forward monitoring is complete.
-- The code33 physical Deep evidence did not retain enough safe detail to reconstruct its underlying
-  hydration category. Code34 now reports safe aggregate attribution; a real device Deep run remains
-  the proof of runtime recovery.
-- All episode/date/season/search/Deep/protected/catch-up/Israel corrections are host- and CI-validated
-  only. Real provider data, Telegram runtime behavior, and UX quality remain the physical code34 gate.
+## Permanent decisions
+
+- One provider-neutral internal catalog owns movie/program/season/episode/edition/match identity.
+  Multiple metadata providers and multiple independent physical source providers attach to it. TMDB
+  and Telegram are providers, not product identity or universal truth.
+- SmartTube-compatible provider capability behind PMTV-native UI is the only YouTube architecture.
+  Never reintroduce YouTube WebView/IFrame/Google product UI, official-app launch, Play Services,
+  Data API owner key, telemetry, competing extractor, or inferred download permission.
+- Home ordering is personal rows → Sports → `חדש בישראל` → generic discovery. All browsed rows/grids
+  use stable keyed anchors and never reorder under enrichment/background paging.
+- Sports browsing is absolutely spoiler-free and opens Match Details before explicit source choice.
+  YouTube never uses the lawful non-YouTube WebSource surface.
+- One shared progress/watch-state model, one download coordinator, one app-private encrypted Offline
+  Vault, and one app-only Proton lease serve all providers. Capability and entitlement remain separate;
+  streamable never implies downloadable/exportable and app encryption never bypasses DRM.
+- Passive Home/category browsing never performs Telegram/YouTube/playable-source discovery. A title
+  with zero known sources remains valid. Explicit source searches run independent providers
+  concurrently and preserve alternative physical copies.
+- TV/Shield work starts only in a separately authorized phase after mobile code35 physical acceptance.
+
+## Approved future backlog (not implemented in F2C.7.5)
+
+1. **A — lawful SmartTube/YouTube managed offline:** only if future current upstream/terms evidence
+   explicitly permits it; reuse the encrypted Vault, keep stream/offline/auto/offline-play/export flags
+   separate, no public MP4/export assumption, yt-dlp, or buffering-as-download.
+2. **B — new-episode notifications:** owner opt-in, optional per-title control, provider-neutral real
+   episode evidence, exactly-once dedupe, exact deep link, quiet hours/channels, no fabricated episode,
+   and coexistence with auto-download status.
+3. **C — HOT and yes official VOD:** isolated first-class metadata/archive/source/playback/offline/geo
+   adapters under documented lawful interfaces, exact identity/provenance, and no DRM/auth bypass.
+4. **D — FreeTV/additional Israeli providers:** investigate only maintainable lawful official paths;
+   document blockers instead of arbitrary scraping.
+5. **E — OMDb ratings:** secure Connections credential, exact external-ID matching, cached provenance,
+   provider isolation, and IMDb labels only for real lawful IMDb/OMDb-backed data; never relabel TMDB.
+6. **F — Wikidata/franchise/same universe:** real strong-ID structured population with provenance and
+   explicit collection/franchise distinction; never title-similarity inference.
+7. **G — private multi-device sync:** encrypted/authenticated single-owner offline-first phone/TV state
+   sync with field-separated conflict semantics; never send Telegram sessions/media, provider secrets,
+   or device-local download bytes.
+8. **H — Source Inspector structured episode lookup:** **already implemented / old TODO superseded** by
+   bounded selected-source index lookup for `S01E06`, `1x06`, and supported Hebrew markers with exact
+   contradiction rejection. Preserve it; do not reintroduce whole-history scanning.
+9. **I — Israeli live/archive ingestion wording:** old generic “operator ingest” is **superseded** by
+   named provider-neutral adapters: authorization-gated Kan/Keshet/Reshet, then future HOT/yes/FreeTV.
+10. **J — F2D advanced source picker:** richer provider/variant ranking, external subtitle/audio
+    sources, language preferences, source technical details, and final playback integration. Embedded
+    tracks are not external-source aggregation.
+11. **K — final TV/Shield application:** TV Home/details/series/category/Sports/account/provider/player/
+    offline parity, D-pad-first focus restoration, 10-foot UX, native Connections, subtitles/audio,
+    factual TV versioned APK delivery directly under `PrivateMediaTV/`, and physical Shield acceptance.
+
+Sports provider live integrations, official provider authorization, SmartTube upstream license
+resolution, configured account/VPN/history/metadata credentials, and physical code35 checks are current
+gates, not silently completed future work. Historical unchecked code-N commit/publish/acceptance tasks
+are **SUPERSEDED HISTORICAL**, not physical PASS evidence and not instructions to publish old builds.
 
 ## Exact next step
 
-Install code34 over code33 without uninstall or Clear Data and execute the F2C.7.4 checklist in
-`docs/MOBILE_ACCEPTANCE.md`. Record only observed results. TV/Shield application work remains a later
-owner-approved phase after mobile-test acceptance. Future final mobile and TV APKs will use distinct
-factual versioned filenames directly beneath `PrivateMediaTV/`, but those final apps are not
-implemented or published now.
+Install the exact delivered code35 APK over code34 without uninstall or Clear Data and execute the
+F2C.7.5 procedure in `docs/MOBILE_ACCEPTANCE.md`. Validate only with owner-provided credentials/config
+through Accounts & Connections, preserve all secrets on device, and record observed PASS/FAIL. Do not
+start TV/Shield work, enable gated providers, infer live access from fixtures, or claim code35 physical
+acceptance before that evidence.
 
 ## Continuation instructions
 
-Start at application HEAD `7ea85b19fa4c07946043adf0d41b3e08f71242f4` on `main` ==
-`origin/main`. Do not reset/clean/stash/force-push or rebuild TDLib speculatively. This remains the
-Mobile Test phase: do not build/test/lint/version/publish app-tv and do not deliver Shield. Use bounded
-heavy Gradle commands. Mobile-test publication is only a verified factual version filename beneath
-`Download/PrivateMediaTV/Test/`; never recreate mobile latest/previous slots. Preserve every older
-versioned/unrelated phone file. Physical code34 evidence, not host inference, decides the next product
-change.
+Start at application HEAD `01f758ee90edcfb6d943fc0f7ba689444ef51dad` on `main` ==
+`origin/main`. The application worktree was clean after publication. Do not reset/clean/restore/stash,
+force-push, create another worktree, or rebuild TDLib speculatively. Preserve every older factual
+versioned APK and unrelated shared-memory change. This remains Mobile Test only: never build/test/lint/
+version/publish `app-tv` or deliver Shield. Use explicit bounded mobile/mobile-used Gradle targets under
+`/root/work/bin/heavy-run`. The authoritative APK is the exact-head CI file and hash recorded above;
+physical code35 acceptance remains pending.
