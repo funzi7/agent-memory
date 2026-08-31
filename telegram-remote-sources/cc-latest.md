@@ -1,5 +1,32 @@
 # Remote Sources server — latest handoff
 
+## D6A9 — a proven double Telegram delivery closed, and the official Instagram Publisher, deployed
+
+The handset physically delivered one media item to its Telegram topic **twice** while the phone's
+Queue still offered *Upload now* and the source file was gone. A generic failure of the phone-upload
+`finalize` call — the one call that can make this server dispatch to Telegram — was classified as a
+pre-dispatch retry, so a retry dispatched again. No filename, topic, source, message id or any
+private identifier is retained here.
+
+**Server production change: yes, deployed.** Production/deployed code is
+`2b4b4491a61d08efc22f0cf06fce03db75d6bbaf`; the deployed service reports `2b4b449`. **New migration
+head `0010_d6a9_instagram_publisher`** — three purely additive Publisher tables; no existing table
+altered, no row rewritten.
+
+| Field | Value |
+| --- | --- |
+| P0 fix | A lost/timed-out/5xx finalize is RESULT_UNKNOWN; a content-identity guard on ordered `(sha256,bytes)` + frozen destination + upload shape refuses a second dispatch of delivered/in-flight media; a `DISPATCHING` interruption settles RESULT_UNKNOWN; the affected row recovers from positive-only media evidence, never a resend |
+| Publisher | Official Meta Content Publishing API only; credential in the `instagram_publisher` secret namespace, server-only; SHA-256 verified staging; durable server-owned scheduling; exactly-once publish (PUBLISHING durable before `media_publish`, RESULT_UNKNOWN reconciled, never retried); durable lease; `setup_required` when no credential. Advertised as `instagram.publisher.v1` |
+| Publisher runtime (prod) | `SETUP_REQUIRED` — `PUBLISHER_CREDENTIAL_PRESENT=False`; the three tables exist and are empty; nothing faked |
+| Exact-tree gate | ruff + mypy clean; **1,996 passed, 4 skipped** pytest; migration up/down/up round-trip clean; release-preflight **73** modules complete |
+| Smokes | P0 finalize-ambiguity (real uvicorn + Bot-API stub): `downstream_sends=2 lost_response=recovered_confirmed post_send_fault=result_unknown duplicate_second_send=none`. Publisher scheduler-integration: `media_publish` at most once per job |
+| Adversarial review | Independent review of the exactly-once core: no double-`media_publish`, no double-send. Four liveness/integrity bugs found, **all fixed with regression tests** (chunk-disconnect truncation; `publisher_public_base` unset wedge; pre-publish attempt cap; tick-time stale-lease recovery) |
+| Deploy | Guarded deploy under snapshot/rollback; host posture verified (firewall closed, private Serve intact, no Funnel on 443); api + edge healthy; edge policy verified; the local Bot API backend untouched, no Telegram request made; migration `0010` applied |
+| AI roadmap | `docs/D6A9_PUBLISHER_AI_ROADMAP.md` — Phase 1 assistive captions, Phase 2 documented-only autopilot. D6A9 ships no AI |
+
+The Android app is at `65d01b77a6cce380b097b03d06292b7777b4c194` (64 / 0.15.0-d6a9, Room 17). See
+`agent-memory/telegram-topic-uploader/cc-latest.md` for the app side and the Hebrew device checklist.
+
 ## D6A8f — one shared Instagram contact gate, deployed; renewal awaits fresh material
 
 The handset physically established the shared Instagram viewing session as **rejected / connection
