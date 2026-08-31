@@ -1,4 +1,177 @@
-# Private Media TV — F2C.7.6 Final (mobile code 36 committed; exact-head CI budget-blocked)
+# Private Media TV — F2C.7.6 GeckoView completion (mobile code 36; Android media acceptance pending)
+
+## Identity and release state
+
+| Field | Value |
+| --- | --- |
+| Application repository | `funzi7/private-media-tv` |
+| Milestone | F2C.7.6 completion — one provider-neutral GeckoView Website Playback engine, Universal Source browser fallback, Sports provider expansion, mobile-only social clips, and delayed post-match rechecks |
+| Branch / tracking | `main` / `origin/main` |
+| Starting application HEAD | `25dacbcfc7bb4d01aeb328cef668de1b45663bf2` — previous incomplete code-36 checkpoint |
+| Final application HEAD | `96e675b754c65b25b7a0a66895a6ff7a37609869` — equals `origin/main`; pushed normally, no force |
+| Application commit | `96e675b754c65b25b7a0a66895a6ff7a37609869` — `Complete F2C.7.6 GeckoView website playback` |
+| Agent-memory pre-finalization HEAD | `403ee3273d23fe0febdda6c8a9f9776484850060`; the required finalizer records the resulting memory HEAD |
+| Exact-head Android CI | run `33429311296` — **FAILED TO START** because an Actions budget prevented further use; wrapper job had zero steps and the mobile job was skipped with zero steps |
+| Mobile identity | `com.funzi7.privatemediatv.mobile`, `0.4.17-phone-test`, versionCode 36; no second version bump |
+| TV identity | `com.funzi7.privatemediatv`, `0.6.11-f2c71`, versionCode 34 — frozen; no direct TV edit/task/build/test/lint/version/artifact/publication or Shield action |
+| Browser engine | `org.mozilla.geckoview:geckoview-arm64-v8a:154.0.20260824154132`, Mozilla release channel, source revision `8b532c2140db30c193436254a61ce964e7d2a121`, MPL-2.0 |
+| Local code-36 APK | 260,835,355 bytes; SHA-256 `1b9fe4cb17f78aaabf8fef43348e195f62fa89450565b6306aea260fb2972804`; Development signer `2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0`; ARM64-only |
+| APK size impact | +194,275,158 bytes over the verified 66,560,197-byte pre-Gecko code-36 baseline; 13 Gecko ARM64 libraries plus existing TDLib/WireGuard/AndroidX native payloads |
+| Authoritative publication | **NOT PERFORMED** — the exact-head CI run did not execute, so no successful exact-head artifact exists and the local APK was not substituted or copied |
+| Overall Website Playback result | **FAILED / NOT ACCEPTED** — host HTTP discovery passed, but no attached Android device or runnable emulator existed and no Gecko page/player/media observation was made |
+
+## Implemented code-36 completion
+
+### One browser engine and app-capability sandbox
+
+- All non-YouTube Sports, movie, series and episode Website resources use one provider-neutral
+  `WebsitePlaybackEngine` backed by GeckoView. The dormant Android WebView implementation was removed.
+- The boundary isolates the browser session instead of trying to pre-authorize every Web request.
+  Normal HTTPS JavaScript, redirects, forms, iframes/nested frames, cross-origin media/CDN resources,
+  cookies, storage, browser media, EME/DRM where Gecko lawfully supports it, controls and fullscreen
+  remain available inside that boundary.
+- Native JavaScript bridges, file/content access, external intents/apps, custom schemes, downloads,
+  popups, camera, microphone, geolocation, notifications, clipboard-read privilege, local-network
+  access, WebRTC capture and Android dangerous-permission auto-grants fail closed. No DRM, login,
+  subscription, paywall or access-control bypass was added.
+- Expected owner-clicked top-level HTTPS navigation is distinguished from frame/subresource traffic.
+  Unexpected scripted cross-origin top-level changes are held for owner action; unsafe/custom/file/
+  content/app schemes and automatic external handoff remain blocked. Popups cannot launch ad apps.
+- Mozilla telemetry, health reporting, studies, crash upload and application analytics are disabled.
+  Gecko runtime/session startup, permission denial, prompts, HTTP-auth handling, fullscreen, Back,
+  crash closure and lifecycle races have deterministic coverage.
+- Profile-scoped browser contexts retain login cookies/storage privately. `נקה נתוני אתר` clears the
+  selected context. Deleting a Website Source clears only that context/profile and never catalog,
+  progress, downloads or unrelated providers. Current profile lifecycle/approval/chain state is
+  synchronously revalidated at click time, including delayed disable/delete races.
+
+### Universal Source, identity and Sports behavior
+
+- The existing URL-first Add Source flow now offers `השתמש כאתר צפייה` when bounded discovery returns
+  `SOURCE_CUSTOM_ADAPTER_REQUIRED` but the initial public HTTPS page is safe. It creates one truthful
+  exact Website resource without claiming an index, match, player or observed media.
+- Discovery and playback capability are independent. Source origin graphs remain bounded diagnostic,
+  provenance and structural-change evidence; they are never runtime authority over Gecko redirects,
+  frames, XHR/WebSockets, embeds or media/CDN hosts. A changed graph records `SOURCE_CHAIN_CHANGED`
+  and still requires exact owner approval before profile playback can start.
+- Owner-manual Sports URLs retain a separate exact MatchIdentity/source/origin grant and never create
+  discovery authority. All valid sibling LIVE, FULL_REPLAY, HIGHLIGHTS and CLIPS resources remain
+  visible under one MatchIdentity; ranking reorders but never hides alternatives.
+- Candidate Israeli Premier League league-administration YouTube, Sport1 and Walla; LaLiga ONE
+  YouTube/site; and relevant official Thai/European/UK broadcaster candidates are recorded truthfully
+  as disabled/boundary-only until live verification, authorization and any region requirements are
+  established. An inaccessible foreign official source uses `REGION_REQUIRED`, not “does not exist.”
+- X/Twitter, Instagram and TikTok are provider-neutral phone-only `CLIP`/`SHORT_HIGHLIGHT`
+  supplements. They cannot appear on TV/Shield and cannot masquerade as FULL_REPLAY or a full
+  HIGHLIGHTS package.
+- Persisted provider-aware post-match scheduling checks shortly after finish, roughly 30–60 minutes
+  later, several hours later and the next day within a bounded window. It stops on useful evidence,
+  provider disablement, expiry or retry exhaustion and never polls indefinitely.
+- YouTube identities and embeds cannot enter GeckoView. They remain exclusively behind the licensed
+  SmartTube-compatible boundary; unresolved upstream component licensing keeps production YouTube
+  support gated.
+
+### Gecko artifact, packaging and licenses
+
+- Exact AAR: 90,029,579 bytes, SHA-256
+  `c3d8a99295329a405fcba50daae77bb0af8fee06d9b28145c1d1a658d14ce295`; minSdk 26,
+  minCompileSdk 37.1, application compileSdk 37.1 and targetSdk 36. Mozilla Maven resolution is
+  content-filtered to the exact coordinate.
+- The verifier authenticates the AAR/POM/module/source revision/MPL copy, embedded authoritative
+  notices, all 13 ARM64 libraries, FIDO/Play Services/SnakeYAML runtime inputs and exact packaged
+  notice payloads. Deterministic mutation tests prove coordinate, revision, ABI, notice, provenance,
+  release-status, license and runtime-dependency changes fail closed.
+- Shipped debug/release runtime resolves audited SnakeYAML 2.2. Robolectric's unit-test-only graph
+  resolves 2.4. Both selections were explicitly inspected. No x86/x86_64/armeabi-v7a Gecko ABI is
+  packaged.
+
+## Validation evidence
+
+### Real provider HTTP evidence — not Android rendering
+
+- Final opt-in public live suites passed 40/40: TheSportsDB 24, Sports watch providers 5, Sports media
+  indexes 10 and Universal Source 1. The watch smoke follows redirects explicitly and validates
+  bounded same-origin HTTPS scheme/host/port before every network hop.
+- Current Monomax evidence was HTTP 301 to same-origin `/sports`, then HTTP 200. This proves only a
+  reachable provider page, not login, subscription, entitlement, DRM or playback.
+- FootReplays exact source evidence was HTTP 200, 101,479 bytes, with three `loadVideo` markers and
+  two cross-origin child references. The child returned HTTP 200 and a 452-byte script-only bridge.
+  This proves source/child structure only; no iframe or player rendered.
+- DasFootball evidence was a 30-item HTTP 200 feed, exact page HTTP 301→200 with 146,959 bytes and
+  VideoObject/content URL evidence, then a `cdn.videas.fr` HTTP 206 HLS manifest of 460 bytes with
+  four variants. This proves index→page→media-host structure only; PMTV did not render or play it.
+- The owner's exact LiveBall runtime URL was unavailable in this environment and was never printed,
+  committed or stored in memory. No private source or Telegram runtime identity was exposed.
+
+### Required Website Playback observations
+
+| Observation | Result |
+| --- | --- |
+| Source page rendered inside GeckoView | **NOT OBSERVED** |
+| Embed/player rendered | **NOT OBSERVED** |
+| Play action available | **NOT OBSERVED** |
+| Playback started | **NOT OBSERVED** |
+| Video frames observed | **NOT OBSERVED** |
+| Audible audio observed | **NOT OBSERVED** |
+| Fullscreen observed | **NOT OBSERVED** |
+| Back returned to Match/Content Details | **NOT OBSERVED** |
+| Leave/re-enter preserved PMTV state | **NOT OBSERVED** |
+| Login required | **UNKNOWN** |
+| Subscription required | **UNKNOWN** |
+| Region required | **UNKNOWN for tested exact pages; modeled truthfully where known** |
+| DRM gate | **UNKNOWN** |
+
+`adb devices -l` listed no target, `/dev/kvm` was absent and no AVD was available. Static HTTP and
+JVM/Robolectric tests cannot be promoted to Android browser/media PASS. Physical phone playback is
+explicitly pending.
+
+### Final local mobile-only validation
+
+- Every substantial Gradle command used `/root/work/bin/heavy-run -- timeout ...`; no `app-tv` task,
+  root aggregate TV task, TV artifact or Shield command ran.
+- The final explicit 15-target mobile/mobile-used matrix passed 2,241 tests with zero failures/errors
+  and six intentional opt-in/environment skips. After the final lifecycle-gate fix, the full matrix
+  was rerun successfully.
+- All 12 mobile-used Android lint targets passed, followed by final `:app-mobile:assembleDebug`.
+- Exact package/version/signer, ARM64-only ABI, 13 byte-identical Gecko libraries/notices, TDLib JNI,
+  native 16 KiB layout, credential/private-material scan (41), mobile CI downloader (20 rejection +
+  one success), mobile delivery (13), mobile upgrade (8), provisioning inspector (4), LAN/WebCrypto/
+  provisioning interoperability, shell syntax, dependency resolution and `git diff --check` passed.
+- The retained real code35 APK passed exact package/signer/ARM64/TDLib continuity against the final
+  local code36 APK. No uninstall, Clear Data or downgrade was used or suggested.
+
+## Exact-head CI and publication state
+
+- Local application HEAD and `origin/main` both equal
+  `96e675b754c65b25b7a0a66895a6ff7a37609869`.
+- Android CI run `33429311296` targets that exact SHA. GitHub reported: “The job was not started
+  because an Actions budget is preventing further use.” Gradle wrapper validation had zero steps;
+  the mobile build job was skipped with zero steps.
+- This is an external budget failure, not a code-test failure, but it is not CI success. The run was
+  inspected once and was not rerun. No local APK was published as authoritative and no extra commit
+  was created to bypass the budget.
+
+## Exact next step
+
+Restore GitHub Actions budget availability and rerun the **same exact application HEAD**
+`96e675b754c65b25b7a0a66895a6ff7a37609869`. Only after exact-head CI succeeds may the canonical
+downloader fetch, verify and publish code 36. Independently, run the focused Website Playback
+acceptance on a real ARM64 Android phone using an owner-approved non-YouTube source: observe page,
+embed/player, Play, real video frames, audio where present, fullscreen, Back to Details and clean
+leave/re-entry. Record login/subscription/region/DRM gates separately. Until all required runtime
+observations pass, F2C.7.6 Website Playback stays failed/not accepted and TV/Shield work stays frozen.
+
+## Continuation instructions
+
+Start from clean application `main == origin/main` at
+`96e675b754c65b25b7a0a66895a6ff7a37609869`. Preserve code35 and all older versioned APKs. Never
+reset/clean/restore/stash/force-push/create another worktree or publish local code36 bytes. Remain
+Mobile Test only, use explicit bounded mobile/mobile-used Gradle targets under the global heavy-build
+queue, and never reinterpret HTTP discovery or deterministic Gecko tests as media playback evidence.
+
+---
+
+# SUPERSEDED HISTORICAL — F2C.7.6 pre-Gecko code36 checkpoint (exact-head CI budget-blocked)
 
 ## Identity and release state
 
