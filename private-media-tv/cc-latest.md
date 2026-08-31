@@ -1,4 +1,209 @@
-# Private Media TV — F2C.7.5 Final (mobile code 35 published; physical acceptance pending)
+# Private Media TV — F2C.7.6 Final (mobile code 36 committed; exact-head CI budget-blocked)
+
+## Identity and release state
+
+| Field | Value |
+| --- | --- |
+| Application repository | funzi7/private-media-tv |
+| Milestone | F2C.7.6 — real Sports data, provider/source discovery, private announcements, Universal Source onboarding, and multi-hop source-chain audit |
+| Branch / tracking | main / origin/main |
+| Starting application HEAD | 01f758ee90edcfb6d943fc0f7ba689444ef51dad (F2C.7.5 / mobile code 35) |
+| Final application HEAD | 25dacbcfc7bb4d01aeb328cef668de1b45663bf2 — equals origin/main; pushed normally, no force |
+| Application commit | 25dacbcfc7bb4d01aeb328cef668de1b45663bf2 — F2C.7.6 enable real Sports and universal source discovery |
+| Agent-memory pre-finalization HEAD | a51e0ebfecb2768646ac1a5db3ab39227a7a87d2; the required finalizer records the resulting memory HEAD |
+| Exact-head Android CI | run 33372822414 — FAILED TO START because the GitHub Actions budget prevented further use; wrapper job had zero steps, build job was skipped, and this is not a repository test failure |
+| Mobile identity | com.funzi7.privatemediatv.mobile, 0.4.17-phone-test, versionCode 36; intended to update code 35 in place |
+| TV identity | com.funzi7.privatemediatv, 0.6.11-f2c71, versionCode 34 — frozen; no direct TV edit/task/build/test/lint/version/artifact/publication or Shield action |
+| Persistence | additive Catalog Room v13→v14 Universal Source registry/bindings/priorities; full source profiles and owner origin-graph approvals remain in separate encrypted envelopes |
+| Development signer SHA-256 | 2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0 |
+| Local code-36 APK | 66,560,197 bytes; SHA-256 157411d72be40dab62e6cfded9d924fbd4246ffe0bba1d1bb3955ade8438f19b; ARM64-only; TDLib JNI SHA-256 21d59ebfeba4edc62ea74cefaa79b08650e796530f3d5e57804105cc44cb65dc |
+| Authoritative code-36 publication | NOT PERFORMED — no successful exact-head CI artifact exists, so the local APK was not substituted or copied as the release artifact |
+| Retained phone Test artifact | code 35 remains at /storage/emulated/0/Download/PrivateMediaTV/Test/private-media-tv-mobile-0.4.16-phone-test.apk; older versioned APKs were preserved |
+| Overall milestone result | FAILED for the requested provider/manual Website Playback capability; real Sports data and source inspection passed separately |
+
+## Owner evidence preserved
+
+The owner physically observed code 35 with the Sports route, high Home placement, and configured
+filters, but also the empty אין עדיין נתוני משחקים מחוברים state and a clipped Premier League chip.
+Those are code-35 FAIL facts. Code 36 implements the data and padding corrections, but no device was
+attached and no code-36 installation, launch, UI, playback, or physical acceptance is claimed.
+
+## Implemented F2C.7.6 candidate
+
+### Real Sports data and spoiler firewall
+
+- A production TheSportsDB V1 HTTPS adapter uses public free-key mode without asking for a fake
+  secret. Live provider evidence resolved Beitar Jerusalem 135992, Manchester United 133612,
+  Real Madrid 133738, Israeli Premier League 4644, Premier League 4328, Spanish La Liga 4335,
+  and UEFA Champions League 4480.
+- Season/day/team/league previous+next and exact-event scopes are bounded by request coalescing,
+  provider-aware TTLs, a process-wide 24-request/minute gate, concurrency and refresh budgets,
+  bounded retry, stale-valid retention, and sibling-provider failure isolation.
+- The persisted/public fixture projection contains only provider crosswalk, competition/season,
+  teams and safe badges, kickoff, neutral state, and round/stage. Score, result, winner, raw event
+  title/description, and score-bearing artwork are not modeled or persisted.
+- One provider event identity plus exact fixture evidence preserves the same MatchIdentity through
+  rescheduling and later LIVE/highlight/full-replay attachment. Bounded pre-kickoff, live, completion,
+  postponed, and delayed post-match checks persist their next-check state.
+- Home and Sports use real recent/today/upcoming fixtures even when nothing is live. Favorite teams
+  rank before followed-only competitions. Match Details is spoiler-free. Competition/team rails use
+  stable RTL scrolling and physical-safe 16dp edge padding without shrinking the label.
+
+### Provider evidence, announcements, and media indexes
+
+- Web resources distinguish exact match pages from truthful provider portals. Current audited mapping
+  is Monomax for Premier League and beIN SPORTS CONNECT Thailand for LaLiga/UCL only. Connection,
+  login, subscription, region, entitlement, and stream success remain separate states.
+- Current Israeli rights/site evidence did not prove a maintainable exact browser player, so no live
+  Israeli Web provider was fabricated. Optional API-Football remains a key/account-requiring boundary
+  and does not block the zero-setup feed.
+- SmartTube root licensing was rechecked, but required MediaServiceCore/SharedModules redistribution
+  permission remains unclear. The public search/channel/metadata/resolver path stays fail-closed and
+  YouTube never routes through WebView or a competing extractor.
+- SPORTS_ANNOUNCEMENT_SOURCE observes only future messages from the exact authenticated Telegram
+  sources explicitly selected by the owner. Strong teams/competition/date/kickoff evidence attaches
+  to an existing MatchIdentity; ambiguity remains privately owner-assignable; an unknown origin still
+  requires approval. No private invite, channel identity, message locator, or raw message is public.
+- FootReplays is an owner-approved exact-page/manual index path rather than an unrestricted crawler.
+  DasFootball uses one cached/rate-bounded public feed and at most two relevant exact pages. Both
+  create spoiler-safe SourcePage evidence, never MatchIdentity, and retain cached/sibling sources on
+  provider or structural failure.
+
+### Universal Source onboarding and multi-hop bridge model
+
+- One URL-first Add Source controller is shared by master Sources & Connections, Sports settings,
+  Match Details, and movie/series/episode source contexts. It distinguishes reusable provider from
+  exact item and permits an explicit type override without requiring selectors, regex, APIs, iframe
+  hosts, or media URLs from the owner.
+- SourceProfile capabilities cover Sports live/replay/highlights/index/announcements, movies, series,
+  episodes, mixed catalog, trailers, and general video. Only demonstrated capabilities are shown.
+- A bounded declarative RSS/Atom/JSON-LD generic index profile can be saved without executable owner
+  JavaScript or crawler code. Complex sites return a typed custom-adapter requirement rather than a
+  false success; safe exact-link fallback remains available as discovery state.
+- Source origin graphs distinguish INDEX_BRIDGE, EMBED_BRIDGE, PLAYBACK_HOST, and MEDIA_HOST, with
+  bounded depth/origins/redirects/requests/time and mirror branches. Index, top-level navigation,
+  child frame, media, redirect, cookie/storage, and fullscreen permissions remain directional and
+  profile-scoped. A child/CDN never becomes source, catalog, or match identity and cannot gain global
+  top-level trust.
+- Production probing resolves each hostname once, rejects any unsafe or mixed DNS answer, pins the
+  public addresses in a fresh direct cookie/auth-free HTTP/1.1 client while preserving original-host
+  TLS/SNI verification, disables implicit redirects/retry/proxy reuse, and checks the connected peer.
+- Exact movie title+year/external ID and exact series/season/episode/date evidence may bind to canonical
+  catalog identity. Contradictions reject; ambiguous candidates remain owner-confirmable; no fuzzy
+  same-title auto-bind occurs.
+- Stable Hebrew failure codes and privacy-safe SOURCE_DIAGNOSTIC_V1 expose the failing chain stage
+  and safe public host topology without cookies, tokens, passwords, query secrets, account IDs, or
+  Telegram identities. Health/check/edit/disable/delete/detail/diagnostic/priority actions are durable
+  and do not suppress siblings.
+- Room stores only opaque IDs/fingerprints/lifecycle/health/revisions/check state. Complete private
+  profile configuration and exact owner edge approvals use distinct Keystore-backed envelopes. A
+  changed chain requires new owner approval and never silently re-enables a disabled source; deletion
+  removes only that profile; orphaned vault discovery is bounded and full-reset cleanup is fail-closed.
+
+### Manual trust and Website Playback truth
+
+- Match Details previews an owner-pasted HTTPS source's exact scheme/hostname/resolved origin/provider
+  label and login/region warning. The URL cannot self-authorize: an explicit confirmation stores a
+  separate exact MatchIdentity + source token + origin grant. Credentials, unsafe schemes, IP literals,
+  private/local/reserved/mixed DNS, YouTube, and cross-origin escalation reject.
+- Final security review established that Android WebView callbacks cannot expose and enforce every
+  redirect/POST hop, final DNS/rebinding destination, or JavaScript WebSocket target while retaining
+  normal provider login/DRM behavior. Therefore generic, nested, and manual Website Playback is
+  production-disabled before DNS recheck, Proton acquisition, session/event creation, or WebView
+  construction. Accounts show לא נתמך כרגע; there is no Open action or fake success.
+- The dormant WebView lifecycle/origin classifier remains deterministic test surface only. No page,
+  embed, player, entitlement, DRM, or media-playback claim is derived from it. Future enablement needs
+  an enforceable end-to-end transport decision, not more allowlist fixtures.
+
+## Validation evidence
+
+### Real network/runtime smokes
+
+- TheSportsDB PASS: production HTTPS calls resolved all three owner teams and four competitions,
+  returned non-empty 2026/27 schedules and recent/upcoming favorite events, mapped canonical
+  MatchIdentity, and serialized no score/winner field.
+- Watch sites PASS only as host HTTP evidence: current Monomax landing/EPL/login and beIN Thailand
+  LaLiga/UCL pages and redirect assumptions were fetched. No PMTV WebView, login, player, entitlement,
+  DRM, or playback surface was exercised.
+- Israeli audit complete with no source claimed: public league/rights/provider surfaces were
+  reachable, but no maintainable current exact browser player was proved.
+- FootReplays PASS only for source/child structure: a current exact source page and cross-origin
+  child page were fetched and conservatively matched. First iframe/player surface and playback were
+  not observed.
+- DasFootball PASS only for source/page/manifest structure: the bounded feed→exact-page adapter
+  matched a recent item, suppressed raw score-bearing presentation, and fetched its cross-origin HLS
+  manifest. This was not a PMTV player/media observation.
+- Universal probe PASS for source inspection: the production pinned-DNS probe created and codec-
+  round-tripped FootReplays and DasFootball profiles with off-origin edge-scoped graph evidence.
+  sourcePageLoaded=true; firstEmbedLoaded=false; nestedEmbedLoaded=false;
+  playerSurfaceReached=false; mediaPlaybackObserved=false.
+- Private Telegram live smoke pending: deterministic selected-source/redaction/durability tests
+  passed, but no host live-channel test was performed because private identity must remain on the
+  owner's authenticated device/runtime.
+
+### Local mobile-only validation
+
+- Every substantial Gradle command used /root/work/bin/heavy-run -- timeout ...; no root aggregate
+  task and no TV task ran.
+- Explicit mobile/mobile-used unit matrix: 2,177 tests, zero failures/errors, six intentional opt-in
+  skips. Totals: app-mobile 746 (four skips), broadcaster 26, catalog 410, Israel access 27, Local
+  Library 56, metadata 197 (two skips), model 24, offline 13, playback 103, provisioning 48, provider
+  52, security 108, Sports 79, Telegram 240, YouTube 48.
+- All mobile-used Android lint tasks and app-mobile assembleDebug passed. The real four-suite live
+  smoke rerun passed together.
+- Credential scanner 41; CI-downloader 20 rejection + one success fixture; mobile delivery 13; mobile
+  upgrade 8; provisioning inspector 4; WebCrypto/provisioning interoperability; shell syntax; pinned
+  TDLib verify-only; package/version/signer/ARM64/JNI/native/private-material checks; real retained
+  code35→36 upgrade; and git diff --check all passed.
+- adb devices -l listed no device. The local build is not installation, launch, Android Keystore,
+  VPN, Telegram, provider login, player, playback, or physical UI evidence.
+
+### Exact-head CI and publication failure
+
+- The application commit was pushed and local HEAD, origin/main, and the requested exact SHA all
+  matched 25dacbcfc7bb4d01aeb328cef668de1b45663bf2.
+- GitHub Actions run 33372822414 targeted that exact SHA. GitHub's check annotation stated:
+  The job was not started because an Actions budget is preventing further use. Wrapper validation
+  ran zero steps and the dependent mobile build job was skipped.
+- This external budget condition is not fixed by changing application code. The run is not CI success,
+  and no exact-head code-36 CI artifact exists. The authoritative downloader was not run and the local
+  APK was not published as a substitute. Code 35 remains the latest versioned phone Test artifact.
+
+## Permanent decisions and gates
+
+- Sports and all browsing/presentation surfaces remain absolutely spoiler-free. Provider results and
+  score-bearing titles/thumbnails never become owner-visible catalog data.
+- Canonical MatchIdentity/catalog identity is provider-neutral; source/index/embed/media hosts attach
+  as evidence and never own identity. One failing provider never blanks siblings.
+- Owner URLs and discovered graph edges never self-authorize. Trust is explicit, exact, encrypted,
+  scoped, and revocable. No arbitrary script, credential injection, file access, DRM/auth/paywall
+  bypass, pirate index harvesting, media rehosting, or direct-stream extraction was added.
+- YouTube remains SmartTube-compatible only and license-gated. No WebView/IFrame/official-app/Google
+  UI/Play Services/data-key/competing extractor fallback exists.
+- TV and Shield stay frozen until a separately authorized TV phase after owner acceptance of a valid
+  mobile candidate.
+
+## Exact next step
+
+Restore GitHub Actions budget availability, then rerun Android CI for exact application HEAD
+25dacbcfc7bb4d01aeb328cef668de1b45663bf2 without changing the repository. Only after that exact run
+passes may the canonical downloader fetch, reverify, and atomically publish
+PrivateMediaTV/Test/private-media-tv-mobile-0.4.17-phone-test.apk while preserving code 35 and older
+APKs. Then install code 36 over code 35 without uninstall/Clear Data and execute only the focused
+F2C.7.6 checklist in docs/MOBILE_ACCEPTANCE.md. Record observed PASS/FAIL; do not interpret disabled
+Website Playback as passed, and do not begin TV/Shield work.
+
+## Continuation instructions
+
+Start from clean application main == origin/main at
+25dacbcfc7bb4d01aeb328cef668de1b45663bf2. Preserve all versioned APKs and unrelated shared-memory
+work. Never reset/clean/restore/stash/force-push/create another worktree or rebuild TDLib speculatively.
+Remain Mobile Test only and use explicit bounded mobile/mobile-used Gradle targets under the global
+heavy-build queue. Do not publish code 36 from local bytes or from a non-exact/non-successful CI run.
+
+---
+
+# SUPERSEDED HISTORICAL — F2C.7.5 Final (mobile code 35 published; physical acceptance pending)
 
 ## Identity and release state
 
