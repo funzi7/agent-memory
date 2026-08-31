@@ -3,6 +3,46 @@
 > Rolling handoff for `funzi7/affiliate-deals-bot`. Read this first, then the
 > repository documentation linked below.
 
+## 2026-08-31 addendum — Cloudflare Tunnel edge DONE; Access pending owner (billing)
+
+- Repo HEAD now **`4d30c1e4335838b5014a8a337e425939a26aeda9`** on `main`
+  (docs-only reconciliation commit over `c46bd25…`; local == origin/main).
+  1026 pytest passed, ruff + format + strict mypy clean. Deployed server code
+  still `c46bd25` (byte-identical for runtime — docs-only, no redeploy).
+- **Cloudflare Tunnel for `admin.affi.co.il` physically configured + verified.**
+  Locally-managed named tunnel **`affi-admin`**, id
+  `a8e948d2-d447-4a78-a4b4-89544de51e1b`. Runs as the `cloudflared` systemd
+  service (enabled+active, 4 QUIC edge conns). `/etc/cloudflared/config.yml`
+  routes `admin.affi.co.il → http://127.0.0.1:8642` (fallback 404); credentials
+  JSON `/root/.cloudflared/<id>.json` (root-only); proxied CNAME created.
+  Edge verified: unauth `https://admin.affi.co.il` → Cloudflare **502** (origin
+  loopback + admin fail-closed), no admin content/redirect/raw-origin/other-app;
+  nothing on :8642; no public port (only pre-existing sshd:22; cloudflared
+  metrics on 127.0.0.1:20241); apex/`www` unchanged (522); Remote Sources
+  healthy.
+- **`cloudflared tunnel login` cert transfer is broken on this host** (known
+  cloudflared bug #1252 — `Failed to fetch resource`, browser-download fallback;
+  two clean failures, all other net tests fine). Owner chose the manual-cert
+  fallback: the browser-downloaded `cert.pem` (on the Android phone Downloads,
+  where this agent runs) was transferred **file-only** phone→VPS (contents
+  never printed/pasted), installed 0600 root, validated via `cloudflared tunnel
+  list`, used for `create`+`route dns`, then **securely shredded**. If the
+  tunnel ever needs management (create/delete/route) again, cert.pem must be
+  re-provided; the running tunnel needs only the credentials JSON.
+- **PENDING OWNER — Cloudflare Access** (the ONLY open edge step): the owner
+  declined Cloudflare **Zero Trust** onboarding for now (first activation asks
+  for a billing method). So the Access application for admin.affi.co.il + the
+  admin env `CF_ACCESS_TEAM_DOMAIN`/`CF_ACCESS_AUDIENCE` are NOT set → admin
+  service stays **failed/fail-closed** by design (verified message: "Cloudflare
+  Access configuration is incomplete"). Do NOT weaken this; do NOT start the
+  admin without Access; do NOT use the insecure no-auth mode. Consequently the
+  physical **owner phone acceptance** and **through-the-real-Admin-UI**
+  verifications (task §10–§16) are NOT performed — they need an Access session.
+  When the owner is ready to add Zero Trust billing: create a self-hosted Access
+  app (allow only diman7@duck.com), put team domain + AUD into the admin env
+  (0600), `systemctl restart affiliate-deals-admin`, then run the §9/§10–§17
+  edge+UI acceptance.
+
 ## Latest milestone: Affi Admin + Core Shadow Mode + Radar Scheduler + Source Manager + Governor Control Plane
 
 - Date: 2026-08-30
@@ -39,17 +79,15 @@
   "Cloudflare Access configuration is incomplete"). No insecure fallback is
   running; the temporary triple-gated loopback instance used for validation
   was stopped and its env deleted (port 8642 closed).
-- **PENDING OWNER (the only open steps)** — Cloudflare edge for
-  `https://admin.affi.co.il`: on the server run `cloudflared tunnel login`
-  (browser authorize for zone affi.co.il), then `cloudflared tunnel create
-  affi-admin`, fill `<TUNNEL_ID>` into
-  `/etc/cloudflared/config.yml.pending-owner` → rename to `config.yml`,
-  `cloudflared tunnel route dns affi-admin admin.affi.co.il`,
-  `cloudflared service install && systemctl enable --now cloudflared`; create
-  the Zero Trust **Access application** for admin.affi.co.il (allow only the
-  owner), then put the team domain + Application AUD tag into the admin env
-  and `systemctl restart affiliate-deals-admin`. cloudflared 2026.8.2 is
-  already installed. Until then the panel stays loopback-only by design.
+- **Cloudflare edge** — SUPERSEDED by the 2026-08-31 addendum at the top: the
+  Tunnel (`affi-admin`, config.yml, DNS route, systemd service) is now DONE and
+  verified. The tunnel was built with the manual-cert fallback (not the
+  browser-auto-deposit this block originally assumed) because `cloudflared
+  tunnel login` cert transfer is broken on this host (#1252). The ONLY open edge
+  step is the Zero Trust **Access application** + admin `CF_ACCESS_*` env, which
+  the owner deferred (declined Zero Trust billing for now). Admin stays
+  fail-closed until then. cloudflared 2026.8.2 is installed;
+  `/etc/cloudflared/config.yml.pending-owner` remains as a template.
 
 ## What was built (schema v9, all additive)
 
@@ -122,9 +160,14 @@ print/commit host/IP/tailnet/key values.
 
 ## Remaining / future work
 
-- Owner Cloudflare steps above (tunnel login + Access app) — then verify the
-  edge: unauthenticated curl to https://admin.affi.co.il must 302 to
-  `<team>.cloudflareaccess.com`, never serve admin content.
+- Cloudflare **Tunnel** DONE (2026-08-31; see top addendum). Remaining edge
+  step = the Zero Trust **Access application** + admin `CF_ACCESS_*` env, which
+  the owner deferred (declined Zero Trust billing). Currently unauthenticated
+  `https://admin.affi.co.il` → Cloudflare **502** (origin loopback + admin
+  fail-closed). AFTER the Access app exists it must instead **302** to
+  `<team>.cloudflareaccess.com` and never serve admin content — verify then.
+  The owner phone acceptance + through-the-Admin-UI checks (§10–§16) also wait
+  on Access.
 - LIVE mode: owner decision later, via the Admin, after reviewing shadow
   outcomes vs policy. Shadow outcomes appear once candidates resolve
   (currently all needs_review — correct conservatism; curation/binding will
