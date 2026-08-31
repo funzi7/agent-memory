@@ -39,6 +39,35 @@ Recorded in each session's final report. **Never invent or predict a HEAD before
 one written down early is a fabrication, and downstream sessions will try to verify it. Verify any
 supplied HEAD against GitHub before trusting it.
 
+### D6A9 current handoff — a proven double delivery is closed, and the official Publisher shipped
+
+**One approved milestone, two strictly-ordered parts, both shipped.**
+
+- **Part A (P0), the priority.** A media item was physically delivered to its Telegram topic
+  **twice** while its Queue row still offered *Upload now* and its source file was gone. Root cause: a
+  generic failure of the phone-upload `finalize` call — the one call that can make the server
+  dispatch to Telegram — was classified as a pre-dispatch retry, so the retry dispatched again. Fixed
+  on both sides: a lost/timed-out/5xx/malformed finalize is RESULT_UNKNOWN (never retried), a server
+  content-identity guard on ordered `(sha256, bytes)` + frozen destination + upload shape refuses a
+  second dispatch of delivered/in-flight media, and the stranded row recovers from positive-only,
+  monotone media evidence — never a resend.
+- **Part B.** The **official** Instagram Publisher (Meta Content Publishing API; no private APIs, no
+  browser automation, no publishing through viewing cookies). Server-owned throughout: credential in
+  the `instagram_publisher` secret namespace only, SHA-256 verified staging, durable server-owned
+  scheduling, exactly-once publish with RESULT_UNKNOWN reconciliation. A **new**, distinct drawer
+  destination "Instagram Publisher" / "מפרסם אינסטגרם" — NOT the pre-existing local "Instagram
+  publishing" share flow, which was left untouched. With no Meta credential it is `setup_required`.
+
+**HEADs (verify against GitHub before trusting):** Android `65d01b77a6cce380b097b03d06292b7777b4c194`;
+server `2b4b4491a61d08efc22f0cf06fce03db75d6bbaf`, deployed and the service reports `2b4b449`, migration
+`0010_d6a9_instagram_publisher`. Android **64 / 0.15.0-d6a9**, Room **17**. APK
+`Download/telegram-topic-uploader/TelegramTopicUploader-0.15.0-d6a9.apk` (18,797,507 bytes, SHA-256
+`2ad5563e…`, signer matches D6A8f), not installed, prior APKs untouched. Publisher production runtime
+`SETUP_REQUIRED` (no Meta credential). Gates: server 1,996 pytest passed + release-preflight + P0
+finalize smoke `duplicate_second_send=none`; Android 3,904 tests / 0 failures + lint + assembles. An
+independent adversarial review of the exactly-once core found and fixed four liveness bugs, each with
+a regression test. Device checklist (Hebrew) is in `cc-latest.md` and awaits the user's normal use.
+
 ### D6A8f current handoff — the shared Instagram viewing session is rejected and contained
 
 The handset physically showed the one shared Instagram viewing session as **rejected / connection

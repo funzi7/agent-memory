@@ -7,6 +7,52 @@
 > **When the user supplies SHAs, read agent-memory before responding**, verify each against
 > `origin/main`, and only then answer. A supplied SHA is a claim to verify, never a fact to repeat.
 
+## D6A9 — a proven double Telegram delivery closed, and the official Instagram Publisher
+
+A media item was physically delivered to its Telegram topic **twice**, its Queue row still offering
+*Upload now*, its source file already gone. The physical facts, and only these:
+`LOCAL_DUPLICATE_DELIVERY_COUNT_OBSERVED=2`, `SOURCE_FILE_PRESENT=false`,
+`ACTIVE_QUEUE_ROW_STILL_PRESENT=true`, `UPLOAD_NOW_STILL_OFFERED=true`. No filename, topic, source,
+message id or other private identifier is recorded here.
+
+**Android production change: yes.** **64 / 0.15.0-d6a9**, Room schema **17**, no migration.
+**Server production change: yes, deployed.** Server migration head **0010_d6a9_instagram_publisher**.
+
+| Field | Value |
+| --- | --- |
+| Android HEAD | `65d01b77a6cce380b097b03d06292b7777b4c194` |
+| Android gate | **3,904 unit tests, 0 failures / 0 errors; lint passed; `assembleDebug` + `assembleDebugAndroidTest` passed**; instrumentation compiled, not run |
+| APK | `Download/telegram-topic-uploader/TelegramTopicUploader-0.15.0-d6a9.apk`, **18,797,507 bytes**, SHA-256 `2ad5563e4af79032fbda4ac68ef3283f1f5ebca14f58f8b500d85130e1111a58`; byte-identical to the build output; signer matches D6A8f (`74e78654…`); **not installed**; prior APKs untouched (the D6A8f one is under `Download/TelegramTopicUploader/`) |
+| Server HEAD / deployed | `2b4b4491a61d08efc22f0cf06fce03db75d6bbaf`; the deployed service reports `2b4b449`; migration `0010_d6a9_instagram_publisher` applied; api + edge healthy; the local Bot API backend was untouched and no Telegram request was made |
+| Server gate | ruff + mypy clean; **1,996 passed, 4 skipped** pytest; release-preflight 73 modules complete; the P0 finalize smoke reports `duplicate_second_send=none`; the publisher scheduler-integration test proves `media_publish` at most once per job |
+| Publisher runtime | `SETUP_REQUIRED` — no Meta credential is configured on production (`PUBLISHER_CREDENTIAL_PRESENT=False`); the three publisher tables exist and are empty; nothing is faked |
+| Adversarial review | The exactly-once core was independently reviewed — no double-`media_publish`, no double-Telegram-send. Four liveness/integrity bugs were found and **all four fixed, each with a regression test** |
+| Live-use budget | No affected item resent (0); no live Meta publish (0); no Telegram test send (0); the Telegram backend unchanged |
+
+### What changed
+
+A generic failure of the phone-upload `finalize` call was classified as a pre-dispatch retry, so a
+retry delivered the media twice. It is now RESULT_UNKNOWN (never retried); a server content-identity
+guard on the ordered `(sha256, bytes)` digests + frozen destination + upload shape refuses a second
+dispatch of delivered or in-flight media; and the affected row recovers from positive-only, monotone
+media evidence rather than any resend. The Publisher is the **official** Meta Content Publishing API,
+server-owned throughout: SHA-256 verified staging, durable server-owned scheduling, exactly-once
+publish with RESULT_UNKNOWN reconciliation. Credentials are server-only; with none present it is
+`setup_required`. It is a **new** drawer destination "Instagram Publisher" / "מפרסם אינסטגרם",
+deliberately distinct from the existing local "Instagram publishing" share flow (which shares files
+to the Instagram app and whose own screen says the official API "is not connected yet"). Future AI
+work is documented, not shipped, in `telegram-remote-sources/docs/D6A9_PUBLISHER_AI_ROADMAP.md`
+(Phase 1 assistive captions, Phase 2 documented-only autopilot).
+
+### Device checklist — awaits the user's normal use (Hebrew, for the user)
+
+1. עדכנו את האפליקציה ל-0.15.0-d6a9 (מ-`Download/telegram-topic-uploader/`), ובדקו שהיא נפתחת.
+2. פתחו את המגירה ← "מפרסם אינסטגרם". כרטיס החשבון אמור לומר שדרוש חיבור/הגדרה (setup_required),
+   ללא כפתור פרסום — כי בשרת עדיין אין פרטי הזדהות של Meta.
+3. ודאו שהיעד הקיים "פרסום באינסטגרם" (שיתוף לאפליקציה) עדיין קיים ופועל כרגיל — הוא יעד נפרד.
+4. בתור ההעלאה: ודאו שהעלאה רגילה לטלגרם ממשיכה לעבוד, ושפריט אינו נשלח פעמיים אחרי כשל/חוסר-רשת.
+5. את הפריט שנשלח בכפילות בעבר — אין לשלוח שוב ואין להשתמש בו כניסוי שליחה.
+
 ## D6A8f — one rejected viewing session, one shared pause, one guarded renewal
 
 The handset physically reported the shared Instagram viewing session as **rejected / connection
