@@ -7,6 +7,95 @@
 > **When the user supplies SHAs, read agent-memory before responding**, verify each against
 > `origin/main`, and only then answer. A supplied SHA is a claim to verify, never a fact to repeat.
 
+## D6A11 — a phantom deletion blocker, a RESULT_UNKNOWN local delete, and no background playback
+
+Three defects were physically observed on the handset and are corrected here. Only the generic physical
+facts are recorded: **≥2 deletion attempts refused as *another upload still needs this file* while the
+visible Upload Queue held zero items; ≥1 deletion refused solely because a previous send was
+`RESULT_UNKNOWN`; ≥1 video whose audio kept playing after the app left the foreground.** No filename,
+path, URI, digest, topic, Telegram id, source folder or media content is recorded.
+
+**Android production change: yes.** **66 / 0.16.1-d6a11**, Room schema **17**, no migration.
+**Server production change: no.** Server HEAD / deployed / migration unchanged.
+
+| Field | Value |
+| --- | --- |
+| Android HEAD | `1cce682114bb8895ff826384befe91f0bb1ec764` |
+| Android gate | **3,936 unit tests, 0 failures / 0 errors / 0 skipped, 251 suites; lint 0 errors / 5 warnings; `assembleDebug` + `assembleDebugAndroidTest` passed**; instrumentation compiled, not run (no device). Exact-tree `--rerun-tasks`; `git diff --check` clean |
+| APK | `Download/telegram-topic-uploader/TelegramTopicUploader-0.16.1-d6a11.apk`, **17,602,350 bytes**, SHA-256 `f407fb3158c1aa8c0978a294b1f5ee16ab0f9a4461d780ef82cbae1b1456b3b7`; byte-identical to the build output; signer certificate `74:E7:86:54:…:DF:D4` matches D6A10; **not installed** (no device); prior APKs untouched |
+| Server HEAD / deployed | `01dbda6919faea73d4a225b21b56d49848aaa94c`; unchanged; migration `0011_d6a10_publisher_automation`; no Telegram request, no Meta call |
+| Adversarial review | Two independent tracks (deletion 14 concerns, playback 13). Three confirmed findings fixed + regression-pinned; all others refuted with code evidence |
+| Runtime gates | `UNIT_CI=PASSED`; `STATE_INTEGRATION=PASSED`; `DEVICE_E2E=AWAITING_USER_NORMAL_USE`; `PLAYBACK_RUNTIME=BLOCKED_NO_DEVICE`; `DELETION_RUNTIME=BLOCKED_NO_DEVICE`; `HISTORICAL_DEVICE_FORENSICS=PENDING_NO_DEVICE` |
+
+### Defect A — the phantom source dependency (Upload Queue empty, deletion refused)
+
+`SourceDependencyPolicy` is now the one canonical answer to *does this durable job still need the local
+source bytes for a send that has not happened*. It no longer counts a job that already **dispatched to
+Telegram** (a message id or a confirmation) as needing the source — exactly-once forbids a resend, so a
+dispatched row is never "another upload still waiting". `RESULT_UNKNOWN` is never source-dependent;
+`TELEGRAM_CONFIRMED` left `ALWAYS_SOURCE_DEPENDENT` (a confirmed file is refused earlier as
+already-uploaded). The post-upload SQL `countOtherSourceDependentJobs` was rewritten to encode the same
+policy exactly, so the two deletion paths cannot drift. Every remaining blocker is genuine pre-dispatch
+work — queued, uploading, retryable, or a destination-committed preparation — visible on an active
+surface, which is the invariant a blocker must satisfy.
+
+The causal state is settled too: a new process-start recovery step
+(`markAbandonedDispatchWithMessageResultUnknown`) settles an abandoned dispatch that reached Telegram
+(a message id) but was never confirmed to `RESULT_UNKNOWN`, keeping the message id as durable evidence,
+under the same `DispatchAbandonmentProof` + live-snapshot safety the rest of process-start recovery
+uses, and never a resend. It runs only from the process-start owner, never a UI-reachable path — the
+D6A7e7a boundary that forbids `reconcileDurableState` from writing `RESULT_UNKNOWN`.
+
+**Device-forensics honesty:** no ADB device was connected, so the exact production rows behind the two
+observed blockers could not be inspected. The complete code-level cause set (partial-evidence and
+unproven-confirmation rows sitting in Needs review with no Queue presence) is enumerated and fixed, but
+the specific row is `DEVICE_FORENSICS_PENDING`; it was not invented from synthetic data.
+
+### Defect B — a terminal RESULT_UNKNOWN no longer imprisons the local file
+
+`ManualDeletionGate` and `SourceDeletionAvailability` no longer refuse a deletion because a previous
+send is `RESULT_UNKNOWN`. The manual-deletion coordinator has no upload launcher, gateway or queue in
+its constructor, so "never resends" is a structural fact. Deleting the local source does not resolve,
+retry, resend or reclassify the unknown attempt: the `RESULT_UNKNOWN` row, its Telegram evidence, its
+destination and History all survive (the absent-source reconciler retires only never-dispatched
+placeholders), a source tombstone is recorded, and a later scan does not resurrect the media. A clear
+Hebrew warning precedes the irreversible delete (the media may already be in Telegram; deleting the
+local file changes nothing and resends nothing), and the success notice says the result stays unknown —
+it never claims the file was *not* delivered. Genuine active work still blocks: a real
+queued/uploading/retryable sibling, a live media operation, a missing write grant, or an unprovable
+document identity each still refuse, in that order. Exactly-once and document-identity safeguards are
+untouched.
+
+### Defect C — one authoritative foreground-playback contract
+
+`AppVisibilityTracker` gained `isForeground` (a `StateFlow<Boolean>`, true only while an Activity is
+RESUMED — deliberately not window-focus, so the app's own full-screen player dialog does not pause the
+video the instant the user opens it). It is published once at the composition root as the
+`LocalAppForeground` CompositionLocal, which — unlike `LocalLifecycleOwner` — propagates into the
+full-screen player's `Dialog` subcomposition. A shared `PauseWhenAppBackgrounded` is used by **every**
+app-owned player: the inline Review/Queue/History player and its full-screen dialog, the in-app Preview
+player (which previously had no lifecycle observer at all, and now also pauses on audio-focus loss),
+and both Instagram Publisher `VideoView` previews. Leaving the foreground pauses playback, abandons
+audio focus, and preserves position; the onPrepared/surface race is gated on the live foreground value
+so a late callback cannot start in the background; a persistent suppress-auto-resume latch stops any
+auto-resume when the app returns (the surface is recreated on return, which would otherwise re-satisfy
+the start condition); no background service, media session or Picture-in-Picture is introduced.
+
+### Adversarial review — three confirmed findings, fixed and regression-pinned
+
+- **Deletion #5:** the success toast said *"never uploaded"* for a dispatched `RESULT_UNKNOWN` item,
+  contradicting the pre-delete warning. Fixed with a distinct `DeletedWithUnknownResult` result and a
+  truthful notice, and the pre-delete warning broadened to partial-evidence dispatched rows.
+- **Playback C1/C2:** the Preview and both Publisher previews auto-resumed on return to the foreground,
+  because their start paths gated on readiness+foreground rather than a persistent play-intent (the
+  inline player is immune via `session.playing`). Fixed with a suppress-auto-resume latch armed by the
+  background pause and cleared only by an explicit tap to play.
+
+All other concerns (exactly-once integrity, evidence preservation, no resend, no live-upload
+settlement, SQL↔policy equivalence, document-identity safety, full-screen Dialog CompositionLocal
+propagation, audio-focus abandonment, no muted-in-background, single-player invariant, position
+preservation) were refuted with code evidence. Device checklist: `docs/D6A11_DEVICE_CHECKLIST.md`.
+
 ## D6A10 — the Instagram Publisher, activated on the phone: batch drafts, overlay editor, automation
 
 D6A9 shipped the official Publisher as a `setup_required` drawer destination. D6A10 makes it usable:

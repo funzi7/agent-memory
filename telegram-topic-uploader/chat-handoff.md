@@ -39,6 +39,39 @@ Recorded in each session's final report. **Never invent or predict a HEAD before
 one written down early is a fabrication, and downstream sessions will try to verify it. Verify any
 supplied HEAD against GitHub before trusting it.
 
+### D6A11 current handoff — a phantom deletion blocker, a RESULT_UNKNOWN local delete, no background playback
+
+**One approved Android-only milestone, three physically observed defects.** Sanitized facts: ≥2
+deletions refused as *another upload still needs this file* with the Upload Queue empty; ≥1 refused
+solely by a terminal `RESULT_UNKNOWN`; ≥1 video audible after the app was backgrounded.
+
+- **A — phantom source dependency.** `SourceDependencyPolicy` is now one canonical policy (the
+  post-upload SQL rewritten to match): a job that already dispatched to Telegram — confirmed or
+  unknown — no longer counts as needing the source, because exactly-once forbids a resend;
+  `RESULT_UNKNOWN` is never source-dependent; `TELEGRAM_CONFIRMED` is refused earlier as
+  already-uploaded. Process-start recovery settles a stale dispatch that reached Telegram but was never
+  confirmed to `RESULT_UNKNOWN` (evidence kept), never from a UI path (the D6A7e7a boundary).
+- **B — RESULT_UNKNOWN local delete.** A terminal unknown result no longer imprisons the local file.
+  The coordinator has no upload path, so deleting cannot resend; the unknown attempt, its evidence,
+  destination and History survive; a tombstone is recorded; no resurrection. A clear Hebrew warning
+  precedes the delete, and the success notice never claims non-delivery.
+- **C — one foreground-playback contract.** `AppVisibilityTracker.isForeground` (resumed-based) →
+  `LocalAppForeground` (reaches the full-screen player Dialog, unlike `LocalLifecycleOwner`) →
+  `PauseWhenAppBackgrounded`, in every player owner (inline + full-screen dialog, Preview, both
+  Publisher previews). Pauses on background, abandons focus, preserves position, no auto-resume.
+
+**HEADs (verify against GitHub before trusting):** Android
+`1cce682114bb8895ff826384befe91f0bb1ec764` (**66 / 0.16.1-d6a11**, Room **17**, no migration); server
+`01dbda6919faea73d4a225b21b56d49848aaa94c` **unchanged**, migration `0011_d6a10_publisher_automation`.
+APK `Download/telegram-topic-uploader/TelegramTopicUploader-0.16.1-d6a11.apk` (17,602,350 bytes, SHA-256
+`f407fb31…56b3b7`, signer `74:E7:86:54:…:DF:D4` matches D6A10, not installed — no device, prior APKs
+untouched). Gate: Android **3,936 tests / 0 failures / 0 errors / 0 skipped, 251 suites; lint 0 errors /
+5 warnings; both assembles**. Adversarial review (deletion + playback): three confirmed findings fixed
++ regression-pinned (success notice "never uploaded" → result-unknown; Preview/Publisher
+auto-resume-on-return → suppress latch); others refuted. No ADB device: `DEVICE_E2E` awaits normal use,
+`PLAYBACK_RUNTIME`/`DELETION_RUNTIME` `BLOCKED_NO_DEVICE`, `HISTORICAL_DEVICE_FORENSICS` PENDING.
+Device checklist `docs/D6A11_DEVICE_CHECKLIST.md`.
+
 ### D6A10 current handoff — the official Publisher activated for real use
 
 **One approved milestone.** The D6A9 Publisher (official Meta Content Publishing API, server-owned)
