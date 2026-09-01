@@ -1,5 +1,36 @@
 # Remote Sources server — latest handoff
 
+## D6A10 — the Instagram Publisher, activated: overlays, batch drafts, durable automation, deployed
+
+The D6A9 Publisher shipped `setup_required` and credential-less. D6A10 makes it a working product,
+server-owned throughout. **No Telegram delivery path and no Instagram *viewing* credential is
+touched.** No real Meta publication has occurred (no operator credential is configured on
+production), and no account, post, token or identifier is recorded here.
+
+**Server production change: yes, deployed.** Production/deployed code and the service's own report are
+`01dbda6919faea73d4a225b21b56d49848aaa94c`; `DEPLOYED_HEAD == HEAD`. **New migration head
+`0011_d6a10_publisher_automation`**, applied on production — two new tables and eight new
+nullable/defaulted columns, purely additive, `0010` untouched.
+
+| Field | Value |
+| --- | --- |
+| What shipped | Operator-only credential provisioning (`remote-sources-configure instagram-publisher` / `-clear`, hidden input, `instagram_publisher` namespace); live validation + sanitized status (`remote-sources publisher-validate` / `publisher-status`); Graph pinned **v26.0**; `/publish/account/connect` reduced to operator-only (no authorize-URL surface); capability `instagram.publisher.v2`. Server ffmpeg+libass burned-in video overlays (simple + advanced) into a verified derivative (ffprobe + recomputed SHA-256), original never modified, Hebrew/RTL correct. Overlay + automation are pure domain modules. Render/prepare lifecycle with an `overlay_revision` stale-render race close; durable READY queue + reorder; one-job-per-slot automation; RESULT_UNKNOWN account-wide pause; token-refresh + limit-read passes. Signed media-fetch extended to serve verified renders with Range/HEAD |
+| Meta contract (verified official docs, 2026-09-01) | Instagram-Login setup, `graph.instagram.com`, **no FB Page**, scopes `instagram_business_basic` + `instagram_business_content_publish`. Reels container→poll `status_code`→`media_publish` (not idempotent; ambiguity reconciled by re-reading `status_code==PUBLISHED`, exactly D6A9). `content_publishing_limit` read at runtime (`quota_total` never hard-coded; docs disagree 50 vs 100). Meta cURLs the server's own signed URL of the derivative; no device URL fetched. Token minted once in the App Dashboard (long-lived 60-day), refreshed by a bounded daily pass |
+| Renderer safety | No user text reaches an ffmpeg argument — text lands only in an ASS file, ffmpeg gets the relative `overlay.ass` with the work dir as cwd, argv-only (`run_extractor`, never a shell). `domain/publisher_overlay.py` refuses `{ } \` and explicit Unicode bidi controls, strips harmless marks, bounds counts. One fixed DejaVu Sans Bold style. Render bounded (300s+4×dur cap 1h), one-per-tick, DB released across the encode |
+| Dockerfile | Pins **`fonts-dejavu-core`** (the Hebrew-covering render font) and **`tzdata`** (the automation zoneinfo DB) — `ffmpeg` pulls them only as *recommends*, which `--no-install-recommends` drops, and **the deploy rebuilds the api image** (`docker compose build --pull api`), so a rebuild would otherwise silently lose RTL text. Verified on the rebuilt prod image: `fc-list :lang=he` = 2, `ZoneInfo("Asia/Bangkok")` resolves |
+| Exact-tree gate | ruff format/check clean; mypy clean over 84 source files; **2,053 passed, 3 skipped** pytest; release-preflight **77** modules; migration up/down/up round-trip; `0011` no-destructive-statement scan; shell `bash -n`; `git diff --check` — all on the committed tree |
+| Runtime smokes (real) | `scripts/d6a10-render-smoke`: real ffmpeg, three renders (simple / advanced-multi-window / Hebrew+English), ffprobe-verified, **frames extracted and the overlay proved present in the intended band during the intended interval and absent before it** — Hebrew RTL confirmed rendered (the release-blocker check). `scripts/d6a10-automation-smoke`: real `Scheduler` composition vs an isolated Meta stub — queue order, one-per-slot, cursor durable across restart, **no downtime burst**, double-claim blocked, RESULT_UNKNOWN pause, reconcile-resume, fixed-times — `MEDIA_PUBLISH_CALLS_PER_JOB=1`, 8 distinct containers, none republished |
+| Publisher runtime (prod) | `SETUP_REQUIRED` — `PUBLISHER_CREDENTIAL_PRESENT=False`; the two new tables exist and are empty; nothing faked |
+| Adversarial review | No high/critical. Two low-severity Android hardening items fixed + regression-pinned (non-advancing-ack resend loop bound; server-jobid cache-filename sanitization). One observation folded into docs: the automation one-per-slot guarantee rests on the single-writer scheduler + the D6A9 lease, not an atomic DB CAS — the model docstring now says so |
+| Deploy | Guarded, first attempt, under snapshot/rollback with a proven-restorable backup; host posture verified (firewall closed, private Serve intact, no Funnel on 443); api + edge healthy; full edge policy verified; the local Bot API backend untouched (`Up 2 weeks`), backend `local`/verified/`max_upload_bytes` 2,097,152,000, **no `logOut`, no Telegram request, no Meta call**; guard read fresh beforehand: 0 dispatching deliveries/uploads, 0 publisher in-flight, 0 checks running |
+| Honest gates | `UNIT_CI=PASSED`; `FFMPEG_RUNTIME_SMOKE=PASSED`; `AUTOMATION_INTEGRATION_SMOKE=PASSED`; `DEVICE_E2E=AWAITING_USER_NORMAL_USE`; `PUBLISHER_AUTH_RUNTIME` / `PUBLISHER_MEDIA_PREP_RUNTIME` / `PUBLISHER_PUBLICATION_RUNTIME` / `AUTOMATION_META_RUNTIME` = `BLOCKED_NEEDS_META_SETUP` |
+
+The full design/ops/security record is `docs/D6A10_PUBLISHER_AUTOMATION.md`; operator steps are in
+`docs/OPERATIONS.md`; the security summary in `docs/SECURITY.md`. Android is
+`76fec641735089049b8a1cbe7e25901cb3703987` (65 / 0.16.0-d6a10, Room 17). AI remains documented-only
+(`docs/D6A9_PUBLISHER_AI_ROADMAP.md`); D6A10 ships no AI.
+
+
 ## D6A9 — a proven double Telegram delivery closed, and the official Instagram Publisher, deployed
 
 The handset physically delivered one media item to its Telegram topic **twice** while the phone's
