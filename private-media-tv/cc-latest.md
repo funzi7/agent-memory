@@ -1,4 +1,139 @@
-# Private Media TV — F2C.7.6 GeckoView completion (mobile code 36; Android media acceptance pending)
+# Private Media TV — F2C.7.7 physical last-mile correction (mobile code 37; physical acceptance pending)
+
+## Identity and release state
+
+| Field | Value |
+| --- | --- |
+| Application repository | `funzi7/private-media-tv` |
+| Milestone | F2C.7.7 — favorite-badge correction, complete Universal Source save/bind/open flow, visible Sports provider portfolio, provider activation truth, runtime diagnostics, and narrow-phone layout correction |
+| Branch / tracking | `main` / `origin/main` |
+| Starting application HEAD | `96e675b754c65b25b7a0a66895a6ff7a37609869` — verified pushed code-36 baseline |
+| Final application HEAD | `2aa4cb632454cb86ea9168efbb04da048fcddb1a` — equals `origin/main`; pushed normally, no force |
+| Application commit | `2aa4cb632454cb86ea9168efbb04da048fcddb1a` — `Complete F2C.7.7 physical last-mile correction` |
+| Agent-memory pre-finalization HEAD | `54adab104489c9c4f7a2b23a8b917ab24557cf5d`; the required finalizer records the resulting memory HEAD |
+| Exact-head Android CI | run `33471544988` — **PASS** for exact application HEAD; wrapper, TDLib, harnesses, unit tests, lint, signed ARM64 assembly, package/version/signer/TDLib/Gecko verification, metadata/checksum creation, and artifact upload all passed |
+| Mobile identity | `com.funzi7.privatemediatv.mobile`, `0.4.18-phone-test`, versionCode 37; exactly one bump over installed code 36 |
+| TV identity | `com.funzi7.privatemediatv`, `0.6.11-f2c71`, versionCode 34 — frozen; no direct TV edit/task/build/test/lint/version/artifact/publication or Shield action |
+| Local physical-test APK | `/storage/emulated/0/Download/PrivateMediaTV/Test/private-media-tv-mobile-0.4.18-phone-test-local.apk`; 258,049,435 bytes; SHA-256 `9bb2246a24ff173812798744a85def3ed588c4e2f2c4fa93f582879d5944c6f6`; **LOCAL PHYSICAL TEST ONLY**, not authoritative |
+| Authoritative exact-head CI APK | `/storage/emulated/0/Download/PrivateMediaTV/Test/private-media-tv-mobile-0.4.18-phone-test.apk`; 258,049,435 bytes; SHA-256 `9d62269b8fda34c21003aeb84b275b267a383d2cc61b3e4c9bb4990e85e2cb2d`; created by the repository exact-head downloader from run `33471544988` |
+| Development signer | SHA-256 `2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0`; both APKs are ARM64-only and retain verified TDLib/Gecko payloads |
+| Overall result | **PASSED automated/local/CI implementation gates; PHYSICAL TEST PENDING** for owner-visible badges/layout, persistence and real Gecko page/embed/player/media behavior |
+
+## Owner scope correction
+
+**SUPERSEDED — owner does not want dedicated provider/service integration; PMTV Sports uses Web media
+sources/bridges instead.** Monomax and beIN are absent from active Sports provider lists, Accounts &
+Connections, automatic portal attachment/ranking, special login/subscription actions, and active
+backlog. Code-36 provider-specific cache rows are purged during the code-37 migration while exact
+owner-added Website URLs are preserved. Generic Gecko login/region/browser behavior remains available
+for any safe owner-approved Website; PMTV does not collect a paid broadcaster credential or create a
+dedicated broadcaster account, subscription, app replacement, or DRM-integration product.
+
+## Implemented code-37 behavior
+
+### Favorite teams and badges
+
+- Provider rows now enrich the canonical owner-default `TeamIdentity` instead of losing richer data to
+  first-record-wins merge order. Beitar Jerusalem, Manchester United and Real Madrid receive valid
+  TheSportsDB badges when supplied without changing favorite membership/order or duplicating identity.
+- Valid cached badge data survives sparse or failed refresh. Image requests are stable across
+  recomposition, a stale-valid image remains eligible after temporary network/image failure, and the
+  letter fallback appears only when no valid badge exists or actual rendering fails.
+- Spoiler-safe badges are shown on match cards, Match Details, and favorite settings/search rows where
+  the layout remains clean.
+
+### Universal Source last mile
+
+- The practical flow is URL -> Check -> concise result -> contextual role choice when needed -> a
+  persistent full-width Add action -> durable profile/resource plus exact binding -> reprojection ->
+  return -> immediately visible source -> `פתח צפייה באתר`. Static `playbackObserved=false` means only
+  that device playback is unobserved; it never blocks save, binding, or Website Playback.
+- Match Details limits roles to LIVE, FULL_REPLAY, EXTENDED_HIGHLIGHTS, HIGHLIGHTS,
+  SHORT_HIGHLIGHT, or CLIP. Generic video detection requires the owner to choose. Movie, Series,
+  Season, Episode and Trailer contexts bind to MOVIE, SERIES, SERIES, EPISODE and TRAILER respectively.
+  Master Settings saves a reusable targetless owner profile and returns to My Sources.
+- Save failures never silently no-op. Stable Hebrew, copyable, privacy-safe diagnostics distinguish
+  role/context, private storage, binding, state-race, projection-pending, capacity and generic save
+  failures. A projection-only retry reloads an already durable save without creating a duplicate.
+- Safe non-YouTube public-HTTPS pages are openable in Gecko without an index adapter, direct media URL,
+  known CDN, or static playback proof. HTTP 401/403/451 and bounded nested-embed/depth discovery failures
+  remain truthful exact Website fallbacks so normal browser login/region behavior can be tested; no
+  static probe claims rendering, entitlement, a player, or playback.
+- Owner-added exact Live/Web pages can be assigned to the current match and opened. Exact social URLs
+  are mobile-only CLIP/SHORT_HIGHLIGHT resources. Owner-confirmed or manually assigned Telegram-
+  announced LIVE URLs now remain durably attached across provider refresh and process restart without
+  exposing private announcement identity.
+
+### Sports providers and operational truth
+
+- Sports Settings visibly separates maintained built-ins from owner-added sources and shows roles,
+  coverage, enabled state, current usability, and exact blockers. Built-ins can be toggled; owner-added
+  profiles can be edited, deleted, or reprobed without deleting catalog/progress/download state.
+- TheSportsDB metadata/fixture/team support is operational. DasFootball is visible and enabled by
+  default; its bounded maintained adapter accepts only explicit HIGHLIGHTS evidence, maps to the exact
+  MatchIdentity, retains siblings, schedules delayed checks, and opens the saved page in Website
+  Playback. Automatic FULL_REPLAY/other role inference without explicit evidence is **NOT
+  IMPLEMENTED**; owner exact pages remain usable through manual contextual role selection.
+- FootReplays is visible and enabled with bounded explicit Full Match competition-index/exact-page
+  discovery for the currently verified Premier League, LaLiga and Champions League structure. It does
+  not claim arbitrary pagination/search/crawling, and physical Gecko behavior is pending.
+- ONE Website automatic discovery is **NOT IMPLEMENTED** because the observed video-host TLS is invalid
+  and no stable public-HTTPS exact-match index was verified. Sport1 is **NOT IMPLEMENTED** because no
+  stable spoiler-safe exact-match media-index/player contract was verified. Walla Sport is **NOT
+  IMPLEMENTED** because its spoiler-bearing category pages depend on Sport1 embeds and expose no
+  independent exact-match media contract. Safe exact owner pages remain usable through Universal Source.
+- ONE and Israeli league-administration YouTube remain **SMARTTUBE LICENSE BLOCKED**; there is no
+  GeckoView, official-app, iframe, Data API, or competing-extractor fallback. UEFA Website and Premier
+  League archive automatic adapters remain **NOT IMPLEMENTED** for their documented exact-index/login
+  evidence limits. The factual per-family matrix is `docs/F2C77_PROVIDER_OPERATIONAL_MATRIX.md`.
+
+### Runtime diagnostics and responsive UI
+
+- Website Playback exposes copyable, privacy-safe status/errors for page load, TLS, HTTP auth, rendered
+  page, missing embed/player, media error/autoplay, fullscreen, blocked navigation/external app, crash,
+  and playback-not-observed. Notices are dismissible and omit cookies, tokens, auth headers, full
+  private URLs/query secrets, private Telegram identity and media data.
+- SafeDrawing/display-cutout/navigation and IME-aware insets, RTL-aware padding, wrapping/flexible
+  rows, scrollable prompts, and sticky Add actions were applied across Sports, Match Details, provider
+  rows, Universal Source/My Sources and Website chrome. Deterministic Compose coverage exercises
+  360dp, 411dp and 520dp; actual phone clipping/keyboard behavior remains physical acceptance.
+
+## Validation evidence
+
+- The complete explicit mobile/mobile-used unit matrix passed 2,281 tests with zero failures/errors
+  and six intentional skips. All 12 mobile-used Android lint targets and
+  `:app-mobile:assembleDebug` passed through the required heavy-work queue. No root aggregate or
+  `app-tv` task ran.
+- Two opt-in live DasFootball/FootReplays public-structure smokes passed. They establish only current
+  HTTP/index/page/bridge structure and never prove Gecko rendering, a player, media, entitlement,
+  region access, DRM, login or subscription.
+- Exact Gecko artifact/license/packaged-notice and pinned TDLib verification passed, as did package,
+  version, signer, ABI/native checks, credential/private-material scanner 41, mobile delivery 13,
+  downloader 20 rejection plus one success, mobile upgrade 8, provisioning inspector 4, Gecko mutation,
+  crypto/provisioning/interoperability and shell checks. The retained code36-local -> code37 upgrade
+  verifier preserved package, signer, ARM64 and TDLib continuity.
+- Independent final scope and security/diff audits found no remaining release-blocking code gap, active
+  Monomax/beIN product path, direct TV change, private-material exposure, unsafe Website fallback
+  regression, version mismatch or unrelated work. Final `git diff --check` passed.
+- Android CI run `33471544988` completed successfully for exact HEAD
+  `2aa4cb632454cb86ea9168efbb04da048fcddb1a` and uploaded the signed mobile artifact. The exact-head
+  downloader authenticated its run/commit/checksum/metadata/package/version/signer/ARM64/TDLib/Gecko
+  identity and created only the code-37 authoritative versioned Test filename. Code35, code36 and older
+  versioned files, plus the separate `-local` copy, were preserved.
+
+## Physical acceptance remains pending
+
+No Android device was attached. Do not infer any of the following from HTTP, JVM, Compose, CI, APK copy,
+or static Gecko evidence: favorite badges rendered on the owner phone; no clipped control with the real
+keyboard/insets; page/embed/player rendered; Play worked; video frames or audio occurred; fullscreen or
+Back worked; restart retained the source; delete/disable behaved correctly; login/subscription/region/
+DRM succeeded. Install the authoritative code-37 APK over code 36 without uninstall or Clear Data and
+execute only the focused 18-step checklist at the top of `docs/MOBILE_ACCEPTANCE.md`. Capture a copyable
+safe diagnostic for any failure. TV/Shield remains frozen until a separately authorized milestone.
+
+---
+
+# SUPERSEDED HISTORICAL — Private Media TV F2C.7.6 GeckoView completion (mobile code 36; Android media acceptance pending)
 
 ## Identity and release state
 
