@@ -39,6 +39,45 @@ Recorded in each session's final report. **Never invent or predict a HEAD before
 one written down early is a fabrication, and downstream sessions will try to verify it. Verify any
 supplied HEAD against GitHub before trusting it.
 
+### D6A10 current handoff — the official Publisher activated for real use
+
+**One approved milestone.** The D6A9 Publisher (official Meta Content Publishing API, server-owned)
+went from `setup_required` to a working product, without touching Telegram delivery or the Instagram
+*viewing* credential. No real Meta publication has occurred — no operator Meta credential is
+configured on production — so the four Meta-runtime gates are `BLOCKED_NEEDS_META_SETUP`, honestly.
+
+- **Batch drafts.** Select videos in Review (or one folder-media video) → "Add to Instagram
+  Publisher" → one independent server draft per video (never a carousel), each staged resumably.
+- **Burned-in video text, rendered on the server.** A draft editor sets an Instagram caption and an
+  overlay: simple (one text, TOP/CENTER/BOTTOM, full duration) or Advanced (multi-segment, each with
+  start/end, position and size). The server burns it with ffmpeg+libass into a *verified derivative*
+  (ffprobe + recomputed SHA-256), never modifying the original; Hebrew/RTL render correctly. READY
+  means the current overlay revision has a verified derivative; any edit invalidates it and
+  re-renders, and a render that finishes after a newer edit is `superseded`, never published.
+- **Durable automation.** One server policy per device: manual / every-N-hours+anchor / fixed daily
+  times, in an IANA timezone. At most one front-of-queue READY job publishes per due slot; a
+  RESULT_UNKNOWN pauses the account's automation; there is no catch-up burst after downtime (anchor
+  defines the grid, a cursor advances past missed slots, a 15-minute grace). DST fall-back publishes
+  once, spring-forward's nonexistent hour is skipped.
+- **Operator-only connection.** No in-app Instagram login. The Meta app id/secret/long-lived token are
+  provisioned on the server (`remote-sources-configure instagram-publisher`, hidden input,
+  `instagram_publisher` namespace) and validated read-only (`remote-sources publisher-validate`).
+  Graph pinned v26.0. The D6A9 `/publish/account/connect` OAuth stub was reduced to operator-only.
+
+**HEADs (verify against GitHub before trusting):** Android
+`76fec641735089049b8a1cbe7e25901cb3703987` (65 / 0.16.0-d6a10, Room 17, no migration); server
+`01dbda6919faea73d4a225b21b56d49848aaa94c`, deployed and the service reports the same, migration
+`0011_d6a10_publisher_automation` applied. APK
+`Download/telegram-topic-uploader/TelegramTopicUploader-0.16.0-d6a10.apk` (17,600,701 bytes, SHA-256
+`2f67f863…608641`, signer `74:E7:86:54:…:DF:D4` matches, not installed, prior APKs untouched).
+Gates: server 2,053 pytest passed + preflight 77 + both real smokes PASSED (render frame-verified
+Hebrew/RTL; automation `MEDIA_PUBLISH_CALLS_PER_JOB=1`, no burst); Android 3,921 tests / 0 failures +
+lint 0 errors + both assembles. Adversarial review: no high/critical; two low-severity Android fixes
+applied + regression-pinned. The deploy rebuilt the api image and now pins `fonts-dejavu-core` +
+`tzdata` (the render font + automation zoneinfo DB), verified present on production. Publisher
+production runtime `SETUP_REQUIRED` (no Meta credential). Device checklist (Hebrew) is in the app repo
+`docs/D6A10_DEVICE_CHECKLIST.md` and awaits the user's normal use.
+
 ### D6A9 current handoff — a proven double delivery is closed, and the official Publisher shipped
 
 **One approved milestone, two strictly-ordered parts, both shipped.**

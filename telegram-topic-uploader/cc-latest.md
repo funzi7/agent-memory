@@ -7,6 +7,59 @@
 > **When the user supplies SHAs, read agent-memory before responding**, verify each against
 > `origin/main`, and only then answer. A supplied SHA is a claim to verify, never a fact to repeat.
 
+## D6A10 — the Instagram Publisher, activated on the phone: batch drafts, overlay editor, automation
+
+D6A9 shipped the official Publisher as a `setup_required` drawer destination. D6A10 makes it usable:
+prepare a batch of videos, add an Instagram caption and text burned into the video, preview it, and
+let the server publish the ready ones automatically. **Server-owned throughout** — no Room copy of
+Publisher state, no token/secret/Meta-id/signed-URL on the wire. It is the same distinct destination,
+still separate from the local "Instagram publishing" share flow, which is unchanged.
+
+**Android production change: yes.** **65 / 0.16.0-d6a10**, Room schema **17**, no migration.
+**Server production change: yes, deployed.** Server migration head **0011_d6a10_publisher_automation**.
+
+| Field | Value |
+| --- | --- |
+| Android HEAD | `76fec641735089049b8a1cbe7e25901cb3703987` |
+| Android gate | **3,921 unit tests, 0 failures / 0 errors / 0 skipped, 250 suites; lint 0 errors / 5 warnings; `assembleDebug` + `assembleDebugAndroidTest` passed**; instrumentation compiled, not run. (One pre-existing `TelegramMediaRepairGatewayTest` network-timing test flaked under parallel load and passes in isolation; a clean full re-run is 3,921/0.) |
+| APK | `Download/telegram-topic-uploader/TelegramTopicUploader-0.16.0-d6a10.apk`, **17,600,701 bytes**, SHA-256 `2f67f86308e2936c38b52523b2cb5d5e2941dfdb8f2b98a5ebba98c168608641`; byte-identical to the build output; signer certificate `74:E7:86:54:…:DF:D4` matches D6A9; **not installed**; prior APKs untouched |
+| Server HEAD / deployed | `01dbda6919faea73d4a225b21b56d49848aaa94c`; the deployed service reports the same; migration `0011_d6a10_publisher_automation` applied; api + edge healthy; the local Bot API backend untouched (`Up 2 weeks`), no Telegram request and no Meta call |
+| Publisher runtime | `SETUP_REQUIRED` on production — no Meta credential configured; the new tables exist and are empty; nothing faked |
+| Adversarial review | No high/critical. Two low-severity hardening fixes applied + regression-pinned (non-advancing-ack resend-loop bound; server-jobid cache-filename sanitization) |
+
+### What changed on the phone
+
+* **Bulk "Add to Instagram Publisher" / "הוסף למפרסם אינסטגרם"** in Review multi-selection and on a
+  folder-media video card. One selected video = one independent server draft (never a carousel);
+  images in the selection are skipped. `PublisherBatchCoordinator` creates each draft and stages its
+  original bytes to the server (`PublisherMediaStager`, resumable chunk/offset/SHA), resolving the
+  live document at the byte boundary through the D6A8e resolver — no filename/path inference.
+* **A draft editor** (`PublisherDraftEditorScreen`/`ViewModel`, a new non-drawer route): the Instagram
+  caption; the burned-in overlay in simple mode (one text + TOP/CENTER/BOTTOM) or **Advanced options /
+  אפשרויות מתקדמות** (multiple segments, each with start/end, position and SMALL/MEDIUM/LARGE),
+  validated locally for immediate feedback and re-validated authoritatively on the server; an
+  interactive Compose overlay preview drawn over the running video at its live playback position
+  (`InlineCardVideoPlayer` gained an optional position-aware overlay slot); save + prepare; and a
+  playable preview of the server-rendered final derivative (downloaded from a device-authenticated
+  Range endpoint). The local video the editor previews is linked to the server draft by an in-memory,
+  non-durable index (`PublisherLocalMediaIndex`) — never a Room copy of server state.
+* **The Publisher screen** gained a READY queue (count + move-earlier/later reorder over the durable
+  server order) and an **Automation** section: manual / every-N-hours+anchor / fixed daily times, an
+  editable IANA timezone, the next slot, the API usage (`published_usage / limit`), and the pause
+  reason — including **"אוטומציה מושהית — תוצאת פרסום לא ידועה"** for a RESULT_UNKNOWN pause. Changes
+  write to the server authority and refresh from it. Automation is never silently enabled.
+* Room stayed **17** (no migration): every durable Publisher fact — overlay spec, render generation,
+  queue order, automation policy — lives on the server. Wire capability negotiated as
+  `instagram.publisher.v2`; unknown server states still offer no action.
+
+### Device checklist — awaits the user's normal use (`docs/D6A10_DEVICE_CHECKLIST.md`, Hebrew)
+
+`DEVICE_E2E=AWAITING_USER_NORMAL_USE`. ADB had no connected device; nothing was installed. A real
+publication additionally needs the operator to configure Meta credentials on the server
+(`remote-sources-configure instagram-publisher` then `publisher-validate`) — until then the account
+card honestly says setup is required. A public post needs a user-designated test video and explicit
+approval.
+
 ## D6A9 — a proven double Telegram delivery closed, and the official Instagram Publisher
 
 A media item was physically delivered to its Telegram topic **twice**, its Queue row still offering
