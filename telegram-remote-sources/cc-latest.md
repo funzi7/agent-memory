@@ -1,5 +1,22 @@
 # Remote Sources server — latest handoff
 
+## D6A11 — Android-only; the server was not touched
+
+D6A11 corrected three physically observed **Android** defects — a manual source deletion refused as
+*another upload still needs this file* while the Upload Queue was empty; a deletion refused solely by a
+terminal `RESULT_UNKNOWN`; a video whose audio continued after the app left the foreground. None of it
+required a server change.
+
+**Server production change: no.** Deployed production code and the service's own report remain
+`01dbda6919faea73d4a225b21b56d49848aaa94c`; migration head remains `0011_d6a10_publisher_automation`.
+No deploy, no migration, no Telegram request and no Meta call were made for D6A11. The exactly-once
+delivery boundary the server owns is unchanged, and the Android RESULT_UNKNOWN local-delete cannot
+resend (the phone's manual-deletion path has no server call at all).
+
+Android ships as `1cce682114bb8895ff826384befe91f0bb1ec764` (66 / 0.16.1-d6a11, Room 17, no migration);
+see `agent-memory/telegram-topic-uploader/cc-latest.md` for the full app-side record and the Hebrew
+device checklist.
+
 ## D6A10 — the Instagram Publisher, activated: overlays, batch drafts, durable automation, deployed
 
 The D6A9 Publisher shipped `setup_required` and credential-less. D6A10 makes it a working product,
