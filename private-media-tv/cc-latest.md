@@ -1,3 +1,145 @@
+# Private Media TV — F2C.7.9 physical corrections, full-replay variants, static dynamic resolution (mobile code 39; physical acceptance pending)
+
+## Identity and release state
+
+| Field | Value |
+| --- | --- |
+| Application repository | `funzi7/private-media-tv` |
+| Milestone | F2C.7.9 — FootReplays FULL_REPLAY native resolution (static alias-hop + packed-JS unpack), first-class full-replay variants, one-logical-card source presentation, compact Match Details + per-source play feedback, truthful empty state + bounded `חפש מקורות עכשיו`, schedulable-only notification control, watched-through visibility/correction + provenance protection, indicator truth, non-eye hide glyph, restored Episode Details auto-discovery (owner correction), fresh SmartTube re-audit (still BLOCKED), DasFootball 2026-09 upstream revision handled truthfully |
+| Branch / tracking | `main` / `origin/main` |
+| Starting application HEAD | `2d2f1456d13da25dd54fbbfda18c27f8e7e314b3` — verified clean code-38 baseline `== origin/main` |
+| Final application HEAD | `20312c9cc16e10a3f639e8ee2bd1ed9a721215bd` — `== origin/main`; pushed normally, no force |
+| Application commit | `20312c9cc16e10a3f639e8ee2bd1ed9a721215bd` — `Complete F2C.7.9 physical corrections, full-replay variants, static dynamic resolution` |
+| Exact-head Android CI | run `33644626644` — **SUCCESS** for the exact final HEAD `20312c9` (both jobs green: Gradle wrapper validation; official TDLib + mobile tests + mobile lint + signed mobile APK). No warm-cache FIDO recurrence. |
+| Mobile identity | `com.funzi7.privatemediatv.mobile`, `0.4.20-phone-test`, versionCode 39; exactly one bump over installed code 38 |
+| TV identity | `com.funzi7.privatemediatv`, `0.6.11-f2c71`, versionCode 34 — frozen; no TV/Shield edit/task/build/test/lint/version/artifact/publication/device action |
+| Authoritative exact-head CI APK | `/storage/emulated/0/Download/PrivateMediaTV/Test/private-media-tv-mobile-0.4.20-phone-test.apk`; 258,345,668 bytes; ARM64-only; APK SHA-256 `4913741369509995f9df96f50f3f5b32451138e48dd1246fefc46578dcb5f112`; TDLib JNI SHA-256 `790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f` (matches pinned); created by the repository exact-head downloader from run `33644626644` (`Publication: created`, provenance `authoritative exact-head CI`, same-version local cleanup `absent`) |
+| Development signer | SHA-256 `2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0`; ARM64-only |
+| Preserved artifacts | versioned files `0.4.15`, `0.4.16`, `0.4.17-…-local`, `0.4.18-…-local`, `0.4.18`, `0.4.19` retained unchanged; no 0.4.20 `-local` copy was created |
+| Overall result | **PASSED automated/local/CI implementation gates; PHYSICAL TEST PENDING** for all on-device playback/UI/notification behavior (31-item code-39 block in `docs/MOBILE_ACCEPTANCE.md`) |
+
+## Physical code-38 owner evidence (preserved exactly)
+
+PASS: code38 installed/ran and native `נגן` played a real Sports HIGHLIGHTS source INSIDE PMTV — the
+source → resolver → Media3 architecture is physically proven. A same-kind Website fallback failure
+(`WEBSITE_MEDIA_AUTOPLAY_BLOCKED`, page rendered, no media session) does not invalidate it.
+FAILs A–K (FootReplays FULL_REPLAY `MEDIA_RESOLVE_DYNAMIC_PLAYER_UNSUPPORTED` at `hgcloud.to`;
+duplicate native+Website cards; verbose Match Details; no play feedback; finished-match
+`התראה 10 דקות לפני`; `צפיתי עד לפה` clutter; confusing watched state; Ted Lasso false PARTIAL;
+double eye icons; misleading `לא נמצא כרגע מקור לצפייה`) drove this milestone.
+
+## What code 39 implements (ADR 0052)
+
+- **FootReplays native FULL_REPLAY — static resolution.** 2026-09-02 live audit of the real chain:
+  exact page → one `loadVideo('https://hgcloud.to/<id>')` per variant row → 452-byte alias spinner
+  whose only behavior is a random client-side hop to a player-domain pool preserving the path →
+  StreamHG-family page embedding literal HLS URLs inside one classic packed `eval(p,a,c,k,e,d)`
+  block. Resolver additions: bounded alias-host candidate swap (alias first, then ≤3 audited pool
+  candidates — `hgplaycdn.com`, `dhcplay.com`, `hanerix.com`, `audinifer.com`, `vibuxer.com` listed —
+  every hop DNS-inspected by the existing transport), a pure bounded Kotlin `PackedJsUnpacker`
+  (dictionary substitution; never a JS runtime; adversarial-input linear scanning), and quoted
+  relative-manifest detection over the DECODED text only. No Gecko/WebView resolver stage exists or
+  was needed. A rotated pool degrades to the exact dynamic-player failure + secondary `פתח באתר`.
+  Live opt-in smoke (production DNS-pinned transport): ALL THREE current real variants — Full Match,
+  First Half, Second Half — resolved to verified `#EXTM3U` masters
+  (`FOOTREPLAYS_RESOLVER_LIVE_SMOKE_V1 variants=3 resolved=3`).
+- **Variants first-class:** `SportsMediaSource.variant` surfaces the existing
+  COMPLETE/FIRST_HALF/SECOND_HALF/language/host model; one logical card per provider/role renders
+  distinct `נגן משחק מלא`/`נגן מחצית ראשונה`/`נגן מחצית שנייה` buttons; per-variant resolution via
+  the equality-only `variantKey` (regression: each variant plays its own media); no fabricated full
+  match, no concatenation.
+- **Presentation:** presentation-only dedupe of native vs Website vs universal rows (page/hostname
+  facts; bindings/provenance untouched); compact summary card (spoiler-guarded TheSportsDB
+  `strVenue` newly parsed; `מחזור N`); per-group availability summary; failure detail behind
+  `פרטי שגיאה`; Gecko notice/`נקה נתוני אתר`/Website open behind `אפשרויות נוספות`; per-source play
+  phases (`מאתר נגן…`/`מאתר מדיה…`/`מכין ניגון…`/`פותח נגן…`) with no global freeze; truthful empty
+  state `עדיין לא נמצא מקור מדויק למשחק הזה` + per-family status (DasFootball/FootReplays enable
+  state, `YouTube רשמי · חסום ברישיון SmartTube`, Telegram selected-announcement count, owner
+  profiles); `חפש מקורות עכשיו` = existing bounded explicit refresh with a `priorityMatch` guarantee
+  (the open match — including FINISHED — always joins the bounded 16-match batch) + universal
+  `refreshExplicit`.
+- **Notifications:** pure `controlPresentation` (TOGGLE / STARTING_SOON / NONE) mirrored by the
+  gated Compose toggle; lead-minutes label from the stored preference; nothing renders for
+  LIVE/FINISHED/CANCELLED/POSTPONED or past-kickoff fixtures.
+- **Watched-through:** pure `WatchedThroughActionPolicy` row gating (normal action only where it
+  newly marks something; fail-open on unknown structure); `⋮` overflow `הגדר נקודת צפייה עד כאן`
+  with truthful confirmation + bounded single-shot undo; `correctWatchedThrough` reverts ONLY
+  synthetic-after-point marks (real playback/manual/season/series-Eye marks and manual-Unwatched
+  always survive); real playback now permanently upgrades WATCHED_THROUGH/SEASON_BULK provenance;
+  UserState stays v8 — NO migration.
+- **Indicator truth (Ted Lasso):** the fabricated coarse PARTIAL seed is gone; the shared series-Eye
+  worker derives Eye + precise NONE/PARTIAL/CAUGHT_UP/COMPLETE from the same loaded evidence,
+  visibility-driven, retryable, refreshed on every watched mutation; no overlay renders before real
+  evidence.
+- **One eye:** new `ic_state_not_interested` (block ⊘) for the strip action AND hidden-status
+  overlay; crossed-eye drawable deleted; poster overlay stays status-only.
+- **OWNER CORRECTION — Episode Details searches again:** a keyed screen effect calls the retained
+  `autoDiscoverEpisodeSources` (all code-27–34 guards intact: identity-scoped single session,
+  retained-result reuse, supersede-on-switch, no restart on recomposition/rotation/refresh/watched
+  changes); passive surfaces stay zero-search; the code-35 "Details never contacts providers" rule
+  is SUPERSEDED for this exact surface; `MobileCatalogUiContractTest` now FAILS if the wiring is
+  removed again; AGENTS.md gained the permanent no-silent-UX-supersede safeguard.
+- **SmartTube (BLOCKED — fresh 2026-09-02 network audit):** root repo genuinely MIT (relicense
+  commit `e5ee11f6`, 2026-02-12, recreated history; dep5; announcement #5376 OPEN with six exact
+  contributor confirmations); the MIT tree vends NO engine code (gitlinks only); MediaServiceCore
+  `082e2e488cce…` and SharedModules `11116d27ed61…` (both current masters) have NEVER published a
+  license at any commit; REUSE spec 3.3 excludes submodules from a parent dep5; MediaServiceCore
+  embeds near-verbatim NewPipe GPL-3.0-derived `potokennp2` code (unilateral owner MIT cannot cover
+  it) plus unlicensed bundled astring/meriyah and merged contributor PRs; no documented/stable IPC
+  surface exists (investigated and closed). No code copied; both `פרטים` texts show the NEW exact
+  blocker; audited pins moved to the current masters; unblock conditions in
+  `core-youtube/SMARTTUBE-UPSTREAM-AUDIT.md`.
+- **DasFootball upstream revision (2026-09):** kickoff now uses an explicit offset (parser accepts
+  both forms — deterministic regression) and revised pages expose ONLY YouTube-embedded players,
+  which are retained truthfully as SmartTube-gated sources (never GeckoView); NEW DasFootball
+  matches therefore provide no native playback while YouTube stays blocked; cached legacy pages keep
+  their proven evidence; the live smoke asserts BOTH upstream shapes.
+
+## Validation evidence
+
+- All substantial Gradle work ran through `/root/work/bin/heavy-run -- timeout ...`; no root
+  aggregate and no `app-tv`/Shield task.
+- Final matrix green: core-metadata 225, core-catalog 421, core-sports 133, core-provider 62,
+  core-youtube 50, core-playback 110, app-mobile 855 (incl. Compose) = 1,856 tests, 0 failures, 7
+  intentional opt-in skips. New suites: `PackedJsUnpackerTest`, `SportsNativeMediaResolverTest`
+  additions (alias rotation, truthful exhaustion, per-variant isolation, ad/tracking rejection),
+  `SportsMediaIndexTest` new-upstream Das regression, `SportsMatchNotificationPolicyTest`
+  `controlPresentation` matrix, `WatchedThroughPolicyTest` action-presentation matrix,
+  `WatchedThroughStoreTest` correction/undo/provenance-survival, `F2c79SportsSourcePresentationTest`,
+  updated `F2c78PendingSurfacesComposeTest` (state-gated toggle) and the flipped
+  `MobileCatalogUiContractTest` episode-discovery regression gate.
+- Changed-module Android lint (app-mobile, core-metadata, core-catalog, core-youtube) and
+  `:app-mobile:assembleDebug` passed; local candidate APK verified (package/0.4.20/39/ARM64-only/
+  TDLib JNI `21d59ebf…`/dev signer). `git diff --check` clean.
+- Harnesses: credential scanner 41; mobile delivery 14; CI downloader 20 rejection + 1 success;
+  mobile upgrade 8 (fixtures shifted to old=0.4.19/38, new=0.4.20/39); combined upgrade 13; Gecko
+  verifier deterministic positive + mutation; pinned TDLib artifact verify.
+- Live opt-in smokes (real network; never Android playback claims): TheSportsDB; FootReplays
+  index/exact page; FootReplays resolver 3/3 variants → verified HLS masters; DasFootball both-shape
+  truth. `adb devices -l` listed no device — physical playback is explicitly pending.
+- Android CI run `33644626644` completed SUCCESS for exact HEAD `20312c9cc16e10a3f639e8ee2bd1ed9a721215bd`; the exact-head downloader authenticated run/commit/package/version/signer/ABI/TDLib identity and created only the new authoritative versioned file, preserving 0.4.15–0.4.19 and both historical `-local` copies (no 0.4.20 `-local` ever existed).
+
+## Pending gates (no invented PASS)
+
+- **PHYSICAL TEST PENDING:** the full 31-item code-39 block in `docs/MOBILE_ACCEPTANCE.md` —
+  per-variant Full/First/Second-half native playback (frames/audio/seek/fullscreen/Back), highlight
+  no-regression, dedupe/compactness/progress visibility, notification gating on device, watched
+  correction UX, indicator truth on the owner's Ted Lasso data, non-eye icon, Episode Details
+  auto-discovery on device.
+- **BLOCKED:** YouTube/SmartTube engine (fresh exact blocker above; unblock conditions recorded).
+- **Upstream-limited:** NEW DasFootball pages are YouTube-only → SmartTube-gated until licensing
+  clears or upstream changes again.
+
+## Exact next step
+
+Install the authoritative code-39 APK over code 38 (no uninstall/Clear Data) and run the focused
+31-item F2C.7.9 checklist at the top of `docs/MOBILE_ACCEPTANCE.md`, prioritizing FootReplays
+Full Match / First Half / Second Half native playback, the code-38 highlight no-regression check,
+and the restored Episode Details auto-discovery. Record failures with the copyable safe diagnostics.
+TV/Shield stays frozen until a separately authorized milestone.
+
+---
+
 # Private Media TV — F2C.7.8 native media resolution + owner addenda (mobile code 38; Codex→Claude takeover; physical acceptance pending)
 
 ## Identity and release state
