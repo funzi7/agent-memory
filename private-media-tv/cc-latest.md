@@ -9,14 +9,14 @@
 | Takeover | Claude continued the in-progress F2C.7.8 worktree after Codex hit its usage limit; all Codex partial work preserved (no reset/clean/restore/stash/force-push); no extra version bump |
 | Branch / tracking | `main` / `origin/main` |
 | Starting application HEAD | `2aa4cb632454cb86ea9168efbb04da048fcddb1a` — verified pushed code-37 baseline, `== origin/main` at takeover |
-| Final application HEAD | `55034efec99aa5059aba2d4bfd971c50b6e27efd` — `== origin/main`; pushed normally, no force |
-| Application commit | `55034efec99aa5059aba2d4bfd971c50b6e27efd` — `Complete F2C.7.8 native media resolution + owner addenda (Codex→Claude takeover)` |
-| Exact-head Android CI | run `33583200573` — **SUCCESS** for the exact final HEAD; mobile-only, no TV/Shield job |
+| Final application HEAD | `2d2f1456d13da25dd54fbbfda18c27f8e7e314b3` — `== origin/main`; pushed normally, no force |
+| Application commits | `55034efec99aa5059aba2d4bfd971c50b6e27efd` — `Complete F2C.7.8 native media resolution + owner addenda (Codex→Claude takeover)`; then the final HEAD `2d2f1456d13da25dd54fbbfda18c27f8e7e314b3` — `Place F2C.7.8 owner-facing Compose surfaces (no version bump)` |
+| Exact-head Android CI | run `33609686364` — **SUCCESS** for the exact final HEAD `2d2f145` (both jobs green). Passing required forcing a cold Gradle dependency resolve: the post-assembly GeckoView verifier requires a local `play-services-fido-21.3.0.pom` in `modules-2`, which the GitHub Gradle cache-cleanup prunes from warm caches (Gradle resolves that module via `.module` metadata and never re-downloads the pom), so warm-cache runs found 0. Deleted this HEAD's `gradle-dependencies-v1-*` + `gradle-home-v1\|*` caches to re-resolve cold; the fido pom then materialized and the verifier passed. Not a repository code issue — the diff is `app-mobile/src` + docs only. Prior run `33583200573` was the `55034ef` build. |
 | Mobile identity | `com.funzi7.privatemediatv.mobile`, `0.4.19-phone-test`, versionCode 38; exactly one bump over code 37 (done by Codex; not re-bumped) |
 | TV identity | `com.funzi7.privatemediatv`, `0.6.11-f2c71`, versionCode 34 — frozen; no TV/Shield edit, task, build, test, lint, version, artifact, publication or device action |
-| Authoritative exact-head CI APK | `/storage/emulated/0/Download/PrivateMediaTV/Test/private-media-tv-mobile-0.4.19-phone-test.apk`; 258,246,043 bytes; ARM64-only; APK SHA-256 `2bf82e8dd9023fc05a96440008826b73447bb46d1ab51dfd6a471018af8f5129`; created by the repository exact-head downloader from run `33583200573` |
+| Authoritative exact-head CI APK | `/storage/emulated/0/Download/PrivateMediaTV/Test/private-media-tv-mobile-0.4.19-phone-test.apk`; 258,296,073 bytes; ARM64-only; APK SHA-256 `d172ebeacda2604a459e883165e28adbc615bc6abf970cb2220f7f5685ec53d2`; created by the repository exact-head downloader from run `33609686364`; same-version (0.4.19/38) atomic in-place replace of the prior build (no version bump) |
 | Development signer | SHA-256 `2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0`; ARM64-only; TDLib JNI SHA-256 `790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f` (matches pinned) |
-| Preserved artifacts | code 35/36-local/37-local/37 versioned files retained unchanged; no `-local` 0.4.19 was ever created, so none was removed |
+| Preserved artifacts | the older versioned files `0.4.15` (code 35), `0.4.16` (36), `0.4.17-phone-test-local`, `0.4.18-phone-test-local`, and `0.4.18` retained unchanged; the `0.4.19/38` file was atomically replaced in place with the refreshed exact-head build (same version, no bump); no `-local` 0.4.19 was ever created, so none was removed |
 | Overall result | **PASSED automated/local/CI implementation gates; PHYSICAL TEST PENDING** for all real device/player/media/notification-delivery behavior |
 
 ## What the takeover implemented
@@ -67,11 +67,13 @@ The two owner addenda were implemented at the domain/policy/mechanism level with
 
 ## Pending owner-facing surfaces and gates (no invented PASS)
 
-- **PENDING (domain/mechanism done + reachable, Compose surface + physical acceptance pending):** the
-  per-episode `צפיתי עד לפה` action + confirmation/undo dialog; the catalog-card partial-watched Eye
-  overlay + ViewModel projection; the Sports Settings `התראות משחקים` toggles + Match Details per-match
-  toggle + the notification reconcile-on-refresh hook; the card-level `לא רוצה לראות` affordance + the
-  owner-verbatim action wording.
+- **IMPLEMENTED (owner-facing Compose surfaces, each with a Compose test):** the per-episode
+  `צפיתי עד לפה` action on every regular aired episode row (absent for Specials/future) + confirmation/undo
+  dialog; the catalog-card checkpoint-driven partial-watched Eye overlay + ViewModel projection; the Sports
+  Settings `התראות משחקים` toggles + Match Details per-match toggle + the notification
+  reconcile-on-refresh hook; the card-level `לא רוצה לראות`/`החזר להצגה` affordance + the owner-verbatim
+  action wording. Runtime behavior stays PHYSICAL TEST PENDING (below) — a green Compose test is not a
+  device PASS.
 - **BLOCKED:** YouTube — SmartTube MediaServiceCore/SharedModules upstream component licenses undeclared.
 - **NOT IMPLEMENTED:** `הפשוטע` S01E07 / Kan supplemental enrichment — no stable exact official public
   surface and no new provider approved; the reusable exact/provenance path remains.
@@ -86,26 +88,34 @@ The two owner addenda were implemented at the domain/policy/mechanism level with
   aggregate task and no `app-tv`/Shield task ran.
 - The explicit mobile/mobile-used unit matrix is green: core-metadata, core-catalog (including the real
   Room v7→v8 migration + chained paths), core-sports, core-provider, core-youtube, core-playback, and
-  app-mobile (844 tests). New deterministic suites: `WatchedThroughStoreTest`,
+  app-mobile (848 tests). New deterministic suites: `WatchedThroughStoreTest`,
   `F2c78UserStateRoomMigration7To8Test`, `WatchedThroughPolicyTest`, `SportsProgramTest`,
   `SportsLiveAdaptiveRankerTest`, `SportsOfficialChannelTest`, `SportsMatchNotificationPolicyTest`,
-  `F2c78SportsNotificationsTest`, `F2c78SportsProgramsComposeTest`; `F2c51PresentationComposeTest` updated
-  for the centered/bidi metadata.
+  `F2c78SportsNotificationsTest`, `F2c78SportsProgramsComposeTest`, and `F2c78PendingSurfacesComposeTest`
+  (card watched-Eye overlay, hidden overlay + restore, notification settings section, per-match toggle);
+  `F2c51PresentationComposeTest` updated for the centered/bidi metadata.
 - Changed-module Android lint (app-mobile, core-metadata, core-catalog, core-playback, core-youtube) and
   `:app-mobile:assembleDebug` passed. `git diff --check` clean.
 - Harness self-tests passed: APK credential scanner (41), mobile phone-delivery (14), CI mobile
   downloader (20 rejection + 1 success), mobile upgrade verifier (8). A source-level private-material
   scan of the change set found no secret, private URL, Telegram identity, or guessed channel ID.
-- Android CI run `33583200573` completed SUCCESS for exact HEAD `55034ef`; the exact-head downloader
-  authenticated run/commit/checksum/metadata/package/version/signer/ABI/TDLib identity and created only
-  the code-38 authoritative versioned file, preserving all older versioned APKs.
+- Android CI run `33609686364` completed SUCCESS for exact HEAD `2d2f145` (both jobs). The verifier's
+  `play-services-fido-21.3.0.pom` presence is pruned from warm Gradle caches, so this run went green only
+  after clearing the `gradle-dependencies-v1-*`/`gradle-home-v1|*` caches to force a cold re-resolve; the
+  failure was environmental (identical dependency graph to the passing `55034ef` run `33583200573`), never
+  a repository/code defect. The exact-head downloader then authenticated
+  run/commit/checksum/metadata/package/version/signer/ABI/TDLib identity and atomically replaced the
+  code-38 authoritative versioned file in place, preserving all older-version APKs (0.4.15–0.4.18).
 
 ## Exact next step
 
 Install the authoritative code-38 APK over code 37 without uninstall/Clear Data and run the focused
-`docs/MOBILE_ACCEPTANCE.md` procedure (including the F2C.7.8 addenda acceptance block). Then place and
-verify the PENDING owner-facing Compose surfaces above; they are reachable via the implemented
-domain/mechanism. Do not treat any deterministic/CI evidence as a physical PASS. TV/Shield stays frozen.
+`docs/MOBILE_ACCEPTANCE.md` procedure (including the F2C.7.8 addenda acceptance block) to physically
+verify the now-placed owner-facing surfaces: the per-episode `צפיתי עד לפה` action + confirm/undo, the
+catalog-card checkpoint-driven watched Eye overlay, the `התראות משחקים` toggles + per-match toggle + real
+notification delivery/timing/tap→Match Details/reboot-timezone persistence, and the
+`לא רוצה לראות`/`החזר להצגה` hide/restore. Do not treat any deterministic/CI evidence as a physical PASS.
+TV/Shield stays frozen.
 
 ---
 
