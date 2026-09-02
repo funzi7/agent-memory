@@ -1,3 +1,114 @@
+# Private Media TV — F2C.7.8 native media resolution + owner addenda (mobile code 38; Codex→Claude takeover; physical acceptance pending)
+
+## Identity and release state
+
+| Field | Value |
+| --- | --- |
+| Application repository | `funzi7/private-media-tv` |
+| Milestone | F2C.7.8 — native `MediaResolver`→Media3 preferred playback, explicit Website fallback, catalog/count/curation truth, plus owner addenda: Sports Programs, official-YouTube source model, live-adaptive ranking, match notifications, watched-through checkpoint, partial-watched indicator, centered/bidi card metadata, passive-hide |
+| Takeover | Claude continued the in-progress F2C.7.8 worktree after Codex hit its usage limit; all Codex partial work preserved (no reset/clean/restore/stash/force-push); no extra version bump |
+| Branch / tracking | `main` / `origin/main` |
+| Starting application HEAD | `2aa4cb632454cb86ea9168efbb04da048fcddb1a` — verified pushed code-37 baseline, `== origin/main` at takeover |
+| Final application HEAD | `55034efec99aa5059aba2d4bfd971c50b6e27efd` — `== origin/main`; pushed normally, no force |
+| Application commit | `55034efec99aa5059aba2d4bfd971c50b6e27efd` — `Complete F2C.7.8 native media resolution + owner addenda (Codex→Claude takeover)` |
+| Exact-head Android CI | run `33583200573` — **SUCCESS** for the exact final HEAD; mobile-only, no TV/Shield job |
+| Mobile identity | `com.funzi7.privatemediatv.mobile`, `0.4.19-phone-test`, versionCode 38; exactly one bump over code 37 (done by Codex; not re-bumped) |
+| TV identity | `com.funzi7.privatemediatv`, `0.6.11-f2c71`, versionCode 34 — frozen; no TV/Shield edit, task, build, test, lint, version, artifact, publication or device action |
+| Authoritative exact-head CI APK | `/storage/emulated/0/Download/PrivateMediaTV/Test/private-media-tv-mobile-0.4.19-phone-test.apk`; 258,246,043 bytes; ARM64-only; APK SHA-256 `2bf82e8dd9023fc05a96440008826b73447bb46d1ab51dfd6a471018af8f5129`; created by the repository exact-head downloader from run `33583200573` |
+| Development signer | SHA-256 `2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0`; ARM64-only; TDLib JNI SHA-256 `790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f` (matches pinned) |
+| Preserved artifacts | code 35/36-local/37-local/37 versioned files retained unchanged; no `-local` 0.4.19 was ever created, so none was removed |
+| Overall result | **PASSED automated/local/CI implementation gates; PHYSICAL TEST PENDING** for all real device/player/media/notification-delivery behavior |
+
+## What the takeover implemented
+
+Base F2C.7.8 was largely implemented by Codex and is now validated on takeover: provider-neutral
+`MediaResolver`/`ResolvedPlayable` → the one shared Media3 player as the preferred flow, resolver-stage
+diagnostics, DasFootball/FootReplays migrated to native-resolver sources (Website `פתח באתר` demoted to
+secondary), catalog count truth (released-season count, declared-vs-loaded episode count, LTR-isolated
+Hebrew numerals), passive spam/SEO + owner-private original-language + quality curation, rendered-image
+continuity, and the SmartTube upstream license audit. See ADR 0050. Two pre-existing Codex mid-edit
+breaks were fixed to reach green (a `F2bMovieDetails`/`F2c75SportsMatchDetailsScreen` call↔definition
+signature mismatch that stopped app-mobile compiling, and an invalid `assertDoesNotExist` top-level
+import); three unmodified baseline provider tests were reconciled to the intended native-resolver
+behavior (DasFootball/FootReplays now emit `.Resolver` sources reconstructed from the durable
+`SportsSourcePage` at presentation rather than persisted — lossless, not a regression).
+
+The two owner addenda were implemented at the domain/policy/mechanism level with deterministic tests
+(ADR 0051):
+
+- **Sports Programs (owner Option 1A):** provider-neutral `SportsProgramIdentity → SportsProgramEpisode
+  → SportsProgramSource`, distinct from `MatchIdentity`; spoiler-free neutral projection (a result-bearing
+  provider title/thumbnail is quarantined; the neutral title fails closed on any result); a permanent
+  `תוכניות ספורט` section is part of the Sports screen and its heading opens a dedicated full-page browser
+  (`SPORTS_PROGRAMS` route). Program sources reuse the native resolver + Website fallback + SmartTube
+  gating. Automatic program discovery is **NOT IMPLEMENTED** (no maintainable public interface); the
+  surface shows a truthful empty state and never fabricates a roundup; owner-added exact sources remain.
+- **Official YouTube source model:** verified official club/team AND league/competition channels
+  (`VerifiedOfficialSportsChannel.supportedTeams`/`covers` + a matcher `TEAM_NOT_VERIFIED_FOR_CHANNEL`
+  gate) bind by exact MatchIdentity and produce sibling `HIGHLIGHTS` sources with no duplicate. Playback
+  stays **BLOCKED** behind the SmartTube-derived architecture (upstream MediaServiceCore/SharedModules
+  component licenses undeclared); no channel IDs are shipped guessed.
+- **Live-adaptive ranking:** `SportsLiveAdaptiveRanker` orders the feed by day phase (before/during/after)
+  relative to `now`, chronological within equal priority, never revealing a score, and never inventing a
+  program placeholder.
+- **Match-start notifications (owner Option 3):** `SportsMatchNotificationPolicy` (10-minute default lead,
+  favorite-team defaults on, competition opt-in, exact per-match override with precedence + dedup,
+  kickoff reschedule/cancel, no-late suppression) + spoiler-free content; the Android mechanism is a
+  WorkManager one-time job per match (reboot-durable via WorkManager's reschedule receiver; initial delay
+  is inexact under Doze, so timing is best-effort), a durable app-private preference store, a
+  PendingIntent deep link opening the exact Match Details, and the POST_NOTIFICATIONS runtime-permission
+  flow requested only on enable (no fake enabled state).
+- **Catalog:** centered + bidi-isolated card metadata; a durable `צפיתי עד לפה` `WATCHED_THROUGH`
+  checkpoint (additive Room v7→v8 table) with truthful confirmation (real count only when the loaded
+  structure is complete) + bounded undo; a checkpoint-driven partial-watched tri-state Eye policy
+  (NONE/PARTIAL/CAUGHT_UP/COMPLETE, never a fabricated COMPLETE); and `לא רוצה לראות` realized by reusing
+  the existing durable `NOT_INTERESTED` passive-hide state (passive-only visibility, explicit-search
+  visible, reversible, all personal state preserved) with a `כותרים שהסתרתי` management surface.
+
+## Pending owner-facing surfaces and gates (no invented PASS)
+
+- **PENDING (domain/mechanism done + reachable, Compose surface + physical acceptance pending):** the
+  per-episode `צפיתי עד לפה` action + confirmation/undo dialog; the catalog-card partial-watched Eye
+  overlay + ViewModel projection; the Sports Settings `התראות משחקים` toggles + Match Details per-match
+  toggle + the notification reconcile-on-refresh hook; the card-level `לא רוצה לראות` affordance + the
+  owner-verbatim action wording.
+- **BLOCKED:** YouTube — SmartTube MediaServiceCore/SharedModules upstream component licenses undeclared.
+- **NOT IMPLEMENTED:** `הפשוטע` S01E07 / Kan supplemental enrichment — no stable exact official public
+  surface and no new provider approved; the reusable exact/provenance path remains.
+- **PHYSICAL TEST PENDING:** all real page/player/video/audio/fullscreen/Back, Website Playback runtime,
+  notification delivery/timing + tap→Match Details + reboot/timezone persistence, and on-device
+  card/badge rendering. No Android device/emulator was available; deterministic/CI/host evidence is never
+  a physical PASS.
+
+## Validation evidence
+
+- All substantial Gradle/build work ran through `/root/work/bin/heavy-run -- timeout ...`; no root
+  aggregate task and no `app-tv`/Shield task ran.
+- The explicit mobile/mobile-used unit matrix is green: core-metadata, core-catalog (including the real
+  Room v7→v8 migration + chained paths), core-sports, core-provider, core-youtube, core-playback, and
+  app-mobile (844 tests). New deterministic suites: `WatchedThroughStoreTest`,
+  `F2c78UserStateRoomMigration7To8Test`, `WatchedThroughPolicyTest`, `SportsProgramTest`,
+  `SportsLiveAdaptiveRankerTest`, `SportsOfficialChannelTest`, `SportsMatchNotificationPolicyTest`,
+  `F2c78SportsNotificationsTest`, `F2c78SportsProgramsComposeTest`; `F2c51PresentationComposeTest` updated
+  for the centered/bidi metadata.
+- Changed-module Android lint (app-mobile, core-metadata, core-catalog, core-playback, core-youtube) and
+  `:app-mobile:assembleDebug` passed. `git diff --check` clean.
+- Harness self-tests passed: APK credential scanner (41), mobile phone-delivery (14), CI mobile
+  downloader (20 rejection + 1 success), mobile upgrade verifier (8). A source-level private-material
+  scan of the change set found no secret, private URL, Telegram identity, or guessed channel ID.
+- Android CI run `33583200573` completed SUCCESS for exact HEAD `55034ef`; the exact-head downloader
+  authenticated run/commit/checksum/metadata/package/version/signer/ABI/TDLib identity and created only
+  the code-38 authoritative versioned file, preserving all older versioned APKs.
+
+## Exact next step
+
+Install the authoritative code-38 APK over code 37 without uninstall/Clear Data and run the focused
+`docs/MOBILE_ACCEPTANCE.md` procedure (including the F2C.7.8 addenda acceptance block). Then place and
+verify the PENDING owner-facing Compose surfaces above; they are reachable via the implemented
+domain/mechanism. Do not treat any deterministic/CI evidence as a physical PASS. TV/Shield stays frozen.
+
+---
+
 # Private Media TV — F2C.7.7 physical last-mile correction (mobile code 37; physical acceptance pending)
 
 ## Identity and release state
