@@ -1,3 +1,96 @@
+# Private Media TV — F2C.7.10 source eligibility, native YouTube engine, sports personalization, LiveBall bridge, cache performance (mobile code 40; physical acceptance pending)
+
+## Identity and release state
+
+| Field | Value |
+| --- | --- |
+| Application repository | `funzi7/private-media-tv` |
+| Milestone | F2C.7.10 — provider-neutral source eligibility (Reacher fix), FootReplays all-variant persistence, DasFootball per-resource YouTube routing, first-party native InnerTube YouTube engine (exclusive-SmartTube SUPERSEDED), production official sports channels + bounded highlights discovery, local explainable spoiler-incapable sports personalization + hero-before-Continue-Watching, spoiler-safe match artwork + visual corrections, LiveBall exact-match native bridge, TMDB cache diagnostics + stale-first Home snapshot + upgrade/working-set regression |
+| Branch / tracking | `main` / `origin/main` |
+| Starting application HEAD | `20312c9cc16e10a3f639e8ee2bd1ed9a721215bd` — verified clean code-39 baseline `== origin/main` |
+| Final application HEAD | `878452477eb7324050df86d6088b84a21fc3c7e1` |
+| Application commit | `878452477eb7324050df86d6088b84a21fc3c7e1` — `Complete F2C.7.10 source eligibility, native YouTube engine, sports personalization, LiveBall bridge, cache performance` |
+| Exact-head Android CI | run `33717916938` — **SUCCESS** for the exact final HEAD `8784524` (both jobs green). Passing required the known cold-resolve remediation: GitHub's Gradle cache-cleanup prunes `play-services-fido-21.3.0.pom` from the saved gradle-home, so the post-assembly GeckoView verifier found 0; deleting all `gradle-home-v1`/`gradle-dependencies-v1` Actions caches and re-running cold re-downloaded the pom and the verifier passed. Environmental (identical dependency graph), not a repository/code defect; the diff is app-mobile/core/docs/scripts only. |
+| Mobile identity | `com.funzi7.privatemediatv.mobile`, `0.4.21-phone-test`, versionCode 40; exactly one bump over installed code 39 |
+| TV identity | `com.funzi7.privatemediatv`, `0.6.11-f2c71`, versionCode 34 — frozen; no TV/Shield edit/task/build/test/lint/version/artifact/publication/device action |
+| Authoritative exact-head CI APK | `/storage/emulated/0/Download/PrivateMediaTV/Test/private-media-tv-mobile-0.4.21-phone-test.apk`; 258,476,740 bytes; ARM64-only; APK SHA-256 `82da2ad787e3efa431ab6ee112fae0a4e9a9f4fa6cbb4bc8a6a222cb1baf0188`; TDLib JNI SHA-256 `790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f` (matches pinned); created by the exact-head downloader from run `33717916938` (provenance `authoritative exact-head CI`; `Publication: created`; same-version local cleanup `absent`); older versioned APKs 0.4.15–0.4.20 preserved. |
+| Development signer | SHA-256 `2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0`; ARM64-only |
+| Preserved artifacts | versioned files 0.4.15–0.4.20 (+ `-local` copies) retained unchanged |
+| Overall result | **PASSED automated/local/CI implementation gates; PHYSICAL TEST PENDING** for all on-device playback/UI/ordering/artwork/cache-after-upgrade behavior (26-item code-40 block in `docs/MOBILE_ACCEPTANCE.md`) |
+
+## Physical code-39 owner evidence (preserved exactly)
+
+FootReplays FULL MATCH plays natively inside PMTV (PASS); one DasFootball direct highlight plays
+natively (PASS); restored Episode Details auto-discovery is owner-approved. FAILs D–L (single-variant
+FootReplays from the `parsed.candidate` bug, DasFootball YouTube-embed `HOST_UNSUPPORTED`, index
+misses, Reacher broadcaster over-eligibility, Kan 11 YouTube default, post-upgrade TMDB slowness)
+drove this milestone. None regressed by construction.
+
+## What code 40 implements (ADR 0053)
+
+- **Source eligibility (Reacher bug):** `SourceEligibilityPolicy`/`SourceEligibilityPlan`
+  (core-metadata) computes eligible Israeli broadcasters from STRONG evidence only (authoritative TMDB
+  original-network crosswalk by retained network id / exact name + IL / owner confirmation). The
+  mobile discovery fan-out consults it: Reacher → Kan/Keshet/Reshet ineligible (no search, no status
+  rows), no default Kan YouTube; Kan-owned title → Kan only. `YouTubeSourceSearchService` lost its Kan
+  default. Telegram stays independent. Auto Episode-Details discovery still fires exactly once.
+- **FootReplays all variants:** FootReplays + DasFootball adapters persist every `parsed.candidates`
+  (variant serialized in the sports cache); one logical card shows truthful per-variant labels +
+  counts. code-39 Full Match resolver unchanged.
+- **DasFootball/YouTube native engine:** per-resource classification; YouTube embed →
+  `SportsYouTubePlaybackPort` → first-party `NativeYouTubeEngine` (bounded InnerTube, DNS-pinned
+  transport) → shared Media3; missing engine → exact `MEDIA_RESOLVE_YOUTUBE_ENGINE_UNAVAILABLE`, never
+  generic HOST_UNSUPPORTED, never Gecko. Exclusive-SmartTube rule SUPERSEDED (owner-approved) via
+  `YouTubeEngineSelection`; SmartTube reuse stays license-BLOCKED but no longer blocks YouTube.
+- **Official sports YouTube:** verified 2026-09-02 official channel IDs (Beitar Jerusalem, Manchester
+  United, Real Madrid, Premier League, LaLiga, UEFA, IPFL) — TheSportsDB `strYoutube` where present,
+  else the channel's own current official identity (no guessed IDs) — + bounded official-highlights
+  discovery attaching conservative exact-matched HIGHLIGHTS as siblings on one MatchIdentity (a club
+  channel never binds another club's fixture).
+- **Sports personalization:** durable owner-private signals → decayed explainable spoiler-incapable
+  affinity → a ranker composing with the live-adaptive ranker; explicit favorites hard priority + no
+  decay; `ראיתי`/`לא מעוניין`; personalized Sports hero before Continue Watching (SUPERSEDED,
+  owner-approved). Recorded at successful play (MEANINGFUL open floor; completion strengthening is a
+  pending on-device refinement).
+- **Visuals/artwork:** spoiler-safe provider matchup artwork threaded through projection/cache/
+  snapshot/state; purple team-logo disc removed; favorite star centered; continuity preserved.
+- **LiveBall bridge:** exact `liveball.sx/match/{id}` classification + bounded native resolver
+  replicating the provider's own public player bootstrap (XOR-deobfuscate a public constant → POST
+  `/api/c/r` → base64 HLS → Media3), no login/paywall/DRM bypass; spoiler guard strips all
+  score/minute/statistics; non-spoiler venue/round/lineups enrichment. The Add-Source SCREEN
+  projection/binding UI is NOT IMPLEMENTED this round (resolver/classifier/evidence/registry are).
+- **TMDB cache/performance:** privacy-safe diagnostics (HIT/STALE/MISS/DECODE/EVICTED + Room/decode/
+  network timings) behind a Settings `אבחון מטמון` disclosure; cache-only `homeCachedSnapshot`/`peek`
+  renders last-known-good rows immediately so a slow branch never blocks siblings; upgrade +
+  working-set regression tests prove the metadata cache survives a normal APK upgrade with no
+  app-version cache key.
+
+## Validation evidence
+
+- All heavy Gradle via `/root/work/bin/heavy-run -- timeout …`; no root aggregate/TV task.
+- Full mobile-used unit matrix green: 856 tests, 0 failures, 5 skips (new: SourceEligibilityTest, SportsPersonalizationTest, LiveBallResolverTest, F2c710 cache upgrade/working-set, FootReplays all-variant adapter test, DasFootball YouTube-route tests; 3 pre-existing assertions reconciled to intended F2C.7.10 behavior — Hebrew variant-language labels, 16dp centered star, provider-neutral trailer wording).
+- Android lint (app-mobile, core-metadata, core-youtube) + `:app-mobile:assembleDebug` green; credential scanner 41; mobile delivery 14; CI downloader 20 rejection + 1 success; mobile upgrade 8; combined upgrade 13; Gecko verifier deterministic positive + mutation; pinned TDLib artifact verified (JNI `21d59ebf…`). `git diff --check` clean.
+- Live opt-in provider smokes remain host-structure only; `adb devices -l` listed no device — all on-device behavior is PHYSICAL TEST PENDING.
+
+## Pending gates (no invented PASS)
+
+- **PHYSICAL TEST PENDING:** the 26-item code-40 block in `docs/MOBILE_ACCEPTANCE.md` (playback/UI/
+  personalized ordering/artwork/cache-after-upgrade).
+- **NOT IMPLEMENTED this round:** LiveBall Add-Source screen projection/binding UI; Series Details
+  persistent-cache stale-first `openCard` gate; playback-completion strengthening of a personalization
+  signal (all recorded in `TODO.md`).
+- **BLOCKED:** SmartTube-derived engine reuse (unlicensed submodules + NewPipe GPL) — non-blocking.
+
+## Exact next step
+
+Install the authoritative code-40 APK over code 39 (no uninstall/Clear Data — the cache regression
+requires a data-preserving upgrade) and run the 26-item F2C.7.10 checklist, prioritizing: Reacher
+shows no Kan/Keshet/Reshet; FootReplays Full/First/Second variants; DasFootball direct + YouTube-embed
+routing; an official-channel highlight; the personalized hero before Continue Watching + `ראיתי`/
+`לא מעוניין`; a LiveBall exact-URL bind/play; and cached Home/Series after upgrade. TV/Shield frozen.
+
+---
+
 # Private Media TV — F2C.7.9 physical corrections, full-replay variants, static dynamic resolution (mobile code 39; physical acceptance pending)
 
 ## Identity and release state
