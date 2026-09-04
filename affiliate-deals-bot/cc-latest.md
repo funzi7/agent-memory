@@ -3,7 +3,72 @@
 > Rolling handoff for `funzi7/affiliate-deals-bot`. Read this first, then the
 > repository documentation linked below.
 
+## 2026-09-04 addendum — Admin now authenticates itself (password + TOTP); Access ABANDONED
+
+- Repo HEAD **`bb8b703e28ece6138f21b7c075d8dd9da7bc30b8`** on `main`
+  (local == origin/main == deployed `/opt/affiliate-deals-bot`).
+  **1093 pytest passed**, ruff + format + strict mypy clean (140 files).
+  Live schema is now **v10**.
+- **Cloudflare Access is ABANDONED** — its Zero Trust onboarding demands a
+  billing method the owner declined (twice). The owner chose an **internally
+  authenticated Admin**, keeping the Tunnel and the loopback-only origin. All
+  `CF_ACCESS_*` configuration is removed from code, env and docs. Do NOT
+  reintroduce it. Passkeys/WebAuthn are a FUTURE enhancement and must use a
+  mature maintained library — the owner explicitly forbade hand-rolled
+  CBOR/COSE in this milestone.
+- **What ships**: scrypt password + RFC 6238 TOTP (validated against the RFC
+  4226 vectors) with a replay guard; server-side sessions in a `__Host-` cookie
+  (Secure/HttpOnly/SameSite=Lax) with bounded idle (`ADMIN_SESSION_IDLE_MINUTES`
+  =720) and absolute (`ADMIN_SESSION_ABSOLUTE_HOURS`=168) expiry; exponential
+  login throttle over salted scopes + a global scrypt-burn ceiling;
+  login/logout/revoke-all, all audited; `--enroll` / `--check` /
+  `--revoke-sessions`. **Fail-closed is preserved**: the service refuses to
+  serve while no owner is enrolled — no config can raise an unauthenticated
+  panel.
+- **Verified over the REAL `https://admin.affi.co.il`** (not a local origin),
+  using a throwaway credential so the owner's password never passed through the
+  agent: **32/32** edge + login-flow checks and **27/27** panel-vs-live-data
+  checks (dashboard/sources/candidates/governor/links/publications, LIVE
+  refused without the exact phrase, added source starts DISABLED and archives).
+- **Found live**: Cloudflare Scrape Shield rewrote the owner's address into
+  `[email protected]`. Fixed with `ui.email_safe()` (Cloudflare's
+  `<!--email_off-->` markers) on the owner field and audit actor; re-verified.
+- **INCIDENT I CAUSED — read before touching the DB.** The verification harness
+  cleaned up by opening the live SQLite DB **read-write as root** while both
+  services ran → root-owned `-wal`/`-shm` beside the affideals-owned DB →
+  `database disk image is malformed`; the mirror froze then failed. Recovered
+  fully: restored `db-preupgrade-20260904T133005Z.sqlite3` (integrity ok)
+  through SQLite's backup API **as affideals**; post-recovery integrity ok,
+  schema 10, heartbeats advancing, NRestarts 0, data intact (73 candidates,
+  133 source_messages, 141 target_mappings, 0 core_publications, mode SHADOW).
+  Nothing published; Remote Sources untouched.
+  **RULE: never open the live DB read-write as root and never delete rows under
+  a running service.** Use `sudo /usr/local/sbin/affi-admin-cli ...`, else
+  `sudo -u affideals`, else stop the service. Procedure in RUNBOOK.md.
+- **Host changes**: admin env drops `ADMIN_ALLOWED_EMAILS`, adds the two session
+  bounds (a `.bak-*` copy is kept); systemd unit refreshed;
+  **`/usr/local/sbin/affi-admin-cli`** (root 0755) runs the admin CLI as the
+  service user under the unit's EnvironmentFile, TTY-aware so `--enroll`
+  prompts without echoing. `src/affiliate_deals_bot/admin/` was root-owned from
+  an earlier deploy and silently blocked `git checkout` — now affideals-owned;
+  **always check `git status` after a deploy**.
+- **PENDING OWNER (both genuinely need the owner, not the agent)**
+  1. Enroll: `sudo /usr/local/sbin/affi-admin-cli --enroll --email diman7@duck.com`
+     then `sudo systemctl reset-failed affiliate-deals-admin && sudo systemctl
+     start affiliate-deals-admin`. Until then the admin is fail-closed and
+     `https://admin.affi.co.il` correctly answers **502**.
+  2. Cloudflare **rate-limiting rule** on `admin.affi.co.il/login` (dashboard,
+     free plan, no Zero Trust): POST + `/login`, by IP, 10 req / 10 min, block
+     1h. **No country allowlist** (owner's explicit instruction). Exact settings
+     in DEPLOYMENT.md. The in-app throttle is already live and independent.
+  3. Owner's physical **phone acceptance** of the PWA — NOT done, **no PASS
+     claimed**; it needs the owner's own login.
+
 ## 2026-08-31 addendum — Cloudflare Tunnel edge DONE; Access pending owner (billing)
+
+> **PARTIALLY SUPERSEDED by the 2026-09-04 addendum above**: the Tunnel facts
+> below still hold, but Cloudflare **Access was abandoned** and replaced by the
+> Admin's own password + TOTP login. Ignore every "Access pending" statement.
 
 - Repo HEAD now **`4d30c1e4335838b5014a8a337e425939a26aeda9`** on `main`
   (docs-only reconciliation commit over `c46bd25…`; local == origin/main).
