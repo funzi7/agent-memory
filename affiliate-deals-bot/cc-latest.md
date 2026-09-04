@@ -3,6 +3,60 @@
 > Rolling handoff for `funzi7/affiliate-deals-bot`. Read this first, then the
 > repository documentation linked below.
 
+## 2026-09-04 (final) — Admin ACCEPTED on the owner's phone; two blockers fixed
+
+- Repo HEAD **`d99c6ab979d7436b7d30f15ffb65fdc7bd388f24`** on `main`
+  (local == origin == deployed). **1102 pytest passed**, ruff + format + strict
+  mypy clean (140 files). Live schema **v10**, core mode **SHADOW**,
+  `core_publications` 0.
+- **PHYSICAL PHONE ACCEPTANCE: PASSED.** The owner enrolled their own
+  credential (their password never passed through the agent) and confirmed on
+  their Android phone against the real `https://admin.affi.co.il`: login plus
+  dashboard, system (session posture + the audit row for that login), sources,
+  candidates + a candidate detail, links, publications, governor, the LIVE
+  type-to-confirm gate, PWA install/re-open, and the logout/login loop.
+- **TWO RELEASE BLOCKERS found only by testing the real path — both fixed:**
+  1. **`Referrer-Policy: no-referrer` broke every real-browser login.** Under
+     it a browser suppresses `Referer` AND serializes the `Origin` of a
+     form-POST *navigation* as literal `null` (Fetch spec), so the same-origin
+     CSRF check had nothing to compare → `cross_origin_rejected` before any
+     credential check. `fetch()` POSTs (mode cors) are exempt, which is why
+     only the no-JS login form broke. Fixed with `Referrer-Policy:
+     same-origin` (cross-origin navigations still send no referrer) plus a
+     `Sec-Fetch-Site: same-origin` fallback (forbidden header — page script
+     cannot forge it). **Never set `no-referrer` on a page with a form POST.**
+  2. **SQLite file hardening orphaned a live connection's WAL.**
+     `_secure_sensitive_file()` opened+closed its own fd to `fchmod` the DB and
+     `-wal`/`-shm`. POSIX drops EVERY advisory lock a process holds on a file
+     when it closes ANY fd for it → the closing connection thought it was the
+     last one, checkpointed, and **unlinked the WAL set under the running
+     mirror**, which kept committing (no error!) into deleted inodes: writes
+     invisible to all readers, lost on exit. This caused BOTH the earlier
+     database corruption AND the repeated "mirror silent while systemd says
+     active" stalls. Fixed with `lstat` + path-based `chmod` (opens no fd).
+     Regression test drives a real second process and fails on the old code.
+- **Diagnosis technique that cracked it (reusable):** restarting the admin
+  reproduced the stall 4/4; `SIGUSR1` now dumps sanitized asyncio task
+  state (all workers were ALIVE at normal await points — ruling out death,
+  cancellation and loop starvation); py-spy showed the loop idle in `select`;
+  `/proc/<pid>/fd` showed **`(deleted)`** `-wal`/`-shm` with inodes differing
+  from the live paths. **If a service goes quiet: check `/proc/<pid>/fd` for
+  `(deleted)` sqlite files first, then `kill -USR1`.**
+- **Post-fix stability**: 35 read-only samples / 17 min, max worker heartbeat
+  age 5s, zero >30s, NRestarts 0, and **two admin restarts inside the window**
+  (the old trigger) with no stall.
+- **STILL PENDING (unclaimed, needs the owner): Cloudflare rate-limiting rule**
+  on `admin.affi.co.il/login` — dashboard/API-token only, so it cannot be
+  applied or verified from here. A 25-request GET probe returned all 200 =
+  INCONCLUSIVE (the specced rule is POST-only). Settings in DEPLOYMENT.md.
+- **Host**: `/usr/local/sbin/affi-admin-cli` runs the admin CLI as the service
+  user under the unit's EnvironmentFile (TTY-aware for `--enroll`). Temporary
+  diagnostics (heartbeat sampler, py-spy venv) were removed after use.
+- **RULES**: never open the live DB read-write as root; never delete rows under
+  a running service; deploy via git bundle (`/tmp/affi.bundle`) and always
+  check `git status` after checkout (admin/ was once root-owned and silently
+  blocked it).
+
 ## 2026-09-04 addendum — Admin now authenticates itself (password + TOTP); Access ABANDONED
 
 - Repo HEAD **`bb8b703e28ece6138f21b7c075d8dd9da7bc30b8`** on `main`
