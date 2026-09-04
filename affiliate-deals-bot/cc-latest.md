@@ -3,6 +3,71 @@
 > Rolling handoff for `funzi7/affiliate-deals-bot`. Read this first, then the
 > repository documentation linked below.
 
+## 2026-09-04 — Affiliate Trust + click tracking, PHASE A ONLY (not deployed)
+
+- Repo HEAD **`0db4e0217b820ea43a36903de251afd81c0b0f6d`** on `main`
+  (local == origin). **1238 pytest passed**, ruff + format + strict mypy clean
+  (157 files), `git diff --check` clean. **No CI exists in this repository**
+  (0 check-runs on the pushed HEAD) — do not claim a CI pass.
+- **NOTHING WAS DEPLOYED.** Production is untouched: no SSH change, no service
+  restart, no env var set, no Cloudflare DNS/tunnel change, no real go link, no
+  `@AffiIsrael` post, no KSP canary. Core still SHADOW. Deployed server code is
+  still the previous HEAD.
+- **Feature is OFF by default** (`AFFI_TRACKING_ENABLED=false`). With it off no
+  tracking store is even constructed and published output is unchanged.
+- **Schema v11** (additive): `redirect_links`, `route_verification_runs` in the
+  app DB. Click events live in a **SEPARATE** append-only SQLite DB
+  (`GO_CLICK_DATABASE_URL`) — the main DB's every transaction holds a
+  whole-database write lock shared with the mirror, and `analytics_events`
+  forces a UNIQUE key per row with no time index. Both DBs share ONE hardening
+  implementation (`harden_sqlite_files`); the WAL-orphan invariant is re-proven
+  against the new store with a real spawn-based second process.
+- **KSP route matrix: TEN classes, not five.** Identity comes from
+  `merchants.ksp.ksp_route_class`, which dispatches on the converter's own
+  matchers, so a new accepted route cannot appear without a contract — the
+  exhaustiveness test fails otherwise. Transformations are heterogeneous:
+  `/link` + `/sku` append appKey (path preserved); `/cat` → `/cat/14095-<ids>`;
+  `/item` + `/shops` → `/appkey/14095/...`; four shapes pass through unchanged.
+  **`FUTURE_DISCOVERY.md` used to claim all routes just append appKey — that was
+  wrong and is now corrected.**
+- **Evidence seeding**: only `/link` and `/sku` are DASHBOARD_VERIFIED, from the
+  four owner-confirmed affiliate **visits** in `docs/KSP_LIVE_SMOKE.md` (visit
+  registration only — never commission). The other eight are STRUCTURAL_ONLY.
+  Seeding is declarative in `tracking/routes.py`, not a data migration.
+  **Staleness is derived from a contract fingerprint** computed from the
+  converter's real output — no invented time-based expiry.
+- **Substitution seam is `telegram_processing.py`, right before
+  `transform_album`** — after eligibility (earlier would make every commercial
+  link look unconverted and BLOCK the post) and before chunking (UTF-16 length
+  changes). It lands inside the persisted outbox payload, so link identity MUST
+  be deterministic: `enqueue_outbox` raises on a byte-different payload for the
+  same idempotency key. Identity = (source_id, occurrence, destination).
+- **Core coupling handled**: `governed.extract_ksp_item_ids` scans outgoing text
+  for KSP item ids; once tracked, the text has none. `DeliveryPlan` carries a
+  **non-serialized** `tracked_origin_urls` field for Core to read instead.
+- **Owner UX decisions (asked and answered): 1B, 2A, 3A** — verification summary
+  on `/links` + workflow on `/links/verification` (sub-page, no nav item, mirrors
+  `/sources/test`); canaries listed in the inventory with a "בדיקה" badge and
+  excluded from all business totals; the existing Dashboard "אנליטיקה" section
+  grown in place.
+- **Bug fixed on the way**: the Admin KSP identity badge used a hand-maintained
+  substring list that missed the accepted `/item/<affiliate>-<value>` shortcut
+  and showed "appKey חסר" for a genuinely affiliate-carrying link. Now derived
+  from the matrix.
+- **Real runtime validation done**: the actual `affiliate-deals-go` console
+  entry was started as a process and driven with curl — 302 with exact
+  `Location`, `no-store`, no cookies, 404 for unknown, and the token appeared
+  ZERO times in the log. Migration 11 proven additive on fresh, v10, and a
+  **real legacy v4 dev DB** (`.local/affiliate-deals.sqlite3`, untracked).
+- **NOT VERIFIED — Phase B, never claim these**: real `https://go.affi.co.il`
+  edge; Cloudflare DNS/tunnel route for it; real phone click; real KSP landing
+  through the redirect; Israeli egress in practice; KSP dashboard attribution
+  for the tracked path. Also still pending from before: the Cloudflare `/login`
+  rate-limit rule.
+- **Not possible today**: per-public-click ↔ per-KSP-click reconciliation. KSP
+  exposes no identifier that would make it real, so no report parser was
+  invented and none should be.
+
 ## 2026-09-04 (final) — Admin ACCEPTED on the owner's phone; two blockers fixed
 
 - Repo HEAD **`d99c6ab979d7436b7d30f15ffb65fdc7bd388f24`** on `main`
