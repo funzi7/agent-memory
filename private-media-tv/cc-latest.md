@@ -1,215 +1,174 @@
-# Private Media TV — F2C.7.11 Home single row, source intents, Telegram roles, Israeli metadata, exact match alerts (mobile code 41; physical acceptance pending)
+# Private Media TV — F2C.7.12 code42 physical corrections and native-first LiveBall
 
 ## Identity and release state
 
 | Field | Value |
 | --- | --- |
 | Application repository | `funzi7/private-media-tv` |
-| Milestone | F2C.7.11 — one personalized Sports row before Continue Watching (full section restored to its established slot), playback-derived personalization, two explicit Universal Source owner intents + root-caused projection fix with self-healing migration, hybrid Sports Programme recurrence, LiveBall exact onboarding, non-exclusive Telegram source roles + Sports media discovery, provider-neutral eligibility chrome, corrected YouTube DRM taxonomy, geresh-insensitive Search, Hebrew Sports presentation, Wikidata + Hebrew Wikipedia Israeli episodic metadata, secure OMDb connection, Series Details persistent cache, exact Android match alerts, LIVE provider applicability, Telegram channel-Live observation, unresolved-announcement UX |
+| Milestone | F2C.7.12 / mobile code42 — code41 physical-correction reconciliation, passive Series curation, Sports card truth, imminent favourite recommendations, YouTube public/account separation, Website-source grouping, Telegram Sports-role visibility, and configured LiveBall exact discovery/native-first readiness |
 | Branch / tracking | `main` / `origin/main` |
-| Starting application HEAD | `878452477eb7324050df86d6088b84a21fc3c7e1` — verified clean code-40 baseline `== origin/main` |
-| Final application HEAD | `e37750bb4940c2a71fea47430f6331d7efbd5fbf` |
-| Application commits | `d7974b4733d68084c75dd576477b407c735f6f03` — `Complete F2C.7.11 …` (all product work, 158 files, the single version bump); `3328ea743872a1feeb816f008ba4f2926beb84a6` — CI-only Robolectric cache + step timeouts; `e37750bb4940c2a71fea47430f6331d7efbd5fbf` — CI-only deterministic Robolectric prefetch. The two CI commits change no production code, test, or version. |
-| Exact-head Android CI | run `33898150018` — **SUCCESS** for the exact final HEAD `e37750bb` (both jobs green). Unit tests 7m42s, lint 7m57s, assemble 3m46s, verification + APK upload green. |
-| Mobile identity | `com.funzi7.privatemediatv.mobile`, `0.4.22-phone-test`, versionCode 41; exactly one bump over installed code 40 |
+| Starting application HEAD | `e37750bb4940c2a71fea47430f6331d7efbd5fbf` — verified clean authoritative code41 baseline and exact-head CI run `33898150018` success |
+| Final application HEAD | `c595f65e1a9e2ea8e99a49ebe9c545f46a23f331` — pushed and verified equal to `origin/main` with a clean worktree |
+| Application commits | `c8c07377c7838a3b562107c6d1f3084603a8f61c` — `Implement F2C.7.12 code42 physical corrections` (98 files; product, tests, docs, schema and the single code41→42 version advance); `c595f65e1a9e2ea8e99a49ebe9c545f46a23f331` — `Ensure CI resolves audited runtime POMs` (one mobile build file; no product/runtime/version change) |
+| Exact-head Android CI | run `33924368537`, attempt 2 — **SUCCESS** for exact final HEAD `c595f65e1a9e2ea8e99a49ebe9c545f46a23f331`; wrapper, full mobile/mobile-used tests, mobile lint, signed ARM64 assembly, package/signer/TDLib/Gecko provenance, metadata and artifact upload all green |
+| Mobile identity | `com.funzi7.privatemediatv.mobile`, `0.4.23-phone-test`, versionCode 42 — advanced exactly once from code41 |
 | TV identity | `com.funzi7.privatemediatv`, `0.6.11-f2c71`, versionCode 34 — frozen; no TV/Shield edit/task/build/test/lint/version/artifact/publication/device action |
-| Authoritative exact-head CI APK | `/storage/emulated/0/Download/PrivateMediaTV/Test/private-media-tv-mobile-0.4.22-phone-test.apk`; 258,902,916 bytes; ARM64-only; APK SHA-256 `ad3af2eb0391daefe14878791c923ec6a7337965d5b752156ea9c9a1e7929cbf`; TDLib JNI SHA-256 `790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f` (matches pinned, unchanged from code 40); created by the exact-head downloader from run `33898150018` (provenance `authoritative exact-head CI`; `Publication: created`; same-version local cleanup `absent`); older versioned APKs 0.4.15–0.4.21 preserved. |
-| Development signer | SHA-256 `2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0` — unchanged |
-| Deterministic validation | 2,800+ tests across app-mobile and every mobile-used core module, 0 failures, 9 opt-in skips (app-mobile 998, core-catalog 429, core-metadata 326, core-sports 279, core-telegram 257, core-playback 110, core-security 109, core-provider 65, core-youtube 56, remainder smaller). Android lint: 41 warnings, 0 errors. |
-| Overall result | **PASSED automated/local/CI implementation gates; PHYSICAL TEST PENDING** for every on-device behaviour (112-item code-41 block in `docs/MOBILE_ACCEPTANCE.md`) |
+| Authoritative exact-head CI APK | `/storage/emulated/0/Download/PrivateMediaTV/Test/private-media-tv-mobile-0.4.23-phone-test.apk`; 259,050,372 bytes; SHA-256 `a29c221add2d719fedcc0112cf946218191c386d7ce9c5da551c62d01dc3697f`; authoritative exact-head CI publication created; same-version `-local` copy absent; older versioned APKs preserved |
+| APK verification | Development signer SHA-256 `2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0`; ARM64-only; pinned official TDLib JNI SHA-256 `790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f`; exact GeckoView/FIDO/SnakeYAML notices and 13 ARM64 libraries verified; code41→42 package/signer/version/ABI update prerequisites passed |
+| Overall result | **PASSED automated/local/CI implementation gates; FAILED runtime/physical release gate.** ADB was unavailable by owner override, required official Sports-highlight and trailer YouTube host smokes returned typed `LOGIN_REQUIRED`, current FootReplays/DasFootball host smokes failed at their recorded stages, and no Android Media3/device behaviour is promoted to PASS |
 
-## Physical code-40 owner evidence (preserved exactly)
+## Prior-Codex reconciliation
 
-PASS: FootReplays FULL MATCH native playback; one direct DasFootball highlight; Episode Details
-auto-discovery; the provider-neutral YouTube engine boundary; the no-spoiler policy; explicit
-favourite-team semantics; the source-eligibility fix.
+The older Codex state was not trusted or replayed. Current code, code41 handoff and owner evidence were
+reconciled as follows:
 
-FAIL (each drove this milestone): the whole Sports section moved above Continue Watching; exclusive
-Telegram source roles; `SOURCE_SAVED_PROJECTION_PENDING` on a provider root and an exact LiveBall URL;
-no Telegram Highlights; an opaque announcement picker; Reacher not found by Search and still showing
-Kan 11 YouTube + official-VOD chrome; `הפשוטע` S1E7 placeholder synopsis; trailers dying in a silent
-spinner; a false `DRM_REQUIRED` on public highlights; a missed Manchester United official highlight;
-missing FootReplays halves plus a bare `נגן`; no visible `ראיתי` / `לא מעוניין`; and — from the
-live-sports addendum — no pre-match notification for a LIVE favourite-team Beitar match.
+- **A — present and intact:** provider-neutral native resolution into the one shared Media3 player,
+  explicit Website fallback, source variants, independent Sports roles, declared-count/Bidi/TMDB
+  stale-first truth, favourite-star presentation and image continuity.
+- **B — independently completed or superseded:** the suspected owner-facing Compose-surfaces item was
+  completed after code38. Code41 superseded Kan-only enrichment, WorkManager-only alert timing and
+  announcement-only Telegram roles; code40's owner decision superseded SmartTube-exclusive YouTube.
+- **C — adapted in code42:** passive curation, Sports interaction/presentation/recommendation, source
+  projection, Telegram visibility, YouTube presentation, and LiveBall discovery/readiness.
+- **D — genuinely missing old work:** none. Remaining gaps are physical/runtime evidence or exact
+  external-provider failures, not an abandoned old diff.
+- **E — obsolete:** exclusive SmartTube, WorkManager-only alarms, the entire Sports section before
+  Continue Watching, and stale historical TODO boxes were not revived.
 
-## What code 41 implements (ADR 0054, decisions 1–18)
+## Preserved owner physical evidence
 
-- **Home order (SUPERSEDED owner correction).** Exactly ONE personalized Sports row before Continue
-  Watching; the full Sports section returns to its established slot after the personal rows and
-  before `חדש בישראל`. Promoted matches are hidden from the full section by presentation only
-  (`SportsHomeSectionPlan.excluding`). A source-order contract test fails if the full section ever
-  leads again.
-- **Sports owner actions.** `ראיתי` / `לא מעוניין` / `החזר להמלצות` on the personalized row, the
-  compact card overflow and Match Details, all through one durable preference boundary; they reorder
-  recommendations only and never delete a match, source or favourite.
-- **Playback-derived personalization.** The durable signal now comes from the single PMTV playback
-  observation pipeline: an accidental open/back records nothing (the code-40 open-time MEANINGFUL
-  floor is gone), one session persists exactly one signal, and a stronger observation upgrades it in
-  place. Highlights never mark a full replay watched.
-- **Universal Source projection — root cause and closure.** A committed save re-stamped the Room
-  registry's successful-probe instant with the SAVE time, so the projected profile violated
-  `SourceProfile.init: health.lastSuccessfulCheck <= validatedAt` and threw out of `recoverAndLoad`;
-  every retry repeated it, which is why the state was terminal. Fixed by
-  `projectedWithRegistryHealth` carrying the successful-probe instant forward, plus automatic
-  post-commit reconcile, idempotent re-save (`SOURCE_ALREADY_REGISTERED`), visible retirement
-  reconciliation, and an exact privacy-safe `SourceSavedProjectionCause`. Deterministic tests missed
-  it originally because they used `Clock.fixed` and a fake registry that copied probe health verbatim.
-- **Self-healing migration (owner decision).** A profile durably saved by an earlier build whose
-  stored timestamps violate the invariant is repaired IN PLACE on load — advancing only the
-  configuration-validation instant, never the identity, URL, origin graph, capabilities, fingerprint,
-  owner approval, Room bindings or priority rows — and announced once through `safeNotice` rather than
-  changing silently. The owner never has to delete and re-add a LiveBall/TimeSoccerTV source.
-- **Two explicit owner intents.** `SourceOwnerIntent` distinguishes a provider/Website profile
-  (durable and usable without `playerDetected`, Sports wording `מקור תוכניות ספורט נשמר וייכלל בחיפוש`)
-  from an exact content URL (binds to its exact canonical identity or names the exact missing
-  evidence).
-- **Sports Programs + hybrid recurrence (owner decision).** A durable `SPORTS_PROGRAMS` role feeds
-  bounded same-origin discovery (show tag + stable recurring path + edition marker; fixtures and
-  articles rejected with exact reasons) into durable encrypted app-private storage. A first
-  provider-marked edition is shown and playable immediately while the programme persists as
-  `RECURRENCE_UNCONFIRMED`; confirmation needs a second DISTINCT edition or independent authoritative
-  metadata, is monotonic, and re-observing the same edition never confirms. Unconfirmed programmes
-  drive no recurring prediction, cadence inference, scheduling hint or notification.
-- **LiveBall.** Exact `liveball.sx/match/{id}` onboarding captures spoiler-free exact-match evidence
-  and binds only on strong evidence, with a native-resolver bridge. The production exact-fixture
-  crosswalk for LiveBall's numeric team/league ids does NOT exist, so the shipped binder reports the
-  exact missing evidence rather than guessing.
-- **Telegram roles.** Catalog media / Sports announcements / Sports media are independent per chat
-  over the existing membership column (no schema change); one shared selected-first picker whose
-  displayed count always equals its rendered selected rows; no chat must be removed from movies and
-  series first. Sports media binds only on both exact team identities plus a bounded date window, with
-  truthful HIGHLIGHTS / EXTENDED_HIGHLIGHTS / FULL_REPLAY / CLIP classification.
-- **Eligibility chrome.** `F2bYouTubeSourceStatus` / `F2bBroadcasterSourceStatus` are provider-neutral
-  and identity-scoped: nothing renders for an ineligible title (inline Episode Details included), the
-  real provider is named when one is eligible, and state clears on identity change. No hardcoded Kan 11.
-- **YouTube truth.** `DRM_PROTECTED` requires real `licenseInfos`; a generic refusal becomes
-  `MEDIA_RESOLVE_PLAYBACK_RESTRICTED`; login/age/region keep their own codes. Trailers report failures
-  and route through the provider-neutral engine; no owner-facing SmartTube wording remains.
-- **Search / Hebrew / metadata.** `CatalogSearchQueryPolicy` makes `ריצ'ר` ≡ `ריצר` through a bounded
-  ordered query set without merging identities. `SportsHebrewPresentation` localizes Sports display
-  only — never a stable key, matcher, crosswalk or provider brand, and never invents a
-  transliteration. `HebrewWikipediaEpisodeMetadataProvider` reaches Hebrew Wikipedia ONLY through an
-  exact IMDb → Wikidata `P345` → `hewiki` crosswalk with a `P4983` TMDB-id contradiction guard, and
-  renders CC BY-SA 4.0 attribution. `TmdbPlaceholderEpisodePolicy` treats known filler as absent.
-- **OMDb / Series cache.** Full secure Accounts & Connections card: in-app entry, candidate validation
-  before an atomic replace, old key preserved on failure, masked status only, exact-IMDb-only cached
-  ratings. Series Details renders last-known-good persistent cache immediately, with no destructive
-  migration and no app-version cache key.
-- **Exact Android match alerts (addendum).** Scheduling moved behind a testable platform alarm port
-  backed by `AlarmManager.setExactAndAllowWhileIdle`; WorkManager survives only as a redundant
-  backstop that cannot post twice. `SCHEDULE_EXACT_ALARM` + `RECEIVE_BOOT_COMPLETED` declared, with a
-  receiver for BOOT_COMPLETED / MY_PACKAGE_REPLACED / TIME_SET / TIMEZONE_CHANGED /
-  SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED. Permission state is truthful, reconciles when
-  granted, and the old `now >= kickoff` rule survives only as a late-fire guard. `USE_EXACT_ALARM` is
-  deliberately NOT declared: it is reserved for alarm-clock-class apps and Play-restricted.
-- **LIVE provider applicability (addendum).** Families are chosen by `FixtureState`: a LIVE fixture
-  reaches only LIVE-capable families and FootReplays / DasFootball / official YouTube Highlights are
-  neither invoked nor given status rows; `שידורים חיים` leads Match Details while live; post-match
-  sections appear at FINISHED; UPCOMING triggers no post-match work. Transitions cancel obsolete work,
-  preserve valid source facts by identity, drop stale statuses and never duplicate.
-- **Unresolved announcements (addendum).** An item with no evidence for the OPEN fixture no longer
-  renders on Match Details at all — it survives as a truthful count in the existing source-family
-  diagnostics block (no new management screen). Partial-evidence candidates sit in one collapsed
-  secondary block, deduplicated by stable private message and evidence identity, each with exactly one
-  labelled action. A Compose regression mounts 24 unresolved announcements and asserts zero identical
-  full-width `שייך למשחק` buttons.
+**PHYSICAL PASS from code41:** exactly one `מומלץ לך בספורט` row precedes Continue Watching; the full
+Sports section remains in its established lower slot; the personalized row has rich spoiler-safe
+artwork; the owner completed OMDb credential connection; a Sports notification was delivered on the
+real phone. Notification delivery does **not** prove exact ten-minute timing. Preserve all previously
+documented code39/code40 physical PASSes, including FootReplays Full Match native playback, one direct
+DasFootball highlight, Episode Details automatic source discovery, favourite semantics and the
+no-spoiler contract.
 
-## Telegram channel Live — exact pinned-TDLib capability truth
+**PHYSICAL FAIL from code41:** passive Series contained tutorial/help/payment-account junk;
+personalized artwork itself did not navigate, the closed card exposed `פעולות`, artwork/text team
+order and pair language could contradict; YouTube account UI incorrectly described all YouTube as
+unavailable and retained stale component-license prose; Website Sports sources appeared as repeated
+indistinguishable provider cards; Sports Telegram roles were not readily visible. An imminent
+favourite fixture roughly forty minutes before PMTV's displayed kickoff was absent; configured
+LiveBall did not discover its exact resource; a manually supplied exact pre-kickoff resource bound
+but appeared Website-first.
 
-**OBSERVATION: IMPLEMENTED.** On pinned TDLib 1.8.66, `Chat.videoChat`, `UpdateChatVideoChat`,
-`GetGroupCall` and `UpdateGroupCall` reveal which SELECTED Sports-media chats are broadcasting, RTMP
-vs video chat, and when a stream ends. Several live channels become several distinct owner choices;
-exact evidence marks MATCHED, otherwise OWNER_SELECTABLE_UNVERIFIED (manually playable for that
-session only, never persisted as a verified binding).
+## What code42 implements
 
-**STREAM PLAYBACK: NOT IMPLEMENTED — exact reason.** `GetGroupCallStreams` and
-`GetGroupCallStreamSegment` answer only for a JOINED group call. Joining requires a WebRTC/tgcalls
-join payload plus an audio source id that PMTV deliberately does not ship, and would announce the
-owner as a call participant. `GetVideoChatRtmpUrl` returns the owner's OWN publishing URL and stream
-key for a chat they administer, so it is never called. Surfaced truthfully as
-`שידור חי · Telegram · העברת השידור החי אינה נתמכת בגרסה זו`, never as a generic failure and never
-collapsed into `עדיין לא נמצא מקור מדויק`. The SUPPORTED branch exists and is tested, so a lawful
-transport engages it unchanged.
+- **Passive Series curation.** Typed media/catalog/provider/content-class and retained TMDB genre and
+  completeness facts feed only passive projection. Structural tutorial/help/support/payment-account,
+  SEO/spam and malformed generic-Web-video combinations are rejected without a one-title blacklist.
+  Raw evidence remains, weak legitimate items rank down, and explicit Search/direct/personal content
+  stays broad.
+- **Sports card interaction and truth.** Artwork is inside the exact Match Details click target. The
+  nested accessible icon-only overflow consumes its own tap and contains no owner-facing `פעולות` on
+  the closed card. Canonical order drives both labels and the spoiler-safe two-crest composition;
+  unknown-orientation posters cannot contradict it. Hebrew is used only as a reliable two-team pair,
+  otherwise both labels use a consistent provider/canonical language. The safe artwork pipeline is
+  shared by ordinary Sports cards and Details, with stable image keys and no score/result imagery.
+- **Imminent recommendation.** A general bounded UPCOMING window and time-to-kickoff signal admit an
+  imminent explicit-favourite fixture even when no media exists. The card states UPCOMING/starts-soon
+  truth and opens Details; it fabricates no playback. Favourite LIVE priority, learned affinity,
+  exact `לא מעוניין`, role-aware consumption, the single horizontal row and lower full Sports section
+  remain intact.
+- **YouTube truth.** Public `NativeYouTubeEngine` readiness is independent from optional account and
+  personal-feed authorization. Active UI names unavailable account connection specifically, removes
+  SmartTube/MediaServiceCore/SharedModules owner-facing blocker prose, and never reports DRM without
+  actual licence evidence. Public videos, trailers and official highlights retain the one PMTV
+  Media3 route; no app handoff, youtube.com WebView/iframe or fake success was introduced.
+- **Website source reconciliation.** One canonical private URL identity is used across save, lookup,
+  indexing and recovery. One provider/profile renders as one master with truthful child/resource/
+  binding details; exact resources stay distinct. Catalog schema 15 records supersession so true
+  code41-style duplicates reconcile idempotently and non-destructively while approvals, roles,
+  bindings, priority, useful health and provenance survive. Re-save routes to the existing source.
+- **Telegram Sports visibility.** Catalog Telegram management remains catalog-only in meaning. Sports
+  Settings separately exposes announcements, media, and selected Sports-media Live-observation
+  eligibility; selected rows lead and counts equal actual selection. One chat can keep independent
+  roles without cross-removal. Pinned TDLib 1.8.66 supports observation only, not Telegram Live stream
+  transport.
+- **LiveBall exact discovery and native-first lifecycle.** An enabled configured profile performs
+  bounded public date-index discovery for UPCOMING/LIVE fixtures and binds an exact child only when
+  both teams, compatible kickoff, competition when present and non-contradiction strongly agree.
+  Wrong/ambiguous candidates bind none; no guessed IDs or fuzzy crosswalk exists. Repeated discovery
+  is idempotent and the provider remains one top-level profile. Exact-source existence is independent
+  from media readiness: pre-kickoff no-media is typed `MEDIA_RESOLVE_NOT_YET_AVAILABLE`, nonfatal and
+  non-DRM, and cannot poison the LIVE retry. Foreground owner intent and UPCOMING→LIVE transition retry
+  bounded discovery/resolution while preserving MatchIdentity and excluding FootReplays,
+  DasFootball and official post-match YouTube Highlights during LIVE.
 
-## Provider truth (see `docs/F2C711_PROVIDER_OPERATIONAL_MATRIX.md`)
+**Owner decision recorded:** Website playback/opening is a fallback after native resolution, never
+the default path for a source with a supported native resolver. LiveBall follows configured provider
+→ exact child discovery → native resolution → shared PMTV Media3 when usable; PMTV never auto-opens
+the Website.
 
-- **TimeSoccerTV** — IMPLEMENTED. Opt-in live smoke on the real provider: `SOURCE_DETECTED`,
-  `PROVIDER_SOURCE`, `BOUNDED_GENERIC_INDEX`, 1 programme / 1 edition, `delivery=WEB_SOURCE`,
-  `playbackObserved=false`. TWO defects were involved in the owner's failure: the timestamp-ordering
-  projection bug AND a non-browser probe User-Agent that drew a 503; the browser UA fixed the latter.
-- **Programme embed hosts (ok.ru, dailymotion)** — NOT IMPLEMENTED, no native resolver; discovered
-  programme sources stay truthfully `WEB_SOURCE`.
-- **Kan / mako / 13tv as METADATA** — BLOCKED with exact reasons: Kan has no documented API, no
-  metadata-reuse licence (terms permit non-commercial personal use, forbid derivative works and
-  obtaining information by means not intentionally made available) and answered every request from
-  this environment with an interactive challenge; mako's terms forbid deep links and building
-  collections/databases; 13tv refused non-browser clients. Kan/Keshet/Reshet remain a
-  broadcaster-VOD SOURCE family, not a metadata source.
-- **Wikidata + Hebrew Wikipedia** — IMPLEMENTED via documented public APIs (CC0 + CC BY-SA 4.0). Live
-  smoke resolved `הפשוטע` S1E7 = `פריקי סבתא`, aired 2026-08-31. That episode legitimately has no
-  synopsis or still in the article, so PMTV contributes none rather than borrowing a neighbouring row.
-  Title search is never used — the title shares its Hebrew label with an unrelated Wikidata item.
-- **OMDb** — IMPLEMENTED; live key validation is PHYSICAL TEST PENDING (owner enters it on device).
-- **TheTVDB** — NOT CONFIGURED, no owner credential; blocks nothing and no key is requested.
+## Real host and runtime truth
 
-## CI reliability — two separate environmental defects, both fixed
+- **LiveBall compatible fixture:** a current real fixture with agreeing canonical/provider teams,
+  kickoff and competition completed production exact-child discovery and returned HLS through the
+  production resolver. This is `HOST_ONLY_NOT_MEDIA3_NOT_PHYSICAL`; it proves neither Media3
+  acceptance nor playback/frames/audio/fullscreen.
+- **Owner-observed LiveBall fixture:** the current public listing showed the same teams/competition
+  with a kickoff about four hours contradictory to the owner-observed canonical fixture. The strict
+  ±90-minute matcher correctly rejected it. The owner fixture is not claimed auto-bound or playable.
+- **YouTube:** one ordinary public video resolved 27 formats and accepted an HTTP 206 range request.
+  The tested official Sports highlight and catalog trailer both ended at typed `LOGIN_REQUIRED`, no
+  DRM evidence and no media. These required host paths are **FAILED**; Android playback remains
+  pending.
+- **FootReplays:** the current host exposed a real `FIRST_HALF` candidate but resolution ended at
+  `MEDIA_RESOLVE_DYNAMIC_PLAYER_UNSUPPORTED` — **FAILED**. This does not erase the historical physical
+  Full Match PASS.
+- **DasFootball:** the current host returned nominal provider success with zero pages and failed the
+  smoke's one-page expectation — **FAILED**. This does not erase the historical direct-highlight PASS.
+- **Israeli metadata:** the existing exact Wikidata→Hebrew Wikipedia code41 path remains intact for
+  `הפשוטע` S1E7, yielding the authoritative Hebrew title `פריקי סבתא` and air date 2026-08-31. The
+  source supplies no real synopsis/still, so absence remains truthful rather than fabricated.
 
-1. **Robolectric runtime fetch stalled the unit-test step.** Robolectric resolves its
-   `android-all-instrumented` jars DURING the test task, not at dependency-resolution time, and this
-   suite needs TWO: `8.0.0_r4-robolectric-r1-i7` (94,512,384 bytes — the explicit `@Config(sdk=[26])`
-   app-mobile tests) and `16-robolectric-13921718-i7` (213,431,622 bytes — the core-module Robolectric
-   tests that declare NO `@Config` and fall back to `compileSdk` 36). ~295 MB fetched inside the test
-   JVM with no timeout: run `33857049378` hung for the full 6-hour job limit with zero output after
-   `> Task :app-mobile:testDebugUnitTest`. Never reproducible locally (jar already in `~/.m2`); the
-   exact CI invocation runs green here in 8m43s, and 4m31s pinned to 2 CPUs on this 4-core device.
-   - A cache-only fix was INSUFFICIENT: `actions/cache` saves in a post step gated on job success, so
-     an unrelated later failure skipped the save, the next restore reported `Cache not found`, and the
-     download repeated — burning the new 45-minute timeout. **A green restore step is not a cache hit.**
-   - Final fix: `scripts/prefetch-robolectric-runtime.sh` resolves both artifacts BEFORE the tests,
-     bounded by connect/max-time with retries, verified by pinned SHA-512, writing the `.sha512`
-     sidecars so Robolectric treats them as its own. CI restores with `actions/cache/restore`, prints
-     HIT/MISS with the key, and saves with `actions/cache/save` under `always()`.
-     `scripts/test-prefetch-robolectric-runtime.sh` covers 5 cases offline via `file://` fixtures.
-     Verified in CI: explicit MISS, both jars fetched and digest-verified, cache saved, tests 7m42s.
-2. **GeckoView verifier `play-services-fido…pom found 0`** — the recurring warm-cache prune. GitHub's
-   Gradle cache cleanup removes the POM the offline verifier reads. Remedy unchanged and applied:
-   delete all `gradle-*` Actions caches (the content-keyed TDLib cache is unaffected) and re-run cold.
+## Validation and delivery
 
-Neither implicates code-41 product code: the identical tree passed CI end to end at `d7974b4`,
-including GeckoView verification and APK upload.
+- Focused code42 tests and the complete mobile/mobile-used unit/integration/Compose matrix passed.
+- Mobile-used Android lint and `:app-mobile:assembleDebug` passed through the global heavy queue.
+- Credential/private-material scan, delivery/downloader selection, code41→42 upgrade, provisioning,
+  pinned TDLib, Gecko/runtime provenance, Robolectric prefetch, package/version/signer/ARM64/native
+  layout and shell/Node verifier harnesses passed. No root aggregate or `app-tv` task ran.
+- Current real provider smokes were run and reported separately above; resolver success was never
+  promoted to physical playback.
+- Initial product HEAD `c8c0737` exact CI run `33919594723` passed tests/lint/assembly but twice
+  failed because Gradle could resolve the audited Google AAR/module metadata without materializing
+  the POM required by the offline provenance verifier. Final commit `c595f65` explicitly resolves the
+  four already pinned, non-transitive POMs; fresh-cache local verification authenticated all four
+  and left the packaged payload unchanged.
+- Final exact-head run `33924368537` attempt 1 suffered a transient hosted
+  `:app-mobile:testDebugUnitTest` process stall after every core task passed and timed out at 45
+  minutes. Same-head attempt 2 passed that identical matrix in 7m43s and all later gates, including
+  the repaired provenance check and artifact upload. No no-op commit or weakened check was used.
+- The authoritative exact-head APK was downloaded, independently reverified, and published at the
+  versioned Test path above. No same-version local copy existed to remove; older unrelated/versioned
+  APKs remain.
 
-## Truthful status
+## Physical, blocked and not-implemented truth
 
-**IMPLEMENTED (host/deterministic/CI proven).** Everything in "What code 41 implements", plus
-Telegram channel-Live OBSERVATION.
+**ADB unavailable / PHYSICAL TEST PENDING.** Multiple wireless attempts did not establish an
+authorized usable transport; no package or app data was changed, and the owner explicitly stopped
+retrying ADB for this round. Code42 could therefore not be installed or exercised by Codex. Upgrade
+state survival, launch/Back, exact card taps/layout/order/language/art continuity, real private
+source-row migration, Telegram selections/search/live observation, public YouTube/trailer/highlight
+Media3 playback, LiveBall pending→LIVE resolution/Media3 playback, exact alarm identity/timing and
+notification deduplication remain owner physical acceptance items. The authoritative APK—not the
+local build—must be used for that acceptance. Naturally unavailable Telegram Live is never a PASS.
 
-**NOT IMPLEMENTED — exact reasons.** Telegram live STREAM playback on pinned TDLib 1.8.66; the
-production exact-fixture crosswalk for LiveBall's numeric ids; a native resolver for the
-ok.ru/dailymotion programme embed hosts.
+**BLOCKED:** representative bad-card and duplicate-source app-private provenance diagnosis requires
+a usable authorized ADB/read-only runtime; exact ten-minute notification timing lacks physical timing
+evidence; current official-highlight/trailer YouTube host access is typed `LOGIN_REQUIRED`.
 
-**BLOCKED.** Kan/mako/13tv as metadata sources; SmartTube-derived engine reuse (unchanged,
-non-blocking; no owner-facing SmartTube wording remains).
-
-**PHYSICAL TEST PENDING.** All 112 items in `docs/MOBILE_ACCEPTANCE.md`. This environment had NO
-connected Android device (`adb devices -l` empty) and NO authenticated Telegram runtime, so no
-on-device playback, notification delivery, live observation, alarm firing or UI rendering is claimed.
-Deterministic, Robolectric/Compose and host-smoke evidence is never promoted to a physical PASS. In
-particular the Beitar notification regression is FIXED IN ARCHITECTURE but its real delivery —
-including screen-off/idle firing and the tap route — remains unverified on hardware.
-
-## Owner decisions recorded this milestone
-
-Home ordering correction; playback-derived personalization; two Universal Source owner intents;
-hybrid programme recurrence (option 3) with `RECURRENCE_UNCONFIRMED`; non-destructive self-healing for
-already-persisted broken profiles; non-exclusive Telegram roles; exact Android alarm route with
-WorkManager demoted and special access requestable; LIVE-only family applicability; selected Telegram
-channels may provide Live with owner choice among several; an unverified active broadcast is manually
-playable without fabricating a binding; unresolved announcements are not primary Match Details actions
-and repeated unlabeled `שייך למשחק` buttons are removed.
+**NOT IMPLEMENTED — exact reasons:** Telegram Live stream playback remains unavailable because pinned
+TDLib 1.8.66 exposes observation but requires an unshipped joined-call/tgcalls transport for stream
+segments; no bypass was added. No new third-party provider/API/account, paid broadcaster integration,
+guessed LiveBall crosswalk, DRM/auth/paywall/entitlement/region bypass, or unlicensed artwork was
+introduced.
 
 ## Privacy
 
-No Telegram chat/message/group-call identifier, invite link, RTMP URL or stream key; no OMDb key or
-any credential; no private media URL or owner identifier appears in this record, the repository, CI
-output, or any owner-facing string. Unresolved-announcement rows identify a source by a locally
-derived display name or public HTTPS host, falling back to an ordinal.
+No ADB endpoint, pairing code, device serial, Telegram identity, private source URL, OMDb credential,
+session/auth material, screenshot or private media appears in this record or the application
+repository. Runtime diagnostics and provider evidence remain privacy-safe.
