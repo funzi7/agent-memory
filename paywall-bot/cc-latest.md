@@ -288,17 +288,30 @@ automation to unblock my own PR.
 
 ## PENDING (in order)
 
-1. **First post-merge production evidence — PENDING.** The rotation path is
-   dormant (outage recovered 2026-09-05T15:51:47Z), so what the next scheduled
-   polls prove is the rest: the new poll-step budgets (TheMarker step 8 of a
-   12-minute job; Tech Feed IL step 16 of 20), the `if: always()` state
-   commit, and no regression in the recovery/current-first drain of the
-   146-row backlog. When an outage next latches, expect
+1. **First post-merge production evidence — DONE, and it validated the whole
+   change.** Run 33991697780 (2026-09-05T21:01Z, 118s, success; state
+   `6bcc11c`, docs `d566991`). The outage re-latched after the 15:51Z
+   recovery, so the first poll on the merged code ran the new path:
    `phase2 active-outage fairness: 2 external probe row(s) (representative
-   rotation position i/N, poll k)` with a MOVING `i`, a
-   `themarker_probe_rotation` block in committed state, and
-   `extraction_outage.probe_count` advancing by up to 2 per poll (it counts
-   probes, not polls, now).
+   rotation position 0/147, poll 1) + 18 newest ready rows (local-only)`, and
+   `themarker_probe_rotation` is now a committed state key
+   (`last_probe_key …0000019f-f2c8…`, `last_probe_index 0`,
+   `ready_count 147`, `probe_count 1`, `updated_at 20:59:56Z`).
+   **The current-item probe is what recovered the tenant**: at 21:00:12Z the
+   aged representative produced the systemic signature and the breaker
+   latched; two seconds later `TheMarker extraction outage cleared
+   source=one3ft reason=complete_content`, and the next line publishes a
+   SAME-DAY article via one3ft (12¶ / 4,021 chars). Under the pre-merge
+   selection that row was local-only — the poll would have parked and
+   published nothing. Also observed live: `provider jina skipped: unavailable
+   earlier in this run` ×5 (provider-global caching after two systemic
+   failures), `post cap reached: 4 posted this run`, `errors 0`,
+   `permanent_fail 0`, poll step 100s against its 8-minute cap, commit step
+   2s, job 118s against 12 minutes.
+   STILL OPEN: a multi-poll rotation CYCLE — this outage cleared inside the
+   first rotating poll, so the cursor has advanced only once. Next latched
+   outage should show `rotation position i/N` moving across polls and
+   `extraction_outage.probe_count` advancing by up to 2 per poll.
 2. **Retrospective Codex audits of #100 and #101 — requested, awaiting
    results.** `@codex review` posted 2026-09-05 (comments 5553907913 /
    5553908086). Read the outcomes; any real P1/P2 → normal forward-fix PR.
