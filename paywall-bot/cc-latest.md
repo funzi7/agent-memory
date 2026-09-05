@@ -25,25 +25,27 @@ evidence. The mechanism worked as specified; the specification was wrong.
 - Branch: `fix/themarker-representative-rotation-20260905` (owner-namespace,
   NOT `claude/*` → legitimate Merge Bot candidate with no label needed).
 - Base: `origin/main` `e9b342cf2bcb2f309bbb9ff8ecc9d8431ccb6c47`.
-- Commits: `1bb859c` (rotation) → `f6f23ad` (review pass 1 fixes) →
-  `4b0e387` (review pass 2 fixes) → `cb8ff9f` (docs precision) →
-  **HEAD `8663cb92e5f1a5dbaf08603c4b22280e4dba5edf`** (Gate/backlog
-  documentation). The last two carry no code change.
+- Commits: `1bb859c` (rotation) → `f6f23ad` (review fixes 1) → `4b0e387`
+  (review fixes 2) → `cb8ff9f` (docs precision) → `8663cb9` (Gate/backlog
+  documentation) → `71f86b5` (**owner's** Gate fix: bind clean Codex
+  summaries to reviewed heads) → `7e17702` (review fix 3) → `a1b8ba3`
+  (review fix 4) → **HEAD `6c069ef4df629843ec6be79d67ddb42339b12f10`**
+  (review fix 5).
 - PR: https://github.com/funzi7/paywall-bot/pull/102 — **OPEN**, with an
   owner-facing status comment (5553917309) laying out the three merge
   options.
-- **CI green on EVERY head**: `test-message-format` pass on `1bb859c`
-  (run 33982698357, 1m7s), `f6f23ad` (run 33983248763, 1m9s), `4b0e387`,
-  `cb8ff9f` (run 33983969747, 1m0s) and `8663cb9`.
+- **CI green on EVERY head**, `1bb859c` through `6c069ef`
+  (`test-message-format`, ~1 min each).
 - **Codex capacity is BACK** — the first real signal since the 2026-08-29
   quota notice on #101. A genuine Code Review ran on `1bb859c`
   (2026-09-05T18:00:40Z) and **found two real defects**, both fixed in
   `f6f23ad` with regression tests, replied to on their threads, and resolved:
   - **P1 — cursor durability.** An in-memory advance is not an advance:
     `run_poll`'s only unconditional `save_state` is at its very end and the
-    poll job is killed at its 10-minute timeout on an ephemeral runner, so a
-    poll that kept dying mid-way would reload the old cursor and re-probe the
-    same representative forever. Fixed with `_checkpoint_probe_rotation`
+    poll job is cancelled when its timeout expires on an ephemeral runner, so
+    a poll that kept dying mid-way would reload the old cursor and re-probe
+    the same representative forever. (Two later passes proved `always()` alone
+    does not survive a TIMEOUT — see the step-cap findings below.) Fixed with `_checkpoint_probe_rotation`
     (persist before the first external chain, best-effort) **plus**
     `.github/workflows/poll.yml` committing tenant state with `if: always()`
     — matching the Tech Feed IL poll workflow. That `always()` also hardens
@@ -76,34 +78,52 @@ evidence. The mechanism worked as specified; the specification was wrong.
   into its temp dir — CI runs that module individually and enforces
   `git diff --exit-code -- state/`.
   All four threads were replied to and resolved after the fixes landed.
-- **Review passes 3 and 4 came back CLEAN** — `4b0e387` (completed
-  2026-09-05T18:23:28Z) and the final head `cb8ff9f` (completed
-  2026-09-05T18:27:16Z), no new findings; zero unresolved review threads on
-  the PR. Codex also left the clean-result 👍 reaction.
-- **Gate is RED for a structural reason, not a finding** (verified in the
-  workflow source, not guessed). `check-codex-status` on `cb8ff9f` reports
-  *"🟡 Waiting for Codex review — Codex has not reviewed head cb8ff9f."*
-  `.github/workflows/codex-gate.yml` computes
-  `hasCodexSignalOnHead = allBodies.some(onHead) || codexReactionOnHead`,
-  where `signalTargetsHead` (:213-226) binds a signal to the head ONLY via a
-  comment/review `commit_id`, `original_commit_id`, or a
-  `**Reviewed commit:** \`sha\`` marker, and the 👍-reaction path
-  (`onlyObservedHead`) is allowed only when marker history proves the PR
-  never had another head. A CLEAN review posts no inline comment, so it
-  carries no exact-head binding; #102 has had four heads, so the reaction
-  path is refused too. Consequence: **any PR that needed a fix round can
-  never reach a green Gate through a clean final review.** That is a Gate
-  design gap, and it was NOT worked around here — no override label
-  (`codex-p1-acknowledged`), no fabricated `Reviewed commit` marker (which
-  the Gate would reject anyway: only `chatgpt-codex-connector` logins count),
-  and no edit to the Gate/Merge-Bot/automation-core to make my own PR
-  mergeable. Owner options, in the owner's hands: (a) a manual SHA-pinned
-  squash merge as with #100/#101, now on top of a genuinely clean multi-pass
-  Codex review; (b) extend the Gate to accept a completed clean review bound
-  to the head (the connector's summary comment does contain the short SHA) or
-  a 👍 that post-dates the last head observation with zero unresolved
-  threads; (c) re-file the final tree as a single-commit PR so the
-  reaction-only path applies.
+- **The OWNER pushed `71f86b5` onto this branch** — "fix(automation): bind
+  clean Codex summaries to reviewed heads", addressing the Gate gap below. It
+  adds `completedCodexSummaryTargetsHead` identically to the Gate, Merge Bot
+  and watchdog: trusted connector login only, the connector's own
+  `<!-- codex-pull-request-review-summary -->` marker, a ✅ row (🔄 refused),
+  and a backticked SHA that must prefix the head; the 👍 must still post-date
+  the head observation, and `decideCodexGate` still blocks on any active
+  unresolved P1/P2 first. Reviewed here and sound; +4 node gate tests (21).
+- **Codex then found THREE more real defects on top of it** — all fixed,
+  replied to and resolved:
+  - `71f86b5` **P1**: `if: always()` does not survive a JOB timeout — the
+    runner dies with the checkpoint. Fixed in `7e17702` by giving the poll
+    step its own cap.
+  - `7e17702` **P1**: an 8-of-10-minute step cap ignores checkout/setup/
+    install, which consume the same job budget before the poll starts. Fixed
+    in `a1b8ba3`: TheMarker job 10 → 12 with an 8-minute step cap and an
+    explicit 4-minute reserve (measured on run 33976044896 — checkout 2s,
+    setup-python 4s, pip install 5s, commit 2s; job never above 92s).
+  - `a1b8ba3` **P2** (my error): the Tech Feed IL step cap of 12 min sat
+    BELOW that tenant's own `runtime.poll_budget_seconds: 900` — I had cited
+    the unrelated `source_health.runtime_budget_seconds: 270`. Fixed in
+    `6c069ef`: cap 16 inside the unchanged 20-minute job, above the app
+    budget, 4-minute reserve. TheMarker configures no `runtime` section, so
+    its 8-minute cap bounds nothing the application itself limits.
+- **Final head `6c069ef`: review CLEAN, zero unresolved threads, CI green.**
+  Seven Codex findings total across five passes, every one fixed with
+  regression coverage, replied to on its thread, and resolved.
+- **Gate is RED for a structural reason, and the fix cannot unblock its own
+  PR** — now proven empirically, not just from the source. On `6c069ef` all
+  three preconditions the owner's fix needs are present: connector 👍 at
+  2026-09-05T19:17:44Z (after the head), a ✅ summary row naming `6c069ef`,
+  and zero unresolved findings. `check-codex-status` still reports *"Codex has
+  not reviewed head 6c069ef"* — including on a manual re-run at 19:18:44Z, so
+  it is not a timing race. Cause: `pull_request_target`, `schedule` and
+  `workflow_dispatch` all execute the workflow file from the DEFAULT branch,
+  and `main` does not carry the fix
+  (`git show origin/main:.github/workflows/codex-gate.yml | grep -c
+  completedCodexSummaryTargetsHead` → 0). The Gate change takes effect only
+  once it is on `main`.
+  Nothing was worked around: no `codex-p1-acknowledged` override label, no
+  fabricated `Reviewed commit` marker (the Gate only trusts connector logins
+  anyway), and no edit by me to the Gate, Merge Bot or automation-core.
+  Owner options: (a) manual SHA-pinned squash of #102 — the Gate is then
+  fixed for every later PR; (b) land the Gate change on `main` by itself
+  first (a single-commit PR clears through the existing reaction-only path)
+  and re-run the Gate here. Status comment on the PR: 5554193554.
 - NO owner exception is requested or used here. Merge only after a green Gate
   or an explicit owner decision.
 - **Retrospective Codex reviews REQUESTED** on 2026-09-05 (capacity is back):
@@ -162,7 +182,7 @@ recovery ordering are unchanged.
 Full 146-row pass ≈ 146 polls ≈ 14.6 days at 10 polls/day. Coverage speed is
 explicitly NOT the goal (during an all-provider outage extra probes prove
 nothing) — evidence diversity per poll is. Observed poll wall-clock 52–92s vs a
-10-minute job timeout, one3ft warm retry stays once per RUN ⇒ no runtime budget
+8-minute poll-step cap, one3ft warm retry stays once per RUN ⇒ no runtime budget
 added.
 
 ## Production evidence for PR #101 (all from committed state — now CLOSED)
@@ -211,7 +231,8 @@ and establishment seeding — seed + next-poll advance, a latched outage never
 reseeding, a cursor left by an earlier outage replaced, the establishment
 itself checkpointed to the state file). `python -m tests.test_message_format`
 OK; `compileall`; 16 workflow YAMLs parse; `bash -n`; `node --check` +
-`node --test` gate tests; `git diff --check`; **`state/` byte-clean after the
+`node --test` gate tests (**21**, incl. the owner's 4 new
+`completedCodexSummaryTargetsHead` cases); `git diff --check`; **`state/` byte-clean after the
 full suite AND after each CI-listed module run on its own** — three
 self-inflicted pollution bugs were caught and fixed during the round: a test
 helper and the simulation both let `set_site_context` repoint the error log at
@@ -229,9 +250,14 @@ always the oldest" test assertion marked SUPERSEDED in
 `tests/test_themarker_queue_starvation.py` (it now covers the legacy no-plan
 call path only).
 
-One workflow change: `.github/workflows/poll.yml` commits tenant state with
-`if: always()` (the Tech Feed IL poll workflow already did). Nothing else in
-CI, the Gate, the Merge Bot or automation-core was touched.
+Workflow changes (all review-driven): `.github/workflows/poll.yml` commits
+tenant state with `if: always()` (the Tech Feed IL poll already did), its job
+budget is 12 minutes with an 8-minute cap on the poll step and an explicit
+4-minute reserve for setup + commit, and the Tech Feed IL poll step is capped
+at 16 of its unchanged 20 minutes — above that tenant's own
+`runtime.poll_budget_seconds: 900`. The Gate/Merge-Bot/watchdog change in this
+branch (`71f86b5`) is the OWNER's, reviewed here, not mine; I touched no
+automation to unblock my own PR.
 
 ## NOT verified physically
 
@@ -245,15 +271,15 @@ CI, the Gate, the Merge Bot or automation-core was touched.
 
 ## PENDING (in order)
 
-1. **#102 merge decision — OWNER'S CALL.** The review side is done: four Codex
-   passes, four real findings fixed/replied/resolved, two clean passes, zero
-   unresolved threads, CI green on every head. The Gate stays red only because
-   a clean review leaves no exact-head binding (see the Gate note above).
-   Options: manual SHA-pinned squash merge as with #100/#101; fix the Gate
-   separately and re-run it; or re-file the tree as a single-commit PR. Do NOT
-   fix the Gate inside #102 — a Gate change must not ride in the PR it
-   unblocks. A fifth (docs-only) Codex pass on `8663cb9` runs after this
-   handoff; it changes none of the above.
+1. **#102 merge decision — OWNER'S CALL.** The review side is done: five
+   Codex passes, seven real findings all fixed/replied/resolved, the final
+   head clean, zero unresolved threads, CI green throughout. The Gate stays
+   red only because the owner's own Gate fix rides in this PR while
+   `pull_request_target` runs the DEFAULT branch's copy (proven empirically —
+   see the Gate note above). Options: (a) manual SHA-pinned squash of #102,
+   after which the Gate is fixed for every later PR; (b) land `71f86b5`'s Gate
+   change on `main` in a single-commit PR (it clears through the existing
+   reaction-only path), then re-run the Gate here.
 2. **Retrospective Codex audits of #100 and #101 — requested, awaiting
    results.** `@codex review` posted 2026-09-05 (comments 5553907913 /
    5553908086). Read the outcomes; any real P1/P2 → normal forward-fix PR.
