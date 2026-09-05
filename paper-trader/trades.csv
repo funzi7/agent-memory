@@ -199,3 +199,4 @@ date,portfolio_id,strategy,ticker,side,shares,fill_price,commission,cash_after,e
 2026-08-28,swing_10k,swing,NVDA,BUY,7.0,227.4437,1.0,2568.59,9065.43,"פריצה #4 +1.2% מעל הרף, RSI 61"
 2026-08-28,swing_10k,swing,SLB,BUY,33.0,54.8374,1.0,757.95,9146.68,"פריצה #3 +1.9% מעל הרף, RSI 64"
 2026-08-28,pullback_10k,pullback,PANW,SELL,1.0,377.0714,1.0,573.79,10236.05,"מימוש חלקי +16% — נמכרה מחצית, סטופ הועלה לכניסה"
+2026-09-03,momentum_scan_10k,momentum_scan,MU,BUY,1.0,957.3884,1.0,57.74,7136.11,"מילוי אמצע-חודש — דירוג #3, מומנטום 6-1 +101.1%"
