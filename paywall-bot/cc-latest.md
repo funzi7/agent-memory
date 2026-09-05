@@ -1,4 +1,4 @@
-# paywall-bot handoff — 2026-09-05 UTC (PR #102 OPEN: TheMarker outage probe rotation + current-item probe)
+# paywall-bot handoff — 2026-09-05 UTC (PR #102 MERGED: TheMarker outage probe rotation + current-item probe)
 
 ## Headline
 
@@ -31,9 +31,14 @@ evidence. The mechanism worked as specified; the specification was wrong.
   summaries to reviewed heads) → `7e17702` (review fix 3) → `a1b8ba3`
   (review fix 4) → **HEAD `6c069ef4df629843ec6be79d67ddb42339b12f10`**
   (review fix 5).
-- PR: https://github.com/funzi7/paywall-bot/pull/102 — **OPEN**, with an
-  owner-facing status comment (5553917309) laying out the three merge
-  options.
+- PR: https://github.com/funzi7/paywall-bot/pull/102 — **MERGED**
+  2026-09-05T20:01:52Z as SHA-pinned squash
+  **`b07344f4d53b33478d0d349eb2b79d035805a328`** from the exact head
+  `6c069ef`, on an EXPLICIT owner instruction after the review side was
+  complete. Post-merge CI on the merge commit: green. A docs-only
+  reconciliation commit followed on `main`
+  (`e6885c105dce3b4e4571a0131acebfeaa4163e61`, CI green) so the handoff
+  docs match reality.
 - **CI green on EVERY head**, `1bb859c` through `6c069ef`
   (`test-message-format`, ~1 min each).
 - **Codex capacity is BACK** — the first real signal since the 2026-08-29
@@ -124,8 +129,17 @@ evidence. The mechanism worked as specified; the specification was wrong.
   fixed for every later PR; (b) land the Gate change on `main` by itself
   first (a single-commit PR clears through the existing reaction-only path)
   and re-run the Gate here. Status comment on the PR: 5554193554.
-- NO owner exception is requested or used here. Merge only after a green Gate
-  or an explicit owner decision.
+- **Merge basis, stated plainly.** The Codex REVIEW requirement was fully
+  satisfied on the merged head — five passes, seven real findings all fixed
+  and resolved, final pass clean with the connector thumbs-up, zero
+  unresolved threads, exact-head CI green. `check-codex-status` was red
+  only for the Gate binding gap that this PR itself fixes and that no PR
+  carrying the fix can clear (proven empirically, above). The owner then
+  explicitly directed the merge. As with #100 and #101: no
+  `codex-p1-acknowledged` override label, no fabricated or forged review
+  signal, no weakening of the Gate, Merge Bot or automation-core — the
+  Gate simply stayed red on an owner-merged PR. The merge commit message
+  records all of this.
 - **Retrospective Codex reviews REQUESTED** on 2026-09-05 (capacity is back):
   `@codex review` posted on #100 (comment 5553907913) and #101 (comment
   5553908086), each stating the merge SHA and the change set to audit. Their
@@ -145,9 +159,12 @@ behavior byte-for-byte, and no rotation state is written at all):
    GitHub-Actions process, so an in-memory cursor would restart at the oldest
    row and reproduce the defect exactly. The cursor is a dedup KEY (a queue
    that grows/shrinks between polls cannot pin it; a vanished cursor falls
-   back to the persisted poll counter, which still advances) and is written at
-   selection time, so a poll that dies mid-way cannot re-pin the same row.
-   Deterministic: identical state always yields an identical plan.
+   back to the persisted poll counter, which still advances). It is written at
+   selection time AND checkpointed to disk before the first external chain,
+   with the workflow committing tenant state under `if: always()` and the poll
+   step capped below the job budget — three parts, because Codex proved each
+   of the first two insufficient on its own. Deterministic: identical state
+   always yields an identical plan.
 2. **Current-item probe** — the NEWEST ready row additionally gets its own
    full external chain, so today's article can publish during an outage and
    recovery evidence can come from a fresh URL instead of a 24-day-old one.
@@ -181,8 +198,8 @@ recovery ordering are unchanged.
 
 Full 146-row pass ≈ 146 polls ≈ 14.6 days at 10 polls/day. Coverage speed is
 explicitly NOT the goal (during an all-provider outage extra probes prove
-nothing) — evidence diversity per poll is. Observed poll wall-clock 52–92s vs a
-8-minute poll-step cap, one3ft warm retry stays once per RUN ⇒ no runtime budget
+nothing) — evidence diversity per poll is. Observed poll wall-clock 52–92s vs
+the 8-minute poll-step cap, one3ft warm retry stays once per RUN ⇒ no runtime budget
 added.
 
 ## Production evidence for PR #101 (all from committed state — now CLOSED)
@@ -271,15 +288,17 @@ automation to unblock my own PR.
 
 ## PENDING (in order)
 
-1. **#102 merge decision — OWNER'S CALL.** The review side is done: five
-   Codex passes, seven real findings all fixed/replied/resolved, the final
-   head clean, zero unresolved threads, CI green throughout. The Gate stays
-   red only because the owner's own Gate fix rides in this PR while
-   `pull_request_target` runs the DEFAULT branch's copy (proven empirically —
-   see the Gate note above). Options: (a) manual SHA-pinned squash of #102,
-   after which the Gate is fixed for every later PR; (b) land `71f86b5`'s Gate
-   change on `main` in a single-commit PR (it clears through the existing
-   reaction-only path), then re-run the Gate here.
+1. **First post-merge production evidence — PENDING.** The rotation path is
+   dormant (outage recovered 2026-09-05T15:51:47Z), so what the next scheduled
+   polls prove is the rest: the new poll-step budgets (TheMarker step 8 of a
+   12-minute job; Tech Feed IL step 16 of 20), the `if: always()` state
+   commit, and no regression in the recovery/current-first drain of the
+   146-row backlog. When an outage next latches, expect
+   `phase2 active-outage fairness: 2 external probe row(s) (representative
+   rotation position i/N, poll k)` with a MOVING `i`, a
+   `themarker_probe_rotation` block in committed state, and
+   `extraction_outage.probe_count` advancing by up to 2 per poll (it counts
+   probes, not polls, now).
 2. **Retrospective Codex audits of #100 and #101 — requested, awaiting
    results.** `@codex review` posted 2026-09-05 (comments 5553907913 /
    5553908086). Read the outcomes; any real P1/P2 → normal forward-fix PR.
