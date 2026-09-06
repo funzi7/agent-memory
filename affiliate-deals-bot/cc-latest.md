@@ -3,7 +3,87 @@
 > Rolling handoff for `funzi7/affiliate-deals-bot`. Read this first, then the
 > repository documentation linked below.
 
+## 2026-09-06 — Phase B deployed + verified; alias-resolution RESEARCH milestone (research only)
+
+- **Repo HEAD `2bbd865ea5ab482f0c768042da82739119dbe424`** on `main` (local ==
+  origin/main), docs-only research commit over `226760d` (docs) over
+  **`f6a240814847d24257c1093b7733fadebfe1e36e`** (the runtime production
+  actually runs). **Deployed server tree = `226760d`** (content-verified,
+  identical runtime to `f6a2408`); the research commit `2bbd865` is docs-only
+  and was deliberately **not** deployed — production behaviour unchanged.
+- **Production state:** tracking **OFF** (`AFFI_TRACKING_ENABLED` and
+  `AFFI_TRACKING_REQUIRE_DASHBOARD_VERIFIED` unset in every env file and in
+  the live process); Core **SHADOW**, `core_publications` 0; all four units
+  active, NRestarts 0; 85 redirect events, all canary traffic.
+- **Phase B (2026-09-04 → 09-06) is DONE up to the activation decision:**
+  `go.affi.co.il` routed through the existing tunnel to the enabled
+  `affiliate-deals-go` unit; real edge 302/`no-store`/404 verified; ten
+  canaries opened on the owner's phone and judged from the authenticated KSP
+  dashboard → **7 route classes `dashboard_verified`** (item ×2, shops ×2,
+  category ×2, and the corrected `affiliate_query_category` re-verified
+  2026-09-06 after its fingerprint changed), 2 `no_affiliate_mechanism`
+  (`/link`, `/sku`), 1 `structural_only`. The old `/link`/`/sku` seeding was
+  withdrawn; nothing is seeded. **Rule: KSP honours the affiliate id only in
+  the URL PATH; `?appKey=` is inert.** Converter corrections deployed
+  (`f6a2408`): `/mob|web/cat/<ids>?appKey=` → `/cat/14095-<ids>`; `/link`,
+  `/sku` → `affiliate_mechanism_unavailable` (fail closed, no exception).
+- **Real production effect since the deploy:** every new `@KSPcoil` post was
+  alias-only → blocked with an owner alert; **nothing published** (vs 6–11
+  publishes/day before). Recompute over 972 decisions: 41 convert, 923 fail
+  (877 formerly "converted" aliases). One mirrored post's later edit was
+  blocked → mirror keeps pre-edit content (existing blocked-edit rule).
+- **Research findings (docs/KSP_ALIAS_RESOLUTION_RESEARCH.md):** KSP's
+  "העתק קישור" is **client-side** — read from KSP's own published bundles
+  (mobile chunk `3826.471ce24c85eda56f3d1c.js`, web chunk
+  `31.080c1a8b719a0ab89a93.js`, dictionaries `/_cache/kdm/*/he.json`, all
+  served to a plain client while every page/API path answers **403 "KSP
+  Forbidden 403"**): copied link = `BaseUrl + "/appkey/" + <affiliate code
+  from the `mac` cookie / config.affiliation> + "/" + <landed path>` (+ query
+  on mobile, tracking params stripped); the only server call is
+  `get_forum_code?uin=` for two page ids. **No alias→canonical operation
+  exists in the SPA**; `/link`/`/sku` are server-side redirects, 403 to
+  non-browsers from this device AND the VPS (even robots.txt). No current
+  affiliate API evidenced; legacy `/af/` pages are historical (do NOT ask the
+  owner to re-inspect them). Every open-source KSP client (guymon92/ksp-mcp
+  MIT, eran-broder/ksp, Gallind, …) relies on spoofing/stealth/session replay
+  — out of scope; the MCP "first number" rule is NOT a `/sku`→UIN mapper.
+- **Alias salvage estimate:** corpus 342 distinct aliases / 506 occurrences /
+  138 posts, 97% single-use, top-100 covers 32%; 124/138 posts alias-only;
+  `/link` gates 100% (`/sku` alone → 23%). **Salvageable today: 1.2%** (6
+  occurrences the owner resolved by hand); 0 by any server-side tier.
+- **Recommended next milestone:** **no automated resolver** (evidence does not
+  support one). Target = hybrid ladder whose first tier needs a lawful
+  `alias → canonical URL` source: KSP-side unlock (allow-listed resolution,
+  feed/API, or `?appKey` attribution restored; contact via the programme's
+  published address) or an **owner-in-the-loop pilot** (~26 new aliases/day).
+  Plus the alert lifecycle + capability-aware resurrection design.
+- **Error-lifecycle findings (docs/ERROR_LIFECYCLE_RESEARCH.md):** all alerts
+  funnel through `runtime.py:_queue_alert`; dedup is per version / event /
+  outbox row / **attempt**, never root cause; edits re-alert; `blocked` is
+  terminal (no reprocess path exists; startup recovery/backfill see only
+  `eligible`; `stale_telegram_delivery_plan` guard). Measured: 41 owner
+  messages in 12.9 days, 90% affiliate-related, 32% from edits, runs of
+  11/9 identical, 4 messages for one delivery incident; retries never ran.
+  Proposed: severity classes S0–S4, incident aggregation (new additive
+  tables), cooldown/escalation, one recovery message, capability-aware
+  resurrection keyed on a recorded `blocked_capability` + contract
+  fingerprint, paced like backfill, through the existing idempotency guards.
+- **UNRESOLVED OWNER DECISIONS (nothing chosen, do not choose for them):**
+  tracking activation; alias-only block policy; Option E pilot yes/no; and
+  D1–D5 in ERROR_LIFECYCLE_RESEARCH.md §7 (S0 alert form, resurrection
+  freshness window, blocked-edit handling after capability restore, edit
+  dedup today, retroactive treatment of the 877 historical links).
+- **Still pending from before:** Cloudflare `/login` rate-limit rule
+  (dashboard-only, unclaimed).
+- **Rules reaffirmed:** read-only DB via `mode=ro` as `affideals`; never open
+  the live DB read-write as root; no WAF/Turnstile bypass, no UA spoofing, no
+  cookies/tokens of anyone; never print host/IP/tailnet/keys; `funzi7` only.
+
 ## 2026-09-04 — Affiliate Trust + click tracking, PHASE A ONLY (not deployed)
+
+> SUPERSEDED by the 2026-09-06 section above for deployment status, the route
+> matrix, and the `/link`/`/sku` seeding (withdrawn). The design notes below
+> still describe the code.
 
 - Repo HEAD **`0db4e0217b820ea43a36903de251afd81c0b0f6d`** on `main`
   (local == origin). **1238 pytest passed**, ruff + format + strict mypy clean
