@@ -82,3 +82,7 @@ ARCHITECTURE of the feature:
 - Tests: app/src/test (new source set; junit added; testOptions.unitTests.isReturnDefaultValues=true for android.util.Log). 23 tests, all green.
 
 UNRESOLVED / follow-ups: see roadmap 2026-06-29 (custom multiplier input, partial-assignment entity split + dialog, IBKR auto-classification, dedicated reporting grouping). Money rounds to cents HALF_UP; per-share prices keep full precision (4dp) — do not cent-round effectiveCoverPrice/upsideBreakEven.
+
+---
+### 2026-09-06 pointer (Claude Code) — this snapshot dates from 2026-06-21; the rolling handoff is now `cc-latest.md`
+Since 2026-07-04 every task OVERWRITES `cc-latest.md` with the latest complete handoff — read it first, then `state.md` (dated log), `pending-tests.md`, `roadmap.md`, `gotchas.md`. State as of 2026-09-06 (S1-final): the phone-only build loop (`PHONE_BUILD.md` in the OPT repo) is fully proven — original debug keystore recovered, the phone-built APK (sources = `5445921`, built from `d0d5d3d`) was installed IN PLACE with `adb install -r` and launched on the real device with the existing data files intact; the owner's visual acceptance and the reboot test are still pending. Nothing in §3–§8 above changed.
