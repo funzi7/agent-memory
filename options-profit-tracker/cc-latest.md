@@ -49,7 +49,7 @@
 - `:app:compileDebugKotlin` BUILD SUCCESSFUL, zero `^e:` lines. `git diff --check` clean.
 
 ### PR checks / review
-- **build-gate PASS** on `f327a7e` and `1ab4c82`; running on the final `2ee5d84` at handoff time.
+- **build-gate PASS on all three heads** (`f327a7e`, `1ab4c82`, and the final `2ee5d84` at 4m49s).
 - **A self-review round replaced the missing Codex review** (see the S2 review-round block in `state.md`): 12 findings, including a P1 REGRESSION S2 itself had introduced — the CC-reminder rewrite leaned on the snapshot's `updatedAt`, which price-only syncs bump, so an assigned-away holding could be recommended for a new CC. Fixed with a dedicated `sharesUpdatedAt` stamp; the S2 false-exclusion fix is unaffected. Two further P1s in FlexSyncWorker's partial-close block (the same stale-copy resurrection this PR fixes elsewhere, and a missing ORDER/EXECUTION filter that could double `fifoPnlRealized` and the commission) plus 9 P2/P3 items.
 - **Codex Gate RED — no review was performed.** `chatgpt-codex-connector[bot]`: "You have reached your Codex usage limits for code reviews." No findings exist, nothing was suppressed, and the `codex-p1-acknowledged` override was deliberately NOT applied (owner decision: add credits, or apply the label).
 - A local multi-agent review ran instead; one agent completed (its simplification findings were applied), the others died on the account's session rate limit.
