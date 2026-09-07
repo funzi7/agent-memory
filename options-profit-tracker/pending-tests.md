@@ -122,15 +122,21 @@ Prerequisite for every item: a paired ADB device. One-time: Android → Develope
 - NOTE: the 2026-07-04 "FAILED on the owner's current device build — retest ONLY after pulling latest main + full install" items (R1a, R1b, GP1) and the PENDING items (GN1, GN2, GO BootReceiver, GP2, R2-restore, Covered Put core) are now TESTABLE — the phone runs a full `install -r` of current main (app sources = 5445921) as of 2026-09-06. Their statuses stay unchanged until the owner reports.
 - SUPERSEDED: the 2026-08-19 S1 "SIGNING" item and the S1-cont "INSTALL (blocked)" / "LAUNCH from ADB + logcat: retest only AFTER a successful install -r" items above are superseded by this block (kept for history).
 
-### 2026-09-07 S2 device-test checklist (Claude Code; OPT f327a7e8f3b22792b176f12ac310243ca2835696; PR #19 OPEN, needs-owner) — NEW owner visual checks, no regression tests per owner rule
-Prerequisite: install the PR build `/sdcard/Download/OptionsProfitTracker/OptionsProfitTracker-1.0.0.apk` (SHA-256 fe8066d8d24baa6b513f857d1eb7ba668bff00fff9c083edb611b63efeb22313, signer 5d3d855c…) with `adb install -r` after the 3-way signer gate (PHONE_BUILD.md §4). The S2 session could NOT install it: wireless ADB dropped mid-task (192.168.1.117:43817 refused; no new IP:PORT / pairing code available). Re-enable Wireless debugging and connect/pair per PHONE_BUILD.md §3 first.
-- [ ] "מה קורה היום בשוק": appears EXACTLY before "פוזיציות פתוחות"; same heading size/weight as that card; plain readable Hebrew; covers held stocks + open-option underlyings + watchlist; earnings/expiry/mover lines only when real; a mover's context either cites app data (earnings, a social post) or says "אין הסבר זמין במקורות האפליקציה"; numbers/tickers LTR; no flicker/disappear-reappear on refresh or re-entry.
-- [ ] CC reminder: exact wording "אפשר לשקול מכירת Covered Call" / "פרמיה משוערת לחוזה: $X" / "מוצג כי יש מניות פנויות ואין עליהן CC פתוח."; money LTR, 2 decimals; a held ticker whose CC just expired or was bought back STILL appears; a ticker whose CC was ASSIGNED (shares gone) does not; same result on fresh launch, dashboard re-entry and after a sync (Logcat CC_REMINDER_FILTER shows the reason).
-- [ ] SOFI: run "סנכרון" (incremental, NOT delete+import): the loss-closed CC stays closed — not in "פוזיציות פתוחות", not "הוקצה", its feed row reads "SOFI נסגר BTC" with the loss; unchanged after relaunch and after the hourly background sync (Logcat IBKR_RECON "closed SOFI … → CLOSED_BTC/BTC_EXACT_PRICE").
-- [ ] IBKR reconciliation: compare app vs IBKR for SPCH + one more current position — opening/closing premium, commissions (sign: charge vs rebate), realized P&L, quantity, close date and TIME; after a sync the app equals IBKR on every surface (position, "עריכת סגירה", dashboard, feed, calendar, reports, monthly target); "עריכת סגירה" shows "שעת סגירה" labeled "שעת ביצוע בפועל (IBKR)".
-- [ ] Feed close time: closed rows show the real execution time (e.g. 14.08 21:40 local), NOT "15.08 03:00"; a relaunch does not change it.
-- [ ] Covered Put (MULL): assignment option P&L = $0.00 on the position and in the feed; detail screen shows "מחיר כיסוי אפקטיבי (כולל פרמיה)" 23.60 and "רווח/הפסד אופציה (הפרמיה כלולה במחיר הכיסוי)" 0; calendar / monthly target / reports show no separate option income for that assignment.
-- [ ] CALL probability: an obviously OTM Covered Call (e.g. strike 50 on a ~20 stock) shows a few-percent assignment probability, not ~96%; an ITM CSP still shows high.
-- [ ] CC yield: Add-Position yield tier for a CC uses the stock cost basis (premium 0.54 / cost 24.28 ≈ 2.22%, ≈26% annualized), not premium/strike; other strategies unchanged.
-- [ ] Logcat after a dashboard load: `grep -c "PNL_TRACE\|PnLDebug\|PNL_DBG"` == 0 (was ~100k lines).
-- [ ] Reboot: STILL PENDING — not performed in S2 (owner-gated).
+
+### 2026-09-07 S2 device-test status (Claude Code; OPT 1ab4c824c4c0c0d087ed4d3fde851968e1cf4493; PR #19 OPEN, needs-owner) — executed on the real device
+DONE by the agent on the device (build installed with `install -r`, signer gate passed, data intact):
+- [x] Install/launch/runtime: 3 in-place installs, firstInstallTime unchanged, DB/DataStore intact, 0 FATAL / Room / SQLite / migration errors.
+- [x] PNL log storm: OLD build 63,006 PNL_TRACE + 2,966 PnLDebug + 2,319 PNL_DBG per dashboard load → S2 build **0 / 0 / 0**.
+- [x] Real IBKR sync + import (790 trades / 265 cycles) run 3x non-destructively; final run updated=0 inserted=0 unchanged=261 ambiguous=3 noMatch=0 (converged, idempotent).
+- [x] SOFI: feed row "SOFI נסגר BTC • −$26.88" at 05.09 02:48 (was "הוקצה $0.00"); edit screen shows close 0.24 / close commission 8.09 / P&L −$26.88 and "שעת סגירה 05.09.26 02:48:02 — שעת ביצוע בפועל (IBKR)".
+- [x] Commission signs verified against IBKR fifoPnlRealized (SPCH rebates, SOFI charges).
+- [x] "מה קורה היום בשוק" renders exactly before "פוזיציות פתוחות", same heading weight, plain Hebrew, no flicker.
+- [x] CC reminder: owner-approved three lines, money LTR ("פרמיה משוערת לחוזה: $46.00"), SOFI/BTCI/RKLX/NOK/MULL/SPCH/SOXL eligible with a current snapshot.
+OWNER visual checks still owed (the agent cannot judge these):
+- [ ] Open "עריכת סגירה" on SPCH and one more position and compare EVERY figure with the IBKR app: opening/closing premium, both commissions, realized P&L, quantity, close date + time.
+- [ ] Covered Put MULL: assignment option P&L $0.00, "מחיר כיסוי אפקטיבי (כולל פרמיה)" 23.60, and NO separate option income for it in calendar / monthly target / reports.
+- [ ] CALL probability: an obviously OTM Covered Call shows a few percent, not ~96%.
+- [ ] CC yield tier on a new Covered Call uses the stock cost basis (≈2.22% / ≈26% for premium 0.54 / cost 24.28 / DTE 31), not premium ÷ strike.
+- [ ] Three contracts stay AMBIGUOUS by design and were never overwritten (BTCI PUT 33 qty 2, IRE PUT 6 qty 8, SPCH CALL 10 qty 18 — several manual rows opened within days of each other). Decide whether to correct those manually.
+- [ ] The reconciliation inserted ONE missing row (BKSY 25C buy-to-close, +$171.95) that the app had lost — confirm it belongs.
+- [ ] Reboot: STILL PENDING, not performed.

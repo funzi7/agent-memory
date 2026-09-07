@@ -89,3 +89,6 @@ Since 2026-07-04 every task OVERWRITES `cc-latest.md` with the latest complete h
 
 ### 2026-09-07 pointer (Claude Code) — S2 finished; rolling handoff is cc-latest.md
 S2 (branch s2/ibkr-reconciliation-lifecycle-dashboard, OPT f327a7e8f3b22792b176f12ac310243ca2835696, PR #19 OPEN needs-owner, NOT merged): IBKR-authoritative reconciliation (FlexCycleBuilder/IbkrReconciler/BrokerReconciliationStore), SOFI + feed-timestamp root causes fixed, Covered Put owner ruling (option $0, premium in effective cover price), CALL probability tail, CC yield on cost basis, dashboard "מה קורה היום בשוק", CC reminder wording + coverage fix, PNL log gate; 91 JVM tests green; APK delivered; device QA + reboot pending; Codex review blocked by usage limits. Owner S1 visual acceptance PASSED. Read cc-latest.md first.
+
+### 2026-09-07 pointer (Claude Code) — S2 device QA complete; PR #19 still OPEN
+S2 branch HEAD 1ab4c824c4c0c0d087ed4d3fde851968e1cf4493. ADB returned, so the S2 build was installed and the real IBKR import was run 3x on the phone: SOFI now closes as BTC with its real −$26.88 loss and a real execution time, BKSY's lost buy-to-close was reinserted, the reconciliation converged (updated=0), and the PNL log storm measured 0 (was ~68k lines). 97 JVM tests green. Codex review still blocked by the account's usage limits; reboot still pending. Read cc-latest.md first.
