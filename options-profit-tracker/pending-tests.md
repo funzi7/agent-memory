@@ -140,3 +140,5 @@ OWNER visual checks still owed (the agent cannot judge these):
 - [ ] Three contracts stay AMBIGUOUS by design and were never overwritten (BTCI PUT 33 qty 2, IRE PUT 6 qty 8, SPCH CALL 10 qty 18 — several manual rows opened within days of each other). Decide whether to correct those manually.
 - [ ] The reconciliation inserted ONE missing row (BKSY 25C buy-to-close, +$171.95) that the app had lost — confirm it belongs.
 - [ ] Reboot: STILL PENDING, not performed.
+- [ ] (review round) A ticker whose CC was ASSIGNED must NOT reappear in the CC reminder after a later price-only sync (the ghost guard now keys on `sharesUpdatedAt`); a ticker whose CC merely EXPIRED or was bought back must still appear.
+- [ ] (review round) Owner decision: `expectedProfitAtExpiration` still projects the full premium for an OPEN covered put while an assignment realizes $0 on the option — make the projection state-aware (needs approval, P&L-locked) or leave as is.

@@ -6,7 +6,7 @@
 
 - **Base main SHA:** `7225b7af16c183de00a9f064ead03a01ad6af1d3` (== origin/main, verified by fetch; still current).
 - **Task branch:** `s2/ibkr-reconciliation-lifecycle-dashboard`
-- **Final branch HEAD:** `1ab4c824c4c0c0d087ed4d3fde851968e1cf4493` (2 commits: `f327a7e` implementation, `1ab4c82` device-verified fixes).
+- **Final branch HEAD:** `2ee5d842b422ff5f6ad91c761c740baade42e311` (3 commits: `f327a7e` implementation, `1ab4c82` device-verified fixes, `2ee5d84` self-review fixes).
 - **PR:** https://github.com/funzi7/OptionsProfitTracker/pull/19 — **OPEN, NOT merged**, labels `needs-owner` + `no-automerge` (this repo has no `needs-dima` label — `needs-owner` is Merge Bot's protected-path escalation label per `merge-bot.yml`; `automerge` was never added). Owner review/merge pending.
 - `local.properties` (`sdk.dir=/opt/android-sdk`) stays locally modified and uncommitted.
 
@@ -45,11 +45,12 @@
 `PnlDiagnostics.enabled = false` gates `PNL_TRACE`, `PnLDebug`, `PNL_DBG`. Same dashboard load: **old build 63,006 / 2,966 / 2,319 → S2 build 0 / 0 / 0**.
 
 ### Tests + compile
-- **97 JVM tests, 0 failures, 0 errors, 0 skipped** (was 23 before S2), forced clean run. CoveredPutCalculatorTest 16, ProfitCalculatorCoveredPutTest 11, IbkrReconcilerTest 20, FlexCycleBuilderTest 10, CcReminderEligibilityTest 10, MarketBriefBuilderTest 9, CloseTimestampResolverTest 7, PremiumYieldCalculatorTest 7, StrategicRiskAnalyzerTest 7.
+- **105 JVM tests, 0 failures, 0 errors, 0 skipped** (was 23 before S2), forced clean run. CoveredPutCalculatorTest 16, ProfitCalculatorCoveredPutTest 11, IbkrReconcilerTest 20, FlexCycleBuilderTest 10, CcReminderEligibilityTest 10, MarketBriefBuilderTest 9, CloseTimestampResolverTest 7, PremiumYieldCalculatorTest 7, StrategicRiskAnalyzerTest 7.
 - `:app:compileDebugKotlin` BUILD SUCCESSFUL, zero `^e:` lines. `git diff --check` clean.
 
 ### PR checks / review
-- **build-gate PASS on both heads** (`f327a7e` and the final `1ab4c82`, 4m28s).
+- **build-gate PASS** on `f327a7e` and `1ab4c82`; running on the final `2ee5d84` at handoff time.
+- **A self-review round replaced the missing Codex review** (see the S2 review-round block in `state.md`): 12 findings, including a P1 REGRESSION S2 itself had introduced — the CC-reminder rewrite leaned on the snapshot's `updatedAt`, which price-only syncs bump, so an assigned-away holding could be recommended for a new CC. Fixed with a dedicated `sharesUpdatedAt` stamp; the S2 false-exclusion fix is unaffected. Two further P1s in FlexSyncWorker's partial-close block (the same stale-copy resurrection this PR fixes elsewhere, and a missing ORDER/EXECUTION filter that could double `fifoPnlRealized` and the commission) plus 9 P2/P3 items.
 - **Codex Gate RED — no review was performed.** `chatgpt-codex-connector[bot]`: "You have reached your Codex usage limits for code reviews." No findings exist, nothing was suppressed, and the `codex-p1-acknowledged` override was deliberately NOT applied (owner decision: add credits, or apply the label).
 - A local multi-agent review ran instead; one agent completed (its simplification findings were applied), the others died on the account's session rate limit.
 
@@ -62,7 +63,10 @@
 - 3 contracts stayed **AMBIGUOUS by design** and were never overwritten: BTCI PUT 33 qty 2, IRE PUT 6 qty 8, SPCH CALL 10 qty 18 (several manual rows opened within days of each other).
 
 ### APK / signer / delivery
-`:app:assembleDebug` BUILD SUCCESSFUL → `app-debug.apk` **64,713,902 B**, SHA-256 `0082b9e2ed9f801d9568e94af45ae2e654c846c1f69bb96a7980a530021aa168`; `com.dima.optionstracker` versionCode 1 / versionName 1.0.0 (no bump policy → no bump); signer SHA-1 `5d3d855c6c6c397f817df2bd0c62f16f940b1551`. Delivered to `/sdcard/Download/OptionsProfitTracker/OptionsProfitTracker-1.0.0.apk` with the same size and SHA-256.
+`:app:assembleDebug` BUILD SUCCESSFUL → `app-debug.apk` **64,715,191 B**, SHA-256 `21f84420e655102c5a25ce270674142aa6bec2287f9e1fb8b65f56c774e6b5f2`; `com.dima.optionstracker` versionCode 1 / versionName 1.0.0 (no bump policy → no bump); signer SHA-1 `5d3d855c6c6c397f817df2bd0c62f16f940b1551`. Delivered to `/sdcard/Download/OptionsProfitTracker/OptionsProfitTracker-1.0.0.apk` with the same size and SHA-256.
+
+### Left for the owner to decide
+`expectedProfitAtExpiration` has no Covered-Put branch, so an OPEN covered put still projects the full premium while an assignment now realizes $0 on the option (the gain moved to the stock side). Making the projection state-aware means touching P&L-locked code beyond the approved assignment ruling → flagged, not changed.
 
 ### What was NOT verified
 - Owner's own visual comparison of SPCH + one more position against the IBKR app (figures now match IBKR by construction, but the owner should confirm).
