@@ -162,3 +162,14 @@ OWNER visual checks still owed (the agent cannot judge these):
 - [ ] Market brief on a normal TRADING day: check the session line at four moments — before 04:00 ET, in pre-market, during regular hours, and after 16:00 ET — and confirm movers only appear once the bell has rung and switch to past tense afterwards.
 - [ ] Decide the three S2.1 owner questions (buy-to-cover feed rows; how to correct the three split cycles; whether to strengthen the feed fingerprint with tradeID/ibExecID). See cc-latest.md "Left for the owner to decide".
 - [ ] Reboot: STILL PENDING, not performed (explicitly forbidden this task).
+
+### 2026-09-07 S2.1 review round (Claude Code; OPT 9500709) — extra owner checks created by the self-review fixes
+- [ ] Covered Call premium banner: on a ticker where the holding is NOT contracts x 100 (e.g. 500 shares, sell 1 call), the yield and tier must now match the per-share figure (premium / cost basis), not a fraction of it. Previously such trades were mis-tiered.
+- [ ] Commission on any position whose IBKR fill crossed zero (a single buy that closed a short and opened a long): the open + close commissions should now sum to the ONE fill's commission, not twice it. The device import corrected SPCH 13C from 6.83 to 1.37 on the open side.
+- [ ] Tax report: the "הפסד מועבר משנה קודמת" line may still show a stale value saved by an older build. Open the tax screen for the PREVIOUS year once so it rewrites the carry-forward with the corrected figure, then re-check the current year.
+- [ ] Edit a broker-reconciled closed position and change the close price: the P&L must now follow the edit (the broker value is dropped on an explicit edit) instead of staying frozen.
+- [ ] Partially close a broker-reconciled position: the two resulting rows must NOT both show the full broker P&L; each should show its own calculated figure until the next IBKR sync.
+- [ ] Oversized Covered Put (more puts than short shares): the assignment simulation must now show option income on the uncovered shares rather than $0, and the combined figure must equal short + option.
+- [ ] Dashboard: leave the app open across 16:00 ET on a trading day. The session badge, the countdown and the market brief must all switch together within about a minute, instead of the brief changing while the badge stays put.
+- [ ] Market brief before any stock sync has run (or with a cleared price snapshot): it must say prices are not available yet, never "אין תנועות חריגות היום".
+- [ ] Decide the two NEW security items in cc-latest.md ("Left for the owner to decide" 4 and 5): cleartext credentials in the daily external-storage backup, and allowBackup with no extraction rules.
