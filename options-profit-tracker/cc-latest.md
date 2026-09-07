@@ -49,7 +49,7 @@
 - `:app:compileDebugKotlin` BUILD SUCCESSFUL, zero `^e:` lines. `git diff --check` clean.
 
 ### PR checks / review
-- **build-gate PASS** on the first head `f327a7e`; re-running on `1ab4c82` at handoff time.
+- **build-gate PASS on both heads** (`f327a7e` and the final `1ab4c82`, 4m28s).
 - **Codex Gate RED — no review was performed.** `chatgpt-codex-connector[bot]`: "You have reached your Codex usage limits for code reviews." No findings exist, nothing was suppressed, and the `codex-p1-acknowledged` override was deliberately NOT applied (owner decision: add credits, or apply the label).
 - A local multi-agent review ran instead; one agent completed (its simplification findings were applied), the others died on the account's session rate limit.
 
