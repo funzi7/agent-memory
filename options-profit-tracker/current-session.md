@@ -1,6 +1,8 @@
 # OptionsProfitTracker — Current Session Snapshot (handover for a new chat)
 
-_Last updated: 2026-06-21. Latest origin/main HEAD at write time: `24c50b6`. Read this top-to-bottom, then `state.md` (chronological log), `gotchas.md`, `roadmap.md`, `pending-tests.md`, and `parallel-agents.md`._
+_Last updated: 2026-09-08 (S2.1). **Read `cc-latest.md` FIRST** — it is the complete handoff for the most recent task. origin/main is `7225b7af` and has not moved; the live work is on branch `s2/ibkr-reconciliation-lifecycle-dashboard` at `e91488b`, open as PR #19 (`needs-owner`, not merged). Then read this file top-to-bottom, then `state.md` (chronological log), `gotchas.md`, `roadmap.md`, `pending-tests.md`, and `parallel-agents.md`._
+
+> **Since this snapshot was written (2026-06-21) the workflow moved to the phone**: builds run in Termux/PRoot via `/root/work/bin/heavy-run -- ./gradlew …` with `JAVA_HOME=/usr/lib/jvm/java-21-openjdk-arm64` and SDK `/opt/android-sdk` (`PHONE_BUILD.md` is the runbook), and Room is at **v31**, not the version named below. The parallel-agent protocol in §2 is still current, including the `in-progress.md` ownership lock.
 
 ---
 

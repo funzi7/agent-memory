@@ -142,3 +142,23 @@ OWNER visual checks still owed (the agent cannot judge these):
 - [ ] Reboot: STILL PENDING, not performed.
 - [ ] (review round) A ticker whose CC was ASSIGNED must NOT reappear in the CC reminder after a later price-only sync (the ghost guard now keys on `sharesUpdatedAt`); a ticker whose CC merely EXPIRED or was bought back must still appear.
 - [ ] (review round) Owner decision: `expectedProfitAtExpiration` still projects the full premium for an OPEN covered put while an assignment realizes $0 on the option — make the projection state-aware (needs approval, P&L-locked) or leave as is.
+
+### 2026-09-07 S2.1 device-test status (Claude Code; OPT e91488b; PR #19 OPEN, needs-owner) — executed on the real device
+DONE by the agent on the device (install -r, signer gate passed 3 ways, data intact, no reboot):
+- [x] 4 full non-destructive IBKR syncs + imports (790 trades / 265 cycles). Every run: updated=0 inserted=0 unchanged=261 ambiguous=3 noMatch=0 (idempotent).
+- [x] Financial audit on the live feed, identical on all 4 runs: `IBKR_AUDIT: cycles=265 closed=259 unique=256 ambiguous=3 unmatched=0 | mismatches realized=0 premium=0 commission=0 qty=0 timestamp=0 maxRealizedDelta=0c | verdict=CLEAN` — **zero final-realized divergence across all 256 uniquely matched broker cycles**.
+- [x] All three ambiguous contracts logged with the new self-explaining reason (cycle_split_across_N_rows_qty_sum_matches) and NOT overwritten.
+- [x] Market brief on a REAL holiday (today was Labor Day, Mon 2026-09-07 NY): "השוק בארה״ב סגור היום — יום העבודה. אין מסחר." — named holiday, no roll-call line, no "(+N)", old "(סוף שבוע או חג)" hedge gone, no movers on the closed day, only the one relevant ticker (SOXL 127C 09.09), badge "סגור" + countdown "15 שעות לפתיחה" consistent with the same session model.
+- [x] Privacy: 14 logcat lines carrying accountId/account number + 1 raw <FlexQueryResponse> BEFORE → 0 of everything AFTER (account number, accountId, raw XML, apikey, owner email, owner address), same device, same feed.
+- [x] Stability: 0 FATAL, 0 Room/SQLite/migration errors, PNL log storm still 0/0/0, firstInstallTime unchanged across 3 in-place installs.
+OWNER visual checks still owed (the agent cannot judge these):
+- [ ] Open an OPEN Covered Put (MULL) and confirm the projected profit is now $0 when the stock is at or below the strike, and the full premium only when it is above. Previously it always showed the full premium.
+- [ ] Open a CLOSED Covered Put and confirm the new "רווח/הפסד ממומש — אופציה" card shows the IBKR figure with the source line, and that the live "רווח/הפסד פתוח" card no longer appears for it.
+- [ ] Open "עריכת סגירה" on a broker-reconciled closed position: the headline must show the IBKR figure with the line "מ-IBKR (הברוקר הוא המקור הקובע)" and must match the dashboard / calendar / reports for the same row.
+- [ ] Tax report (דוח מס): the realized total, the monthly table and the tax estimate must now match the dashboard MTD for the same months. This figure is also SAVED as the loss carry-forward, so an old wrong value may still be stored from before this build.
+- [ ] Tax CSV export: the RealizedPnL column must now equal the IBKR_PnL column on every reconciled row.
+- [ ] Add Position → the monthly income card ("פוזיציות קיימות") and the "💡 חסר $Y ליעד" suggestions must match the dashboard MTD.
+- [ ] Add Position → "היסטוריית <TICKER>": a spread where only ONE leg was broker-matched must show the combined P&L, not the matched leg alone.
+- [ ] Market brief on a normal TRADING day: check the session line at four moments — before 04:00 ET, in pre-market, during regular hours, and after 16:00 ET — and confirm movers only appear once the bell has rung and switch to past tense afterwards.
+- [ ] Decide the three S2.1 owner questions (buy-to-cover feed rows; how to correct the three split cycles; whether to strengthen the feed fingerprint with tradeID/ibExecID). See cc-latest.md "Left for the owner to decide".
+- [ ] Reboot: STILL PENDING, not performed (explicitly forbidden this task).

@@ -1,1 +1,0 @@
-CLAUDE_CODE OWNS: ProfitCalculator.kt, MarketBriefBuilder.kt, MarketCalendar.kt, MarketBriefCard.kt, DashboardViewModel.kt, IbkrReconciler.kt, ImportViewModel.kt, FlexSyncWorker.kt, ReportGenerator.kt, app/src/test/** - S2.1 finish PR #19 (broker financial consistency + dynamic market brief + covered-put projection) - 2026-09-07T21:29:08Z
