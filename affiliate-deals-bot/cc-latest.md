@@ -3,6 +3,141 @@
 > Rolling handoff for `funzi7/affiliate-deals-bot`. Read this first, then the
 > repository documentation linked below.
 
+## 2026-09-08 (later) — ALERT SEMANTICS CORRECTED (new posts only) + two KSP alias PILOTS
+
+- **Project HEAD = deployed runtime HEAD =
+  `2ed10b18efb1cc6540ee0173a79d88b2a8a4fc91`** (local == origin == server tree,
+  content-verified). **Schema unchanged at v12** — the correction is query and
+  control flow, no migration. Verified online backup taken first:
+  `/var/lib/affiliate-deals-bot/backups/db-prenewpost-20260908T131754Z.sqlite3`
+  (integrity + quick_check ok, row counts match). Post-deploy: all 4 units
+  active, both DBs `integrity_check ok`, **0** orphaned SQLite descriptors,
+  Core **SHADOW**, `core_publications` **0**, `AFFI_TRACKING_ENABLED` absent
+  from every env file and the live process, 7 KSP contracts still
+  `dashboard_verified`, real edge 200/200/404.
+
+### TRACK A — only a NEW post counts (owner decision)
+
+The lifecycle shipped earlier the same day counted a source **edit** as proof
+the channel was producing, and a successful **edit** of an already-mirrored post
+as Affi publishing. **That was an implementation mismatch, never an approved
+behaviour** — say so plainly, do not re-document it as approved.
+
+- **Source activity** = `source_events.event_kind = 'created'` **only**.
+  `edited` and `deleted` prove nothing.
+- **Recovery / outage interruption** = a genuinely new post reaching the channel
+  for the first time. Durable proof: the delivered `telegram-publish:v1:<version>`
+  outbox row (an edit is `telegram-edit:v1:<version>`) joined to the
+  `target_mapping_history` row with `album_position = 0` **and
+  `edited_at IS NULL`** — the last condition is what stops a publish-tagged plan
+  that reached the *reconciliation* path from counting. `published_at` is never
+  bumped by an edit; `updated_at` is, which is why the probe must not use it.
+- Runtime gates recovery on the **first-publication branch** of
+  `_deliver_telegram_claim` (`published_new_post`), never on "a send happened".
+- Everything else unchanged: 6h rule, one 24h escalation from incident start,
+  silence after, silent transient retries, one notification per spent budget,
+  S3 per post+cause, S4 immediate + aggregated, append-only episodes, atomic
+  claim-and-enqueue.
+
+**Why it mattered:** `@KSPcoil` edits constantly — 219 of 332 real source
+events are edits.
+
+**LIVE PROOF on production data** (this is natural exercise, not a fixture):
+the corrected probe returns `2026-09-08T10:15:11Z` (post 16649's **creation**),
+while the old reading returned `10:19:04Z` (that same post's **edit**). Since
+the first alert deploy production saw **7 created + 9 edited** events and **16
+blocked/partial occurrences across 4 incidents → 0 Telegram messages**. Under
+the pre-2026-09-08 behaviour those would have been 16 messages.
+
+### Codex review of Track A — 6 findings, all fixed
+
+Genuine Codex (`codex-cli 0.153.3`), not the Claude fallback. **2 MAJOR, 2
+MINOR, 2 NIT.**
+1. **MAJOR** — a plan from a `created` source event can reach the
+   **reconciliation** branch when a target appears between enqueue and send, and
+   the first fix would have counted that edit as a new publication. Fixed in the
+   runtime gate *and* in the SQL (`edited_at IS NULL`).
+2. **MAJOR** (pre-existing) — a worker holding a stale `notified == False` read
+   could close an incident another worker had just announced, losing the
+   recovery message forever. The store now judges that inside its own
+   transaction; the caller never decides.
+3. **MINOR** — two of my tests were vacuous. The replay test only hit an
+   existing timestamp guard (now drives a real already-current delivery through
+   the runtime); the ordering test used `+00:00` values whose lexical and
+   chronological order agree by luck (now uses the mirror's `Z` form and was
+   **mutation-checked**: fails under lexical ordering, passes under `julianday`).
+4. **NITs** — stale sweep docstring, two unused test helpers.
+
+Codex confirmed clean: no path lets `edited`/`deleted` satisfy activity; ordinary
+`telegram_edit` deliveries cannot recover or advance the marker; SQLite's
+integer-to-text key concatenation is correct; album/continuation rows share one
+timestamp harmlessly.
+
+### TRACK B — two alias pilots (RESEARCH ONLY, nothing wired anywhere)
+
+Same 30 real production aliases (15 `/link`, 15 `/sku`), read-only sample.
+
+- **Pilot 1 — an ordinary browser resolves EVERYTHING: 30/30 (100%)**, 0
+  challenges, 0 errors, **stable across 3 passes and 2 browsers** (Brave
+  Chromium 152, Samsung Internet 143), median **2.51 s**, **exactly one redirect
+  hop**. 20 items, 10 categories. Method: real phone, ordinary Android VIEW
+  intent targeted with `-p`, tab URL read from DevTools **metadata**. No
+  headless, no WebDriver/stealth, no UA/`Sec-CH-UA` spoofing, no CAPTCHA/WAF
+  bypass, no cookies, no credentials, no JS injected into any KSP page.
+- **THE BLOCK IS TWO GATES**, separated when the owner connected an Israeli VPN
+  mid-pilot: same browser + same phone went **403 → resolve** when egress
+  changed, **and** on that Israeli IP `curl` from the phone still gets 403 while
+  the browser beside it succeeds. Geography matters *and* client type matters.
+  Cloudflare's answer is a WAF **block**, not a challenge (no `cf-mitigated`, no
+  Turnstile) — nothing to solve, which is why nothing was bypassed.
+- **Pilot 2 — catalog/MCP produced 0/30 strong matches of its own.** Every KSP
+  catalog path 403s an honest client while `/_cache/kdm/*` returns 200 (control).
+  No hosted MCP reachable; `guymon92/ksp-mcp` is a placeholder host whose source
+  spoofs UA/Referer/Origin. **Dangerous failure mode**: the one reachable
+  corroborator (public search index) returned ids only for **near-miss**
+  products — `AEGABU51291M` vs `ABU512`**`0`**`1M` (different ₪2,079 oven), and
+  a *refill bag* for `/sku/224607`. A "closest result" resolver ships wrong
+  products. Newest items ("חדש באתר") are not indexed at all.
+- **Cross-check:** A=1 (inherited from prior owner evidence, not derived),
+  **B=29 browser-only**, **C=0 disagreements**, D=0, E=0, F=0. Weaker real
+  signal: catalog predicted *target type* correctly **29/30**.
+- **New facts:** `/sku/<n>` is never the item id and a **third** namespace
+  exists (on-page מק"ט, e.g. `item/450832` shows `401869`); `/link` aliases land
+  carrying `?utm_source=telegram` (15/15) while `/sku` carry none (0/15) — so
+  substituting a canonical URL for a `/link` alias changes what KSP sees, and
+  that interaction is **unstudied**.
+- **The 1.2% salvage figure is NOT revised** — it was correct for the methods
+  then available; the pilots found a *different capability*, not an error.
+- **PRIVACY CONSTRAINT for any productionisation**: DevTools `/json/list`
+  returns **every open tab** in the profile. The pilot read only its own tab,
+  discarded the rest unrecorded, closed only its own tabs, removed both
+  forwards. A production design must never log that endpoint.
+- **NOT PROVEN**: that KSP permits automated resolution; durability against a
+  WAF rule change; Chrome itself (`com.android.chrome` is **disabled** on the
+  device — enabling it is the one optional owner action); the precise boundary
+  between the two gates; a cold browser profile; anything about affiliate
+  attribution.
+
+### UNRESOLVED OWNER DECISIONS (do not decide these for them)
+
+1. **Whether to build an alias resolver at all** — the pilots supersede the old
+   "no lawful source exists" finding but are **not** approval. Four questions in
+   `docs/KSP_ALIAS_RESOLUTION_RESEARCH.md` §13.7: is a phone browser an
+   acceptable production dependency; is the DevTools privacy constraint
+   acceptable; should this evidence instead be used to ask KSP for allow-listed
+   access; how does attribution behave when a `?utm_source=telegram` `/link`
+   alias is replaced.
+2. Resurrection D2–D5 (`ERROR_LIFECYCLE_RESEARCH.md` §7) — still open.
+3. Tracking activation — still OFF, still the owner's call.
+4. Core LIVE — still SHADOW.
+5. Cloudflare `/login` rate-limit rule — still pending, dashboard-only.
+
+### Validation
+
+**1485 pytest passed**, ruff + format + strict mypy clean (167 files),
+`git diff --check` clean, 0 broken doc links, secret/identity scan clean.
+**No CI exists in this repository — never claim a CI pass.**
+
 ## 2026-09-08 — OWNER-ALERT LIFECYCLE shipped (schema v12); Telegram quiet, evidence complete
 
 - **Project HEAD = deployed runtime HEAD =
