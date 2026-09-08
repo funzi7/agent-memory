@@ -3,6 +3,105 @@
 > Rolling handoff for `funzi7/affiliate-deals-bot`. Read this first, then the
 > repository documentation linked below.
 
+## 2026-09-08 (latest) — SERVER-SIDE KSP alias pilot: the VPS can resolve, safely
+
+- **Repo HEAD `090ef57e3bd5c4aa4d889a3d3704f8ff47db4751`** (docs + research +
+  pilot tooling only). **Deployed runtime HEAD stays
+  `2ed10b18efb1cc6540ee0173a79d88b2a8a4fc91` — NOT redeployed, deliberately**:
+  nothing under `src/` or `tests/` changed, so a redeploy would carry risk with
+  no benefit. Schema unchanged at v12.
+- Owner ruled out the personal phone as a production dependency: *"the personal
+  phone must NOT become the production resolver; if Israeli egress is required,
+  the SERVER must have it."* This milestone answers that — as **research**.
+
+### The safety invariant (this is the load-bearing part)
+
+The Israeli WireGuard tunnel runs **inside a dedicated network namespace**,
+never on the host. The interface is created in the **host** namespace so its UDP
+socket keeps the host's ordinary default route, then **moved** into the
+namespace. That ordering is why the host's routing never changes; reverse it and
+the tunnel cannot reach its endpoint. `/etc/netns/kspilot/resolv.conf` is
+applied through `ip netns exec`'s private mount namespace and does **not**
+replace the host resolver. Proven empirically before anything else ran: a fresh
+namespace has zero routes and no egress, and the host default route, the four
+units and the Cloudflare tunnel were unchanged throughout.
+
+### Baseline matrix — the block is TWO independent gates
+
+| Vantage | KSP | Control (ivory/zap) |
+| --- | --- | --- |
+| A: host, Singapore datacenter egress, `curl` | **403** | **403** |
+| B: IL namespace, plain `curl` | **403** | **200** |
+| C: IL namespace, ordinary **headful** Chrome | **resolves** | resolves |
+
+Geography and client type are **each necessary, neither sufficient**. Notably
+the Proton exit is a **datacenter ASN** and still worked, so "residential IP" is
+not the discriminator.
+
+### Results
+
+- **30/30 aliases resolved on all 3 passes** (p1 warm, p2 warm, **p3 genuinely
+  cold profile**), 0 challenges, 0 errors, 30/30 canonical stability, and
+  **30/30 identical to the phone pilot**. Median wall time 5.56 s (~1.5 s real,
+  the rest is the deliberate 4 s settle window).
+- **UTM: 15/15 `/link` carry `utm_source=telegram`, 0/15 `/sku`.** The deployed
+  converter already emits `/cat/14095-58233?utm_source=telegram` **with no code
+  change**.
+- **No canary was minted.** Verified on a DB copy that opening one downgrades
+  `ksp:plain_category` from `dashboard_verified` to `canary_pending` —
+  `latest_verifications()` takes the LAST run per route_key. Two direct KSP URLs
+  went to the owner instead.
+
+### Harness hardening (`tools/ksp-alias-pilot/`) — 17 findings, 2 blocking
+
+A research script that runs as **root** beside production is its own hazard.
+Both blockers were real:
+1. `run_pass.sh` took a profile **path** and, with `fresh`, `rm -rf`'d it as
+   root — a supplied production directory would have been destroyed. Now a
+   restricted **name**, resolved under the pilot root, re-checked for
+   containment on the resolved path.
+2. `wg setconf` inherited stderr, and WireGuard's parser **quotes the offending
+   config line back** — for a bad key, the secret itself. Suppressed; failures
+   report *that* they failed, not why.
+
+Also fixed: stripped-secret file surviving a failure (now an `EXIT` trap that
+shreds); Chrome's log opened **by root** in a `kspilot`-writable directory
+(symlink clobber — now opened by the unprivileged user); host-wide
+`pkill -f "Xvfb :99"` also matching `:990` (now a tracked pid); teardown
+asserting success without checking (now verifies and exits non-zero); success
+reported after a failed pass; readiness proving only that *something* answered
+the port; `KeyError('canonical_type')` aborting a whole pass; `settled`
+conflating settled/vanished/timeout (now explicit `settle_state`); and
+classification regexes matching anywhere in the URL, so a redirector quoting a
+KSP path in its query string read as the destination (now host-verified,
+path-anchored).
+
+**The fixes changed no measurement**: all **180** recorded results (3 server + 3
+phone passes × 30) replay through the tightened classifier with **0**
+differences.
+
+### Infrastructure state now
+
+VPN config installed at `/etc/affiliate-deals-bot/vpn/israel.conf`, root-owned,
+**0600**, never printed/committed/diffed. `wireguard-tools`, Chrome, Xvfb and
+the unprivileged `kspilot` user remain installed. **Torn down and verified**: 0
+namespaces, 0 host `wg` interfaces, 0 chrome, 0 Xvfb, 0 pilot profiles, no
+`/run/ksp-alias-pilot`, 1 host default route. All four units active with
+**NRestarts=0**. `remote-sources-backup`/`-diskcheck` are timer-driven, so
+`inactive dead` is their normal resting state — do not misread that as an
+outage. Real unit names are `affiliate-deals-admin`, `affiliate-deals-go`,
+`affiliate-deals-telegram`, `cloudflared` (**not** `affiliate-deals-bot` /
+`-mirror` — probing those names returns a misleading `inactive`).
+
+### Still NOT approved
+
+No resolver is wired in, no alias mapping is stored in production, no blocked
+post was resurrected, tracking OFF, Core SHADOW. Building the resolver needs a
+**new explicit owner approval**. Open owner item: the UTM attribution verdict
+(research doc §14.6) — compare `https://ksp.co.il/cat/14095-58233?utm_source=telegram`
+against the control `https://ksp.co.il/cat/14095-58233` in the KSP affiliate
+dashboard.
+
 ## 2026-09-08 (later) — ALERT SEMANTICS CORRECTED (new posts only) + two KSP alias PILOTS
 
 - **Project HEAD = deployed runtime HEAD =
