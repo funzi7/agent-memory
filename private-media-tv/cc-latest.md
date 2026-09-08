@@ -1,3 +1,268 @@
+# Private Media TV — code44 final Mobile Test handoff
+
+## Final identity, CI, artifact and device truth
+
+| Field | Final observed value |
+| --- | --- |
+| Application repository / branch | `funzi7/private-media-tv`, `main` tracking `origin/main` |
+| Authoritative starting baseline | Application `24dec03f9edf4eb0c968928afd0504d067ac4b3b`; agent-memory `fa0ca50c5636f420b3becf851cfd82a0c336d548`; code43 CI `33962556211` attempt 2 SUCCESS and its installed APK were verified starting facts, not physical acceptance of code43 behavior |
+| Final application HEAD | `5a138337a3473248e23649befef7ede2cfa6a3e9` — normally pushed and verified equal to `origin/main`; clean worktree and `git diff --check` PASS |
+| Application commits | `351f457401f5e612c66946211d133fb6216cd9fe` — substantive code44 product/tests/docs and the single version advance; `5b897795e08f0abdb9c2f5f5c8bd25eb8f7c6261` — mandatory core/app CI worker isolation and lifecycle logging; `5a138337a3473248e23649befef7ede2cfa6a3e9` — bounded hosted Robolectric worker recycling, with no product/version/TV change |
+| Agent-memory pre-finalization state | Clean `main == origin/main == 70b7d396745bad90e77b432f79fea14a73fd059f`; unrelated intervening memory updates were preserved. This release entry is finalized only through `agent-memory-finalize`; its resulting SHA is read after that tool completes, never predicted here |
+| Exact-head Android CI | Run `34249812147`, attempt 1, **SUCCESS** on exact `5a138337a3473248e23649befef7ede2cfa6a3e9`; job `102141137895`, 18m47s. Wrapper, deterministic Robolectric prefetch, all mobile-used core tests, all app-mobile tests, scoped mobile lint, signed ARM64 assembly, package/version/signer, pinned TDLib, Gecko/runtime provenance, build metadata and artifact upload passed |
+| Single mobile version advance | `com.funzi7.privatemediatv.mobile`, `0.4.25-phone-test`, versionCode 44; exactly one advance from code43 and no code45/micro-release for CI corrections |
+| TV / Shield | Frozen `com.funzi7.privatemediatv`, `0.6.11-f2c71` / 34. No app-tv edit, task, build, test, lint, version, artifact, publication, installation or TV-validation claim occurred |
+| Authoritative CI artifact | Artifact ID `10066236319`, `private-media-tv-mobile-apk-5a138337a3473248e23649befef7ede2cfa6a3e9`; not expired; exact workflow SHA. Artifact archive 259,477,432 bytes, SHA-256 `1f3b3f07c232a6ddd7d05fe9596831e371e24c6f41ee44e383b74b10212cbbac` |
+| Published authoritative APK | `/storage/emulated/0/Download/PrivateMediaTV/Test/private-media-tv-mobile-0.4.25-phone-test.apk`; created without rotating/deleting older versioned APKs; 259,476,356 bytes; SHA-256 `215382b91b6be5d883ca785b70285b7826b45ae7b3f16d7fc5b8ca821ce6dcd0`; byte identity bound to the exact CI artifact/metadata |
+| Signer / native payload | Development signer SHA-256 `2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0`; ARM64-only; exactly one `lib/arm64-v8a/libtdjni.so` |
+| TDLib / Gecko provenance | Official pinned TDLib 1.8.66 commit `022d60202e446ad1287b9fb68e687c8a0760788b`; authoritative CI JNI SHA-256 `790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f`. Exact GeckoView `org.mozilla.geckoview:geckoview-arm64-v8a:154.0.20260824154132`, AAR SHA-256 `c3d8a99295329a405fcba50daae77bb0af8fee06d9b28145c1d1a658d14ce295`; all 13 ARM64 Gecko libraries and FIDO/SnakeYAML/license notices verified independently after download |
+| Code43 -> code44 upgrade | Exact old/new package, versionCode, signer, ARM64 and TDLib layout compatibility PASS. The one authorized Samsung phone was selected only after model/phone-class guards; `adb install -r` succeeded over retained code43 state; code44 package/version were observed; `MainActivity` returned `Status: ok`, and the process remained alive |
+| Bounded phone smoke limitation | The phone entered Doze with the keyguard showing after launch, so PMTV was not the resumed/focused activity at the later check. No new crash/ANR was observed. No unlock bypass, uninstall, Clear Data, destructive DB/preferences operation or private-state read was attempted. On-screen code44 behavior remains PHYSICAL TEST PENDING |
+| Overall conclusion | **PASSED implementation/local/CI/artifact/publication and bounded in-place install/launch gates; FAILED full runtime/physical acceptance.** Required public YouTube host resolution still fails, authenticated account/history and private Telegram runtime were not validated, and changed UI/Media3 behavior awaits owner physical acceptance |
+
+This post-push ledger closes the intentionally immutable pre-push checkboxes in the committed code44
+TODO/state/handoff/release documents. Those documents record the implementation checkpoint and direct
+final SHA/CI/artifact/runtime facts here so the application commit never invents its own SHA. Both the
+substantive commit and two evidence-driven CI corrections are part of the same code44 release and use
+the same version. No approved requirement remains only in chat.
+
+## Preserved owner physical evidence
+
+Code43 automation did not override real-device evidence. The following owner observations remain the
+authoritative comparison baseline until the delivered code44 APK is exercised:
+
+- **PHYSICAL PASS:** the restored rich Match Details poster looked excellent.
+- **PHYSICAL PASS:** for the real Kan title `לא לריב`, Catalog Telegram source discovery succeeded and
+  playback opened inside PMTV. Catalog Telegram is therefore **PARTIALLY WORKING**, not globally
+  failed; other known real titles/episodes still returned zero sources.
+- **PHYSICAL PASS:** `לא לריב` E1 displayed Up Next; accepting it transitioned through the existing
+  PMTV player and E2 actually began playback. That working transition was preserved.
+- **PHYSICAL FAIL:** once E2 was active, Back returned to stale E1/original Details context.
+- **PHYSICAL FAIL:** Continue Watching opened around the middle, contained watched/list-only/wrong
+  members, failed to prioritize the genuinely current incomplete episode, and could reshuffle.
+- **PHYSICAL FAIL:** pull-to-refresh visibly emptied/repopulated Continue Watching and could omit the
+  freshly watched rightmost incomplete item. Cards were inconsistently sized and could crop important
+  artwork/details.
+- **PHYSICAL FAIL:** a real LIVE fixture did not automatically discover its configured LiveBall exact
+  child, although manually entering the exact page created a source and `נגן` action.
+- **PHYSICAL FAIL:** that manually known LiveBall page ended at `MEDIA_RESOLVE_FAILED`, provider
+  LiveBall, host family `liveball.sx`, stage COMPLETE. This is not a successful native source.
+- **PHYSICAL FAIL:** a finished fixture with real YouTube and Telegram material showed no viewing
+  sources; `חפש מקורות עכשיו` performed/reported TheSportsDB fixture refresh instead of source search.
+- **PHYSICAL FAIL:** only two Champions League fixtures appeared across repeated refreshes despite
+  relevant current-season qualifying and imminent Matchday fixtures.
+- **PHYSICAL FAIL:** some Israeli-league rich row artwork/crests clipped at the edges.
+- **PHYSICAL FAIL:** the YouTube account surface remained unavailable; Kan 11 continuation failed with
+  the safe equivalent of `PMTV YouTube not found`.
+- Previously accepted contracts remain binding: exactly one personalized Sports row before Continue
+  Watching; full Sports section in its established lower slot; direct Seen/Not Interested; no closed-
+  card `פעולות`; whole-card Details navigation; no spoilers; role-aware watched state; deterministic
+  recency; favorite LIVE/imminent UPCOMING; FINISHED no stale LIVE; TimeSoccerTV Programs; Foot/Das
+  management; one LiveBall master; independent Telegram roles; shared PMTV Media3 player.
+
+No code44 test or host probe is promoted into a fresh owner PHYSICAL PASS for those behaviors.
+
+## Implemented code44 corrections
+
+- **Continue Watching eligibility and order — IMPLEMENTED.** Normal cards now require meaningful,
+  incomplete canonical playback. My List membership, watched-only state, completed media, zero/sub-
+  threshold progress and stale list snapshots cannot create or lead the row. Recent meaningful
+  incomplete playback wins through explicit persisted timestamps and stable canonical tie-breakers;
+  asynchronous observer arrival is never a rank signal. Episodic identity remains series + season +
+  episode, so a completed prior episode cannot replace the actual incomplete episode.
+- **Continue Watching refresh truth — IMPLEMENTED.** Pull-to-refresh keeps last-known-good playback
+  projection while provider metadata refreshes. Newer local progress wins over stale metadata/watched
+  snapshots; partial provider failure does not clear valid cards; refreshed metadata enriches rather
+  than replaces local playback. Canonical reconciliation commits one deterministic result instead of
+  empty-then-append ordering. Genuine completion may remove the resume only after the authoritative
+  eligibility decision is known.
+- **Continue Watching viewport and geometry — IMPLEMENTED.** First RTL presentation anchors stable
+  item zero at the right edge after real items arrive. Recomposition/no-op refresh does not recenter;
+  user-scrolled position is retained across accepted Back navigation. Every card receives the same
+  useful container/art/title/progress geometry. Portrait, landscape, unusual and edge-bearing imagery
+  uses proportional contain/inset treatment without stretching or destructive center crop; the clean
+  missing-art fallback retains identical geometry.
+- **Up Next active navigation context — IMPLEMENTED.** The original successful next-episode prompt,
+  source resolution and Media3 replacement remain. Only a successfully active replacement atomically
+  commits the player session's canonical series/season/episode and return destination. E1 -> E2 -> E3
+  exits to E3 Details; unaccepted suggestions and failed/pre-active transitions keep the prior episode.
+  Progress and sources remain independent per episode, and saved/recomposition state cannot restore
+  the original launch identity over the active item.
+- **Dynamic Sports cards — IMPLEMENTED.** UPCOMING cards format real kickoff-relative days/hours/
+  minutes in device locale/timezone and update across boundaries without changing stored canonical
+  time. LIVE minutes render only from fresh trustworthy provider clock evidence, including truthful
+  stoppage notation; otherwise the fallback is `שידור חי עכשיו`, never wall-clock-minus-kickoff.
+  One/multiple usable discovered bindings expose actual deduplicated provider display names directly
+  on the card. A configured provider alone is not availability; stale/invalid bindings and FINISHED
+  stale LIVE badges disappear.
+- **Visible Sports refresh — IMPLEMENTED.** Lifecycle-owned, foreground/resume-aware polling is
+  bounded to visible canonical identities and separate fixture/source cadences. It preserves last-
+  known-good fixture data on failure, updates status and source availability independently, fairly
+  reaches the remaining cards, preserves MatchIdentity and supports UPCOMING -> LIVE -> FINISHED plus
+  later legitimate post-match media without busy polling or fake real-time claims.
+- **Sports details/artwork — IMPLEMENTED.** Approved rich poster remains primary; minimal contained
+  bounds preserve narrow/wide edge crests instead of substituting the two-crest fallback. One
+  consistent `<Team A> נגד <Team B>` line sits below it. Authoritative lineups/formations may render
+  immediately; score/result/winner/events/revealing statistics and accessibility text remain absent
+  until explicit reveal and disappear again on hide.
+- **Competition feed — IMPLEMENTED.** Current competition identity resolves adjacent provider
+  season/round/stage pages and date horizon before dedupe/projection. Qualifying stages and relevant
+  Matchday fixtures no longer collapse to an artificial two-item result. Real TheSportsDB smoke
+  recorded current returned stage/round/count truth; no static UCL list or new arbitrary row cap was
+  introduced.
+- **LiveBall exact discovery — IMPLEMENTED.** The production path now consumes current public index/
+  date markup, timezone-aware kickoff, canonical team aliases, competition evidence and exact child
+  identity. Binding rejects contradiction/ambiguity, does not guess numeric IDs, creates one durable
+  child under one family master and remains idempotent across repeat/migration/reprojection.
+- **LiveBall native resolution — IMPLEMENTED.** Current HTML/player bootstrap and completion-clock
+  state lead through bounded public redirects/tokens to native HLS when available; pre-live stays
+  typed pending and specific extraction/host failures remain typed rather than generic success.
+  Native resolver -> shared PMTV Media3 remains primary. Website is explicit secondary fallback only
+  and never silently replaces native playback.
+- **Actual Sports source search — IMPLEMENTED.** `חפש מקורות עכשיו` now invokes bounded source
+  discovery, not fixture refresh. Applicable independent families run concurrently/failure-isolated;
+  selected SPORTS_MEDIA Telegram and eligible exact official/public YouTube can coexist as normal
+  FINISHED siblings. Completed-found, completed-zero and partial provider failure have truthful
+  feedback; one failed provider cannot suppress valid siblings.
+- **Telegram Sports roles/status — IMPLEMENTED.** Announcement removal toggles only
+  SPORTS_ANNOUNCEMENT and preserves Catalog/SPORTS_MEDIA. Counts equal selected rows and persist.
+  Selected/active is distinct from actual operation; each row projects last relevant processed
+  timestamp and linked canonical MatchIdentity when observed, otherwise an explicit never-observed
+  state. Observation -> classification -> exact linkage -> durable state is covered without raw IDs,
+  URLs or bodies. Catalog matching remains local-index-first, selected CHANNEL/GROUP only, exact S/E
+  contradiction-safe and bounded-history rescue; the working `לא לריב` playback route was not
+  replaced.
+- **YouTube indexing — IMPLEMENTED.** Generic PMTV YouTube service registration is separate from Kan
+  11 channel identity. Continuation resolves the registered provider, advances/persists the real
+  checkpoint and resumes after restart; deterministic regression reproduces the former missing-
+  provider failure.
+- **YouTube account/feed/history bridge — IMPLEMENTED at code/runtime boundaries.** Existing native
+  account navigation now runs the audited TV device-consent flow, stores session material encrypted
+  app-private, disconnects only its own session/cache and never logs or copies raw tokens. Supported
+  subscriptions, playlists, liked, recommendations and account-history surfaces feed PMTV. Public
+  playback remains account-independent; legitimate connected auth may retry LOGIN_REQUIRED, and all
+  resolved media still enters the one PMTV Media3 path. Canonical playback observations retain local
+  progress first and flush meaningful upstream history/position at lifecycle boundaries; upstream
+  failure never erases local truth, and weaker/older remote progress cannot overwrite stronger local
+  state. No manual Subscribe/Like/Add-to-playlist write or offline/export feature was added.
+- **Catalog/code43 regression preservation — IMPLEMENTED and rerun.** Passive Series sanitation,
+  canonical dedupe, title/year/synopsis/art truth, personal-list metadata/centered dates, silent normal
+  refresh, season truth, one-vote TMDB presentation, exact-IMDb OMDb projection, exact Catalog
+  Telegram scope, role-aware Sports watched persistence/projection, rich poster, Home placement,
+  TimeSoccerTV, Foot/Das visibility, one LiveBall master and independent roles remain covered.
+
+## SmartTube upstream/license and service-policy audit
+
+**SUPERSEDED — owner approved:** the former blanket rule that SmartTube reuse was forbidden. Code44
+may reuse a component only under its actual grant and required notice; private use does not create a
+license for a dependency without one. PMTV remains the sole UI/navigation/local-state/shared-Media3
+player owner, and the account/history/progress bridge is an explicit owner requirement.
+
+- Audited/pinned `yuliskov/SmartTube` commit
+  `25b7def51eacf04f6d179e74ac4d57cb8ad92415`; top-level license MIT. Required copyright/license notice
+  and full text are retained and exposed in Settings/About.
+- Audited gitlink `MediaServiceCore` at `28c3c81989db86865fc66e2a5752d3a76528c98c` and
+  `SharedModules` at `86f032738e3a24f6ee85c7a4ccd9524b0d20b7aa`. No usable explicit reuse grant was established for
+  the selected protocol implementation, so PMTV neither copied nor linked their unlicensed code; it
+  independently implements the bounded behavior/API contract.
+- The owner explicitly approved the audited SmartTube TV account authorization flow with the risk
+  documented. Its upstream TV OAuth client identity is not registered to PMTV; Google service policy
+  generally expects an application to use its own registered client, while the selected account/
+  InnerTube surfaces are undocumented and may change, rate-limit, revoke or cease working. This is a
+  known compatibility/service-policy risk, not Google authorization, guaranteed access or authority
+  to bypass consent, DRM, paywall, entitlement, region or account controls.
+- PMTV does not embed/launch SmartTube UI or player, use youtube.com Gecko/WebView/iframe playback,
+  require Play Services or an owner Data API key, forge credentials, or hand normal playback to an
+  external app. Account secrets remain encrypted/app-private and absent from logs, Git and memory.
+
+## Actual validation and CI correction history
+
+- **LOCAL PASS:** final focused suites: 202 app-mobile and 84 core-youtube tests. Complete 15-module
+  mobile/mobile-used matrix: 3,142 tests, zero failures/errors, 13 intentional opt-in skips across 362
+  suites. All 12 mobile-used lint targets plus signed mobile assembly passed; the final combined run
+  completed 643 Gradle tasks. Additive migrations, scanner (41), downloader (20 rejection + one
+  success), delivery (14), inspector (4), upgrade (8), deterministic Robolectric prefetch (5), Gecko
+  mutation harnesses, Node provisioning/crypto/interop, pinned TDLib and package/native gates passed.
+- **Final CI-fix local PASS:** forced `CI=true --rerun-tasks :app-mobile:testDebugUnitTest` exercised
+  worker recycling and ran 1,198 tests across 139 classes: zero failures/errors, 10 expected skips.
+  `MobileStartupCompositionSmokeTest` emitted STARTED then PASSED in 7.705s; full forced invocation
+  succeeded in 7m01s.
+- **CI failure 1:** run `33985794687` on substantive SHA `351f457401f5e612c66946211d133fb6216cd9fe`,
+  attempts 1 and 2, timed out only in the original combined 45-minute unit-test step. Core tasks had
+  completed and app-mobile had begun, but the combined gate exposed no last-started test. No test
+  assertion failure was reported.
+- **CI failure 2:** exact SHA `5b897795e08f0abdb9c2f5f5c8bd25eb8f7c6261`, run `34244042929`,
+  passed the new isolated core gate, then the app step timed out after 1,197 earlier tests passed and
+  the real startup Compose smoke emitted STARTED without PASSED. The same class alone and the complete
+  `CI=true` suite passed locally, and its HOME path did not compose the new Sports/CW polling loops.
+- **Evidence-driven correction:** app-mobile CI retains one sequential fork but recycles its hosted
+  Robolectric worker after at most 32 test classes, bounding cumulative Android/SQLite process state.
+  Every class remains mandatory exactly once; no timeout was enlarged, test removed, assertion
+  weakened, product path changed or version bumped. Run `34249812147` then passed the exact final SHA
+  and every downstream lint/build/provenance/upload gate.
+- **Artifact verification PASS:** canonical downloader required exact SHA/run and verified three-file
+  artifact metadata/checksum before publication. Independent package/version/signer/ABI/TDLib and
+  Gecko/FIDO/SnakeYAML/license checks passed. Exact code43 -> code44 upgrade verifier passed. The local
+  preliminary APK had the same size but SHA-256
+  `67ea485ce7d7264c4170c09a4644c63638ca5afc70fc07aac933191474a963b5`; it was never substituted for
+  the authoritative CI APK.
+
+## Runtime, physical, blocked and remaining truth
+
+- **RUNTIME VALIDATED — HOST ONLY:** current LiveBall exact public page -> player/bootstrap -> HLS
+  master -> child playlist -> first media bytes succeeded through the production resolver. This is
+  not Android Media3 video/audio/fullscreen/Back PASS.
+- **RUNTIME VALIDATED — HOST ONLY:** real TheSportsDB competition/season/round/facts aggregation and
+  sanitized projection succeeded; provider failures remain isolated. Broader public-store use still
+  requires a terms/subscription review beyond this private sideload round.
+- **RUNTIME VALIDATED — HOST ONLY:** YouTube TV device challenge, pending/cancel behavior and real Kan
+  persisted indexing continuation passed at 2026-09-05 16:43 UTC. A pending/cancelled device flow is
+  not authenticated account/feed/history proof.
+- **FAILED — CURRENT PUBLIC YOUTUBE HOST:** at 2026-09-05 16:50 UTC an ordinary public video, sampled
+  official Sports highlight and catalog trailer all ended `LOGIN_REQUIRED`/bot-confirmation with no
+  usable media descriptor. No DRM evidence existed. Public playback is therefore not runtime PASS,
+  and account/Web/other-app fallbacks were not used to fake success.
+- **PHYSICAL PASS — OWNER, RETAINED:** rich poster; real `לא לריב` Telegram discovery + PMTV playback;
+  real E1 -> accepted Up Next -> E2 playback. These prove only those specific code43 production paths.
+- **PHYSICAL PASS — BOUNDED CODE44 DEVICE GATE:** authoritative code44 installed in place over code43
+  with `adb install -r`; on-device package/version advanced 43 -> 44, launcher returned success and
+  the process lived. This does not prove private state contents or any owner-facing screen because the
+  phone immediately returned to Doze/keyguard.
+- **PHYSICAL TEST PENDING:** code44 Continue Watching eligibility/rightmost anchor/refresh retention/
+  geometry/art containment/manual scroll; active-episode Back; dynamic Sports countdown/clock/source
+  labels/refresh; artwork, team line, lineups and spoiler reveal/hide; competition breadth; actual
+  source-search results; announcement role/status; Catalog Telegram failing-case recall; OMDb read;
+  state/role/progress survival; all real shared-Media3 video/audio/seek/fullscreen/Back paths.
+- **PHYSICAL TEST PENDING / BLOCKED ON OWNER INTERACTION:** real YouTube TV account consent,
+  subscriptions/playlists/liked/recommended/history feeds, authenticated LOGIN_REQUIRED retry,
+  upstream canonical watch-position update and disconnect privacy. Only a real authenticated update
+  observed in the account/compatible client can pass the history bridge.
+- **PHYSICAL TEST PENDING / BLOCKED ON PRIVATE RUNTIME:** selected Telegram SPORTS_MEDIA source search,
+  announcement observation/classification/link timestamps and remaining Catalog Telegram comparison
+  cases. Selection/tests do not prove a real incoming message or private media result.
+- **FAILED evidence retained until retest:** every code43 owner failure listed above. Code44
+  implementation status does not silently erase them.
+- **NOT IMPLEMENTED:** a new external live-score API/provider (none was needed or owner-approved),
+  manual YouTube Subscribe/Like/playlist mutations, YouTube offline/export, Telegram joined-call/
+  tgcalls live-stream transport, new unapproved paid/provider account products, DRM/paywall/
+  entitlement/auth bypass and all TV/Shield work.
+- **SUPERSEDED — owner approved:** blanket SmartTube prohibition, as audited above. Also superseded by
+  the owner's explicit Continue Watching correction: unplayed “next episode”/list targets no longer
+  qualify merely because they are next; working Up Next and series progression remain independent.
+
+Project documentation was reconciled before the immutable pre-push checkpoint: TODO, PROJECT_STATE,
+HANDOFF, MOBILE_ACCEPTANCE, TEST_PLAN, RELEASE_REVIEW, UX_DECISIONS, PRODUCT_SPEC, CHANGELOG, README,
+ARCHITECTURE/DATA_MODEL/schema, YouTube upstream/licenses, provider, Sports, Telegram and ADR ledgers.
+The old SmartTube blocker is explicitly `SUPERSEDED — owner approved`; code43 automated success and
+all new owner evidence remain preserved. This entry records the necessarily post-push CI, artifact and
+device truth and closes those checkpoint items without deleting historical evidence.
+
+Privacy: no device serial, account/token/cookie, Telegram chat/message/file identity, private URL,
+credential, message body, screenshot or private media filename is recorded. No credential/private
+state was read. Device and provider diagnostics are limited to safe package/version/status/type facts.
+
+---
+
 # Private Media TV — F2C.7.13 / code43 final Mobile Test handoff
 
 ## Final identity, CI and artifact truth
