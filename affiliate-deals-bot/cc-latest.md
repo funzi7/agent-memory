@@ -3,6 +3,153 @@
 > Rolling handoff for `funzi7/affiliate-deals-bot`. Read this first, then the
 > repository documentation linked below.
 
+## 2026-09-08 — OWNER-ALERT LIFECYCLE shipped (schema v12); Telegram quiet, evidence complete
+
+- **Project HEAD = deployed runtime HEAD =
+  `46a5d9690313bc1868e7ed0405068f435d123700`** on `main` (local == origin ==
+  server tree, content-verified `git diff --exit-code HEAD` clean). No
+  docs-only tail commit: code and docs shipped together, so there is no
+  runtime-vs-doc HEAD distinction this time.
+- **Live schema v12** (additive migration `alert_incidents_and_occurrences`).
+  Applied on first open after restart. **Every pre-existing row count is
+  identical before and after** (source_messages 154, source_versions 318,
+  target_mappings 146, url_decisions 1081, outbox_events 354, failures 133,
+  source_events 318). Verified online backup taken first through SQLite's
+  backup API as `affideals`:
+  `/var/lib/affiliate-deals-bot/backups/db-prealerts-20260908T035508Z.sqlite3`
+  (integrity + quick_check ok, row counts match).
+- **Unchanged and re-verified after deploy**: Core **SHADOW**,
+  `core_publications` **0**, `AFFI_TRACKING_ENABLED` absent from every env file
+  **and** from the live process, the **7 dashboard_verified** KSP route
+  contracts + 2 `no_affiliate_mechanism` + 1 `structural_only`, both DBs
+  `integrity_check ok`, **0** orphaned/deleted SQLite descriptors, WAL/SHM
+  present, all four units active with NRestarts 0, real edge
+  (`admin/login` 200, `go/healthz` 200, canary 302 + `no-store`, unknown token
+  404).
+
+### What changed (alerting ONLY — no conversion/eligibility/policy change)
+
+The mirror used to send **one Telegram message per recorded failure**.
+Production had reached **80** delivered owner alerts (41 by 2026-09-06, then 39
+more in two days under the old policy). Recording a fact and interrupting the
+owner are now separate acts.
+
+**Owner-approved contract** (full text in `docs/OWNER_ALERT_POLICY.md`):
+- **S0 expected limitation** (e.g. `affiliate_mechanism_unavailable`): never a
+  message per post/version/edit. Only the outage rule speaks.
+- **Outage rule**: one message when (1) the source is demonstrably still
+  producing **content** (a `created`/`edited` row in `source_events`; a deletion
+  does not count), (2) the same cause blocked output **more than once**, and
+  (3) **no successful publication** reached the destination for **6 continuous
+  hours** measured from the first blocked occurrence.
+- **One escalation at 24h of incident age** (not 24h after the message), then
+  **absolute silence** until recovery.
+- **One recovery message**, only after a **real** publication (a
+  `target_mappings` row written by `complete_outbox` after an actual send).
+- **S1 transient**: silent while attempts remain; one message per root cause
+  once it will not be retried. **S3**: one per post + unchanged cause.
+  **S4 critical**: immediate, aggregated by root cause, never per attempt.
+
+### Before/after alert-noise estimate (real data, read-only replay)
+
+Replaying the genuine 41-message production history through the shipped policy:
+**41 → 2 messages**, with **17 durable incident episodes** retaining every
+occurrence. The measured 2026-08-25 four-message delivery incident is **one**
+message, proven through the real runtime in
+`tests/unit/test_alert_runtime_integration.py`.
+
+### Architecture (new package `src/affiliate_deals_bot/alerts/`)
+
+- `severity.py` — deterministic S0–S4 from **stable failure codes only**, never
+  message text. Exhaustiveness test over every `FailureCode`, every
+  `blocked_reason` and every runtime topic (derived from the source at test
+  time, so a new code fails the build). **Unknown cause → CRITICAL**, never S0.
+- `incidents.py` — `alert_incidents` + `alert_incident_occurrences`. Four
+  invariants: claim-and-enqueue is **one transaction** (a phase can never be
+  marked notified without a durable message); history is **append-only
+  episodes** (`logical_key` + `episode`; a recovered incident is closed forever
+  and a later failure opens a new row); phase claims are fenced on
+  `cleared_at IS NULL`; **all cross-table time comparisons use `julianday()`**
+  because this store writes `+00:00` and the mirror writes `Z`.
+- `policy.py` — the rules above. Wired at
+  `telegram_processing.py` → `TelegramMirrorRuntime(alert_policy=…)`; the single
+  seam is `runtime._queue_alert`, so every existing call site is unchanged in
+  meaning. `LegacyAlertPolicy` exists **only** for pre-existing tests.
+- **Admin**: existing `מערכת` page gains `תקריות התראה`. No new page, no nav
+  change.
+
+### Deploy safety
+
+Incident tables start empty and nothing back-fills them; every clock starts at
+the first occurrence **after** the upgrade, so no retroactive 6h warning and no
+escalation for the already-running KSP outage. Confirmed post-deploy:
+`alert_incidents` 0, `alert_incident_occurrences` 0, incident-schema alerts
+queued 0, 80 historical alerts preserved, **0 pending** owner alerts before the
+restart (pending legacy rows would still be delivered as live work — check this
+before any future alert-policy deploy; see RUNBOOK).
+
+### Review (Codex, genuinely — not the Claude fallback)
+
+`codex-cli 0.153.3`, read-only sandbox, adversarial: **15 findings — 3 blockers,
+11 major, 1 minor**. 14 accepted and fixed, each pinned by
+`tests/unit/test_alert_review_findings.py`. Blockers: (1) a policy exception fell
+back to one message per signal, re-creating the storm — now one critical
+"alert policy failed" per source; (2) the phase claim committed before the
+outbox insert, so a crash marked an incident told with no message — now atomic;
+(3) reopening a recovered incident deleted its occurrences — now append-only
+episodes. Also fixed: root causes aggregate per source not per delivery; all 38
+real publisher/delivery codes classified (were defaulting to CRITICAL on first
+attempt); a partial conversion can no longer claim a retry was exhausted; the
+publication probe orders by `julianday` (text ordering put `…:00Z` after
+`…:00.8Z`); the 24h escalation no longer needs further activity; a sweep after a
+restart announces recovery instead of closing silently; a replayed delivery of
+an already-mirrored post no longer fabricates recovery. One finding partly
+declined: `affiliate_recovery_failed` is **transient** (that path schedules a
+retry); `affiliate_processing_failed` is **critical** as the reviewer intended.
+
+### Real runtime validation (deployed artifact, no production writes)
+
+The 6h/24h arithmetic is proven by deterministic persisted tests with a
+controlled clock plus restart-safety tests, **not** by waiting six hours.
+Additionally the **deployed build on the server** was exercised against a
+**scratch copy** of the real production database (the verified backup, copied to
+a temp path, deleted afterwards; production untouched, nothing sent):
+
+```
+8 blocked alias posts inside 6h  -> 0 Telegram messages
+the 9th, past the 6h mark        -> 1 message ("has published nothing for 6h 5m")
+3 more blocked posts after it    -> 0 additional messages
+durable evidence                 -> 12 occurrences / 12 posts on one incident
+VERDICT: 12 blocked posts -> 1 Telegram message
+```
+
+**Honest limitation**: `@KSPcoil` produced **no new post** during the
+post-deploy validation window (deployed 03:56 UTC, early morning in Israel), so
+**live S0 suppression on genuinely new production traffic was NOT naturally
+exercised** — no PASS is claimed for that. No synthetic Telegram alert was sent;
+the owner did not approve one. Confirmed after deploy: 0 source events, 0
+incidents, 0 owner alerts queued.
+
+### Validation
+
+**1469 pytest passed**, ruff + format + strict mypy clean (166 files),
+`git diff --check` clean. Migration 12 proven on a fresh DB and on a
+production-shaped v11 DB seeded with the 41 historical alerts (asserts **zero**
+back-notification). **No CI exists in this repository — never claim a CI pass.**
+One flake seen once and not reproducible (3/3 passes in isolation):
+`test_a_second_process_never_orphans_the_click_stores_wal` — a `spawn`
+subprocess that failed to start within 30s under load; `tracking/clicks.py` and
+all non-migration code in `sqlite.py` are untouched by this milestone.
+
+### NOT done, NOT approved (unchanged)
+
+Resurrection of blocked posts, `blocked → pending`, freshness windows,
+blocked-edit-after-restore policy, retroactive treatment of the 877 historical
+alias posts (owner decisions **D2–D5**, still open), the KSP alias resolver,
+owner-in-the-loop resolver pilot, publishing alias-only posts unmonetised,
+tracking activation, Core LIVE. Also still pending from before: the Cloudflare
+`/login` rate-limit rule (dashboard-only).
+
 ## 2026-09-06 — Phase B deployed + verified; alias-resolution RESEARCH milestone (research only)
 
 - **Repo HEAD `2bbd865ea5ab482f0c768042da82739119dbe424`** on `main` (local ==
