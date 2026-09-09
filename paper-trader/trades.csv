@@ -205,3 +205,5 @@ date,portfolio_id,strategy,ticker,side,shares,fill_price,commission,cash_after,e
 2026-09-04,pullback_10k,pullback,PANW,SELL,2.0,329.4952,1.0,1231.78,10210.38,התמיכה נשברה — מתחת לממוצע 50
 2026-09-04,pullback_10k,pullback,DELL,SELL,1.0,513.5231,1.0,1744.3,10198.76,"מימוש חלקי +17% — נמכרה מחצית, סטופ הועלה לכניסה"
 2026-09-04,pullback_10k,pullback,WST,BUY,5.0,339.9299,1.0,43.65,10197.96,משיכה #1 — חוזק יחסי 94% · מרחק מממוצע 50 -2.1%
+2026-09-08,screener_track_10k,screener_track,NVDA,SELL,3.0,230.9745,1.0,2874.87,11150.87,"מימוש חלקי +15% — נמכרה מחצית, סטופ הועלה לכניסה"
+2026-09-08,screener_track_10k,screener_track,RBLX,SELL,16.0,41.4293,1.0,3536.74,11119.78,"מימוש חלקי +18% — נמכרה מחצית, סטופ הועלה לכניסה"
