@@ -588,3 +588,51 @@ Calendar summary-card height STILL varied after GL9's alpha fix (GL10, hash 9da3
 - **New Year's Day is the exception to the NYSE observed shift.** Sat→Fri does not apply: the exchange traded Fri 31 Dec 2021 and 2010. A blanket shift also puts a PREVIOUS-year date into this year's holiday map.
 - **A masking regex is code, so test its edges.** The first FlexLogRedaction missed the LAST attribute of an element (the lookahead demanded that something follow), stopped at a comma inside an address, and overflowed the stack at ~15 KB from a nested lazy quantifier. Explicit quoted / bare alternatives are linear and cover the real shapes.
 - **An exception message can carry a credential.** On Android an HttpURLConnection failure uses the full request URL as its message, so the Flex token reached logcat and the settings screen through FlexResult.error. Redact where the exception is caught, not at each of the places that print it.
+
+### 2026-09-09 (S2.2) — a partial close leaves TWO rows; the feed event belongs to the CLOSED one
+When part of a position is closed, the app inserts a new CLOSED slice and keeps the ORIGINAL row OPEN
+with the remainder. Anything that writes a feed event for that close must target the SLICE. Attaching
+it to the original row looks harmless at write time — the amount is right — but the cold-start
+FEED_FIX pass in `OptionsTrackerApp` recomputes every close event from its linked position, and an
+OPEN position has realized 0 and no close date, so the row silently becomes **$0.00 at 16:00 ET of the
+EXPIRATION**. The description is not recomputed, which is the tell: a row showing money in its text
+and $0.00 as its amount is a close event stranded on an open row. Corollaries:
+- `findLatestByPositionId(pos.id)` + update-over-insert is WRONG for a partial close: the original
+  row's latest event is its own (still valid) history, and mutating it both mislabels the partial as a
+  full close and destroys that history. Insert against the new slice instead.
+- The repair pass must never recompute a close event whose position is OPEN. Re-home it onto the
+  closed sibling slice, or leave it alone — recomputing can only ever produce a wrong number.
+
+### 2026-09-09 (S2.2) — the stock snapshot could only ever GROW
+Both merge sites clamped share counts with `if (flip || abs(new) >= abs(existing))`, so selling part
+of a holding was invisible forever: the device held 1,800 SPCH shares while IBKR reported 800, and the
+CC reminder announced 1,000 uncovered shares that no longer existed. The clamp was compensating for a
+parser bug, not a broker one — `parseStockPositions` kept only the FIRST `<OpenPosition>` row per
+ticker+account, so a multi-lot holding was under-counted. Fix the parser (`levelOfDetail`: SUMMARY
+rows win over LOT rows, otherwise sum the lots) and the clamp can go, except for a genuinely ambiguous
+unlabelled multi-row payload. A third site wrote the broker number unconditionally, so which rule
+applied depended on whether the ticker happened to have an open option with a quoted underlying —
+when a rule exists in more than one place, check every copy.
+
+### 2026-09-09 (S2.2) — a broker "open" quantity is not always the whole truth
+If the owner records a close the Flex statement does not (yet) contain, `buildNetPositionCycles`
+produces a plain OPEN cycle for the FULL original quantity, and taking it literally rewrites the
+remainder back to the full amount — leaving the app holding the closed slice AND the full open row
+(28 contracts where 18 existed) and charging the opening commission on both. `applyOpen` must subtract
+closes the app recorded out of the same opening (`openDate >= cycle.openDate`, not already claimed by
+a closed cycle) and prorate the opening commission to the contracts the row keeps. When the deduction
+would leave nothing, the two sides disagree about something else — leave the row alone.
+And report the disagreement: on this device it meant IBKR still considered 18 calls short against 800
+shares, which is a risk fact the owner needs, not a number to quietly overwrite.
+
+### 2026-09-09 (S2.2) — "no explanation available" is not an explanation
+The market-brief card exists to say WHY something moved; a price-only line duplicates the raw movers
+card below it. Per the owner's ruling, a mover with no source-backed reason is dropped from the card
+entirely rather than listed with an apology. Rules that keep it honest: only a headline published
+TODAY in **New York** counts (a 21:00 ET item is still yesterday's, and the device timezone is +7);
+earnings are described as *scheduled* because the app stores only the date, never the release or the
+result; litigation-advertising headlines are filtered out (they are published about anything that
+moves); and there is deliberately no sector/macro branch, because the app has no factual sector
+attribution and such a line could only be invented. Watch the log volume: the brief rebuilds on every
+source-flow emission and once a minute, so a per-mover diagnostic must be gated on the decision
+CHANGING — an unconditional one produced 288 lines in half an hour.

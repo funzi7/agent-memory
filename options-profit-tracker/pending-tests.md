@@ -173,3 +173,18 @@ OWNER visual checks still owed (the agent cannot judge these):
 - [ ] Dashboard: leave the app open across 16:00 ET on a trading day. The session badge, the countdown and the market brief must all switch together within about a minute, instead of the brief changing while the badge stays put.
 - [ ] Market brief before any stock sync has run (or with a cleared price snapshot): it must say prices are not available yet, never "אין תנועות חריגות היום".
 - [ ] Decide the two NEW security items in cc-latest.md ("Left for the owner to decide" 4 and 5): cleartext credentials in the daily external-storage backup, and allowBackup with no extraction rules.
+
+### 2026-09-09 S2.2 device-test status (Claude Code; OPT 4935ba6; PR #19 OPEN, needs-owner) — executed on the real device
+DONE by the agent on the device (install -r, signer gate passed, data intact, no reboot):
+- [x] Feed: the SPCH strike-12 row was repaired in place — `FEED_FIX: re-homed partial-close event 1026 from OPEN 3554 to slice 3556 (SPCH 10/18)`. It now reads "SPCH נסגר חלקית • ⁨10⁩ מתוך ⁨18⁩ חוזים • Strike 12.0 • −$112.17" at 09.09 03:00 (= the CLOSE date's 16:00 ET, was the EXPIRY's). One row only, no duplicate; next cold start reported `rehomed=0` (idempotent).
+- [x] CC reminder: `CC_REMIND: ticker=SPCH snapshot=800 total=800 openCC=800 uncovered=0` → excluded. SOXL still correctly included at 100 uncovered shares (its CC expired that day). ASTX/BBAI still excluded as ghosts.
+- [x] Calendar preserved: 2026-09-08 = 87.51 + (−112.17) = −24.66 → displays −25, unchanged.
+- [x] Market brief: 0 occurrences of "אין הסבר זמין" in the UI tree; the card shows only the session line; the raw "טופ עולות/יורדות" card still lists every mover.
+- [x] Reconciliation converged over two non-destructive imports: `updated=0 inserted=0 unchanged=262 ambiguous=3 noMatch=1`; audit mismatches realized/premium/commission/qty/timestamp all 0.
+- [x] An open-cycle defect found and fixed during QA: `qty 18 → 8 (broker 18 − 10 closed-in-app) comm 12.37 → 5.5`.
+OWNER checks still owed (the agent cannot judge or resolve these):
+- [ ] **SPCH strike 12 — check the IBKR app.** The Flex statement reports the position as **18 contracts OPEN** with **800 shares**, and contains the 1,000-share stock sale but **no buy-to-close for the 10 option contracts**. The app shows 10 closed + 8 open because that close was recorded in the app on 2026-09-08. If the buy-to-close never actually executed, the real position is 18 short calls against 800 shares (1,000 shares' worth naked). Until this is settled the slice keeps `ibkrRealizedPnl = NULL`, so −$112.17 is the app's own calculation and the feed timestamp stays a 16:00 ET settle rather than a real fill time.
+- [ ] Market brief, POSITIVE path: on a day when one of your tickers moves ≥3% AND has a same-day headline, confirm the card lists it with the headline underneath. Not observable during the S2.2 session — no ticker met both conditions. The negative path was proven live: `mover=NOK pct=3.3 news=5 newsToday=0 → NONE_omitted_from_brief` (five real Finnhub items fetched, none dated today, correctly unused).
+- [ ] Decide whether the thin Finnhub coverage is acceptable: `company-news` returned 0 items for every leveraged/thinly-covered ticker in the portfolio (MULL, MVLL, ASTX, RKLX, NEBX, TSLL, SNXX, WDCX, SOXL) and 5 for NOK, so in practice this card will often list no movers at all.
+- [ ] Partially close a position through "סגירת פוזיציה" and confirm the new feed row says "נסגר חלקית" with "N מתוך M חוזים" and the slice's own P&L — not a full close, not $0.00.
+- [ ] Reboot: STILL PENDING, not performed (explicitly forbidden this task).

@@ -94,3 +94,15 @@ S2 (branch s2/ibkr-reconciliation-lifecycle-dashboard, OPT f327a7e8f3b22792b176f
 
 ### 2026-09-07 pointer (Claude Code) — S2 device QA complete; PR #19 still OPEN
 S2 branch HEAD 1ab4c824c4c0c0d087ed4d3fde851968e1cf4493. ADB returned, so the S2 build was installed and the real IBKR import was run 3x on the phone: SOFI now closes as BTC with its real −$26.88 loss and a real execution time, BKSY's lost buy-to-close was reinserted, the reconciliation converged (updated=0), and the PNL log storm measured 0 (was ~68k lines). 97 JVM tests green. Codex review still blocked by the account's usage limits; reboot still pending. Read cc-latest.md first.
+
+### 2026-09-09 pointer (Claude Code) — S2.2 finished; rolling handoff is cc-latest.md
+S2.2 (same branch `s2/ibkr-reconciliation-lifecycle-dashboard`, OPT `4935ba6`, PR #19 OPEN needs-owner,
+NOT merged; main still `7225b7af`): the three owner physical findings root-caused and fixed generically —
+the partial-close feed event now belongs to the CLOSED slice (it was on the row that stays OPEN, which is
+why the cold-start repair turned it into $0.00 at the expiry), the stock snapshot can finally follow a
+holding DOWN (SPCH 1800 → 800, so the "1000 מניות לא מכוסות" reminder is gone), and the market brief lists
+no mover it cannot explain from a real source. Plus one defect the device QA itself exposed: an OPEN broker
+cycle recombined the 8-contract remainder back to 18 and double-charged the opening commission. 272 JVM
+tests green; two non-destructive imports converged; audit mismatches all 0. **Open question for the owner:
+IBKR reports SPCH 12C as 18 contracts open — it has the 1,000-share stock sale but not the 10-contract
+buy-to-close.** Read cc-latest.md first.

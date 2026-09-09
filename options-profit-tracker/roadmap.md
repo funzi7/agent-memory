@@ -623,3 +623,37 @@ PRESERVED (unchanged, still open — nothing deleted): F1, F2, R1/R2, dashboard 
 - DONE: 13 defects found by reviewing this PR myself after the owner confirmed Codex has no quota — partial-close slice double-counting, split-fill commission, the never-cleared tax loss carry-forward, a realized P&L stamped on OPEN rows, a fallback matcher that could close a live position, a partial close duplicating the broker figure, the covered-put premium lost on uncovered shares, the CC yield scaled by the wrong share count, the Flex token reaching logcat through an exception message, three real defects in the new redaction regex, an audit verdict that overstated its own coverage, an invented "quiet day" claim, and a frozen dashboard clock.
 - NEW backlog (owner decisions, NOT changed): BackupService writes the Flex token + 11 API keys in cleartext to EXTERNAL storage automatically once a day (15 copies retained); and allowBackup=true with no dataExtractionRules makes the DataStore holding those credentials eligible for Google Auto Backup. Both are larger exposures than the logcat leak this task fixed, but changing either alters what a restore can recover.
 - PRESERVED: everything from the S2.1 block above, unchanged.
+
+### 2026-09-09 — S2.2 backlog reconciliation (OPT 4935ba6, PR #19 OPEN needs-owner)
+
+**DONE in S2.2**
+- Feed: a partial close now produces a partial-close event on the CLOSED slice, with the slice's own
+  authoritative P&L and no duplicate; the cold-start pass repairs a stranded event instead of zeroing it.
+- CC reminder: the stock snapshot can follow a holding DOWN; coverage counts any live short call.
+- Market brief: no unexplained mover is listed, the "אין הסבר זמין" sentence is gone, explanations are
+  resolved from the app's existing Finnhub company-news source, the earnings cache and the social feed.
+- Partial cycles are reconciled (close side only) and audited; an OPEN cycle no longer recombines a
+  partially-closed row or double-charges its opening commission.
+
+**PENDING OWNER (blocking nothing in code, but they are the only ones who can answer)**
+- SPCH strike 12: IBKR reports 18 contracts OPEN + 800 shares and has no buy-to-close for the 10
+  contracts the app shows closed. Confirm against the IBKR app — if it never executed, 1,000 shares'
+  worth of calls are naked. Decides whether the slice ever gets a broker realized P&L and a real fill time.
+- Whether the thin Finnhub `company-news` coverage for this portfolio (0 items for every leveraged /
+  thinly-covered ticker, 5 for NOK) is acceptable, given the card now stays silent without a source.
+
+**PENDING PHYSICAL (owner device checks)**
+- The market brief's POSITIVE path (a ≥3% mover WITH a same-day headline) — no ticker met both
+  conditions during the S2.2 session; the negative path was proven live on NOK.
+- A fresh partial close made through "סגירת פוזיציה" end to end.
+- Reboot: still not performed (forbidden this task).
+
+**PRESERVED FUTURE (deliberately NOT implemented here — no scope creep)**
+- Cleartext credentials in the daily external-storage backup, and `allowBackup="true"` with no
+  extraction rules. Both still untouched; both change what a restore can recover, so they are owner decisions.
+- Buy-to-cover feed rows (A5); how to correct the three ambiguous split cycles (A4); strengthening the
+  feed fingerprint with `tradeID`/`ibExecID`; PR #18 automation-core findings; the dashboard alert-banner
+  reappear issue (GP1); DB/Hilt consolidation; unrelated IV work; tables-UX sort persistence;
+  unifying the four worker session windows onto `MarketCalendar.sessionAt`.
+
+**SUPERSEDED** — nothing. No previously approved behaviour was replaced in S2.2.

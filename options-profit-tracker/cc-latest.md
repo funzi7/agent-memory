@@ -2,202 +2,146 @@
 
 > Rolling single-file handoff. Every future prompt OVERWRITES this file with a fresh, complete summary of the just-finished task and then prints its commit SHA.
 
-## Latest task: S2.1 — whole-repo IBKR financial audit + Covered Put projection + dynamic market brief (2026-09-07/08, Claude Code)
+## Latest task: S2.2 — SPCH partial-close lifecycle (feed + CC reminder) and a market brief that explains every mover it shows (2026-09-09, Claude Code)
 
 - Base main SHA: `7225b7af16c183de00a9f064ead03a01ad6af1d3` (unchanged — main was never pushed to)
-- Task branch: `s2/ibkr-reconciliation-lifecycle-dashboard` (the SAME branch as S2; no replacement PR)
-- Starting head: `2ee5d842b422ff5f6ad91c761c740baade42e311`
-- Final branch HEAD: `95007094dabfaa56cb7e93c549cc16b294de31ce`
-- PR: <https://github.com/funzi7/OptionsProfitTracker/pull/19> — still **OPEN**, labels `needs-owner` + `no-automerge`, **NOT merged**. PR #20 was not created.
-- `local.properties` (`sdk.dir=/opt/android-sdk`) is modified on disk and deliberately **NOT committed**.
+- Task branch: `s2/ibkr-reconciliation-lifecycle-dashboard` (the SAME branch as S2/S2.1; no replacement PR)
+- Starting head: `9266b80262b2e43e5be51275962020f8c7c900f4`
+- Final branch HEAD: `62b8a00ce24223c5022f4391e39da57f4bad722f` (code+tests attested on `88ba309`; `62b8a00` is docs only)
+- PR: <https://github.com/funzi7/OptionsProfitTracker/pull/19> — still **OPEN**, labels `needs-owner` + `no-automerge`, **NOT merged**
+- `local.properties` (`sdk.dir=/opt/android-sdk`) is modified on disk and deliberately **NOT committed**
 
-### Model phase policy — recorded factually
-The session ran end to end on **Opus 5 (1M context)**, selected by the owner via `/model`. The agent cannot switch models programmatically, so the planning phase did not run on Fable; planning and implementation both used the strongest model available in the session. Four read-only investigator subagents were used for the audit fan-out (whole-repo P&L, ambiguous contracts + stock realized, market brief/calendar/sessions, covered put + docs); all four completed.
+### Model phase facts
+Ran end to end on **Opus 5 (1M context)**, selected by the owner via `/model`. One read-only Opus reviewer subagent was used for the mandatory fallback PR review (Codex quota exhausted). No protected file was touched: `ProfitCalculator`, `BlackScholesCalculator`, `StrategicRiskAnalyzer`, `AppPreferences`, `AvgCostResolver`, `OptionsDatabase` and every migration are byte-identical. Room stays at v31.
 
-### Protected paths touched (explicit owner approval)
-- `ProfitCalculator.kt` — matches `**/ProfitCalculator*.kt` in `.claude-guard.json`. **The only change is the owner-approved Workstream B branch** (verified with `git diff` on the file: 25 added lines, nothing else).
-- `ProfitCalculatorCoveredPutTest.kt` — the same glob catches the test file; 8 new tests added there.
-- No migration, database, AppPreferences, AvgCostResolver, BlackScholes or StrategicRiskAnalyzer file was touched. Room stays at v31, no migration written.
+### Files changed (14 modified, 7 new)
+New: `domain/usecase/StockSnapshotMerge.kt`, `domain/usecase/PartialCloseFeed.kt`, `domain/usecase/MarketMoveExplainer.kt`, `data/remote/MarketNewsService.kt`, plus their three test files.
+Modified: `OptionsTrackerApp.kt`, `FlexQueryService.kt`, `CcReminderEligibility.kt`, `IbkrReconciler.kt`, `MarketBriefBuilder.kt`, `ReconciliationAudit.kt`, `ReportGenerator.kt`, `FlexSyncWorker.kt`, `ClosePositionScreen.kt`, `DashboardViewModel.kt`, `MarketBriefCard.kt`, `FlexCycleBuilder.kt`, `ImportViewModel.kt` (+ 5 test files).
 
-### Workstream A — whole-repo IBKR financial audit
+---
 
-**Invariant enforced everywhere:** a surface that can display or aggregate a CLOSED broker-matched trade must use `ibkrRealizedPnl ?: localCalculation`.
+## The three owner physical findings, root-caused
 
-Eight bucket-(B) violations found and fixed **at the call sites** (no extra P&L-locked edits):
-1. `TaxReportScreen.kt:175` — the tax report's realized total, its monthly table, assignment income, win/loss counts and the Israeli tax estimate. This value is also **PERSISTED** via `saveLossCarryForward`, so a wrong number left the DB. Highest severity of the eight.
-2. `SettingsScreen.kt` `exportTaxCsv()` — the CSV's `RealizedPnL` column silently disagreed with its own `IBKR_PnL` column on every reconciled row.
-3. `AddPositionViewModel.kt` `closedIncome` — "פוזיציות קיימות" on the monthly-income card disagreed with the dashboard MTD for the same rows.
-4. `AddPositionViewModel.kt` `monthIncome` — the "💡 חסר $Y ליעד" month suggestions, and whether a month was suggested at all.
-5. `AddPositionViewModel.kt` `toSnapshot()` — the ticker-analysis card's average profit per trade, best strategy, win rate and losing-streak detection.
-6. `AddPositionViewModel.kt` spread pairing — was all-or-nothing: as soon as ONE leg was broker-matched the other contributed `?: 0.0`, dropping its entire P&L. Now per-leg precedence.
-7. `ClosePositionScreen.kt` — reachable in edit mode ("עריכת סגירה") on an already-reconciled row. Both the "רווח/הפסד" headline and the **ActivityEvent amount it writes to the DB** used the local recomputation; the feed row stayed wrong until the next cold-start repair pass. A small Hebrew line now says the figure came from IBKR.
-8. `CoveredPutDetailScreen.kt` — a CLOSED covered put showed a live mark-to-market card titled plainly "רווח/הפסד", reading as the final result while ignoring `ibkrRealizedPnl` entirely. Closed rows now get a realized card sourced authoritatively; the live card is open-only.
+### 1. FEED showed "SPCH נסגר BTC • $0.00" at 19.09 03:00
 
-Plus one hardening: `ReportGenerator.toPositionSummary` line 120 — `expectedProfitAtExpiration` returns the LOCAL `realizedPnL` for any non-open row, so `PositionSummary.expectedProfit` on a closed broker-matched row bypassed the broker value. No surface rendered it today (every consumer branches on status first), but one unguarded `.expectedProfit` read would have. Closed.
+**Exact broker/device values found.** `positions` id **3554** = SPCH CALL 12.0 exp 2026-09-18, OPEN, and id **3556** = the same contract, CLOSED_BTC, 10 contracts, `notes = " [סגירה חלקית: 10/18]"`, close 2026-09-08 @ 0.39, commission 6.87 + close 15.30, `ibkr_realized_pnl = NULL`. Its local realized is `(0.30 − 0.39) × 10 × 100 − 22.17 = −112.17` — exactly the figure the owner's calendar showed. `activity_events` id **1026**: title `SPCH נסגר BTC`, description `Strike 12.0 • $112.17`, **`amount = 0.0`**, **`position_id = 3554`** (the row that is still OPEN), `timestamp = 1789761600000` = **2026-09-18 16:00 ET** = 19.09 03:00 Thailand.
 
-**Confirmed NOT violations** (checked, left alone): every `PositionSummary.realizedPnL` consumer (the single constructor already applies the precedence), the calendar/reports/annual/monthly totals, `PortfolioSnapshotDaily`, `wheelPositionPnl`, the activity feed's stored amounts, stock-realized surfaces, and roughly 30 diagnostic `Log` lines.
+**Root cause — two halves, both confirmed by that row.** `ClosePositionScreen.closeAndWait()`'s partial branch inserts the closed slice but **discards its id**, then writes the feed event against `pos.id` — the original row, which stays OPEN with the remainder — and gives it the FULL-close label `נסגר BTC`. Then `OptionsTrackerApp`'s cold-start FEED_FIX pass recomputes every close event from its linked position: for an OPEN row `ibkrRealizedPnl` is null and `realizedPnL()` is 0 → **amount $0.00**, and `baseDate = closeDate ?: expirationDate` → since an open row has no close date → **16:00 ET of the EXPIRY**. The description was not recomputed, which is why it still read `$112.17` next to `$0.00`.
 
-**Answers to the four audit questions**
-1. *Does any path subtract commission from an `ibkrRealizedPnl`-derived value?* **No.** `fifoPnlRealized` is already net of commission and the value is never arithmetically modified after the `?:`. Commissions are always their own display row.
-2. *Can a broker-reconciled row reach the `closeProfitPercent` fallback?* **Yes** — `NULL_METHOD_BTC` (`CLOSED_BTC` + `closeMethod == null` + no usable close price) and `BTC_PROFIT_PERCENT`. `applyClosed` writes `ibkrRealizedPnl` but leaves status/method untouched when a cycle has no close hint and a zero close price. Harmless now that all eight surfaces prefer the broker value.
-3. *Does `expectedProfitAtExpiration` return `realizedPnL` for a CLOSED position?* Yes — handled by the hardening above.
-4. *Who fills `PositionSummary.realizedPnL`?* Only `ReportGenerator.toPositionSummary`, and it already honoured the precedence.
+**Fix.** New pure `PartialCloseFeed` owns the wording (`"<TICKER> נסגר חלקית"`, `"10 מתוך 18 חוזים • Strike 12.0"`, every number run FSI/PDI-isolated, **no money in the description** — the row's amount column is the single place money appears) and the re-home decision. The close screen keeps the slice id and writes the event against it, and no longer mutates the ORIGINAL row's existing event (which for a partial close is that position's still-valid history). The import path and `FlexSyncWorker` now use the same wording, and the import stamps the broker execution instant instead of defaulting to "now". The cold-start pass **never recomputes a close event whose position is OPEN**: it re-homes it onto the closed sibling slice (unique, or resolved by the event's own NY date), and when it cannot identify one it leaves the row untouched rather than inventing $0.
 
-**A3 — the audit itself.** New pure `domain/usecase/ReconciliationAudit.kt` (14 unit tests). It compares each uniquely matched pair AFTER the write, against the value the app will actually display, and emits ONE bounded `IBKR_AUDIT` line with 11 metrics: cycles seen, closed cycles seen, uniquely matched, ambiguous, unmatched, realized/premium/commission/quantity/timestamp mismatches, and the largest realized delta in cents, plus a CLEAN/DIVERGENT verdict. Commission is compared as the round-trip total (the open/close split is presentation). A missing execution instant is never counted as a timestamp mismatch, because a 16:00 ET fallback is not evidence. Samples carry contract identity only — capped at 5.
+**Device result.** `FEED_FIX: re-homed partial-close event 1026 from OPEN 3554 to slice 3556 (SPCH 10/18)`. The row now reads `SPCH נסגר חלקית` / `⁨10⁩ מתוך ⁨18⁩ חוזים • ⁨ Strike 12.0⁩` / **−$112.17** / `09.09 03:00`, one row only, no duplicate. On the next cold start `rehomed=0` — the repair is idempotent.
 
-**A4 — the three ambiguous contracts, resolved as a question (NOT guessed).** Device DB evidence: in all three cases the candidate rows' quantities sum EXACTLY to the broker cycle quantity, and premiums agree:
+**Timestamp, honestly.** `09.09 03:00` = 2026-09-08 16:00 ET, the **close date's** settle (it was the *expiry's*). It is still a fallback rather than a real fill time, because **IBKR has no record of this close at all** — see the open question below.
+
+### 2. CC REMINDER showed "SPCH • 1000 מניות לא מכוסות"
+
+**Root cause.** Both stock-snapshot merges (`ImportViewModel` and `FlexSyncWorker`) carried the same clamp — `if (flip || abs(new) >= abs(existing))` — so a stored share count could only ever **GROW**. The device snapshot held `"SPCH":{"shares":1800,…}` while IBKR reports **800**; 1800 − 800 covered by 8 calls = the 1000 the owner saw. There is **no manual share override for SPCH**, so this was never a product-precedence question.
+
+Why the clamp existed: `parseStockPositions` kept only the FIRST `<OpenPosition>` row per ticker+account, so a holding split across lot rows was UNDER-counted, and a growth-only rule hid that. (A third site — the per-position loop in `syncOpenPositionPrices` — wrote the broker number *unconditionally*, so which rule applied depended on whether the ticker happened to have an open option with a quoted underlying.)
+
+**Fix.** The under-count is fixed at the source: `FlexCycleBuilder.netStockShares` is `levelOfDetail`-aware (SUMMARY rows win over LOT rows, otherwise lots are summed) and reports whether the reading was **unambiguous**; an unlabelled payload listing a ticker more than once keeps the legacy first-row reading and is marked ambiguous. `StockSnapshotMerge` then accepts a genuine reduction and keeps the conservative clamp only for that ambiguous case. All three sites now go through it. Separately, `CcReminderEligibility.coversHeldShares` makes coverage "a live open SHORT CALL" rather than "a row labelled COVERED_CALL" (a wheel CC is stored as WHEEL, an imported one as CUSTOM); spread strategies are excluded because their short leg is covered by the long leg, not by stock.
+
+**Device result.** `CC_REMIND: ticker=SPCH snapshot=800 … total=800 openCC=800 uncovered=0` → `CC_REMINDER_FILTER: ticker=SPCH included=false reason=fully_covered_or_below_round_lot=0`. **SPCH is out of the reminder.** A legitimate one still appears: `SOXL totalShares=100 openCC=0 uncovered=100 → included=true` (its CC expired that day). Ghost protection intact — ASTX/BBAI still excluded for `no_current_holding_evidence`.
+
+### 3. MARKET BRIEF printed "אין הסבר זמין במקורות האפליקציה לתנועה הזו."
+
+**Fix per the owner's ruling.** The sentence is gone and there is no fallback branch to reintroduce it. A material mover the app cannot explain is **not listed in this card at all** — it stays in the separate raw "טופ עולות/יורדות" card, unchanged. New pure `MarketMoveExplainer` resolves, in priority order: (1) a company headline published **TODAY in New York**, (2) an earnings report the app's own cache has dated to today or tomorrow — worded as *scheduled*, never *released* (the app only stores the date), (3) an explicit `$`/`@` cashtag or company-name social item. Litigation-advertising headlines ("class action", "law firm", "deadline reminder") are filtered out — they are published about anything that moves and explain nothing. **No sector or macro branch exists**, deliberately: the app holds no factual sector attribution, so such a line could only be invented.
+
+**Data source and network discipline.** `MarketNewsService` calls the **same Finnhub `company-news` endpoint and the same stored key** that "חדשות תיק" already uses — no new provider, no new key. It runs only for MATERIAL movers (≥3%), at most 8 tickers per refresh, one attempt per ticker per 30 minutes, cleared on the NY date rollover; nothing is fetched on a closed day, overnight or pre-market (there are no movers then). The brief rebuilds every minute on the session ticker and that path issues **no** requests. Measured on device: **14 MARKET_NEWS requests across ~30 minutes and four app launches.** The cache is per-process, matching the existing `NewsCache`.
+
+**Device result.** The card reads exactly `מה קורה היום בשוק / מסחר רגיל. / 09:30–16:00 ET` — no movers, and **0 occurrences of "אין הסבר זמין" anywhere in the UI tree**. The raw movers card below still lists MULL +7.3%, SPCH etc.
+
+---
+
+## The defect the device QA itself exposed (and fixed)
+
+The first import after installing rewrote the SPCH remainder **from 8 contracts back to 18**:
+
 ```
-BTCI|PUT|33.0|2026-05-15|SELL|2   → rows 12(q1), 208(q1)                 1+1 = 2
-IRE|PUT|6.0|2026-09-18|SELL|8     → rows 3534(q6), 3538(q2)              6+2 = 8
-SPCH|CALL|10.0|2026-09-04|SELL|18 → rows 3529(q7), 3536(q1), 3537(q10)   7+1+10 = 18
+IBKR_RECON: open SPCH CALL 12.0 2026-09-18 src=MANUAL: qty 8 → 18 comm 5.4977 → 12.37
 ```
-This is a **1-cycle : N-rows partition** — the owner recorded one broker round trip as several partial-close rows — not a choice between alternatives. Matching any single row would rewrite its `numContracts` to the full cycle quantity and stamp the whole cycle's realized P&L on it while its siblings kept theirs, roughly double-counting the contract. Open dates are identical within each contract, and both IRE rows even share a close date, so no date rule can break the tie either. **The reconciler still refuses to write.** The only change is the ambiguity REASON, which now names the shape (`cycle_split_across_N_rows_qty_sum_matches`); 4 new tests pin that naming the shape never turns a refusal into a match.
 
-**A5 — stock / short-stock buy-to-cover.** `captureStockRealized` has **no `buySell` filter**, so BUY rows including buy-to-cover are already summed: the stock-realized TOTALS are complete and correct. The gap is presentation only — `importStockSoldEvents` IS SELL-only, so a buy-to-cover produces no feed row and no drill-down entry. Concrete case: MULL 2026-07 aggregate ≈ **$3,159.07** with only one SELL feed event that has `amount = 0.00`; MULL is the one ticker with a recorded short (54 shares @ 714.78, 2026-06-18) that is now closed. Left for the owner — see backlog item 1.
+`buildNetPositionCycles` produced a plain **OPEN cycle of 18** because the Flex payload contains no closing fill for this contract, and `applyOpen` took the broker quantity literally. The app was then holding a 10-contract closed slice **and** an 18-contract open row — 28 contracts where 18 ever existed — with the opening commission charged on both rows (12.37 + 6.87 against a broker charge of 12.37). This is exactly the "must not recombine into 18 open" case in the task brief.
 
-**A6 — idempotency.** Four consecutive full imports on the real feed, all identical: `updated=0 inserted=0 unchanged=261 ambiguous=3 noMatch=0`, verdict CLEAN each time.
+**Fix.** `IbkrReconciler.closedSiblingContractsUnknownToBroker` counts closes the app recorded out of the SAME opening that the broker cycle does not know about (same contract, `openDate >= cycle.openDate`, not already claimed by a closed cycle in this pass), and `applyOpen` subtracts them and **prorates the opening commission** to the contracts the row keeps. A deduction that would leave nothing means the two sides disagree about something else, so the row is left untouched rather than guessed at.
 
-### SECURITY — found on the device by the audit, not previously known
-Logcat is readable by any process with `READ_LOGS`, any `adb logcat`, and any bug report. The import path was printing, **on every sync**:
-- the raw Flex XML head, the EquitySummary and StatementOfFunds sections (each carrying `accountId`);
-- the full per-trade attribute map for OWL (`accountId` included);
-- the **entire `<AccountInformation>` element**: account number, the owner's legal name, home address, residential address, email, account type and trading permissions;
-- the AlphaVantage API key inside its request URL (`IvService.kt:373`; the Massive call two hundred lines below already redacted its key).
+**Device result on the next import:** `qty 18 → 8 (broker 18 − 10 closed-in-app) comm 12.37 → 5.5`. 5.50 + 6.87 = 12.37, exactly IBKR's charge. The second import converged with `updated=0`.
 
-Measured before: 14 lines containing `accountId=`/`U…`, 1 raw `<FlexQueryResponse`. Fixed with a new pure `domain/usecase/FlexLogRedaction.kt` (10 unit tests, synthetic fixtures only): identifier masking for account id/alias/name/address/email/phone plus any email anywhere and the Flex `t=`/`q=` credentials, and an `enabled` flag that gates raw payload dumps **OFF by default**. The `<AccountInformation>` dump was removed outright — the block needs one number out of it. Measured after, same device, same feed: `accountId=U` 0, bare `U\d{6,}` 0, `<FlexQueryResponse` 0, `apikey=` 0, `primaryEmail="…@` 0, address strings 0.
+## Partial cycles are reconciled at last
+Phase 1 of `reconcileWithBroker` only ever saw net-zero cycles and phase 4 only net-open ones, so a partial cycle's closed slice never received IBKR's realized P&L or its real execution instant. New `IbkrReconciler.matchPartialSlice` / `applyPartialSlice` write **only the close side** (realized, close commission, close price, close date, status) — the still-open remainder owns the opening premium, opening commission and open date, which is what the slice convention (`commission = 0.0`) depends on — and `ReconciliationAudit.compareSlice/accumulateSlice` audit them without comparing fields the slice does not own. A row a closed cycle already claimed is never re-claimed by a partial. **On this device the branch did not fire (`partial=0`)** because the payload has no partial cycle for SPCH 12C; it is covered by 10 unit tests.
 
-### Workstream B — Covered Put expected profit (owner-approved)
-`expectedProfitAtExpiration` now has a state-aware `COVERED_PUT && SELL` branch mirroring the CSP one, inserted before the `direction == BUY` branch:
-- **ITM (stock ≤ strike) → `0.0`** — assignment is the expected outcome, and the approved accounting realizes $0 on the option and folds the premium into `CoveredPutCalculator.effectiveCoverPrice` (25 − 1.40 = 23.60 for the MULL fixture), booking the gain on the SHORT STOCK side.
-- **OTM (stock > strike) → `premiumProfit − commission`**, honouring `autoCloseTargetPercent` with the same `>0 && <100` clamp CSP uses.
-- **Unknown price → the same optimistic fallback as CSP** (assume it expires worthless). Never assume assignment.
+---
 
-This removes the contradiction the S2 review flagged: an open covered put promised the full premium while its assignment realized $0. No double count — this function projects the OPTION row only, and every consumer sums option rows; the premium lives on the short side.
-Known pre-existing quirk, unchanged and out of scope: `totalPremium` hard-codes ×100 and ignores `PositionEntity.contractMultiplier` for every strategy, not just this one.
+## ⚠️ Open question for the owner — IBKR disagrees about SPCH strike 12
 
-### Workstream C — dynamic market brief
-- **Universe roll-call line removed** (`Kind.UNIVERSE` gone). It restated the portfolio the dashboard already shows and pushed real news below the fold. `MarketBrief.universe` is still populated for callers.
-- **"(+N)" truncation removed everywhere** — `joinCapped` replaced by `joinAll`; `maxTickersPerLine` is gone from the API. It used to hide exactly the tickers the owner needed.
-- **`MarketCalendar` is now the single source of truth** (12 unit tests): `nyseHolidayNames(year)` carries Hebrew names, `nyseHolidays` is literally its key set, `closedReason(d)` puts the weekend branch first (because `observed()` shifts fixed-date holidays, so on Sun 25-Dec the only truthful reason is the weekend), and shifted holidays are suffixed "(נצפה)".
-- **Full session model**: `sessionAt(date, time)` → OVERNIGHT / PRE_MARKET / REGULAR / AFTER_HOURS / CLOSED_FOR_THE_DAY / NON_TRADING_DAY, including the NYSE **13:00 ET early closes** (day after Thanksgiving, Christmas Eve, July 3 when each is a plain weekday). Takes the clock as a parameter so it stays pure and cannot be frozen in a keyless `remember`. The dashboard session badge and `marketOpenCountdownText` now read the same model — the badge previously claimed regular trading for three hours after an early close.
-- **`build()` API change**: `tradingDay: Boolean` + `sessionHasTodaysPrices: Boolean` replaced by one `session` value, so a caller cannot pass a combination that cannot happen.
-- **Event lifecycle wording**: expiries read "פקעו היום בנעילת המסחר" once the regular session ends; movers switch to past tense at the same moment; pre-market and overnight state plainly that the prices shown are the previous session's, which is why no movers are listed.
-- **What the app cannot know, it does not claim.** Nothing in the app records whether an earnings report has been released — only its calendar date (`AlertWorker`'s cache stores `{checked, next}` and discards Finnhub's `hour` and `epsActual`). So "פורסם היום" and "צפוי בהמשך היום" are never emitted; after the session the wording drops to "דוחות כספיים שנקבעו להיום".
-- **Factual reasons only**: the social-mention filter no longer accepts `analyzedTickers`, which is built from a bare `\bTICKER\b` match and made "the KEY takeaway" / "ALL of them" / "IT spending" into stated reasons for price moves. Only an explicit `$`/`@` cashtag or a real company-name match counts. Separately, "today's posts" now means **New York today**; it used the device timezone (Thailand, UTC+7), so for ~11 hours a day the brief mixed a Bangkok-today post list into a New-York-today briefing.
+The Flex statement says the SPCH 12C position is **18 contracts open** and the holding is **800 shares**. It contains the 1,000-share stock sale (four SELL fills @ ~$10.69 on 2026-09-08, now in the feed) but **no buy-to-close for the 10 option contracts**. The app shows 10 closed + 8 open because the owner recorded that close in the app on 2026-09-08 (`BTC_PROFIT_PERCENT`, close 0.39).
 
-### Tests + compile
+S2.2 implements the owner's stated target state (preserve 10/18, 8 open, uncovered = 0) and treats the app's close as one the broker has not reported yet — which is why the reconciler no longer destroys the split. **But if that buy-to-close never actually executed at IBKR, the real position is 18 short calls against 800 shares — 1,000 shares' worth naked.** Please check the IBKR app. Two consequences follow from the answer: the slice's `ibkrRealizedPnl` stays NULL (so −$112.17 is the app's own calculation, not the broker's) and its feed timestamp stays a 16:00 ET settle rather than a real fill time.
+
+---
+
+## The owner closed two positions mid-session (not a defect — recorded so the numbers reconcile)
+At 10:32 and 10:33 ET on 2026-09-09, while a build was installing, the owner closed **SPCH 12C (the
+remaining 8 contracts)** and **RKLX 20C (6 contracts)** through "סגירת פוזיציה" — real closes with
+prices, target percentages and commissions typed in (`BTC_PROFIT_PERCENT`, the only writer of which is
+the close screen). Consequences visible in the later logs, all correct:
+- SPCH 12C is now FULLY closed: 10 (08.09) + 8 (09.09) = 18. The partial-close event on the slice is
+  untouched and coexists with the new full-close row — the cross-surface contract holding under a real
+  second close.
+- The CC reminder now reads `SPCH totalShares=800 openCC=0 uncovered=800` and RKLX `600 uncovered`,
+  which is RIGHT: they hold the shares and no longer have a call written against them.
+- `noMatch` rose 1 → 3 because the broker still reports those two contracts as open (the closes are
+  minutes old and not yet in the Flex statement), so their open cycles find no open row.
+The earlier verification (`openCC=800 uncovered=0`, SPCH excluded) was made against the state that
+existed at the time and remains the evidence for the fix.
+
+## Tests, compile, audit
 - Compile gate: `grep -c "^e: "` = **0**, `BUILD SUCCESSFUL`. `git diff --check` clean.
-- **187 JVM tests, 0 failures, 0 errors** (105 → 163 → 187 after the review round).
-- New test files: `ReconciliationAuditTest`, `MarketCalendarTest`, `FlexLogRedactionTest`.
+- **281 JVM tests, 0 failures, 0 errors, 0 skipped** (187 → 272 → 281 after the review round). New files: `StockSnapshotMergeTest` (13), `PartialCloseFeedTest` (10), `MarketMoveExplainerTest` (15); extended `IbkrReconcilerTest` (+13), `CcReminderEligibilityTest` (+6), `ReconciliationAuditTest` (+7), `MarketBriefBuilderTest` (+7), `FlexCycleBuilderTest` (+6).
+- One defect was found by the tests themselves: `MarketBriefBuilder.build`'s duplicate-input merge dropped `newsToday`, so a ticker that is both held and optioned lost its explanation and vanished from the card. Fixed, with a test.
+- **`IBKR_AUDIT: cycles=268 closed=260 unique=257 ambiguous=3 unmatched=0 partial=0 partialMatched=0 | mismatches realized=0 premium=0 commission=0 qty=0 timestamp=0 maxRealizedDelta=0c refusedRealized=38260c | verdict=CLEAN_BUT_INCOMPLETE`** — identical on both runs. The three long-standing split cycles (BTCI PUT 33 qty 2, IRE PUT 6 qty 8, SPCH CALL 10 qty 18) are still REFUSED by design, carrying $382.60 of broker realized P&L.
+- Reconciliation convergence over FOUR non-destructive imports: run 1 `updated=1 inserted=0 unchanged=261 ambiguous=3 noMatch=1`, then **`updated=0`** on every subsequent run. `noMatch` rose 1 → 3 only because the owner closed SPCH 12C and RKLX 20C mid-session (see below), so their still-open broker cycles find no open row — an expiry/close lifecycle fact, not a reconciliation failure.
 
-### Device QA — PERFORMED (ADB `192.168.1.117:34617`, non-destructive throughout)
-- Signer gate passed three ways (new APK / keystore / installed app all `5d3d855c6c6c397f817df2bd0c62f16f940b1551`). Installed with `install -r`; `firstInstallTime` stayed `2026-04-22 22:53:57` across all installs and the Room DB/WAL files were untouched. No uninstall, no `pm clear`, no data deletion, no reboot.
-- **8 full IBKR syncs + imports** (790 trades / 265 cycles each) across the task. The review-round build applied ONE commission correction (SPCH 13C open commission 6.83 → 1.37, the split-fill proration fix) and then converged: `updated=0 inserted=0 unchanged=261 ambiguous=3 noMatch=0`.
-- **`IBKR_AUDIT: cycles=265 closed=259 unique=256 ambiguous=3 unmatched=0 | mismatches realized=0 premium=0 commission=0 qty=0 timestamp=0 maxRealizedDelta=0c refusedRealized=38260c | verdict=CLEAN_BUT_INCOMPLETE`**. **Zero final-realized divergence across all 256 uniquely matched broker cycles**, and the run now also states what it did NOT check: **$382.60** of broker-reported realized P&L sits on the three refused split cycles. The earlier plain `CLEAN` overstated the coverage and was corrected in the review round.
-- All three ambiguities logged with the new self-explaining reason and were **not** overwritten.
-- 0 FATAL, 0 Room/SQLite/migration errors. PNL log storm still 0/0/0.
-- **Today was Labor Day (Mon 2026-09-07 NY)**, so the market brief was validated on a real holiday: it renders **"השוק בארה״ב סגור היום — יום העבודה. אין מסחר."**. Verified on screen: no universe roll-call line, no "(+N)" anywhere, the old "(סוף שבוע או חג)" hedge gone, no movers on the closed day, only the one relevant ticker (SOXL 127C 09.09 expiring this week), badge "סגור" and countdown "15 שעות לפתיחה" both consistent with the same session model.
-- Privacy re-verified on the real feed after the fix: 0 occurrences of the account number, `accountId=`, raw `<FlexQueryResponse`, `apikey=`, the owner's email or address.
+## Device QA — PERFORMED (ADB `192.168.1.117:32957`, non-destructive throughout)
+- Signer `5d3d855c6c6c397f817df2bd0c62f16f940b1551` on every build; three `install -r` updates, `firstInstallTime` stayed `2026-04-22 22:53:57`, Room DB/WAL untouched. No uninstall, no `pm clear`, no reboot. A private local DB/DataStore backup was taken and never committed.
+- Calendar preserved: 2026-09-08 totals `87.51 + (−112.17) = −24.66` → displays **−25**, unchanged.
+- **0 FATAL EXCEPTION**, 0 Room/SQLite/migration/downgrade errors. PNL log storm still **0 / 0 / 0**.
+- Privacy: `<FlexQueryResponse` 0, `apikey=` 0, `primaryEmail` 0, bare `U\d{6,}` 0, owner email 0. `accountId="***"` / `acctAlias="***"` appear masked by `FlexLogRedaction` (the key name survives, the value never does). Every `token=` / `AndroidRuntime` / `IllegalStateException` hit in the buffer belongs to SurfaceFlinger/WindowManager or another app's process, not to ours.
+- Log noise: the new `MARKET_BRIEF` diagnostic was gated to log only when a ticker's decision CHANGES after it produced **288 lines in half an hour**; now **9**.
 
-### APK / signer / delivery
-- `app/build/outputs/apk/debug/app-debug.apk`, versionName **1.0.0**, **64,723,609 bytes**.
-- SHA-256 `1ef1450e6ae3e26dd3d9dcbe6edef8ca0e174808fafc3ead57ff652653a01196`.
-- Delivered to `/sdcard/Download/OptionsProfitTracker/OptionsProfitTracker-1.0.0.apk`; the on-device hash matches the local one exactly.
+## Review, CI and delivery
+- **Codex is still out of quota.** Re-requested on the S2.2 head `4935ba6`; the connector replied with
+  the usage-limit message again. So, per DEVELOPMENT_RULES_FULL, this PR had a **Claude Code fallback
+  PR review** — a separate read-only latest-Opus reviewer over the COMPLETE `origin/main...HEAD` diff,
+  across money/data integrity, partial-close lifecycle, stale state and races, cross-surface
+  consistency, network/cache/runtime, privacy, tests, and approved behaviour. It returned CHANGES
+  REQUESTED. Every valid finding is fixed in `88ba309`, each with a test — including one genuine
+  double-count the S2.2 fix had itself introduced (`netStockShares` deciding the row level per PAYLOAD
+  instead of per TICKER, summing a SUMMARY row with an unlabelled duplicate) and one quiet weakening
+  of the S2 ghost guard (an ambiguous reading equal to the stored count re-stamped `sharesUpdatedAt`).
+  Four assertions that could not fail were replaced with discriminating ones. Two claims were checked
+  and NOT acted on: `BrokerReconciliationStore.contractKeyOf` vs `IbkrReconciler.fingerprint` do
+  produce identical strings (a missing test, not a defect — now pinned), and `ReportGenerator`'s
+  hard-coded `× 100` is consistent with the rest of the codebase (`contractMultiplier` is used nowhere
+  in `domain/`) and was left alone as out of scope.
+- **PR Build Gate: SUCCESS** on `4935ba6` and again on the final head **`62b8a00`**. Codex Gate stays RED (no Codex review has run on any head of this PR); `codex-p1-acknowledged` was deliberately NOT added — forcing the gate green would be dishonest.
+- APK versionName **1.0.0**, **64,729,700 B**, SHA-256
+  `15bca64875bfd7d5cf131f3f5f680e75aff90c2c7ddc9778d03e6a7df16627c9`, signer SHA-1
+  `5d3d855c6c6c397f817df2bd0c62f16f940b1551`. Delivered to
+  `/sdcard/Download/OptionsProfitTracker/OptionsProfitTracker-1.0.0.apk`; the on-device hash matches
+  the local one exactly.
 
-### PR checks / review
-- `build-gate` was re-run on head `e91488b`.
-- **Codex Gate is still RED.** The owner confirmed mid-task that the Codex account is out of quota, so no Codex review has run on any head of this PR. `codex-p1-acknowledged` was deliberately **NOT** added — forcing the gate green would be dishonest. Instead I reviewed the PR myself across four dimensions; see the review round below.
-- Per the project gate, validation therefore remains **failed** until a Codex review actually runs.
-
-### Review round — 13 defects found by reviewing this PR myself (Codex has no quota)
-
-The owner confirmed mid-task that Codex is out of quota, so I reviewed the PR across four
-dimensions (money/data integrity, runtime+UI, security/privacy, tests+regressions). Everything that
-reproduced is fixed, with a test. Several of these were introduced by S2.1 itself.
-
-**Money**
-1. `FlexSyncWorker` summed EVERY closing fill still inside the Flex window into each new
-   partial-close slice, so the second partial close of a contract re-added the first one's realized
-   P&L and commission — closing 4 then 3 of a 10-lot booked 120 and then 210 instead of 90, and
-   `ibkrRealizedPnl` is authoritative downstream. New pure `FlexCycleBuilder.attributeLatestFills`
-   consumes fills newest-first, prorates one that straddles the boundary, and weights the close price
-   by quantity instead of taking the first fill's.
-2. A fill that crosses zero is split between two cycles, but its commission was copied whole into
-   both, so `realizedPnL` subtracted it twice. Now prorated by quantity. **This corrected a real row
-   on the device: SPCH 13C open commission 6.83 → 1.37.**
-3. The tax report's loss carry-forward was only ever written on a loss, and nothing clears it — a
-   year that turns profitable kept deducting a stale loss forever. It now writes 0 on a profit. The
-   broker-authoritative fix is exactly what flips a year's sign, so this was latent and became live.
-4. `applyClosed`'s no-close-evidence branch left the row OPEN but still stamped the cycle's realized
-   P&L and close commission on it. Nothing ever clears that, so a later manual close was silently
-   overridden and the ticker analysis counted an open row as a finished trade.
-5. `resolveClaims` could re-home a losing cycle onto a still-OPEN row, closing a live position and
-   booking another round trip's P&L on it. Losers now become orphan inserts.
-6. A partial close in edit mode copied `ibkrRealizedPnl` onto BOTH resulting rows, so every aggregate
-   counted it twice. Split rows now clear it — and an explicit owner edit of a reconciled close drops
-   the broker value, so the edit takes effect instead of being silently discarded.
-7. `CoveredPutCalculator.assign` folded the premium into the cover basis even for shares with no
-   cover, so on an oversized assignment the premium on uncovered shares simply vanished ($70 on the
-   14-contract MULL fixture), breaking the file's own "combined is unchanged" contract.
-8. The CC premium-yield banner divided a per-contract premium by the WHOLE holding's cost basis: 500
-   shares against one call read 0.44% instead of 2.22% and fell to the "חלש" tier; the inverse case
-   inflated it threefold. The capital is now scaled to the shares the option actually covers.
-
-**Privacy — more of what Workstream A had started**
-9. `FlexQueryService` let `HttpURLConnection`'s exception message — which on Android carries the full
-   request URL **including the Flex token** — reach `FlexResult.error`, which the sync worker logs and
-   the settings screen displays. Redacted at the source, so no caller can leak it.
-10. `FlexLogRedaction` had three defects of its own: it never masked the LAST attribute of an XML
-    element (`street="…"/>` survived untouched), it stopped at a comma inside a value so the second
-    line of an address survived, and its nested lazy quantifier overflowed the stack at ~15 KB while
-    its own doc claimed it was safe on any string. Rewritten as explicit quoted / single-quoted / bare
-    alternatives — linear, no nesting — plus JSON shapes, the DU/DF/F account prefixes, bearer tokens
-    and more credential parameter names.
-
-**Honesty**
-11. The audit reported `verdict=CLEAN` while REFUSING to check cycles. It now counts refusals and the
-    money they carry and reports `CLEAN_BUT_INCOMPLETE`. On the real feed that surfaces **$382.60** of
-    broker-reported realized P&L sitting on the three split cycles — previously invisible.
-12. The brief claimed "אין תנועות חריגות היום" when it had **no price data at all** (empty snapshot,
-    failed sync, fresh install) — inventing a fact from missing data. It now says prices are
-    unavailable. The dashboard session badge and open-countdown were frozen in a keyless `remember`
-    and contradicted the brief beside them; both now read a live clock and the brief recomputes on a
-    one-minute ticker (device: the countdown moved 15h → 13h across runs, proving it ticks).
-13. Ticker lists wrap now that truncation is gone, so a ticker could be separated from its own
-    percentage — items are joined with a NON-BREAKING space (device shows `SOXL 127C 09.09`). New
-    Year's Day was shifted Saturday→Friday, which closes a day the NYSE actually trades and put a
-    previous-year key into the map; Sunday→Monday only now. And `MarketBriefBuilder` kept a private
-    copy of the "today's prices exist" rule while the tested one in `MarketCalendar` had no callers.
-
-**Investigated and NOT changed:** a reported case where a closed cycle consumes the OPEN row an open
-cycle needs could not arise — `buildNetPositionCycles` aggregates one contract key into a single
-cycle, and a key with both closed and open contracts is a PARTIAL cycle handled by the slice path,
-which neither `matchClosed` nor `matchOpen` sees.
-
-### Left for the owner to decide
-1. **Buy-to-cover feed rows** (A5): stock-realized totals are already complete, but a short closed by a BUY produces no feed row or drill-down entry, so the itemization under-reports what the total says — ≈$3,159.07 for MULL 2026-07. Adding a `STOCK_SHORT_COVERED` event would be feed-only and must not touch any sum. Not implemented: what appears in the owner's feed is their call.
-2. **The three split cycles** (A4): correcting them means merging each set of partial-close rows into one, or teaching the reconciler to split a cycle across rows by `(closeDate, quantity)`. The latter would deterministically resolve BTCI and SPCH but provably **cannot** resolve IRE from the data on the device (both rows close the same day, and the raw payload is not retained).
-3. Whether the same-second `(timestamp, amount)` feed fingerprint should be strengthened with `tradeID`/`ibExecID` (both present in the payload, both currently discarded). Feed-only; nine ticker-months are affected, totals unaffected.
-4. **Credentials on external storage (found in the review round, NOT changed).** `BackupService`
-   serializes the Flex token, the Flex query id and eleven third-party API keys into cleartext JSON
-   and writes it to `getExternalFilesDir(null)/auto_backups/`, automatically once a day from
-   `MainActivity`, keeping 15 copies. Any app with `MANAGE_EXTERNAL_STORAGE`, and a plain `adb pull`,
-   can read them. This is a larger exposure than the logcat leak this task fixed.
-5. **`allowBackup="true"` with no extraction rules (same finding).** The `app_settings` DataStore
-   holding those same credentials is therefore eligible for Google Auto Backup, so the broker token
-   can leave the device to Drive and be restored onto another device by anyone with the account.
-   Both 4 and 5 change what a restore can recover, so they are owner decisions, not agent ones.
-
-### What was NOT verified
+## What was NOT verified
+- **The positive market-brief path was not observed live.** No ticker was simultaneously a ≥3% mover AND had a today-dated headline during the session. The negative path is proven live and precisely: `mover=NOK pct=3.3 news=5 newsToday=0 → NONE_omitted_from_brief` — five real Finnhub items fetched, none dated today, correctly not used. Finnhub's `company-news` covers a large cap like NOK (5 items) but returned **0 items for every leveraged/thinly-covered name in this portfolio** (MULL, MVLL, ASTX, RKLX, NEBX, TSLL, SNXX, WDCX, SOXL), so in practice this card will often show no movers at all. That is the owner's ruling working as specified, but they should know the consequence.
 - No reboot test (explicitly forbidden this task).
-- No Codex review (account usage limits).
-- The owner's own visual comparison against the IBKR app — see `pending-tests.md`.
-- The A5 buy-to-cover conclusion rests on three convergent facts (the aggregate/feed delta, the single recorded MULL short, and the now-positive net stock position); the raw Flex payload is not retained on the device, so the individual BUY row's attributes could not be read back directly.
+- The owner's own visual comparison against the IBKR app.
+- The SPCH broker disagreement above is unresolved and needs the owner.
 
-### Complete remaining backlog (nothing deleted)
-Everything preserved from S2 remains open: owner review/merge of PR #19; Codex review; the reboot test; dashboard alert-banner reappear (GP1); the buy-to-cover feed gap; the social backlog; PR #18 automation-core findings; Room/Hilt DB-builder consolidation; expiry-banner undercount; alerts pre-market; calendar progress-bar jump; tables-UX sort persistence; the 2026-07-04 device items (R1a/R1b/GP1 failed; GN1/GN2/GO/GP2/R2-restore/Covered-Put-core pending); and every earlier roadmap entry.
-Newly added by S2.1: the three owner decisions above, and unifying the four worker session windows (FlexSyncWorker 4–20, AlertWorker 4–19, DraftUpdateWorker 4–19, IvService 4–19, OptionsTrackerApp 9–18) onto `MarketCalendar.sessionAt` — deliberately NOT done here because it would silently change auto-sync/alert cadence on holidays.
+## Complete remaining backlog (nothing deleted)
+Everything from S2/S2.1 remains open: owner review/merge of PR #19; a real Codex review; the reboot test; dashboard alert-banner reappear (GP1); the buy-to-cover feed gap (A5, ≈$3,159.07 for MULL 2026-07); how to correct the three split cycles (A4); whether to strengthen the feed fingerprint with `tradeID`/`ibExecID`; **cleartext credentials in the daily external-storage backup** and **`allowBackup="true"` with no extraction rules** (both still NOT changed — owner decisions); the social backlog; PR #18 automation-core findings; Room/Hilt DB-builder consolidation; expiry-banner undercount; alerts pre-market; calendar progress-bar jump; tables-UX sort persistence; the 2026-07-04 device items (R1a/R1b/GP1 failed; GN1/GN2/GO/GP2/R2-restore/Covered-Put-core pending); unifying the four worker session windows onto `MarketCalendar.sessionAt`; and every earlier roadmap entry.
+Newly added by S2.2: the SPCH broker disagreement above, and the thin Finnhub coverage for this portfolio's tickers (the owner may want to decide whether a second, already-approved source should feed the explanations).
 
 ## Pointers
 - `state.md` — commit chain; `roadmap.md` — backlog; `gotchas.md` — hard-won lessons; `pending-tests.md` — owner device checklist.
-- `PHONE_BUILD.md` — build/install/logcat runbook (test count updated to 163 in S2.1).
+- `PHONE_BUILD.md` — build/install/logcat runbook (test count updated to 272 in S2.2).
