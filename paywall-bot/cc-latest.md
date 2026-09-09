@@ -36,7 +36,8 @@ TheMarker does not.
   label is mandatory only for `claude-generated` provenance).
 - Commits: `017d548` (the change) → `279ade6` (migration robustness) →
   `2cacd50` (Codex P2s #1–2) → `89c4440` (docs) → `ae8fc66` (Codex P2 #3) →
-  `8d51205` (Codex P2 #4) → **`72de8f8`** (final docs/status).
+  `8d51205` (Codex P2 #4) → `72de8f8` (docs/status) → `a038495` (self-review
+  fixes) → **`d068d97`** (figures reconciled).
 - PR: https://github.com/funzi7/paywall-bot/pull/103 — **OPEN, NOT MERGED**.
 - CI `test-message-format`: **green on every head**, including `8d51205`.
 - **MERGE BLOCKER (factual, not an excuse): Codex reached its usage limits at
@@ -95,6 +96,54 @@ review was worth having.
 Findings 1–3 are a fair hit on my design: I added a fallback and then failed to
 read it, compared two populations with different denominators, and then missed
 the mirror image of my own fix.
+
+## Post-Codex self-review round (`/code-review 103 --fix`)
+
+Run AFTER the Codex rounds, on owner request. It found a **regression this PR
+had introduced** plus five other real defects. All fixed; suite 660 → 661.
+
+* **The strip was in the wrong position.** It ran AFTER
+  `_strip_glued_latin` / `_strip_glued_parens_latin` / `_strip_latin_artifacts`,
+  which decide adjacency from the single raw neighbouring character. A source
+  mark between Hebrew and a Latin artifact made the artifact look
+  whitespace-bounded and shielded it from removal; the strip then fused the junk
+  into shipped text — `_global_clean_paragraph("קול<U+200F>(Op) …")` kept
+  `(Op)` while the mark-free input dropped it. **Before this PR TheMarker
+  aborted on the mark, so the junk never shipped: the late position turned a
+  fail-closed abort into a silently corrupted page**, breaking the PR's own
+  "removing a mark changes nothing visible" contract. My earlier reasoning had
+  checked only that the glued-Latin *decision* was unchanged, not that the
+  *output* matched the mark-free equivalent. Now normalized before those rules
+  — and after the `had_foreign` decision, because U+061C is inside the Arabic
+  foreign range. Three adjacency fixtures pin the POSITION; the original
+  fixtures were all adjacency-insensitive and could never have caught it.
+* Inline-CTA ownership compared RAW anchor text against cleaned paragraphs, so
+  an anchor with a direction mark or a zero-width was silently dropped →
+  `normalize_invisible_source_controls` (both hygiene tables).
+* Escalation treated `parked:<magnitude>` as a new element on ANY change, so a
+  DRAINING backlog sent a 🔺 DM every poll and reset the 24h cadence — the
+  opposite of this PR's own anti-spam fix. Magnitudes compared as ordinals.
+  Verified 158→40→5→0 silent; 5→80 and a new failing provider still escalate.
+* `log_run_summary` re-derived `today_key()` while `bucket_before` was pinned at
+  poll start → negative deltas on a midnight-crossing poll, reported as a
+  publish-boundary failure. `day_key` is now a parameter.
+* `coerce_non_negative_int`: `get(key, 0)` defaults only on a MISSING key, so
+  `parked_item_count: null` rendered a blank DM field / `parked=None`; and
+  `int(float("inf"))` raises OverflowError, which the previous handler did not
+  catch and would have escaped into `run_poll`.
+* `tests/test_themarker_malformed_url.py` setUp repointed the global
+  `ERROR_LOG` without restoring it — my earlier commit moved that leak rather
+  than fixing it.
+
+**Reported and deliberately NOT fixed** (each documented in the ADR/commit):
+the social-embed normalize is defense-in-depth only (all three parse-time
+extractors already drop such embeds — the real fix belongs there); the
+migration's terminal branch has no reason/subreason evidence gate and preserves
+`first_seen_at`; a terminal-restored row omits `last_reason` so the parked
+counters understate it; anchor text and hrefs still get no `_field_findings`
+tier; U+00AD and every other Cc/Cf still burns a retry; and `_ZERO_WIDTH_STRIP`
+still runs last, so a source zero-width shields Latin junk exactly as a
+direction mark used to — pre-existing on BOTH tenants, hence out of scope.
 
 ## What changed (code)
 
@@ -210,8 +259,8 @@ so `reminder_count=0` is correct rather than a cadence violation.
 
 ## Validation
 
-- New suite `tests/test_themarker_rtl_publication_boundary.py` — **50 tests**;
-  full suite **610 → 660 OK**.
+- New suite `tests/test_themarker_rtl_publication_boundary.py` — **51 tests**;
+  full suite **610 → 661 OK**.
 - `python -m tests.test_message_format` OK (TEST II updated to the new
   contract, plus a new assertion that the parenthesised counts sum to posted).
 - `compileall`; 16 workflow YAMLs; `bash -n`; `node --check` + `node --test`
