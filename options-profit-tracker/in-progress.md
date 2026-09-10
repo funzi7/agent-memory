@@ -1,8 +1,6 @@
-CLAUDE_CODE OWNS: ui/screens/addposition/AddPositionScreen.kt, ui/screens/addposition/AddPositionViewModel.kt,
-  ui/screens/addposition/ClosePositionScreen.kt, domain/usecase/MarketBriefBuilder.kt,
-  domain/usecase/MarketMoveExplainer.kt, domain/usecase/PartialCloseFeed.kt,
-  ui/screens/dashboard/MarketBriefCard.kt, ui/screens/dashboard/DashboardViewModel.kt,
-  util/MarketCalendar.kt (display helpers only), notification/AutoExpirePositions.kt,
-  notification/FlexSyncWorker.kt, ui/screens/settings/ImportViewModel.kt, OptionsTrackerApp.kt
-  + new signed-commission / market-context / feed-wording use cases and their unit tests
-  — S2.3 signed rebates + always-useful market brief + device-local times + feed contract counts — 2026-09-09
+(no active claim)
+
+Last released: 2026-09-10 — Claude Code, S2.3 OWNER PHYSICAL QA ADDENDUM
+(put-chain 401 root cause + crumb handshake, market-brief grouped explanations and news materiality,
+reboot PASS documented). Final OPT HEAD `5d4eca6f4456ca09cd1799030db1430ed8cad092`, PR #19 still OPEN.
+Read `cc-latest.md` first.

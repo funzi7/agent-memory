@@ -1,6 +1,6 @@
 # OptionsProfitTracker — Current Session Snapshot (handover for a new chat)
 
-_Last updated: 2026-09-08 (S2.1). **Read `cc-latest.md` FIRST** — it is the complete handoff for the most recent task. origin/main is `7225b7af` and has not moved; the live work is on branch `s2/ibkr-reconciliation-lifecycle-dashboard` at `e91488b`, open as PR #19 (`needs-owner`, not merged). Then read this file top-to-bottom, then `state.md` (chronological log), `gotchas.md`, `roadmap.md`, `pending-tests.md`, and `parallel-agents.md`._
+_Last updated: 2026-09-10 (S2.3 FINAL ADDENDUM). **Read `cc-latest.md` FIRST** — it is the complete handoff for the most recent task. origin/main is `7225b7af` and has not moved; the live work is on branch `s2/ibkr-reconciliation-lifecycle-dashboard` at `8be1fac`, open as PR #19 (`needs-owner` + `no-automerge`, NOT merged). Then read this file top-to-bottom, then `state.md` (chronological log), `gotchas.md`, `roadmap.md`, `pending-tests.md`, and `parallel-agents.md`. NOTE: the phone was unlocked for the FIRST time in three rounds during this task, so decision 3 and the CC premium fix were verified on screen; the keyguard then re-armed, so the later date fix was not re-photographed. Codex has no quota until 2026-09-15 — the fallback review ran three times instead, and `codex-p1-acknowledged` was NOT used as a substitute._
 
 > **Since this snapshot was written (2026-06-21) the workflow moved to the phone**: builds run in Termux/PRoot via `/root/work/bin/heavy-run -- ./gradlew …` with `JAVA_HOME=/usr/lib/jvm/java-21-openjdk-arm64` and SDK `/opt/android-sdk` (`PHONE_BUILD.md` is the runbook), and Room is at **v31**, not the version named below. The parallel-agent protocol in §2 is still current, including the `in-progress.md` ownership lock.
 
@@ -106,3 +106,16 @@ cycle recombined the 8-contract remainder back to 18 and double-charged the open
 tests green; two non-destructive imports converged; audit mismatches all 0. **Open question for the owner:
 IBKR reports SPCH 12C as 18 contracts open — it has the 1,000-share stock sale but not the 10-contract
 buy-to-close.** Read cc-latest.md first.
+
+### 2026-09-10 pointer (Claude Code) — S2.3 physical-QA addendum finished; rolling handoff is cc-latest.md
+Same branch `s2/ibkr-reconciliation-lifecycle-dashboard`, **final OPT `c1b9300`** (the addendum's work
+plus FOUR fix rounds answering successive exact-head reviews — r5 returned APPROVE_WITH_COMMENTS with no
+BLOCKER and no MAJOR). PR #19 OPEN needs-owner, NOT
+merged; main still `7225b7af`. **The reboot gate is CLOSED: the owner rebooted physically and Android,
+the app and the data all came up normally — nothing anywhere should still say "reboot pending".** The
+market brief now EXPLAINS instead of listing the movers twice (the aggregate `עולות/יורדות היום` lines
+are gone, sector movers group into one row, a market headline must name something you follow before it
+is shown, and the broad-market row states co-movement rather than "no reason found"). The empty put list
+was root-caused to Yahoo answering `401 Invalid Crumb` to keyless option requests; the cookie+crumb
+handshake fixes it and the device now ranks 4 live candidates from 1,194 contracts. 624 JVM tests green.
+Read cc-latest.md first.

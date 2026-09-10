@@ -188,3 +188,117 @@ OWNER checks still owed (the agent cannot judge or resolve these):
 - [ ] Decide whether the thin Finnhub coverage is acceptable: `company-news` returned 0 items for every leveraged/thinly-covered ticker in the portfolio (MULL, MVLL, ASTX, RKLX, NEBX, TSLL, SNXX, WDCX, SOXL) and 5 for NOK, so in practice this card will often list no movers at all.
 - [ ] Partially close a position through "סגירת פוזיציה" and confirm the new feed row says "נסגר חלקית" with "N מתוך M חוזים" and the slice's own P&L — not a full close, not $0.00.
 - [ ] Reboot: STILL PENDING, not performed (explicitly forbidden this task).
+
+## S2.3 ADDENDUM (2026-09-10) — OWNER checks the agent could not perform
+
+The phone's keyguard is SECURE (`dumpsys trust` → `deviceLocked=1`), so NO UI navigation or screenshot
+QA was possible this session. Everything below needs the owner to unlock the phone and look.
+
+- [ ] **משיכה line (A).** Open the dashboard after the NEXT daily Flex snapshot lands. If a withdrawal
+      happened this month, `משיכה: $X` must appear DIRECTLY BELOW `ממומש מניות`, and `סה״כ החודש`, the
+      target number and the progress bar must be UNCHANGED by it. If no withdrawal happened, the line
+      must be absent — not `$0.00`. Cross-check the figure against IBKR's own Deposits & Withdrawals
+      report for the month.
+- [ ] **The Flex query must include the Cash Transactions section.** Without it the figure is always
+      zero and the line stays hidden — by design, never guessed. Worth confirming once in the query
+      config. If the query config is ever changed (transactionID added, date format, level of detail),
+      run a FULL re-sync once — that clears the side table so the same movements cannot be stored
+      twice under new keys.
+- [ ] **Put ranking (B).** Open "IV גבוה בתיק" during US market hours on a day something is red. The
+      new section "פוטים לפי פרמיה / בטחונות" must appear BELOW the IV list (which must be unchanged).
+      Check: no strike above the current price; no expiry today or tomorrow; every row shows either
+      (BID) or (ESTIMATE), and no (ESTIMATE) row sits above a (BID) row. Tap one — the new-position
+      screen must open as a CSP with that ticker, strike, premium, EXPIRY and 1 contract. **Please
+      check the expiry especially**: it was a day early before the fix round.
+- [ ] Outside market hours the same section must say the regular session has not opened, and must NOT
+      rank yesterday's chain.
+- [ ] **Watchlist (C).** Enter the watchlist, leave, re-enter: prices must be there IMMEDIATELY, not
+      after a delay and never blank. Turn Wi-Fi off and pull-to-refresh: the prices must STAY (a failed
+      refresh may not erase them). Tap a row — the new-position screen must open with that price
+      already in the price field.
+- [ ] **Market brief (D).** The card must show three headings — מצב השוק / מה קורה בטיקרים שלך /
+      מה צפוי בהמשך היום — with index moves and a plain-Hebrew sentence about the day under the first,
+      even on a day your own tickers are quiet. Every ticker listed as a mover must have a reason
+      printed somewhere below (a headline, a same-industry co-movement, or the single "יורדות יחד עם
+      השוק הרחב" line). If you ever see a mover named with no reason at all, that is a defect.
+- [ ] Confirm the sector line, when it appears, names OTHER tickers of yours in the same industry —
+      never the ticker explaining itself.
+- [ ] Reboot: STILL NOT PERFORMED (forbidden in this task and the two before it).
+
+## S2.3 FINAL ADDENDUM (2026-09-10) — owner-gated checks
+
+Device QA WAS possible this round (the phone was unlocked), so these are the items that still need a
+human, not the whole list. What was already verified on screen is in `cc-latest.md`.
+
+- [ ] **CC premium during the REGULAR session (the one that matters).** Open the dashboard between
+      09:30 and 16:00 ET. For a ticker with 100+ uncovered shares the reminder must show
+      `ביד נוכחי לחוזה $X` with a real strike and expiry. Check that `$X` is plausible against a real
+      option chain for that exact contract, and that it is roughly **100 ×** the per-share bid you see
+      in a broker — 0.42/share must read $42.00, never $0.42 and never $4,200. If the number is not
+      credible, capture the ticker/strike/expiry and say so: the whole point of this round is that a
+      wrong number must never be printed confidently.
+- [ ] Leave the app open for 15 minutes during the session: the premium must be allowed to CHANGE
+      (the 10-minute TTL), not sit frozen the way it did all day before.
+- [ ] Outside the session (evening, weekend) the same card must say either
+      `ביד אחרון שנצפה לחוזה $X` with an age, or `אין כרגע ציטוט אמין לחוזה.` plus your own last sold
+      premium. It must NOT say `ביד נוכחי` outside 09:30–16:00 ET.
+- [ ] **Market brief in PRE_MARKET (04:00–09:30 ET) and AFTER_HOURS (16:00–20:00 ET).** The card must
+      describe the CURRENT session with live numbers. The sentence
+      `המחירים המוצגים הם מנעילת המסחר הקודמת` must never appear in pre-market again. On a Saturday or
+      an NYSE holiday it must instead give the exact closed-day reason.
+- [ ] **Put preview on the dashboard during market hours on a red day.** The `🔥 IV גבוה` card must
+      show BOTH sections, with at most three put rows. Open `ראה הכל` and confirm those three rows are
+      **the top three of the full list, in the same order, with the same numbers** — if the dashboard
+      and the full screen ever disagree, that is the "second formula" defect and is a bug.
+- [ ] Tap a dashboard put row: it must open a CSP prefilled with that ticker, strike, premium, EXPIRY
+      and 1 contract — the same as tapping the row on the full screen.
+- [ ] Reboot: STILL NOT PERFORMED (forbidden in this task and the three before it).
+- [ ] **`פרמיה אחרונה שמכרת` date (fixed after the screenshots were taken, NOT re-photographed).**
+      The phone re-locked before the fixed build could be photographed. On a ticker whose last CC was
+      sold on one day and bought back on another, the date next to the premium must be the day you
+      SOLD it, not the day you closed it. RKLX 0.42 and SPCH 0.30 were both sold 2026-09-08 and bought
+      back 2026-09-09; the card used to say `09.09.26` for both and must now say `08.09.26`.
+
+## S2.3 FINAL ADDENDUM — added after the second fallback review (2026-09-10)
+
+- [ ] **Benchmark row after the bell (16:00–20:00 ET) and in the evening.** The four indices must
+      show the DAY's move, not the post-market tick. Cross-check one of them against any finance
+      site: if the app says +0.0 % on a day the index closed −1.8 %, the `dayPrevious` fix has
+      regressed. The label there reads `מדדים מובילים — סיכום היום:` (no longer "בנעילה").
+- [ ] **The known gap beside it:** in that same window your own tickers will still show ≈0.0 % and
+      may vanish from the movers list, because only the INDEX row was corrected this round. That is
+      expected and logged in `roadmap.md` — please confirm you are happy to leave it until its own
+      round rather than treat it as a new bug.
+- [ ] **CC card left open across 16:00 ET.** Open the dashboard before the close and leave the app
+      in the foreground. Within ~30 s of 16:00 the premium line must stop saying `ביד נוכחי לחוזה`
+      and switch to `ביד אחרון שנצפה לחוזה` with an age. If it still says "current" at 17:00, the
+      re-derivation regressed.
+- [ ] **Withdrawal history across an id-shape change.** The store is on `ID_SHAPE = v3`. After the
+      NEXT daily sync, check that `משיכה:` for EVERY month you have history for is unchanged — not
+      just the current one. If an older month drops to zero or shrinks, the replacement is deleting
+      rows the payload does not re-supply. (Fixed twice this round; worth one real confirmation.)
+
+### 2026-09-10 S2.3 physical-QA addendum — device test status (Claude Code; OPT 5d4eca6; PR #19 OPEN, needs-owner)
+Executed on the real device (SM-S938B, 192.168.1.118:37211, `install -r`, firstInstallTime 2026-04-22 unchanged, no uninstall / no pm clear / no DB or DataStore deletion / no reboot).
+
+- [x] **REBOOT — PASS (owner, physical).** The owner rebooted the phone: Android started normally, the app opened normally, the data was usable. **This closes every "reboot pending" item above** — the 2026-08-19 S1 "REBOOT CRASH REPRO/CONFIRM", the S1-cont "REBOOT repro", the 2026-09-06 S1-final reboot item and the 2026-09-07 S2 "Reboot: STILL PENDING" are all SUPERSEDED by this result and are kept only for history. The durable fix was the full-APK `install -r` loop, never Apply Changes. Not re-run in this round (the owner's evidence is not duplicated).
+- [x] Market brief renders the owner's shape with no duplication: `מצב השוק` (`מסחר רגיל.` · 20:30–03:00+1 · SPY −0.4 / QQQ −0.8 / DIA −0.5 / IWM −0.8 · `המדדים המובילים בארה״ב יורדים היום.`) then `מה קורה בטיקרים שלך` with ONE row — `נעות באותו כיוון עם השוק הרחב, שגם הוא יורד היום:` CWVX −10.9%, NEBX −10.5%, WDCX −9.9%, SNXX −9.2%, MVLL −5.5%, IRE −5.2%, NVTX −4.8%. **No standalone news block, no repeated mover list, no empty heading, no "לא נמצאה סיבה".**
+- [x] News materiality live: the general feed's item ("Starbucks is back, CEO Brian Niccol says…") was classified `news: NONE — no tracked ticker, industry or index named — dropped` and did NOT render.
+- [x] Omission live: SPCH (+3.3 % on a falling market) logged `SPCH=OMITTED` and does not appear in the brief — it is still visible in the raw `טופ עולות` card.
+- [x] Put chain: `YAHOO_CRUMB: handshake ok (crumb len=11, cookie=true)`; `universe=17 red=13 scanned=4 tickers/12 expiries/1194 contracts requests=16 ranked=4 providerFailure=NONE`. The empty-state message is gone; the list is populated from live chains.
+- [x] Ranking arithmetic recomputed BY HAND and matching to the cent: WDCX strike 18 → gross 1,800, credit 980, net 820, 980/820 = **119.51 %**; NEBX strike 25 → gross 2,500, credit 1,150, net 1,350 = **85.19 %**; SNXX strike 16 → gross 1,600, credit 620, net 980 = **63.27 %**. Descending order held; the dashboard preview is exactly the first 3 of the 4-long canonical ranking (MULL 58.21 % is 4th and correctly absent).
+- [x] Exact-contract IV proven: the put rows show 131 / 182 / 157 % against ticker-level IVs of 139 / 159 / 136 % on the same card.
+- [x] CSP prefill: tapping WDCX opened `פוזיציה חדשה` with CSP selected, ticker WDCX, 1 contract, Strike 18, פרמיה 9.80, Sell + Put, תפוגה 15.12.28, DTE 827, מחיר נוכחי 18.02. **No trade was saved.**
+- [x] Stability + privacy: 0 FATAL, 0 AndroidRuntime, 0 Room/SQLite/migration, 0 account ids / API keys / raw Flex XML / owner email across 23,438 log lines. ONE put scan and ONE crumb handshake across a 4-minute session (TTL + in-flight gates held).
+- [ ] **LIVE SECTOR-GROUP PATH NOT OBSERVED — recorded as fact, not fabricated.** Finnhub `stock/profile2` returns an EMPTY industry for every leveraged single-stock ETF this owner holds (ELIL, MULL, SOXL, CWVX, NEBX, SNXX, WDCX, SPCH — all logged `industry=(none — cached as answered)`), which is a real provider answer rather than a failure. The grouped row is therefore covered by deterministic fixtures only (`MarketBriefExplanationContractTest`). No sector catalyst was invented to produce a physical PASS. See roadmap for the owner decision.
+- [ ] OWNER visual check: confirm the new brief shape reads correctly to you, and that omitting an unexplainable ticker from the brief (while it stays in `טופ עולות/יורדות`) is what you want.
+- [ ] OWNER visual check: the put ranking's top entries are 2027–2028 LEAPS. That follows your own approved contract (no upper DTE cap, ratio NOT annualised). Confirm you want that, or pick an option in roadmap.md.
+
+### 2026-09-10 S2.3 — device-test status at the FINAL head (OPT c1b9300)
+- [x] Install: `adb install -r`, **installed `base.apk` SHA-256 read back off the device == the build** (`a2eb2fec834f49b054a68c6f4f82039351ec7c261b060746ff766856b70dda60`), `firstInstallTime` still 2026-04-22 22:53:57, signer SHA-1 `5d3d855c…`. No uninstall, no `pm clear`, no DB/DataStore deletion, no reboot. Delivered to `/sdcard/Download/OptionsProfitTracker/` with a matching on-device hash.
+- [x] Launch + stability + privacy on this exact head: 0 FATAL, 0 AndroidRuntime, 0 Room/SQLite/migration, 0 account identifiers / API keys / raw Flex XML.
+- [ ] **LIVE PROVIDER RUN NOT OBTAINED ON THIS HEAD — device condition, not the app.** The phone's Private DNS is in strict `hostname` mode pointed at `dns.adguard.com`, and Android's resolver began failing device-wide part-way through the session (`getent hosts` fails too, so it is not app-specific). Five launch attempts over ~15 minutes all produced `UnknownHostException`. That setting is the owner's and was NOT changed. **This is recorded as a gap, not claimed as a pass.**
+  - The full live data run DOES exist on the two immediately preceding heads: `f73f242` — crumb handshake ok, **1,065 contracts**, ranked=4, `providerFailure=NONE`, the three preview ratios recomputed by hand to the cent, and the CSP prefill verified (strike 18 / premium 9.80 / Sell+Put / expiry 15.12.28 / DTE 827, no trade saved); `447161c` — handshake ok, **615 contracts**, ranked=4, `providerFailure=NONE`, per-ticker `status=NONE` confirming the per-ticker diagnostic fix live.
+  - The delta from `447161c` to the final `c1b9300` is 4 files / 61 insertions / 9 deletions — a money-comparison normalisation, one close-method list entry, and two test files. **Nothing on the network path.**
+  - The failed runs were themselves useful evidence: the crumb handshake was attempted ONCE per process rather than once per request (the round-1 `crumb()` rate-limit fix, live), the scan fast-failed at 4 requests, and every per-ticker line read `status=NETWORK` — not a sticky value, and not "no put meets the rules".
+- [ ] OWNER: when the phone's DNS is healthy, open the app and confirm `פוטים לפי פרמיה / בטחונות` is populated and `מה קורה היום בשוק` reads correctly to you.

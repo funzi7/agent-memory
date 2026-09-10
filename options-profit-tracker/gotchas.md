@@ -636,3 +636,202 @@ moves); and there is deliberately no sector/macro branch, because the app has no
 attribution and such a line could only be invented. Watch the log volume: the brief rebuilds on every
 source-flow emission and once a minute, so a per-mover diagnostic must be gated on the decision
 CHANGING — an unconditional one produced 288 lines in half an hour.
+
+## S2.3 addendum — five that cost real money or real trust
+
+### A withdrawal is a CATEGORY, never a negative number
+IBKR's `CashTransaction/@type` enum has ELEVEN members and exactly one is a transfer of your own cash:
+"Deposits & Withdrawals" (also shipped "Deposits/Withdrawals"). Six of the other ten are routinely
+negative — Broker Interest Paid, Withholding Tax, Other Fees, Advisor Fees, Bond Interest Paid, a
+negative Commission Adjustment. Sum the negatives and you report the owner's margin interest and tax
+withholding as money they withdrew. Consult the sign only AFTER the category; IBKR documents it
+("withdrawals are shown as negative numbers"). And IBKR does NOT publish the Statement-of-Funds
+`activityCode` table anywhere reachable, so `WITH` meaning "withdrawal" is a guess, not a fact.
+
+### Yahoo's `expirationDates` are UTC-midnight epochs
+`Instant.ofEpochSecond(e).atZone(America/New_York).toLocalDate()` lands at 20:00 the PREVIOUS day, so
+every expiry comes out a day early — a Thursday date for a Friday contract, carried into a saved
+position's expiration, its DTE, its auto-expire date and its calendar bucket. Use `ZoneOffset.UTC`,
+which is what `IvService.fetchCcQuote` already did. Two code paths reading one field two ways means
+one of them is wrong.
+
+### `hiltViewModel()` inside a `composable {}` gives THAT destination its own ViewModel
+Not the activity's, not the dashboard's. Any TTL stamp, day stamp or in-flight guard held in ViewModel
+state is destroyed the moment the user navigates back, so "safe to call on every entry" is false and
+each re-entry runs the whole fetch again. The dashboard's own gates only survive because the dashboard
+is the start destination and is never popped. Put cross-screen network gates at process scope.
+
+### A StateFlow that is BOTH an input and a rebuild trigger cascades
+`industriesByTicker` fed the brief and also re-triggered the brief. Each bounded batch of 8 emitted →
+rebuild → request the next 8. "Bounded per refresh, filling across the day" became one burst on a
+shared API key. If a flow you write from a fetch also drives the rebuild that starts that fetch, you
+need a time-based claim, not just a per-item claim.
+
+### Level-of-detail and section filters must be scoped to what they are about
+A DETAIL/SUMMARY rule applied over a list that mixes Flex sections AND transaction types let a DETAIL
+*dividend* row suppress a SUMMARY *withdrawal* — the card showed $0 while $5,000 had left the account.
+Filter to the rows the rule is about FIRST, then apply it within one section.
+
+### A `lastPrice` from a book with bid 0.00 AND ask 0.00 is not a price
+It is the last time anyone traded that contract, which may have been weeks ago at a completely
+different spot. The owner's "פרמיה משוערת לחוזה $1,642.00" was `SOXL 129C 2026-10-09` last = 16.42,
+from a contract with **zero open interest** and no two-sided market at all. Replaying the selector
+against real chains (Yahoo needs cookie + `getcrumb`; a bare curl returns 401 "Invalid Crumb") is what
+proved it — SOXL, NOK and PLUG all behaved the same way. Select on the BID, and refuse a crossed book
+(`ask < bid`). Before blaming a units bug, check the multiplier: this one was applied exactly once and
+had never been wrong.
+
+### A once-per-calendar-day cache is not a freshness contract for a market price
+A premium captured at 09:31 sat on the card until tomorrow while the stock, the bid and IV all moved
+underneath it — and it was rendered under the same label as a live quote, so nothing on screen said it
+was six hours old. Two separate things are needed: a TTL short enough that the number means something
+(10 minutes), gated on the market that produces it actually being open (US equity options trade in the
+REGULAR session only, so refetching in pre-market can only return the same nothing) — AND a
+**provenance** value the renderer must consult, so a last-known bid can never be presented as a current
+executable one. When neither is available, print no number: a missing premium is honest, a precise
+wrong one is not.
+
+### `hasRegularSessionPrices` was gating away three quarters of the trading day
+Pre-market and after-hours have real, current prices — the app was already fetching them
+(`includePrePost`) and then refusing to describe them, while asserting the opposite in Hebrew
+("המחירים המוצגים הם מנעילת המסחר הקודמת"). Split the question in two: **is there a current-session
+price at all** (`hasCurrentSessionPrices`: yes for PRE_MARKET / REGULAR / AFTER_HOURS /
+CLOSED_FOR_THE_DAY) versus **are prices still moving** (`pricesAreStillMoving`: the first three). Only
+OVERNIGHT and NON_TRADING_DAY have nothing true to say. Use an exhaustive `when` over the enum, never
+an `else`, so a new session constant cannot silently inherit the wrong branch.
+
+### A time-keyed claim gate hands the win to whichever caller fires FIRST, not the best one
+Four call sites refresh the dashboard's prices within ~100 ms of every launch (`init`,
+`refreshOnResume`, `LaunchedEffect(Unit)`, the `ON_RESUME` observer) — 28 keyless Yahoo requests for a
+7-ticker portfolio. The obvious `compareAndSet` burst gate is WRONG here: `init` fires first and is a
+strict SUBSET of `triggerPriceRefresh` — it reads only the snapshot's own keys (missing open-position
+tickers) and never writes `currentStockPrice` back — so gating hands the round to the weakest caller
+and silently stops pricing pure-CSP/CC underlyings. When callers are not interchangeable, de-duplicate
+at the FETCH layer (a short-TTL memo keyed on the request), not at the call sites.
+
+### A `?:` fallback can silently restore the exact bug the function was written to remove
+`dayBaseline` was added because after the bell `regularMarketPrice` is TODAY's close, so dividing by
+it reports the post-market tick as the day's move. The first version ended
+`if (afterTodaysClose) (previousClose ?: regularPrice) else …` — and that `?: regularPrice` hands
+back today's close whenever `previousClose` is missing. A test had pinned the wrong value as
+intended behaviour. The same shape appeared one layer up as `q["dayPrevious"] ?: q["previous"]`.
+When a function exists to REJECT a particular value, no fallback may reach that value: return null
+and let the caller drop the row. "No number" is a supportable claim; a plausible wrong one is not.
+
+### Scoping a destructive migration to a MONTH is not the same as scoping it to the PAYLOAD
+`BrokerCashFlowStore` had to replace old-key rows when the id shape changed. Wiping the file was
+obviously wrong (a windowed daily sync would erase two years). The second attempt — delete old-shape
+rows in the months the payload COVERS — is still wrong, and worse because it looks careful: a
+seven-day window run on the 25th "covers" September, so it also deletes the withdrawal on the 3rd
+that the payload cannot restore, in the month the card is currently printing, cumulatively, from a
+background sync. Two independent reviewers found it. Delete only what the payload actually
+RE-SUPPLIES — match on a value both key shapes compute identically, as a multiset.
+
+### Two preference chains over the same fields WILL disagree
+The withdrawal month resolved `dateTime → date → reportDate → settleDate` while the identity day
+resolved `dateTime → date → settleDate → reportDate`. A row carrying only `reportDate` (September)
+and `settleDate` (October) therefore got monthKey `2026-09` and dayKey `2026-10-02`: an id naming a
+day outside its own month, and a second key for a movement the other Flex section files under its
+transaction date. Reordering one chain to "fix" a precedence question created the fork. Resolve the
+FIELD once, derive every key from that one value.
+
+### A short option is SOLD when it is OPENED
+`closeDate` is the day the owner bought it back. Ranking or captioning a premium by it puts a date
+the owner did not sell on under a label that says "the premium you sold", and lets a premium sold in
+August but closed yesterday outrank one sold last week. Caught by cross-checking a screenshot
+against the device's own database — the AMOUNTS were all correct, which is exactly why the dates
+were not questioned. When a card prints a number and a date together, verify both against source
+data; a right number lends unearned credibility to the date beside it.
+
+### Provenance computed at build time goes stale on the screen
+The CC card's "is this quote live" answer was frozen into an immutable summary that rebuilds only
+when its DATA changes. A dashboard left open across 16:00 ET therefore kept claiming `ביד נוכחי`
+hours after the option book shut — the one thing the contract forbade. The pure function was right
+and the WIRING was wrong, which is why the unit tests all passed. Anything whose truth depends on
+the current time must be re-derived at render against a clock that advances, not carried as a
+precomputed field.
+
+### Bound a review subagent's prompt to a file list and a call budget
+Two review agents given a broad prompt (seven areas plus cross-cutting plus tests) ran for over an
+hour and delivered nothing; the same review, scoped to seven named files with "finish within ~25
+tool calls and list what you did NOT reach", completed in three minutes and found a blocker. An
+explicit NOT REVIEWED section is worth more than an exhaustive report that never arrives.
+
+### 2026-09-10 S2.3 physical-QA addendum (OPT 5d4eca6)
+
+- **Yahoo's keyless options endpoint now REFUSES.** `v7/finance/options/<ticker>` answers
+  `401 {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}` with no
+  cookie+crumb. It also answers **200 with that same body**, so a status-code check alone is not enough —
+  `YahooCrumb.looksLikeCrumbRefusal` inspects the body too. The handshake is
+  `GET https://fc.yahoo.com/` (take `Set-Cookie`) → `GET https://query2.finance.yahoo.com/v1/test/getcrumb`
+  with that cookie → append `?crumb=<token>` and send the `Cookie:` header. It is the SAME keyless
+  endpoint — no account, no API key, nothing stored — so it is not a new provider.
+  **Rate-limit the re-mint.** A dead endpoint returns 401 for EVERY ticker in a scan; without
+  `MIN_REFRESH_INTERVAL_MS` one refusal per ticker becomes one handshake per ticker.
+- **The v7 QUOTE endpoint 401s too** (`YAHOO_PRICE: Quote HTTP 401 for RKLX, falling back to chart`). The
+  chart fallback already existed and carries the load; do not "fix" the quote path by adding a provider.
+- **One endpoint failure looked like five different product bugs.** The same 401 emptied the put ranking
+  AND made `IvService.fetchCcQuote` report `אין כרגע ציטוט אמין לחוזה`. Before concluding "the book is
+  illiquid" or "there are no opportunities", check whether the app got a chain at all.
+- **`finnhubIndustry` is EMPTY for leveraged single-stock ETFs.** Every one of this owner's holdings
+  (ELIL, MULL, SOXL, CWVX, NEBX, SNXX, WDCX, SPCH) returns `""` from `stock/profile2` — a real provider
+  answer, cached as answered, not a failure. Consequence: the market brief's SECTOR rung can essentially
+  never fire for this portfolio, so the grouped row is fixture-tested rather than field-observed. Do not
+  "solve" this by inferring a sector from the ticker symbol — that is the exact inference the owner banned.
+- **A non-breaking-space guarantee can live in ONE code path and silently die with it.** The rule "a ticker
+  must never break away from its own percentage" was implemented only in `MarketBriefBuilder.joinAll`,
+  which the aggregate movers line used. `explanationLine` joined with an ORDINARY space. Removing the
+  movers line moved every ticker+percentage onto the explanation rows and would have shipped the wrapping
+  defect the rule exists to prevent. When a line is deleted, audit what its formatting guaranteed.
+- **A three-letter uppercase token in a headline is not a ticker mention.** `CEO`, `ETF`, `FED`, `SEC`,
+  `GDP`, `IPO`, `ALL` and `NEW` are all listed symbols. A bare match manufactures relevance out of
+  grammar; `MarketNewsRelevance.AMBIGUOUS_BARE` refuses them and symbols under 3 characters need a
+  `$CASHTAG`. Likewise a bare "Dow" is Dow Inc, not the index — only the full index phrase counts.
+- **Count rejections with the SAME function that does the rejecting.** `PutOpportunity.rejectionOf` is the
+  only rule set and `candidateOf` is written in terms of it. A second copy of the rules written for the
+  diagnostics would drift, and the log would then describe a ranking that is not the one on screen.
+- **A provider refusal outranks the CONTRACT counters but NOT `redTickers == 0`.** The contract counters
+  are zero *because of* the refusal, so they must not speak first; "no tracked ticker is red today" is
+  known from the price snapshot without ever asking the provider, and the scan returns before requesting.
+
+### 2026-09-10 S2.3 exact-head review — four lessons worth more than the fixes
+
+- **A pasted ` ` is invisible in a diff and in review.** `replace(' ', ' ')` with a glyph pasted from
+  somewhere that normalised it is `replace(' ', ' ')` — a no-op that reads as a fix. Write the ESCAPE,
+  `' '`, and assert the character in a test (`detail.count { it == ' ' }`), never
+  `detail.contains("SOXL")`, which passes either way.
+- **When you delete a line, audit what its formatting GUARANTEED.** The "a ticker never breaks away from
+  its percentage" rule lived only in `joinAll`, which only the aggregate movers line used. Removing that
+  line moved every ticker+percentage onto rows that joined with an ordinary space.
+- **A guard whose fallback equals the thing it is guarding is a no-op.** `A?.takeIf { !changed } ?: B`
+  where an earlier step already set `B = A`. It type-checks, it reads correctly, and it does nothing.
+  When a flag is computed at save time, ask what the PREVIEW was computed from.
+- **Rate-limit the failure path, not only the refusal path.** `invalidate()` was rate-limited and
+  `crumb()` was not — so a handshake that never succeeds re-runs on every single call. The storm moved
+  one door over. And `mintedAt == 0` must mean "never tried", or the first handshake is gated on a stamp
+  nobody wrote.
+- **Compare what you SEEDED, not what you stored.** A field seeded with `fmtPremium(x)` and compared
+  against the raw `x` reports a change on a save that changed nothing — here, deleting the broker's
+  realized P&L because three IBKR fills averaged to 0.242857… and rendered as "0.24".
+
+### 2026-09-10 S2.3 review rounds 2-3 — the fix round is where the next defect comes from
+
+- **Two of three fix rounds introduced a regression.** A round that answers a reviewer moves fast through
+  code the round did not originally write. Re-verify every finding against source before changing
+  anything (two of thirteen were wrong), and re-read the ADJACENT rule before tightening one: the
+  partial-slice date floor was set to zero days while its sibling matcher had allowed ±5 for years, and
+  the cashtag guard applied the ordinary-WORD stoplist to `$`-prefixed symbols, which is precisely the
+  ambiguity a `$` removes.
+- **A predicate that has been wrong three times does not need a fourth fix; it needs to leave the
+  ViewModel.** `ownerInvalidatedBrokerPnl` was a no-op, then a false positive, then a false negative —
+  all invisible because it was a private method on an Android class with no test infrastructure. As a
+  pure object it took twelve tests to pin, one per defect. Same for
+  `BrokerReconciliationStore.recordMatches`, which rejected every record for its whole life.
+- **"Compare what you SEEDED" beats every numeric comparison.** Raw stored value → false positive on a
+  broker average. Re-rendered value → swallows a real $0.004/share edit. Half-cent tolerance → $0.50 per
+  contract. The field's own seed text → exact, tolerance-free, null-safe.
+- **Ask of every new test: "if I revert the line this covers, does this fail?"** Four in these rounds did
+  not — including two written specifically to close that gap. A fixture has to put the code under test
+  on the failing side: an attribution 70 characters past the cut point never reaches the ellipsis branch.
+- **Half a timezone migration is worse than none.** Moving one month key to New York while its sibling
+  stayed on the device zone would have shown two different months on one card.

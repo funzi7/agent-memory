@@ -657,3 +657,333 @@ PRESERVED (unchanged, still open — nothing deleted): F1, F2, R1/R2, dashboard 
   unifying the four worker session windows onto `MarketCalendar.sessionAt`.
 
 **SUPERSEDED** — nothing. No previously approved behaviour was replaced in S2.2.
+
+## After the S2.3 ADDENDUM (2026-09-10)
+
+**OWNER-GATED (see pending-tests.md)** — the phone was locked all session, so every visual check for
+the withdrawal line, the put ranking, the watchlist price and the three-section brief is owed. So is
+the reboot test, still never performed.
+
+**FOUND, DELIBERATELY NOT FIXED (out of scope, real money)**
+- `FlexQueryService.parseDividends` runs TWO regexes over the same XML (`/>` then `>`), and a
+  self-closing `<CashTransaction … />` matches BOTH. `extractAndSaveDividends` appends one line per
+  returned row with no dedup, so the tax dividend payload double-counts every self-closing row. The
+  new `parseCashRows` uses the single correct `/?>` form; the dividend path was left alone because it
+  changes tax-report numbers and that is the owner's call, not an agent's.
+- The withdrawal figure cannot be re-derived from history: `rawFlexXml` is in-memory only, so the
+  store is only as complete as the windows the app has actually seen since this build was installed.
+  Months before that will read as no withdrawal. Worth telling the owner rather than silently showing
+  a partial history.
+
+**PRESERVED FUTURE (unchanged)**
+- Cleartext credentials in the daily external-storage backup, and `allowBackup="true"` with no
+  extraction rules. Both still untouched; both change what a restore can recover.
+- Buy-to-cover feed rows (A5); the three ambiguous split cycles (A4); `tradeID`/`ibExecID` in the feed
+  fingerprint; PR #18 automation-core findings; the alert-banner reappear issue (GP1); DB/Hilt
+  consolidation; unifying the four worker session windows onto `MarketCalendar.sessionAt`.
+
+**SUPERSEDED by the owner's addendum**
+- S2.3's rule that broad-market context is a FALLBACK shown only when the owner's tickers are quiet.
+  The owner ruled the brief must carry BOTH kinds of context on every briefing; the fallback-only
+  behaviour and the tests that pinned it are gone.
+- The "AGENT CHOICE, PENDING OWNER CONFIRMATION" note on the SPY/QQQ/DIA/IWM benchmark set. The owner
+  approved the set explicitly; the note is removed and a test pins the four symbols and labels.
+
+### 2026-09-10 — S2.3 FINAL ADDENDUM shipped; one finding deliberately left open
+
+**Shipped** (see state.md for the commit): session-dynamic market brief (D1), the CC premium root
+cause + freshness contract (finding 2), the dashboard canonical top-3 put preview (D3).
+
+**Open backlog item — the dashboard price-refresh fan-out (NOT a regression, pre-dates S2.3).**
+The device PID log shows the whole ticker list fetched **four times within ~100 ms** of every launch
+and every resume:
+
+```
+12:41:26.301 YAHOO_PRICE  : Dashboard init: refreshing prices for 7 tickers
+12:41:26.395 PREPOST_DEBUG: triggerPriceRefresh …   (DashboardScreen LaunchedEffect(Unit))
+12:41:26.396 PREPOST_DEBUG: resume refresh …        (refreshOnResume; its 3-min cooldown is cold at 0)
+12:41:26.396 PREPOST_DEBUG: triggerPriceRefresh …   (DashboardScreen ON_RESUME observer)
+```
+
+28 keyless Yahoo requests for a 7-ticker portfolio, per launch. The chart endpoint is rate-limited
+and the way that failure lands is a 429 → empty price map → a market brief with nothing to say.
+
+**Why it was NOT fixed in the final addendum, and what the fix actually is.** The obvious
+claim-before-launch gate (the discipline `PutScanCache` uses) was written, wired and then reverted,
+because it is wrong here: `init` is a strict SUBSET of `triggerPriceRefresh` — it reads only the
+snapshot's own keys, so it misses open-position tickers, and it never writes `currentStockPrice` back
+to the open positions. `init` also fires FIRST, so a gate keyed on time hands the win to the weakest
+caller and silently stops pricing pure-CSP / pure-CC underlyings (exactly the J2/G2 defect the
+comments in `DashboardViewModel` record being fixed once already).
+
+The correct fix de-duplicates at the FETCH layer, not the call sites: a short-TTL memo inside
+`IvService.fetchYahooPricesWithPrePost` keyed on the ticker set, so all four callers still run their
+full post-processing (dailyOpen stamping, volatility cache, CC quote refresh, `currentStockPrice`
+writes, watch-scan snapshot) while only one of them touches the network. Needs its own tests for the
+memo's TTL, its key, and concurrent callers.
+
+Estimated: small, but it touches a service every screen and both workers depend on, so it wants its
+own round rather than a finalization-day patch.
+
+**Also open, found the same day:** the CC reminder's `פרמיה אחרונה שמכרת` fallback considers only
+CLOSED sells. For a PARTIALLY covered ticker (some shares under an open CC, some uncovered) the open
+CC is a more recent sale than any closed one, so the caption can name an older premium than the one
+the owner most recently sold. Not wrong — the amount and date it prints are both real — but not
+literally "the last premium you sold" either. Decide whether the label or the query should change;
+it needs an owner call, not a guess.
+
+### OWNER DECISION NEEDED — two owner rulings now contradict each other (found 2026-09-10)
+
+The S2.3 final addendum says, of a displayed premium: **"Do NOT fabricate from stock move alone."**
+That is why the CC reminder's 1.30–1.60 `dteBoostFactor` and its `stockPrice × 0.02` fallback were
+deleted.
+
+**A third instance survives, in a different feature, because the owner approved it earlier.**
+`ReportGenerator.kt` (the abnormal-move alert, marked `FL4 (approved)`):
+
+```kotlin
+val lastPremium = closedThisMonth.filter { it.ticker == ticker }
+    .maxByOrNull { it.closeDate ?: it.openDate }?.premiumPerContract
+val estimatedPremium = lastPremium?.let { if (changePct > 0) it * 1.3 else it }
+```
+
+It reaches the owner's eyes as `→ CC ~$X` on the dashboard alerts card and on `AlertsScreen`. The
+`× 1.3` is a premium fabricated from the stock move alone — the exact thing the new ruling forbids —
+and the `~` is much weaker labelling than the provenance line the CC reminder now carries. Its
+ranking key is also the buy-back date, the same defect fixed elsewhere this round.
+
+**It was deliberately NOT changed**, because reversing an owner-approved behaviour in a feature the
+addendum did not name is the owner's call, not the agent's. Numbered choices:
+
+1. **Apply the new ruling here too** — drop the `× 1.3` and show the owner's real last premium with
+   its real sale date, or show no number when there is none. (Consistent with the rest of the round.)
+2. **Keep the boost but label it** — show it as an explicit estimate, e.g. `~$X (הערכה)`, so it can
+   never be read as a quote.
+3. **Keep FL4 exactly as approved** — the alert is a prompt to look, not a trading number, and the
+   `~` is enough.
+
+Whichever is chosen, the ranking key should move from `closeDate` to `openDate` (a one-line change,
+the same fix as `CcPremium.lastSale`): a premium sold in August but closed yesterday currently
+outranks one sold last week.
+
+### OPEN — the day-baseline fix reached the INDEX row only (found 2026-09-10, review round 2)
+
+`MarketContext.dayBaseline` + the `dayPrevious` key fixed the benchmark row: after the bell it now
+divides by the previous session's close instead of today's own. **The per-ticker `changePct` was not
+changed.** It still reads the stock snapshot's `previous`, which `DashboardViewModel` writes from
+`priceData["previous"]` — and after 16:00 ET that is today's close.
+
+**Consequence.** At 18:30 ET on a day SPY/QQQ/DIA/IWM each closed −1.8 % and SOXL closed −6.2 % and
+is flat after hours: the index row correctly reads −1.8 %, while SOXL's `changePct` is
+`(post-market print − today's close) / today's close` ≈ **0.0 %**. That is below
+`DEFAULT_MOVE_THRESHOLD_PCT`, so SOXL is not a mover at all, the explanation ladder never runs for
+it, and **rung 3 still cannot fire after the close** — the very thing the blocker fix was supposed
+to restore. The card is then internally inconsistent: four indices at −1.8 % over a portfolio
+showing ±0.0 %.
+
+This is PRE-EXISTING (the per-ticker path has always used `fetchYahooPricesWithPrePost`), not a
+regression from the fix — but the fix is only half done and the docs now say so explicitly.
+
+**Why it was not done here.** The correct fix persists `dayPrevious` into the stock snapshot as its
+own field and switches `changePct(t)` and `ReportGenerator`'s movers base onto it. That changes what
+the movers card, the abnormal-move alerts and the watchlist all MEAN by "today's change" in
+after-hours — a visible behaviour change across four surfaces that the owner has not asked for, and
+one that wants its own round with its own device QA. Doing it silently at finalization would be the
+same mistake as the reverted price-refresh gate.
+
+Also worth deciding in that round: `WatchlistScreen`'s `dailyOpen` guard compares against
+`LocalDate.now(America/New_York)` while the WRITER stamps `dailyOpenDate` from a hardcoded
+`Asia/Bangkok` rule (`DashboardViewModel`, pre-existing). They disagree during NY 00:00–04:00, so a
+seeded `dailyOpen` is discarded then. The outcome is conservative (price shown, day-change hidden),
+but a hardcoded Bangkok business-logic date is load-bearing for an NY-gated check, which the
+project's timezone rule forbids.
+
+### OWNER DECISION NEEDED — an assigned Covered Put realizes its premium NOWHERE on the manual path
+
+Found by the exact-head review of the complete PR diff (2026-09-10). **Not changed**, because
+`ProfitCalculator.kt` is a protected file, the behaviour is explicitly owner-approved, and CLAUDE.md
+forbids touching `realizedPnL()` without explicit instruction.
+
+**What changed and where.** `ProfitCalculator.kt` — the `isCoveredPut` assignment branch went from
+`grossPnl = totalPremium(position)` to `grossPnl = 0.0`, and a new `isAssignedCoveredPut` disjunct
+forces `calcPnl = 0.0`. Commits `f327a7e` / `e91488b`, both labelled owner-approved. The stated
+design: a Covered Put assignment behaves like a CSP assignment — the option realizes $0 and the
+premium folds into the effective buy-to-cover price, with the cover gain booked on the STOCK side.
+
+**Why it looks incomplete.** The only code that folds the premium into the cover basis —
+`CoveredPutCalculator.effectiveCoverPrice` / `.assign` — has exactly ONE non-test caller: a what-if
+preview on an OPEN position in `CoveredPutDetailScreen`. It is referenced NOWHERE in `realizedPnL`,
+`ReportGenerator`, `MonthlyCardLines` or `ImportViewModel.captureStockRealized` (verified by grep at
+head 8be1fac). `captureStockRealized` copies IBKR's `fifoPnlRealized` verbatim, which does not exist
+for a hand-entered trade.
+
+**Concrete scenario.** The owner manually records SPCH, 2 contracts, strike 12, $1.40/share credit =
+**$280**, short entry 15.00, assigned at expiry. No Flex row (manual entry; and per the daily-snapshot
+rule today's trade would not be in the report anyway). `ReportGenerator` computes
+`ibkrRealizedPnl ?: realizedPnL(entity)` = `null ?: 0.0`. **The owner sees $0.00 where $280 belongs**
+— in `ממומש החודש`, the monthly-target total, the calendar day and the annual figure. Note the
+asymmetry: an assigned CSP recovers its premium inside `realizedPnL` itself; the new guard makes that
+branch unreachable for covered puts.
+
+**Evidence that settles the BROKER-FED case** (the manual case is settled — it loses the premium):
+take one real IBKR Flex `STK` buy-to-cover row from a covered-put assignment and compare its
+`fifoPnlRealized` against `(shortEntry − strike) × shares`. EQUAL ⇒ the premium is absent from the
+stock side too and the broker-fed path loses it as well. SMALLER BY `premium × shares` ⇒ IBKR already
+basis-adjusted and only the manual path is affected.
+
+**Numbered choices:**
+1. Wire `CoveredPutCalculator.effectiveCoverPrice` into the realized path so the premium reaches the
+   stock side as the design intends.
+2. Revert to the pre-`f327a7e` accounting (option realizes the premium; nothing on the stock side).
+3. Keep as-is and accept $0 on manual covered-put assignments, documenting it as intended.
+
+Nothing here should be changed without an explicit owner instruction — it is `realizedPnL()`.
+
+### OWNER NOTE — the CALL assignment-probability flip changes numbers on EXISTING positions
+
+Same review. `StrategicRiskAnalyzer.estimateAssignmentProb` gained an `optionType` parameter. PUT
+positions are unchanged (`N(-d)`); **CALL positions go from `N(-d)` to `N(+d)`**, so every
+call-bearing strategy — Covered Call, call legs of spreads, straddles, strangles, long calls — now
+reports a different assignment probability. It is a correct fix (the old code reported ~96 %
+assignment on a short CALL 50 against a 20.68 stock) and it is a probability display rather than
+P&L, and the commit claims owner approval — but it is NOT scoped to a new strategy, so the owner is
+seeing changed numbers on positions they already hold.
+
+UNVERIFIED and worth settling: whether `probAssignment` only feeds display, or also drives alerts and
+recommendations. If it drives alerts, this deserves its own owner note.
+
+### OPEN (pre-existing, NOT this PR) — the import logs the raw payload's first 200 characters
+
+`ImportViewModel.parseCsv` logged `csvContent.take(200)` at `TS_PARSE`. For an IBKR Flex payload that
+is the `<FlexStatement accountId="U…">` header — an account identifier and raw broker XML, both of
+which the privacy contract forbids. Introduced by `d31b611`, which PREDATES this branch (confirmed:
+the line is absent from `git diff 7225b7af 8be1fac`). It was redacted to `FlexLogRedaction.shape(...)`
+in this round anyway, since the fix is one line and the leak is real — but the DEFECT is not this
+PR's, and the same file has two other raw-dump sites (the OCR 500/2000-char dumps around `:2693` and
+`:2778`, and `FlexSyncWorker.kt:873`) whose in-diff status was never verified. Worth one sweep.
+
+### 2026-09-10 S2.3 physical-QA addendum — OWNER-PENDING decisions (OPT 5d4eca6; nothing below was changed)
+
+**1. The put ranking is dominated by 2027–2028 LEAPS.** Live on the device the top three were WDCX
+PUT 18 exp 2028-12-15 (119.51 %), NEBX PUT 25 exp 2027-03-19 (85.19 %) and SNXX PUT 16 exp 2027-03-19
+(63.27 %). This is your own approved contract working as specified — *no upper DTE cap* and the ratio is
+*deliberately not annualised* — so a longer expiry legitimately wins on premium per dollar of collateral.
+It is flagged because a 827-day CSP ties up the collateral for 827 days, which may not be what you meant.
+NOT CHANGED without your word. Options:
+  1. Leave it exactly as approved (the DTE is shown next to every row, so nothing is hidden).
+  2. Add an owner-set upper DTE cap (e.g. ≤ 180 days) as a FILTER, keeping the ratio un-annualised.
+  3. Show BOTH: the current ranking plus a second "within N days" list, no formula change.
+  4. Annualise the ratio — **rejected direction historically**: you ruled that annualising re-ranks the
+     list by time rather than by the money at stake, which is the opposite of what you asked for.
+
+**2. The sector-grouping feature cannot fire for your actual portfolio.** Finnhub's `stock/profile2`
+returns an EMPTY `finnhubIndustry` for every leveraged single-stock ETF you hold (ELIL, MULL, SOXL,
+CWVX, NEBX, SNXX, WDCX, SPCH). That is a real provider answer, not a bug, and the rule that a sector is
+never guessed from a ticker symbol means the grouped row stays silent. Options:
+  1. Accept it — the broad-market row already covers these days, and the grouping will start working if
+     you ever hold ordinary equities.
+  2. Derive the ETF's sector from its *underlying* (e.g. WDCX → WDC) — needs a mapping the app does not
+     have and would be a guess unless the mapping is provider-supplied. Not done.
+  3. Add a provider that classifies ETFs — **a new paid provider/key, which the addendum forbids without
+     your approval.**
+
+**3. The CSP prefill's IV field takes the TICKER-level IV, not the ranked contract's.** Tapping WDCX
+(contract IV 131 %) prefilled the form's `IV %` field with 138.5 %, the ticker-level figure the sync
+autofill writes. The RANKING itself uses the exact-contract IV — that is what the row displays and it is
+what the approved contract requires — but the prefilled form then prices Black-Scholes off a different
+number. Options: (1) leave it (the form's IV is an editable input, not a claim about the contract);
+(2) prefill the contract's own IV when the route carries one. Not changed.
+
+**4. `IvService.fetchCcQuote` is called ~4× per ticker within milliseconds.** Observed on the device:
+four identical `CC_QUOTE: RKLX: no expiration with DTE 21-35` lines inside 16 ms, and the same for MULL.
+Pre-existing behaviour (concurrent reminder flows), not introduced by this round, and each call is now
+cheap because the chain is cached — but it is four network requests where one would do. Worth a
+de-duplication pass. Not changed.
+
+**STILL OWNER-PENDING FROM THE PREVIOUS ROUND, UNCHANGED:** the `× 1.3` premium boost surviving in
+`ReportGenerator`'s abnormal-move alert (three numbered alternatives already recorded above), and the
+assigned Covered Put realizing its premium nowhere on the manual path (`ProfitCalculator.kt`, P&L-locked,
+three numbered choices already recorded above). Neither was touched.
+
+### 2026-09-10 S2.3 exact-head review round 2 — OWNER-PENDING and recorded-not-fixed
+
+**5. The monthly-target card's month key is device-zone, and moving only half of it is worse.**
+`FlexWithdrawals` and the stock-realized map are keyed on the BROKER's New York day, so
+`DashboardScreen`'s month key "should" be New York — but `ReportGenerator.getDashboardSummary`
+(`:168`, and `:432`, `:1187-1188`, `:1534`) still derives the options figure, the progress bar and the
+monthly target from a device-zone `YearMonth.now()`. Migrating one half made the card show OCTOBER
+options over SEPTEMBER stock and withdrawal for the first eleven hours of the 1st on a UTC+7 device —
+one card, two months. The change was therefore REVERTED, and both halves stay device-zone and agree.
+Options: (1) leave it (they agree; the boundary window is ~11 h once a month); (2) migrate every site
+in `ReportGenerator` to New York together — correct, but it changes which month a trade counts in
+around the boundary, i.e. owner-visible monthly numbers; (3) make the zone an app setting. Not done.
+
+**6. `sharesUpdatedAt` is stamped and read in the DEVICE zone.** `ImportViewModel.kt:748/:790`,
+`FlexSyncWorker.kt:267` and `ClosePositionScreen.kt:656` write a bare `LocalDateTime.now()`;
+`ReportGenerator.kt:678-680` parses it back and `CcReminderEligibility.decide` compares it against
+`assignmentSettleLocal(...)`, whose zone defaults to `systemDefault()`. Consistent today only because
+both sides are device-zone — a zone change between stamp and read shifts the comparison and can hide a
+real holding or show a ghost. The mechanism is new in this PR. Pinning it to epoch-millis or New York
+means handling values already written to the database, so it is an owner decision, not a quiet fix.
+
+**7. Smaller items recorded, not changed** (all verified, all cosmetic or out of this addendum's scope):
+`fetchYahooPrices` sends the cookie but no crumb (`IvService.kt:1081`) — same `v7` family that started
+refusing, outside the "five option paths" the addendum names; `updateTicker` clears the price on every
+keystroke, so fixing a symbol typo wipes a hand-typed price for a snapshot-less ticker; the
+`fetchCcQuote` 429/non-200 branches are log-only (they return null exactly as the blanket catch did);
+`TickerDetailScreen.kt:196` renders money in a plain `Text` (mitigated — `formatCurrency` prefixes an
+LRM); `ImportViewModel.kt:2699` still logs `first500` of a raw CSV; and the pre-existing
+`first4=${key.take(4)}` diagnostics plus `API_KEYS: LOAD <provider>: present=<bool> len=<n>` disclose
+key metadata without key material. None are touched by this PR's own changes.
+
+**8. `ui.fmtPremium` formats with the DEFAULT locale** (`FormatUtils.kt:9-11`) — `"%.2f".format(v)` rather
+than `String.format(Locale.US, …)`, which is the exact bug `SignedAmountInput.format` documents and
+fixes. On a comma-decimal device the close-price prefill writes `"0,24"`; the new seed comparison
+correctly reports "no edit", but the SAVE path's `toDoubleOrNull` returns null and the stored close
+price is wiped while `ibkrRealizedPnl` is kept. `updateClosePrice` also does not sanitize, unlike
+`updateCloseCommission`. Not reachable on the owner's dot-decimal locale, and pre-existing — recorded
+rather than fixed inside this PR. Options: (1) pin `Locale.US` in `fmtPremium` (one line, but it is
+shared by many screens); (2) sanitize in `updateClosePrice` as the commission field already does;
+(3) both.
+
+**9. `BrokerReconciliationStore.get` is still untested.** The guard it applies was extracted as the pure
+`recordMatches` and IS tested, but reintroducing the strip at the CALL SITE would restore the original
+"rejects every record" defect with the suite still green. There is no Robolectric on this classpath, so
+covering `get` itself needs either that dependency or an interface seam over SharedPreferences.
+
+### 2026-09-10 S2.3 exact-head review round 5 — RECORDED, NOT FIXED (OPT c1b9300)
+
+Round 5 returned **APPROVE_WITH_COMMENTS**: no BLOCKER, no MAJOR, and — for the first time in the
+series — no regression introduced by the fix round. Its own conclusion: *"none blocks the merge, and
+none needs a new commit before merging."* Three MINORs and two NITs are therefore recorded here rather
+than triggering another build / gate / review cycle on a `needs-owner` PR that merges nothing on its own.
+
+**10. The BUY-direction "Roll" close method is incomplete in two ways.** With `ROLLED` now an edit-mode
+status, a long option stored as ROLLED gets a selectable "Roll" radio — but (a) the entry is derived
+from the LIVE `state.closeMethod`, so tapping another radio makes it vanish and it cannot be
+re-selected without leaving the screen unsaved; and (b) the `CloseMethod.ROLLED` price field sits
+inside `if (!isBuyPosition)`, so the BTC price the long-roll P&L is computed from stays invisible.
+**Reachability, verified by the reviewer:** no current write path produces a BUY + ROLLED row —
+`detectIbkrCloseMethod` returns only ASSIGNED / EXPIRED / null, and the manual "Roll" radio is
+SELL-only — so this is defensive coverage for legacy rows. Still strictly better than before this PR,
+where the same row had no selection at all and a mis-tap was equally destructive with nothing
+recoverable. Fixes: key the entry off `seededCloseMethod` as well, and widen the price-field gate to
+`!isBuyPosition || closeMethod == ROLLED`.
+
+**11. The close-PRICE field has two parsers.** The predicate uses `SignedAmountInput.parse` (which
+sanitizes `,` `+` letters and spaces away); the SAVE path and `recalculate()` use
+`String.toDoubleOrNull()`. On a comma-decimal IME — where `KeyboardType.Decimal` shows a `,` key, the
+exact quirk `sanitize` exists for — retyping `"0,24"` over a seeded `"0.24"` is correctly judged "no
+edit", but the save then writes `null` and destroys the stored close price. The `null`-on-unparseable
+save is PRE-EXISTING (identical at `7225b7af`); this is the first time a more permissive parser can
+call such text unchanged. It cannot make the predicate miss a genuine amount change — `sanitize` only
+deletes characters. Not reachable on the owner's dot-decimal device. Fix: one parser per field — use
+`SignedAmountInput.parse` at both save sites and in `recalculate`, or sanitize in `updateClosePrice`
+the way `updateCloseCommission` already does. Relates to item 8 (`fmtPremium`'s default locale), which
+is the other half of the same comma-decimal hazard.
+
+**NITs, recorded for completeness:** `CloseEditDetectionTest:71` asserts on `"+1.05"`, an input the real
+field can never hold (`sanitize` drops `+`) — harmless in a pure-function test, and the `"0.240"` case
+beside it carries the real coverage; and a code comment in `ClosePositionScreen` overstates the
+pre-commit damage ("any save would silently rewrite the roll") when in fact only an explicit radio tap
+could, because `loadPosition` already seeded `ROLLED` and the save's `when` mapped it back.
