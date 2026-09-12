@@ -1217,3 +1217,35 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
 - Two more tests could not fail for what they were named after: the sign-toggle case compared one literal against itself and never touched the control, and the industry-spelling case used a map whose natural order already gave the right answer, so reverting `minOrNull` to `firstOrNull` left it green.
 - **Recorded, not changed:** `BrokerReconciliationStore.get` itself is still untested (the tested surface moved to `recordMatches`), and `ui.fmtPremium` formats with the DEFAULT locale — pre-existing, unreachable on the owner's dot-decimal device, now in roadmap.md item 8.
 - 662 JVM tests green. PR Build Gate PASS on `c1b9300`. APK sha256 `a2eb2fec834f49b054a68c6f4f82039351ec7c261b060746ff766856b70dda60`, installed hash read back off the device == build, `firstInstallTime` still 2026-04-22.
+
+### 2026-09-12 S2.4 — stock-realized grain rule + audit, 2-60 DTE puts, CC bid/ask/mid, one watchlist, brief alignment
+- OPT FINAL: 9183a167c03f15761e48f94cbde5aa0d9571c9e3 (PR #19 OPEN, needs-owner, no-automerge, NOT
+  merged; main still 7225b7af). Ten exact-head review passes by three reviewers; Codex returned from
+  quota mid-round and is the final authority, closing at APPROVE with 0 BLOCKER / 0 MAJOR / 0 MINOR.
+- Starting HEAD c1b9300f70819b0b9f6a12dd53f2ed738415ef5a
+- THE HEADLINE: the reported SPCH double-count did NOT reproduce. One real Flex sync on the device
+  shows the 1,000-share sale is FOUR EXECUTION fills on 2026-09-08 (300@10.69 -2043.77, 100@10.69
+  -681.97, 500@10.70 -3407.71, 100@10.69 -681.94) summing to exactly -6,815.39. The audit reported
+  0 MISMATCH and 0 GRAIN_SUM lines across the whole payload -- every STK row is EXECUTION-grained.
+  -2,412.39 is nowhere in the data; nothing was changed toward it.
+- Total == drill-down verified ON SCREEN for SPCH. Historical audit over all 114 ticker-months: 93
+  exact, 21 differing -- buy-to-cover with no feed event (A5), the same-second (timestamp,amount)
+  fingerprint collapsing two real fills (BCAR proves it exactly), a windowed rebuilt total (GPUS),
+  and 11 cent-rounding cases. None is a double-count. All recorded, none silently repaired.
+- New: StockRealizedGrain (grain of record EXECUTION, suppression scoped per ORDER, never
+  transactionID, same-grain rows never merged, GrainSumMismatch guard, bounded audit + summary lines).
+- Puts DTE 2-60 inclusive (SUPERSEDED -- owner approved), window applied before the request budget.
+- CC card shows BID/ASK/MID; estimated premium and recommended limit are the MID, derived once, only
+  from a real two-sided quote, labelled not-a-guaranteed-fill.
+- One watchlist: shared loader/row/sort (TableSortPrefs key watchlist_shared, default = today move
+  ascending) and both surfaces prefill the price. Verified live on both surfaces.
+- Market-brief rows: one paragraph, one indentation, LTR isolate for the detail. Layout only.
+- Fixed during device QA: the drill-down date used the DEVICE zone, so a 2026-09-08 15:10 ET fill
+  printed 09/09/2026 -- which is how this sale (and this task) came to be called "the 09-09 sale".
+- 729 JVM tests, 0 failures (was 662). Signer 5d3d855c..., installed == built == delivered APK
+  (2fdbd111902ebb0c2eacebcedb750b8b827c9d3c63a03ab6cdc43049a7284f10).
+- Seven MAJOR defects were found and fixed across the review rounds, five of them money or privacy:
+  a price prefilled into a form with no ticker; a grain rule that could DELETE a real sale; equal money
+  suppressing a different movement; the feed able to double-count one order across imports; a 100x
+  exact-contract IV discontinuity; a quantity guard that double-counted when quantity was absent; and
+  an order id treated as if it identified a fill.

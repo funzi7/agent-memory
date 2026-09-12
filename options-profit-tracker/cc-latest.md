@@ -1,8 +1,11 @@
 # OptionsProfitTracker — rolling handoff (Claude Code)
 
-**Task:** S2.3 — OWNER PHYSICAL QA ADDENDUM: market-brief explanations + put-chain failure + reboot acceptance
-**Date:** 2026-09-10
-**Branch:** `s2/ibkr-reconciliation-lifecycle-dashboard` — **PR #19 OPEN** (`needs-owner`, `no-automerge`), **never merged**, nothing pushed to `main` (`main` is still `7225b7af16c183de00a9f064ead03a01ad6af1d3`).
+**Task:** S2.4 — STOCK REALIZED INTEGRITY + PRACTICAL PUT WINDOW + ACTIONABLE CC QUOTES + UNIFIED
+WATCHLIST + MARKET-BRIEF LAYOUT
+**Date:** 2026-09-12
+**Branch:** `s2/ibkr-reconciliation-lifecycle-dashboard` — **PR #19 OPEN** (`needs-owner`,
+`no-automerge`), **never merged**, nothing pushed to `main` (`main` is still
+`7225b7af16c183de00a9f064ead03a01ad6af1d3`).
 
 ---
 
@@ -10,299 +13,318 @@
 
 | | SHA |
 |---|---|
-| Starting HEAD (coordinator-verified) | `554346b5cb71b020c0f067110d4f0eb901c7f2bb` |
-| Reviewed HEAD, round 1 | `5d4eca6f4456ca09cd1799030db1430ed8cad092` |
-| Reviewed HEAD, round 2 | `f73f24271ab1a2923b0aab8ccdf6cd5ab5a5e670` |
-| Reviewed HEAD, round 3 | `55d230ec9fd61ef2f5ac6d64aa2caaed0ed131bc` |
-| Reviewed HEAD, round 4 | `447161c37a5a279db4891094aae1a5c33dc9f08a` |
-| **Final HEAD** | `c1b9300f70819b0b9f6a12dd53f2ed738415ef5a` |
+| Starting HEAD (coordinator-verified) | `c1b9300f70819b0b9f6a12dd53f2ed738415ef5a` |
+| **Final HEAD** | `9183a167c03f15761e48f94cbde5aa0d9571c9e3` |
 | merge-base with `origin/main` | `7225b7af16c183de00a9f064ead03a01ad6af1d3` |
 
-FIVE project commits: the addendum's work, then four fix rounds answering successive exact-head
-reviews. No docs-only commit was made after a review. Section 10 lists every finding and its
-disposition. Severity fell each round — r1 3 BLOCKER / 11 MAJOR, r2 0 / 8, r3 0 / 3, r4 0 / 0 (four MINORs) — and
-**three of the four fix rounds introduced a regression of their own**, which is the single most useful
-thing this process surfaced.
+---
+
+## 2. READ THIS FIRST — the defect this round was commissioned to fix DOES NOT EXIST
+
+S2.4 was written against: *"SPCH 1,000-share sale reconciles to −$2,412.39; the app falsely shows
+−$6,815.39; duplicate report grains are being double-counted."* The arithmetic even supported it —
+`−2,412.39 + (−4,403.00) = −6,815.39` exactly.
+
+**One real Flex sync on the device disproves it.** IBKR sends the sale as **FOUR EXECUTION fills on
+2026-09-08 15:10:17 ET**:
+
+| qty | price | `fifoPnlRealized` |
+|---|---|---|
+| 300 | 10.69 | −2,043.77 |
+| 100 | 10.69 | −681.97 |
+| 500 | 10.70 | −3,407.71 |
+| 100 | 10.69 | −681.94 |
+| **1,000** | | **−6,815.39** |
+
+- The four fills sum to **exactly 1,000 shares and exactly −$6,815.39**.
+- The audit reported **0 MISMATCH and 0 GRAIN_SUM lines over the entire 103-ticker payload** — every
+  STK row in the owner's Flex query is `levelOfDetail=EXECUTION`. **There is no duplicate grain
+  anywhere to double-count.**
+- The per-ticker total and the per-sale drill-down **agree to the cent**, verified ON SCREEN.
+- **−$2,412.39 appears nowhere in the payload.** Nothing was changed toward it.
+
+**OWNER INPUT NEEDED:** if IBKR's own screen shows −$2,412.39 for this sale, it is a different report,
+period or lot-matching basis. Please send that exact IBKR view. It must not be "fixed" toward blind.
+
+**Note on the date.** The sale traded **2026-09-08**. The task called it "the 2026-09-09 sale" because
+the app's drill-down was printing the DEVICE's calendar day — see §6.
 
 ---
 
-## 2. REBOOT — **PASS**
+## 3. What shipped
 
-The owner physically rebooted the phone. Android started normally, the app opened normally, the data was
-usable. **Every "reboot pending" record is now closed** — `pending-tests.md` carries the PASS and marks the
-2026-08-19 S1, S1-cont, 2026-09-06 S1-final and 2026-09-07 S2 reboot items SUPERSEDED (kept for history
-only). The durable fix was always the full-APK `install -r` loop rather than Apply Changes. **The reboot
-was NOT repeated** — the owner's evidence is not duplicated.
+### 3.1 `StockRealizedGrain` — one canonical stock-sale grain rule (new, pure, 40 tests)
 
----
+Defensive, and it closed a real divergence even though it was not the SPCH bug:
+`ImportViewModel.captureStockRealized` summed **every** STK row carrying a `fifoPnlRealized` and was
+the ONLY consumer of `parseFlexXml` with no grain rule — options have `selectExecutionRows`, holdings
+have `selectHoldingRows`, cash has `FlexWithdrawals`, and the stock FEED had its own inline EXECUTION
+filter. **The total and the feed were reading two different row sets**, one query-config change away
+from the double-count this now prevents.
 
-## 3. Market brief — the finding, and the final behaviour
+- **EXECUTION is the grain of record** — because it is the grain the FEED uses. Both surfaces now
+  select through `StockRealizedGrain.select`.
+- **Suppression is scoped to ONE ORDER** — never the payload, not even the ticker (that would DELETE
+  an older sale the payload reported only at ORDER grain). Identity is `ibOrderID`/`orderID`, else
+  `(ticker, day)`; **never `transactionID`** (per-row, and the attribute that double-counted the
+  withdrawal card). Two rows at the SAME grain are never merged.
+- **A losing grain tier is suppressed ONLY when it RESTATES the winner — same money AND same signed
+  quantity.** Money alone is not enough: an EXECUTION SELL realizing +$100 and a separate buy-to-cover
+  realizing +$100 on the same ticker and day have equal sums and are different movements, and matching
+  on money alone DELETED the second (Codex found this). IBKR signs sells negative and buys positive, so
+  signed quantity separates them — and separates two break-even rows whose sums are both `0.00`. A tier
+  that does not restate the winner is **KEPT** and reported as `GRAIN_SUM`, never deleted.
+- **The FEED additionally takes EXECUTION-grained (or wholly unlabelled) rows only.** The feed is
+  append-only and dedupes on `(timestamp, amount)` with no migration path, so letting an ORDER-grain
+  sale become an event meant a later EXECUTION-grain payload inserted its fills ALONGSIDE the surviving
+  aggregate — `+100` today, `+60`/`+40` tomorrow, drill-down 200 for a sale of 100, permanently (Codex
+  found this too). The total is rebuilt each import and is immune. `crossSurface` reports the
+  difference rather than hiding it.
+- **`fifoPnlRealized` is already net of commission** — never re-applied.
+- **A BUY row is not a sale**: buy rows stay in the TOTAL (a buy-to-cover carries real realized P&L)
+  but have no feed event, and `crossSurface` reports exactly that as the one legitimate difference.
+- **Nothing is dropped silently**: bounded `STOCK_REALIZED` audit lines, a `SUM` line per ticker-month,
+  and magnitude-ordered `ROW` lines.
 
-**What the owner physically saw:** session state → four index moves → a standalone generic Reuters
-headline → a large raw list of falling tickers → nearly the SAME list again under "no specific reason was
-found". Not accepted.
+### 3.2 Put window: DTE **2–60 inclusive** (SUPERSEDED — owner approved)
 
-**Final behaviour (all SUPERSEDED changes owner-approved):**
+"No upper DTE cap" worked exactly as specified and that was the problem: with an un-annualised ratio a
+longer expiry legitimately wins, so the live list filled with 2027–2028 LEAPS (WDCX PUT 18 exp
+2028-12-15 at 119.51 %, DTE 827). The owner chose a WINDOW rather than annualising.
 
-- The aggregate `עולות היום:` / `יורדות היום:` lines are **REMOVED** from this card. `מה קורה בטיקרים שלך`
-  is an EXPLANATION section; the raw `טופ עולות/יורדות` card directly below it *is* the list. Nothing is
-  hidden: every explanation row names its own tickers **with their moves**, joined by a non-breaking space
-  so a ticker can never land on one line with its percentage on the next.
-- **Grouping by a shared verified cause.** Movers sharing ONE provider-assigned industry AND one direction
-  collapse into a single `SECTOR_GROUP` row — `<Industry> · TICKER ±x.x%, …` plus a note stating the
-  measured fact. `SectorContext.groups` keys on (industry, direction), so an industry moving both ways
-  yields two honest rows, and a group always rests on ≥ 2 distinct companies (a subject is never its own
-  evidence). Never grouped merely because several tickers are red; a ticker from another industry cannot
-  enter the group.
-- **Company-specific outranks sector outranks broad market.** A ticker with its own catalyst keeps its own
-  quoted row and never becomes a group subject.
-- **The standalone `חדשות שוק מהיום:` block is REMOVED.** A market-wide item appears only when
-  `MarketNewsRelevance` can tie it to a tracked ticker, a held provider-named industry, or the benchmark
-  row already on screen — and the line **states that scope** (`חדשות היום שנוגעות לטיקרים שלך:` + the
-  symbols). Matching is literal and checkable, and EVERY match — cashtag or bare — must clear a
-  3-character floor and the ordinary-word stoplist (`CEO`, `ETF`, `FED`, `ALL` are all real symbols;
-  `$C 5 billion` is a currency amount). A bare match additionally rests on the symbol being upper case
-  where a word is not, so an ALL-CAPS wire headline accepts cashtags only. An industry matches as a whole
-  PHRASE with a deterministic tie-break; an index phrase must be complete (a bare "Dow" is Dow Inc).
-  Everything else is **omitted**. A long headline is cut at a word boundary with the source appended
-  **after** the cut — and the ellipsis is stripped before asking whether the outlet is already named.
-  **No AI provider and no new key were added** — nothing is reworded, only bounded.
-- **The broad-market row states co-movement, never causation:**
-  `נעות באותו כיוון עם השוק הרחב, שגם הוא יורד היום:` — the owner's permitted meaning. The phrase
-  `לא נמצאה סיבה ספציפית` is gone and the S2.2 string `אין הסבר זמין…` stays gone.
-- **No explanation ⇒ OMIT.** No apology line, no invented reason; the ticker stays in the raw movers card.
-- **The cap no longer deletes a fact.** A company row past `MAX_EXPLAINED_MOVERS` used to be dropped while
-  the movers line still named it. With that line gone, the remainder now collapses into ONE row naming
-  every one of them (`עוד טיקרים שלך עם סיבה משלהם היום:` — deliberately kind-agnostic, because rung 1
-  also covers an earnings DATE and a social mention), so the S2.1 "never truncate" rule survives.
-- **Materiality is testable.** `MarketBrief.diagnostics` reports the news verdict and the per-mover rung;
-  `DashboardViewModel` logs them under `MARKET_BRIEF` **once per change** (the brief rebuilds on a
-  one-minute tick). Bounded by `MAX_DIAGNOSTIC_MOVERS`; carries tickers, rung names, counts and a bounded
-  **public** headline prefix — never a key, an account identifier or a payload.
+- `PutOpportunity.MAX_DTE = 60`, new `Rejection.EXPIRY_TOO_FAR`; `rejectionOf` stays the ONE rule set.
+- **The window is applied BEFORE the request budget is spent** (`DashboardViewModel`'s `eligible`
+  filter). Otherwise the scan buys three chains per ticker on LEAPS it then rejects and ranks nothing
+  while claiming "no put meets the rules".
+- `contractsRejectedTooFar` and `tickersWithNoExpiryInWindow` are separate counters with their own
+  sentences — "everything expires tomorrow" and "everything is a LEAP" are opposite facts.
+- The ratio is **still not annualised**; everything else in the approved contract is unchanged.
 
-### Device examples (real run)
+### 3.3 CC reminder: BID / ASK / MID (owner approved)
 
-```
-MARKET_BRIEF: news: NONE — no tracked ticker, industry or index named — dropped — "Starbucks is back, CEO Brian Niccol says. Here i"
-MARKET_BRIEF: explain: MULL=BROAD SOXL=BROAD SPCH=OMITTED CWVX=BROAD NEBX=BROAD SNXX=BROAD WDCX=BROAD IRE=BROAD MVLL=BROAD NVTX=BROAD
-```
+- `CcPremium.midOf` / `recommendedLimitPerShare`. **Estimated premium = MID, recommended limit = MID**,
+  derived ONCE (the card reads `quoteMid`, it does not recompute).
+- **A mid exists only from a valid bid/ask PAIR**: a lone bid has no midpoint (`(bid+0)/2` would halve
+  a real price), a lone ask has none, a crossed book is rejected, `ask == bid` is a locked market and
+  is fine. With no pair the card falls back to the BID alone, exactly as before.
+- `IvService.CcQuote.askPerShare`; stored as `ccQuoteAsk` and **REMOVED when a refresh returns no
+  ask**, so a stale offer can never pair with a newer bid.
+- The ×100 still happens exactly once (0.42/0.44 → mid 0.43 → **$43.00**/contract).
+- Labelled `לימיט מומלץ (אמצע, לא מובטח ביצוע)` — a midpoint is not a fill.
+- The owner's own last sale stays a separate line with its SOLD date.
 
-Rendered card: `מצב השוק` (`מסחר רגיל.` · `20:30–03:00+1` · S&P 500 −0.4 %, Nasdaq-100 −0.8 %,
-Dow Jones −0.5 %, Russell 2000 −0.8 % · `המדדים המובילים בארה״ב יורדים היום.`) then `מה קורה בטיקרים שלך`
-with ONE row: `נעות באותו כיוון עם השוק הרחב, שגם הוא יורד היום:` CWVX −10.9 %, NEBX −10.5 %, WDCX −9.9 %,
-SNXX −9.2 %, MVLL −5.5 %, IRE −5.2 %, NVTX −4.8 %. No news block, no repeated list, no empty heading.
-SPCH (+3.3 % while the market fell) was omitted — correctly not claimed as market-correlated — and is
-still visible in `טופ עולות`.
+### 3.4 One watchlist (owner approved)
 
-**LIVE SECTOR-GROUP PATH NOT OBSERVED.** Finnhub `stock/profile2` returns an EMPTY industry for every
-leveraged single-stock ETF this owner holds (ELIL, MULL, SOXL, CWVX, NEBX, SNXX, WDCX, SPCH — all logged
-`industry=(none — cached as answered)`), which is a real provider answer rather than a failure. The grouped
-row is covered by **deterministic fixtures only**. No sector catalyst was fabricated to claim a physical
-PASS. Owner options are in `roadmap.md` item 2.
+`WatchlistShared.kt` + `WatchlistSort.kt`. The two surfaces had become two different lists with one
+name: the full screen seeded prices and showed the day change, the `רשימת מעקב` section on
+`AlertsScreen` showed **neither**, and only the full screen carried the price into `פוזיציה חדשה`.
 
----
+- ONE quote loader, ONE row, ONE sort control, ONE tap target.
+- Default sort = **today's move, largest declines first** (ascending on a signed %; descending would
+  put the best day on top).
+- Sort choice AND direction **persist and are shared** — one `TableSortPrefs` key `watchlist_shared`
+  (its own SharedPreferences file, **not** the protected `AppPreferences`).
+- A row with an **unknown** move sorts LAST in both directions; final tie-break is the ticker.
+- The S2.3 accepted behaviour moved across unchanged (cached price is a real price; a failed refresh
+  merges, never blanks; no fake `$0.00`).
 
-## 4. Put chain — root cause and result
+### 3.5 Market brief: one alignment (layout only)
 
-**Root cause, proven:** the keyless Yahoo options endpoint now refuses.
-
-```
-GET https://query1.finance.yahoo.com/v7/finance/options/SOXL
-HTTP 401 {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
-```
-
-`לא התקבלו נתוני שרשרת מהספק.` was therefore literally true and *was a failed runtime path* — never "there
-are simply no opportunities".
-
-- **`YahooCrumb`** performs the cookie + crumb handshake a browser performs: `fc.yahoo.com` for a
-  `Set-Cookie`, `query2…/v1/test/getcrumb` for the token, then `?crumb=` + the `Cookie:` header. **Same
-  keyless endpoint — no account, no API key, nothing stored, no new provider.** One handshake per process;
-  a refusal may re-mint at most once per `MIN_REFRESH_INTERVAL_MS` (60 s), because a dead endpoint returns
-  401 for every ticker in a scan. A **200 body** is checked for the refusal too — the endpoint has been
-  observed answering 200 with it.
-- **All five option paths carry it**: `OptionChainQuotes.expirations` / `.puts` and `IvService`'s four,
-  including `fetchCcQuote`. The same 401 was therefore a standing infrastructure reason the CC card
-  reported `אין כרגע ציטוט אמין לחוזה` — that was not necessarily an illiquid book.
-- **Failure classification**: `OptionChainQuotes.Failure` = NONE / UNAUTHORIZED / RATE_LIMITED /
-  HTTP_ERROR / NETWORK / MALFORMED / EMPTY, surfaced through `PutScanResult.providerFailure`.
-- **`PutScanResult.emptyReason` names each cause** and never collapses them: provider refused / rate
-  limited / network / bad response / no red tickers / no put contracts / no exact-contract IV / all ITM /
-  all expiring today-or-tomorrow / no usable bid / no put meets the rules. A provider refusal outranks the
-  CONTRACT counters (they are zero *because of* it) but **not** `redTickers == 0`, which is known from the
-  price snapshot without ever asking the provider.
-- **`PutOpportunity.rejectionOf` is the ONE rule set** and `candidateOf` is written in terms of it, so the
-  diagnostic counters can never drift from the ranking. Bounded per-red-ticker logging:
-
-```
-PUT_SCAN: MULL -8.7% provider=yahoo/v7 status=NONE expiries=6 eligible=6 pages=3 puts=566 itm=361 tooSoon=0 noOwnIv=26 noPremium=14 tinyPremium=0 badCollateral=0 ok=165 best=21.2P 2027-06-17 BID ratio=58.21%
-PUT_SCAN: WDCX -8.3% provider=yahoo/v7 status=NONE expiries=5 eligible=5 pages=3 puts=147 itm=87  tooSoon=0 noOwnIv=0  noPremium=0  tinyPremium=0 badCollateral=0 ok=60  best=18.0P 2028-12-15 BID ratio=119.51%
-PUT_SCAN: NEBX -8.1% provider=yahoo/v7 status=NONE expiries=4 eligible=4 pages=3 puts=238 itm=131 tooSoon=0 noOwnIv=0  noPremium=5  tinyPremium=0 badCollateral=0 ok=102 best=25.0P 2027-03-19 BID ratio=85.19%
-PUT_SCAN: SNXX -7.9% provider=yahoo/v7 status=NONE expiries=10 eligible=9 pages=3 puts=243 itm=146 tooSoon=0 noOwnIv=1 noPremium=1 tinyPremium=0 badCollateral=0 ok=95  best=16.0P 2027-03-19 BID ratio=63.27%
-PUT_SCAN: universe=17 red=13 scanned=4 tickers/12 expiries/1194 contracts (noOwnIv=350) requests=16 ranked=4 providerFailure=NONE
-```
-
-No API key, no account identifier and no payload appears in any of it.
-
-- **Data quality was NOT relaxed** to fill the list: no fabricated IV, no ticker-level IV standing in for a
-  contract's own, no stale `lastPrice`, no zero bid, no ITM put, no expiry today or tomorrow. **The
-  approved put contract is unchanged** — universe, red-only, ITM excluded, ATM/OTM allowed, no upper DTE
-  cap, one best per ticker, exact-contract IV mandatory, ranked by premium / NET collateral, not
-  annualised, CSP prefill, top-3 preview, request-storm gates. `PutRejectionTest` pins all of it.
-- **Existing approved providers only.** No new provider and no new key were added anywhere in this round.
-
-### Manual ratio checks (recomputed by hand, matching to the cent)
-
-| Ticker | Strike | gross = strike×100 | credit shown | net = gross − credit | credit/net×100 | displayed |
-|---|---|---|---|---|---|---|
-| WDCX | 18 | 1,800.00 | 980.00 | 820.00 | 119.5122 % | **119.51 %** |
-| NEBX | 25 | 2,500.00 | 1,150.00 | 1,350.00 | 85.1852 % | **85.19 %** |
-| SNXX | 16 | 1,600.00 | 620.00 | 980.00 | 63.2653 % | **63.27 %** |
-
-Descending order held. **The dashboard preview is exactly the first 3 of the 4-long canonical ranking**
-(MULL 58.21 % is 4th and correctly absent) — one scan, one cache, one formula, no re-sort.
-**Exact-contract IV proven**: the rows show 131 / 182 / 157 % against ticker-level IVs of 139 / 159 / 136 %
-on the same card; a substitute would have printed the same number twice.
-**CSP prefill**: tapping WDCX opened `פוזיציה חדשה` with CSP selected, ticker WDCX, 1 contract, Strike 18,
-פרמיה 9.80, Sell + Put, תפוגה 15.12.28, DTE 827, מחיר נוכחי 18.02. **No trade was saved.**
+Each row was a `Row` of two `Text`s weighted `1f, fill=false` / `2f` — a fixed one-third/two-thirds
+split producing FOUR different offsets on one card, and a wrapped detail resumed at its own inner edge
+while a wrapped label resumed at the card's edge. Now every row is ONE paragraph in ONE `Text` with
+ONE indentation constant; the note shares that edge. The detail sits in an explicit **LTR isolate**
+(`⁦`…`⁩`, written as escapes) rather than a separate `LtrText`, which keeps the
+"`2026-09` must never render as `50-2026`" guarantee while letting the row wrap to one common edge.
+The `TICKER ±x.x%` NBSP pairing and the S2.1 no-truncation rule are untouched.
 
 ---
 
-## 5. CC premium — status
+## 4. The historical audit — 114 ticker-months, measured on the device
 
-**Still ACTIVE, not silently closed.** The BID-only rule from the previous addendum is unchanged and the
-approved strike/DTE policy was NOT altered. What this round adds is the missing half of the diagnosis: the
-same 401 was starving `fetchCcQuote`, so "no reliable quote" was often an endpoint failure rather than an
-illiquid book. With the crumb fix the CC path now gets real chains and reports honest, policy-based reasons
-— on the device: `CC_QUOTE: RKLX: no expiration with DTE 21-35` and the same for MULL, which is the
-owner's own 21–35 DTE policy finding nothing, not a provider failure. The card was not in the screenshots
-the owner sent, so **no CC acceptance is claimed**; it remains open for the owner's visual check.
-One observation recorded in `roadmap.md` item 4: `fetchCcQuote` is called ~4× per ticker within
-milliseconds (pre-existing, not introduced here).
+**93 agree to the cent. 21 differ. NONE is a double-count.** Classified, recorded, not silently repaired:
 
----
+| cause | evidence | direction |
+|---|---|---|
+| **Buy-to-cover has no feed event** (owner-pending A5) | MULL 2026-07 `+3,159.07`, PLUG 2026-06 `−691.07`, QQQ 2026-02 `−4.30` | total right, drill-down short |
+| **Same-second `(timestamp, amount)` feed fingerprint collapses two real fills** | **BCAR 2026-01-13 12:33:36 has TWO fills both realizing `1.48`** (at 10.29 and 10.30); only one event exists; diff is exactly 1.48. Also EWT 2026-05, VNDA 2026-02, RXT 2026-02, MULL 2026-06 | total right, drill-down short |
+| **The rebuilt total is windowed** — `captureStockRealized` replaces the whole map from the CURRENT Flex window while feed events accumulate for ever | GPUS 2026-01: feed 76.34 vs total 36.66 | drill-down right, total short |
+| **Cent rounding** (per-row round vs sum round) | 11 ticker-months at exactly ±0.01 | cosmetic |
 
-## 6. Tests, compile, APK, device, privacy
-
-- **662 JVM tests, 0 failures, 0 errors, 0 skipped, 37 classes** (was 579/30). New:
-  `MarketBriefExplanationContractTest`, `MarketNewsRelevanceTest`, `PutRejectionTest`, `YahooCrumbTest`,
-  `SectorGroupTest`, `ReviewGapCoverageTest`, `CloseEditDetectionTest`, plus new cases in
-  `PutScanEmptyReasonTest` and `IbkrReconcilerTest`. Read from the JUnit XML, not from Gradle's summary.
-- `:app:compileDebugKotlin` → **BUILD SUCCESSFUL**, `grep -c "^e: "` = **0**. `git diff --check` clean.
-- `clean assembleDebug` → **BUILD SUCCESSFUL**. APK `app/build/outputs/apk/debug/app-debug.apk`,
-  **SHA-256 `a2eb2fec834f49b054a68c6f4f82039351ec7c261b060746ff766856b70dda60`**
-  (earlier heads produced `b4425f80…`, `c5803055…`, `f1edc008…` and `d6ae0ea7…`; each was installed and QA'd).
-  The installed `base.apk` hash was read back off the device and matches the build byte for byte.
-- Signer verified with `apksigner verify --print-certs`: **SHA-1 `5d3d855c6c6c397f817df2bd0c62f16f940b1551`**
-  (SHA-256 `9e5307e1344917f0cdc495c5cc04a80d23a92c5965c779b6efb0faa1135b8221`), CN=Android Debug — the
-  canonical keystore, matching the installed base.
-- **`adb install -r` only.** No uninstall, no `pm clear`, no DB or DataStore deletion, no downgrade bypass,
-  **no reboot**. `firstInstallTime` unchanged at 2026-04-22 22:53:57.
-- Delivered to **`/sdcard/Download/OptionsProfitTracker/OptionsProfitTracker-S2.3-physical-qa.apk`** with an
-  on-device SHA-256 identical to the build's.
-- **Bounded logcat (23,438 app-PID lines):** 0 FATAL, 0 AndroidRuntime, 0 Room/SQLite/migration errors,
-  0 account identifiers, 0 API keys, 0 raw Flex XML, 0 owner email. **No request storm**: ONE put scan
-  (16 requests — the documented budget) and ONE crumb handshake across a 4-minute session; the TTL, NY-day
-  and in-flight gates all held.
+The first two were already owner decisions and were **deliberately not changed**: the fingerprint IS
+the identity of money-bearing feed rows, and altering it without a migration would INSERT duplicates on
+the next import — worse than the under-count. Previously "9 ticker-months affected, theoretical"; now
+measured exactly. Options for each are in `roadmap.md`.
 
 ---
 
-## 7. Gates
+## 5. Device QA (real phone, SM-S938B)
+
+**Session clock: Saturday 2026-09-12, ~04:40–05:15 ET — the US market and the option book were SHUT
+all session.** That bounds what could be proven, and nothing was faked to cover it.
+
+| check | result |
+|---|---|
+| Signer gate | new APK SHA-1 `5d3d855c6c6c397f817df2bd0c62f16f940b1551` == installed. **PASS** |
+| `adb install -r` | Success, in place. `firstInstallTime` still 2026-04-22 22:53:57. No uninstall, no `pm clear`, no DB/DataStore deletion, **no reboot** |
+| Installed == built == delivered | SHA-256 read back off the device matches the build and the delivered copy |
+| Stability | 0 FATAL, 0 AndroidRuntime, 0 Room/SQLite/migration across **39,742** app-PID lines |
+| Privacy | **0** occurrences of the Flex token, Anthropic/Finnhub/AlphaVantage keys, any `U#######` account id, `FlexQueryResponse`, `AccountInformation`, or the owner's email |
+| **A — stock realized** | Proven; see §2 and §4. Total == drill-down on screen |
+| **B — put window** | Closed-market path correct: `אין מחירי מסחר רגיל להיום.`, `ראה הכל` present, **no fabricated candidate**. **Live 2–60 ranking NOT proven — market shut** |
+| **C — CC quote** | Stale/last-known labelling verified: MULL `ביד אחרון שנצפה לחוזה: $110.00` `(פקיעה 16.10.26 · סטרייק 29)` + `לא ציטוט חי — נקרא לפני 13 שעות.`; SPCH `אין כרגע ציטוט אמין לחוזה.` + `פרמיה אחרונה שמכרת: $44.00 · 10.09.26`. Neither said `ביד נוכחי`; **no midpoint invented from half a book**. **Live BID/ASK/MID NOT proven — option book shut** |
+| **D — watchlist** | Both surfaces: same 15 tickers, same prices, same day changes. Default order verified live (NVTX −0.5 → ELIL +0.6). Sort changed on the ALERTS surface → `watchlist_shared_col=PRICE` persisted → the FULL screen opened `מחיר ▼` ordered 218.26 → 17.12. Tapping WDCX on BOTH surfaces prefilled `מחיר נוכחי` = **17.12**. Default restored. **No trade saved** |
+| **E — market brief** | Rows wrap to one shared right edge, dates render LTR (`18.09`, `15.67P`), no tofu. Multi-explanation-row case not observable on a closed Saturday |
+| Request storm | **4** `WATCHLIST_VOL` lines all session — one batch per screen entry, each `seeded 15/15 refreshed 15/15`. **0** `CC_QUOTE` calls (correctly gated by the shut book) |
+
+---
+
+## 6. Two extra real defects that only the device found
+
+1. **The drill-down date was the DEVICE's day, not the broker's.** `getStockSalesForTicker` formatted
+   with `ZoneId.systemDefault()`; on the owner's UTC+7 phone a 2026-09-08 15:10 ET fill printed
+   `09/09/2026`, while the month CHIP beside it already keyed on New York. One sale, two dates, one
+   screen — **and that wrong date is what this whole task was written against.** Fixed as
+   `StockRealizedGrain.saleDayLabel` and unit-tested: the date is part of the claim.
+2. **The bounded audit hid the very ticker it existed to explain.** Capped at 40 rows in payload order,
+   its first real run spent every line on tickers beginning with A and B and never reached SPCH. Now
+   ordered by the magnitude of the realized amount, plus a `SUM` line per ticker-month.
+
+---
+
+## 7. Tests, compile, APK
+
+- **729 JVM tests, 0 failures, 0 errors, 0 skipped, 39 classes** (was 662 / 37). Read from the JUnit
+  XML, not Gradle's summary. New: `StockRealizedGrainTest` (47), `WatchlistSortTest` (9), plus new
+  cases in `CcPremiumTest`, `PutOpportunityTest`, `PutRejectionTest`, `PutScanEmptyReasonTest`.
+- `:app:compileDebugKotlin` → **BUILD SUCCESSFUL**, `grep -c "^e: file:"` = **0**.
+  (Watch for the known Kotlin-daemon startup flake whose message also begins `e: ` — grep `^e: file:`.)
+- `:app:assembleDebug` → **BUILD SUCCESSFUL**. Final APK SHA-256
+  **`2fdbd111902ebb0c2eacebcedb750b8b827c9d3c63a03ab6cdc43049a7284f10`**; built == installed ==
+  delivered to `/sdcard/Download/OptionsProfitTracker/OptionsProfitTracker-1.0.0.apk`, all three hashes
+  read back and identical. Signer SHA-1 `5d3d855c6c6c397f817df2bd0c62f16f940b1551`. `adb install -r`
+  only — no uninstall, no `pm clear`, no DB/DataStore deletion, no reboot; `firstInstallTime` still
+  2026-04-22 22:53:57. versionName 1.0.0 — **no invented version bump**.
+- `git diff --check` clean. `local.properties` deliberately not committed.
+
+---
+
+## 8. Gates
 
 | Gate | Result |
 |---|---|
-| **PR Build Gate** | **PASS** on the final head `c1b9300` (run 34528404643, 4m58s, first attempt). Also passed on `5d4eca6`, `f73f242` and `447161c`. Note for the next agent: on `447161c` the gate failed once on a RUNNER FLAKE — the Kotlin daemon died on startup and its message begins `e: `, which is exactly the pattern the gate greps for. There were no `e: file:` lines and a re-run of the same job passed. Check for `e: file:` before believing a red gate. |
-| Codex exact-head review | **UNAVAILABLE — quota**. `codex exec` returns `You've hit your usage limit… try again at Sep 15th, 2026 2:29 AM`. Re-verified this round. |
-| Claude Code fallback review | FIVE rounds against the **COMPLETE PR diff**, each by a separate Opus reviewer. r1 `5d4eca6`: REQUEST_CHANGES, 3 BLOCKER / 11 MAJOR. r2 `f73f242`: REQUEST_CHANGES, 0 / 8. r3 `55d230e`: REQUEST_CHANGES, 0 / 3. r4 `447161c`: APPROVE_WITH_COMMENTS, 0 / 0 / 4 MINOR — all four fixed. **r5 on the final head `c1b9300`: APPROVE_WITH_COMMENTS, 0 BLOCKER / 0 MAJOR**, and explicitly *"the first fix round in the series that introduces no regression — I specifically tried to construct one and could not"*. Its 3 MINOR / 2 NIT are in a code path it verified is currently unreachable (no write path produces a BUY + ROLLED row) and it states none needs a commit before merging; they are recorded in `roadmap.md` items 10-11. |
-| **CENTRAL structured fallback attestation** | **STILL MISSING — infrastructure blocker.** No such mechanism exists anywhere under `/root/work/bin` or in `automation-core`. It was **not faked**, and the `codex-p1-acknowledged` override label was **NOT applied**. `codex-gate-evaluator` / `check-codex-status` therefore show red on the PR, and the round's validation result is `failed` **for this process gate only**. |
+| **PR Build Gate** | **PASS** on every head pushed this round: `75441d1`, `9a527c7`, `09bfa2c`, `62404c8`, `e248039`, `6de000b` |
+| **Codex exact-head review** | **CODEX CAME BACK MID-TASK.** It was quota-blocked at the start (`You've hit your usage limit… try again at Sep 15th, 2026 2:29 AM`, verified twice) and the sanctioned Claude fallback was used for the first two rounds. Re-probed before finalizing: Codex answered. It then performed a REAL exact-head review and found **3 MAJOR** defects two Claude reviewers had missed — see §11. **`review_provider = codex` for the final round**, not the fallback |
+| `Codex Gate` check on the PR | **RED**, and correctly so. The review above was run through the local `codex exec` CLI; the gate looks for a review signal posted to the PR by the ChatGPT Codex connector, which a local CLI run does not produce. Do not read the red check as "no Codex review happened" — read §11 |
+| **CENTRAL structured fallback attestation** | **STILL MISSING — infrastructure blocker, unchanged.** No such mechanism exists under `/root/work/bin` or in `automation-core` (`provider=claude_code_fallback` / `reviewed_head=` / `unresolved_p1=` appear nowhere). It was **not faked**, no local workflow was patched, and `codex-p1-acknowledged` was **NOT** used. The round's overall validation is `failed` **for this process gate only** |
 
 ---
 
-## 8. Shared-tooling change (disclosed)
+## 9. Model/agent availability this round (disclosed — the planned split did NOT happen)
 
-`/root/work/bin/agent-memory-finalize` had no way to finalize this project: it derives the memory directory
-from the repo basename (`OptionsProfitTracker`) while the memory directory is `options-profit-tracker`,
-so it exited 66. The owner previously **approved option (2)** — add an `AGENT_MEMORY_PROJECT` override with
-the existing basename behaviour as the default — conditioned on identifying the canonical
-version-controlled source first. **There is none**: `/root/work/bin` is not a git repository, the file is
-not a symlink, and `automation-core` does not contain it (searched again this round). Because the current
-addendum instructs the override to be used, the one-line change was applied to the deployed copy:
+The canonical rules put PLANNING on the latest Fable and IMPLEMENTATION on the latest Opus.
 
-```bash
-project_name="${AGENT_MEMORY_PROJECT:-$(basename "$project_root")}"
-```
+- **Fable: quota-exhausted.** Two planning subagents died with `You've reached your Fable limit`
+  (HTTP 429, `claude-fable-5-1`).
+- **Opus subagents: weekly limit**, three planning subagents died with `You've hit your weekly limit ·
+  resets 8am (UTC)`. One planning subagent (stock-realized) completed before the limit; the other three
+  investigations were done by the main thread itself.
+- The main thread ran on **Opus 5 (1M)** throughout, which is the strongest setting actually available.
+  Once the weekly limit reset, the reviews used **separate Opus reviewer subagents**, and then Codex.
+- Per the rules this is recorded rather than presented as if the split had been performed.
 
-Backward-compatible (identical behaviour when the variable is unset), syntax-checked, and backed up as
-`agent-memory-finalize.backup-20260910-165548`. **It still has no canonical version-controlled home** —
-that remains an open infrastructure item for the coordinator.
-
----
-
-## 9. Backlog / owner-pending
-
-Recorded in `roadmap.md`, none of it changed in this round:
-
-1. The put ranking is dominated by 2027–2028 LEAPS — a direct consequence of the owner's own approved
-   "no upper DTE cap, not annualised" contract. Four numbered options; annualising is the historically
-   rejected direction.
-2. Sector grouping cannot fire for this portfolio (Finnhub returns an empty industry for leveraged
-   single-stock ETFs). Three numbered options; inferring a sector from a symbol stays forbidden.
-3. The CSP prefill's IV field takes the ticker-level IV (138.5 %) rather than the ranked contract's (131 %).
-   Two numbered options.
-4. `IvService.fetchCcQuote` is called ~4× per ticker within milliseconds (pre-existing).
-5. **Unchanged from before:** the `× 1.3` premium boost surviving in `ReportGenerator`'s abnormal-move
-   alert, and the assigned Covered Put realizing its premium nowhere on the manual path
-   (`ProfitCalculator.kt`, P&L-locked). Both still carry their three numbered alternatives.
-
-Owner-visible checks still owed are listed at the end of `pending-tests.md`.
+**The quota situation is why this round had FOUR review passes by THREE different reviewers, and it is
+the single most useful thing that happened to it:** the two Claude reviewers between them found the
+orphaned-price defect and the money-deleting grain fallback, and then Codex — reviewing the head those
+fixes produced — found three MAJOR defects both Claude reviewers had passed, including one the second
+Claude review had explicitly examined and cleared. A second opinion from a different model was worth
+more here than a third pass from the same one.
 
 ---
 
-## 10. Exact-head review — findings and disposition
+## 10. Owner-pending
 
-Round 1 ran against the COMPLETE PR diff at `5d4eca6` (Codex quota-blocked, so the sanctioned Claude
-Code fallback with a separate Opus reviewer). Verdict: **REQUEST_CHANGES** — 3 BLOCKER, 11 MAJOR,
-16 MINOR/NIT. Every finding was re-verified against source before anything was changed; two were
-verified and then answered differently from the reviewer's suggestion, and both are noted below.
+1. **Where −$2,412.39 comes from** — send the exact IBKR view. See §2.
+2. **Live CC BID/ASK/MID** and **live 2–60 DTE put ranking** — both need an open US session.
+3. **Buy-to-cover feed rows (A5)** and **the same-second feed fingerprint** — now measured (§4); both
+   remain owner decisions with numbered options in `roadmap.md`.
+4. **The windowed rebuilt total** (GPUS) — three numbered options in `roadmap.md`.
+5. **Unchanged and untouched:** the `× 1.3` premium boost in `ReportGenerator`'s abnormal-move alert
+   (seen live this session as `→ CSP ~2.68` on SOXL); the assigned Covered Put realizing its premium
+   nowhere on the manual path (`ProfitCalculator`, P&L-locked); cleartext credentials in the daily
+   external-storage backup; `allowBackup` with no extraction rules; the dashboard price-refresh
+   fan-out; the CSP prefill's ticker-level IV; the per-ticker `changePct` day-baseline gap.
+6. **Settings renders the Flex token and every API key as plain on-screen text** (pre-existing;
+   observed again this session, deliberately not recorded anywhere).
+7. **Reboot remains PASS from S2.3 and was NOT repeated.** Do not reopen it.
 
-**Fixed in `f73f242` — this round's own defects**
+---
 
-| # | Defect | Why it mattered |
-|---|---|---|
-| M2 | `groupDetail`/`groupNote` "non-breaking space" was a plain space on BOTH sides (hexdump-verified) | The one row whose contract forbids a ticker breaking away from its percentage had no protection at all |
-| M3 | Evidence capped at 5 while subjects were uncapped | A 7-name sector selloff printed 7 tickers over a note claiming 5 moved together — on exactly the day the row fires |
-| M4 | `crumb()` never read `mintedAt` | The rate limit guarded the 401 path, not the handshake path: an unreachable host meant two 8 s calls per option request, ~32 per scan |
-| M5 | `fetchOptionDetails` sent the crumb without its cookie, and had no refusal branch; the promised `applyYahooAuth` did not exist | Refused exactly like no crumb; a 401 threw and read as an illiquid contract |
-| M6 | Overflow row said "with news of their own today" | Rung 1 also covers an earnings DATE and a social mention — an unsupportable claim, the exact class this addendum removes |
-| M7 | Scan read `lastFailure` last-wins | Three refused tickers + one clean-but-empty fourth reported "no put meets the rules" about contracts never seen |
-| m1/m2/m3 | Cashtag bypassed the floor and stoplist; bare match had no defence against an ALL-CAPS wire headline; industry matched as an unbounded substring with an unspecified tie-break | `$C 5 billion` and "KEY TAKEAWAYS FROM THE FED MEETING" became ticker mentions |
-| m4/m6 | A 0.005 bid folded into "no bid"; `fetchCcQuote` collapsed 429/5xx into a silent null | The same one-message-for-every-cause defect the put half of this round removed |
-| n1/n2/n4/n5/n6 | Refusal markers, `@VisibleForTesting`, loudest-movers diagnostic, ellipsis before `attribute`, consistent ordering | — |
-| M11 | `YahooCrumbTest` could not fail; the grouping API had no direct tests | Rewritten; `SectorGroupTest` added at the sizes that break it. This gap is why M2 and M3 shipped |
+## 11. Exact-head review — findings and disposition
 
-**Fixed in `f73f242` — defects elsewhere in the PR, found only because the review covers the complete diff**
+**SEVEN review passes by THREE reviewers.** Codex was quota-blocked when the round began (the
+sanctioned Claude fallback ran twice) and **came back partway through**, so the final authority is
+**Codex, not the fallback** — the first time that has been true in this PR series.
 
-| # | Defect |
-|---|---|
-| M1 | `BrokerReconciliationStore.get()` stripped a segment its callers had already stripped → returned null for EVERY record, so broker execution instants silently stopped winning on the close screen |
-| B2 | `ownerChangedClose` was `A?.takeIf{!x} ?: B` with `B == A` — a no-op leaving the position row and the feed event permanently disagreeing after an edit |
-| B3 | …and it fired on a NO-OP save: the field is seeded with `fmtPremium(stored)` but compared against the raw Double, while `IbkrReconciler` wrote `avgClosePrice` unrounded (the commission two lines above WAS rounded) |
-| M9 | `matchPartialSlice` accepted a lone candidate before the date filter with no date guard → an unrecorded September partial could claim a March round trip of the same size and move it months |
-| M10 | `currentStockPriceIsLive` was never cleared on a ticker change → one symbol's live price became another's, feeding B-S and assignment-probability math |
-| M8/m18 | Three Compose rows put an unweighted wrapping child before a `maxLines=1` sibling → the CC provenance label and both put rows' ratio badge could measure to 0dp and vanish |
-| m8/m9/m11 | Brief detail 50/50 split; `YearMonth.now()` device zone over New-York-keyed broker data; a PERSISTED feed string using the default locale |
+| # | Head | Reviewer | Verdict |
+|---|---|---|---|
+| 1 | `9a527c7` | Claude fallback (separate Opus) | REQUEST_CHANGES — 0 BLOCKER / 3 MAJOR / 8 MINOR / 4 NIT |
+| 2 | `e248039` | Claude (separate Opus) | APPROVE_WITH_COMMENTS — 0 / 1 / 8 / 6 |
+| 3 | `e248039` | **Codex** | REQUEST_CHANGES — 0 / 3 / 3 / 0 |
+| 4 | `6de000b` | **Codex** | REQUEST_CHANGES — 0 / 2 / 4 / 0 |
+| 5 | `249cc25` | **Codex** | REQUEST_CHANGES — 0 / 1 / 3 / 0 |
+| 6 | `9e3f83a` | **Codex** | REQUEST_CHANGES — 0 / 1 / 3 / 0 |
+| 7 | `32d5c77` | **Codex** | APPROVE_WITH_COMMENTS — 0 / 0 / 1 / 0 |
+| 8 | `2f0f202` | **Codex** | APPROVE_WITH_COMMENTS — 0 / 0 / 2 / 0 |
+| 9 | `905fa02` | **Codex** | APPROVE_WITH_COMMENTS — 0 / 0 / 2 / 0 |
+| 10 | **`9183a16` (final)** | **Codex** | **APPROVE — 0 / 0 / 0 / 0**, *"ready to hand to the owner"* |
 
-**NOT changed, deliberately**
+**The MAJORs, in order, and all fixed:**
 
-- **B1 — the PR modifies `ProfitCalculator.kt` and `StrategicRiskAnalyzer.kt`** (from earlier commits,
-  under the owner's Covered-Put ruling: assignment realizes $0 on the option and the premium folds into
-  the effective cover price). Both files are `.claude-guard.json` P&L-locked. The reviewer's own
-  recommendation was to keep the PR owner-gated rather than change anything, and PR #19 already carries
-  `no-automerge` + `needs-owner`. **The newest commit touches neither file.** This needs the owner's
-  written approval before merge.
-- **m19 (`SectorContext.label`/`detail` now only feed a discarded BriefLine)** — left in place. They are
-  the documented rung-2 renderers, `explanationLadder` is public and directly tested, and deleting them
-  would remove coverage of the ladder the owner specified.
-- The pre-existing `first4=${key.take(4)}` diagnostics in `AiAnalysisService` / `PortfolioNewsScreen` /
-  `OptionChainParser`, and the `API_KEYS: LOAD <provider>: present=<bool> len=<n>` line, are untouched by
-  this PR. No key material, account identifier or raw Flex XML appears in any device log this round; the
-  `len=` metadata is worth a separate ticket, not a scope expansion here.
+1. **The alerts watchlist prefilled a price into a form with NO ticker.** Unifying the row made that
+   surface pass `targetStrategy` into `prefillFromBestTrade`, whose `else -> return` bails for five of
+   the picker's seven labels — skipping `updateTicker` while `prefillCurrentPrice` still ran. NVDA
+   (`"מניות"`) opened an empty ticker with a price belonging to nothing. **Verified fixed on the device.**
+2. **The grain rule could DELETE money.** On the live `(ticker, day)` key, "suppress everything that is
+   not the winning grain" removed a second, genuinely different order reported at a coarser grain.
+3. **Codex: equal money is not the same movement.** A SELL and a buy-to-cover both realizing `+$100`
+   collapsed into one.
+4. **Codex: the FEED could accumulate two grains of one order ACROSS imports** — append-only, dedupes
+   on `(timestamp, amount)`, no migration path: `+100` today, `+60`/`+40` tomorrow, drill-down 200 for
+   a sale of 100, permanently.
+5. **Codex: exact-contract IV had a 100× discontinuity.** `rawIv < 5.0 -> ×100` was borrowed from
+   `IvService`; against Yahoo v7, where IV is always decimal, a decimal 5.0 (500 %) rendered as **5 %**.
+6. **Codex: the quantity guard itself double-counted** — a restating ORDER row that omits `quantity`
+   had it coerced to 0, so it no longer matched its own fills.
+7. **Codex: an order id is not a fill.** A GTC order fills across sessions and IBKR emits a DAILY ORDER
+   row per session; comparing one day's row against ALL the order's executions counted a day twice.
+
+**The final rule, after all seven:** suppression requires IBKR's own order id; grouping is by
+`(order id, broker day)`; within a group a losing tier is dropped only when it restates the winner's
+money and — when both state one — its signed quantity. Without an order id **nothing is suppressed**
+and the group is reported as `AMBIGUOUS_GRAIN`. On the owner's current query that means no suppression
+runs at all, which costs nothing because that payload was measured to contain zero duplicate grains.
+
+**Also fixed across the rounds:** the stock drill-down date was the device's day, not the broker's
+(this is why the task itself was written against "the 2026-09-09 sale", which traded on 09-08); the
+audit's row cap hid the very ticker it existed to explain; `keptRows` claimed a guard it did not
+implement; the audit asserted "only partly covered" from a comparison that cannot establish it; the
+empty state spoke for every scanned ticker on one ticker's evidence; `summaryLines` had an alphabetical
+cap that would have dropped 54 of 114 ticker-months including SPCH; the cross-surface audit could not
+see a ticker whose sales are only in stored history; three successive attempts at the watchlist row's
+0dp hazard (the third moved it, the fourth split the row, the fifth flowed it); the CC book row could
+clip the MID — the number the next line calls the recommended limit; and `fetchOptionDetails` logged an
+exception message that can quote a crumb-bearing URL.
+
+**The last two rounds' findings, also fixed:** fixing ONE crumb-bearing catch was not enough — the
+sibling Yahoo option paths build crumb-bearing URLs too, and a parser exception on a malformed HTTP 200
+can quote the URL that produced it, so every such catch now logs the exception CLASS and the response
+diagnostic keeps only `body.length`; and the recommended-limit line now says **לחוזה**, because every
+other money line on that card is per CONTRACT and `$43.00` beside a per-share midpoint of `0.43` is
+precisely the ×100 confusion the feature exists to prevent.
+
+**What this round actually demonstrates:** a second reviewer from a DIFFERENT model was worth more than
+another pass from the same one. Two independent Claude reviews passed a head that Codex then opened
+with three MAJORs, one of which the second Claude review had explicitly examined and cleared. Every
+Codex round after that found a defect inside the previous round's fix — narrowing each time — which is
+the convergence you want but only get by re-reviewing the head the fix produced.

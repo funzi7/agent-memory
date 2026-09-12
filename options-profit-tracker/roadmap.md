@@ -987,3 +987,105 @@ field can never hold (`sanitize` drops `+`) — harmless in a pure-function test
 beside it carries the real coverage; and a code comment in `ClosePositionScreen` overstates the
 pre-commit damage ("any save would silently rewrite the roll") when in fact only an explicit radio tap
 could, because `loadPosition` already seeded `ROLLED` and the save's `when` mapped it back.
+
+### 2026-09-12 — S2.4 backlog reconciliation (PR #19 OPEN needs-owner, NOT merged)
+
+**DONE in S2.4**
+- ONE canonical stock-sale grain rule (`StockRealizedGrain`), used by BOTH the per-ticker total and the
+  per-sale feed, so the two surfaces can never again read different row sets. Plus the import audit
+  that names every ticker-month the rule moves, and a cross-surface check that classifies any remaining
+  total-vs-drill-down difference.
+- Put candidates are DTE **2–60 inclusive**; the window is applied BEFORE the chain request budget is
+  spent; `EXPIRY_TOO_FAR` and "no expiry in the window" are their own counters and their own sentences.
+- CC reminder shows BID / ASK / MID, with the estimated premium and the recommended limit BOTH the mid,
+  derived once, only from a real two-sided quote, and labelled "not a guaranteed fill".
+- The watchlist is ONE list: one quote loader, one row, one persisted shared sort (default = today's
+  move, largest declines first), and both surfaces carry the price into `פוזיציה חדשה`.
+- Market-brief rows are one paragraph with one indentation; the LTR detail keeps its guarantee via an
+  explicit isolate.
+- The stock drill-down DATE is now the broker's New York day (was the device's — the reason this very
+  round was commissioned against "the SPCH 2026-09-09 sale", which traded on 09-08).
+
+**THE HEADLINE FINDING — the reported defect did not reproduce**
+The SPCH 1,000-share sale is four EXECUTION fills totalling exactly **−$6,815.39**; total and
+drill-down agree to the cent; the audit found **0 duplicate grains in the entire live payload**.
+**−$2,412.39 is not in the data.** Nothing was changed toward it. If IBKR's own screen shows that
+figure, the owner needs to send the exact view — it will be a different report, period or lot-matching
+basis, and reconciling it is an OWNER input, not an agent guess.
+
+**MEASURED, RECORDED, DELIBERATELY NOT FIXED (each is an existing owner decision)**
+- **Buy-to-cover has no feed event (A5).** Now quantified: MULL 2026-07 +3,159.07, PLUG 2026-06
+  −691.07, QQQ 2026-02 −4.30. The TOTAL is right; the drill-down is short by exactly the buy side.
+- **The same-second `(timestamp, amount)` feed fingerprint collapses two real fills.** Previously
+  theoretical ("9 ticker-months affected"); now PROVEN: BCAR 2026-01-13 12:33:36 has two fills both
+  realizing 1.48 (at 10.29 and 10.30) and only one event exists — the diff is exactly 1.48. Also EWT
+  2026-05, VNDA 2026-02, RXT 2026-02, MULL 2026-06. **Not changed because the fingerprint IS the
+  identity of money-bearing feed rows: altering it without a migration would INSERT duplicates on the
+  next import, which is worse than the under-count.** Options: (1) add qty+price to the fingerprint and
+  migrate existing rows; (2) use `tradeID`/`ibExecID` (both in the payload, both currently discarded);
+  (3) accept it — totals are unaffected, only the drill-down under-reports.
+- **The rebuilt total is windowed.** `captureStockRealized` replaces the whole per-ticker map from the
+  CURRENT Flex window, while feed events accumulate for ever, so a month the window no longer covers
+  SHRINKS in the total (GPUS 2026-01: feed 76.34 vs total 36.66). Options: (1) accept; (2) merge per
+  ticker-month instead of replacing; (3) a per-sale side store like `BrokerCashFlowStore`. Each changes
+  what the monthly card shows for old months, so it is the owner's call.
+- **11 ticker-months differ by exactly ±0.01** (per-row rounding vs sum rounding). Cosmetic.
+
+**PRESERVED FUTURE (unchanged, nothing touched)**
+- The `× 1.3` premium boost in `ReportGenerator`'s abnormal-move alert — still live and visible on the
+  device this session (`→ CSP ~2.68` on SOXL). Three numbered alternatives already recorded.
+- The assigned Covered Put realizing its premium nowhere on the manual path (`ProfitCalculator`, locked).
+- Cleartext credentials in the daily external-storage backup; `allowBackup` with no extraction rules.
+- The dashboard price-refresh fan-out (4× per launch); the three ambiguous split cycles; PR #18
+  automation-core findings; DB/Hilt consolidation; the alert-banner reappear issue; unifying the four
+  worker session windows; the per-ticker `changePct` day-baseline gap (index row only was fixed).
+- The CSP prefill's IV field takes the ticker-level IV, not the ranked contract's.
+- Settings renders the Flex token and every API key as plain on-screen text (pre-existing; observed
+  again this session and deliberately not recorded anywhere).
+
+**SUPERSEDED — owner approved**
+- "No upper DTE cap" on the put ranking → DTE 2–60 inclusive.
+- "A CC premium is a real BID or it is not shown" is NARROWED, not reversed: a real two-sided quote now
+  yields a MID, which is what the card shows. A stale `lastPrice`, a lone side and a crossed book stay
+  refused, and with no pair the card still shows the bid alone.
+
+### 2026-09-12 — S2.4 review rounds: what the reviewers found, and what is now owner-pending
+
+FOUR exact-head review passes by THREE reviewers. Codex was quota-blocked at the start (the sanctioned
+Claude fallback was used) and **came back partway through**, so the final authority is Codex, not the
+fallback — the first time in this PR series that has been true.
+
+**Found and FIXED this round (all mine):**
+- The orphaned price: unifying the watchlist row made the alerts surface pass `targetStrategy` into
+  `prefillFromBestTrade`, whose `else -> return` bails for five of the picker's seven labels, skipping
+  `updateTicker` while `prefillCurrentPrice` still ran. NVDA (`"מניות"`) opened an EMPTY ticker with a
+  price in the field. Fixed at the root.
+- The grain fallback could DELETE money: on the live `(ticker, day)` key, "suppress everything that is
+  not the winning grain" removed a second, genuinely different order reported at a coarser grain.
+- **Codex:** equal money is not the same movement — a SELL and a buy-to-cover both realizing `+$100`
+  collapsed into one. Suppression now needs money AND signed quantity.
+- **Codex:** the FEED could accumulate two grains of one order ACROSS imports (append-only, dedupes on
+  `(timestamp, amount)`, no migration). The feed now takes EXECUTION/unlabelled rows only.
+- **Codex:** exact-contract IV had a 100x discontinuity (`rawIv < 5.0` heuristic borrowed from
+  `IvService`, wrong against Yahoo v7 where IV is always decimal). A decimal 5.0 showed as 5%.
+- The stock drill-down DATE was the DEVICE's day, not the broker's.
+- Plus: `keptRows` claimed a guard it did not implement; the audit asserted "only partly covered" from a
+  comparison that cannot establish it; the empty-state spoke for every scanned ticker on one ticker's
+  evidence; `summaryLines` had an alphabetical cap that would have dropped 54 of 114 ticker-months;
+  the row's 0dp hazard moved from the delete button to the strategy chip.
+
+**NEW owner-pending items surfaced by the reviews:**
+1. **Get `ibOrderID` (or `orderID`) into the Flex query's field list.** It is the single change that
+   would remove the `(ticker, day)` grouping ambiguity at the source, and with it the whole class of
+   "is this tier a duplicate or a different movement?" reasoning. Nothing in the app can do this — it
+   is a setting in the IBKR portal's Flex Query configuration. Highly recommended.
+2. **`AlertsScreen` now runs an ungated per-entry quote fetch.** `rememberWatchlistQuotes` has no TTL,
+   no NY-day stamp and no process-scope gate, so every entry into `התראות ומעקב` issues one batch quote
+   plus one chart request per ticker missing from both snapshots. Measured at 4 fetches across the whole
+   QA session (one per screen entry, not per recomposition), so it is not a storm — but it is new cost
+   on a frequently-visited screen, and the `PutScanCache` ruling ("ViewModel-held gates die on every
+   back-navigation") says the fix is a process-level gate keyed on the ticker set. Not done: it is a
+   performance change to an accepted behaviour and wants its own round.
+3. **A contract whose own IV exceeds 500 % now has NO usable IV** and is excluded as `NO_OWN_IV`, where
+   before the fix it would have rendered as a wrong small number. That is the honest outcome, but it can
+   remove a candidate that used to appear. Confirm the 1..500 band is where you want it.

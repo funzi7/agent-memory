@@ -302,3 +302,105 @@ Executed on the real device (SM-S938B, 192.168.1.118:37211, `install -r`, firstI
   - The delta from `447161c` to the final `c1b9300` is 4 files / 61 insertions / 9 deletions — a money-comparison normalisation, one close-method list entry, and two test files. **Nothing on the network path.**
   - The failed runs were themselves useful evidence: the crumb handshake was attempted ONCE per process rather than once per request (the round-1 `crumb()` rate-limit fix, live), the scan fast-failed at 4 requests, and every per-ticker line read `status=NETWORK` — not a sticky value, and not "no put meets the rules".
 - [ ] OWNER: when the phone's DNS is healthy, open the app and confirm `פוטים לפי פרמיה / בטחונות` is populated and `מה קורה היום בשוק` reads correctly to you.
+
+### 2026-09-12 S2.4 — device-test status (Claude Code; PR #19 OPEN, needs-owner) — executed on the real device
+Executed on SM-S938B (192.168.1.118), `adb install -r` only. No uninstall, no `pm clear`, no DB or
+DataStore deletion, **no reboot** (the reboot gate stays CLOSED from S2.3 — do not reopen it).
+Session clock: **Saturday 2026-09-12, ~04:40–05:15 ET** — the US market and the option book were SHUT
+all session, which bounds what could be proven live.
+
+DONE by the agent on the device:
+- [x] Install/launch: signer SHA-1 `5d3d855c6c6c397f817df2bd0c62f16f940b1551` == installed; installed
+      `base.apk` SHA-256 read back off the device == the build; `firstInstallTime` still
+      2026-04-22 22:53:57. 0 FATAL, 0 AndroidRuntime, 0 Room/SQLite/migration over 39,742 app lines.
+- [x] Privacy over the same 39,742 lines: **0** occurrences of the Flex token, the Anthropic key, the
+      Finnhub key, the AlphaVantage key, any `U#######` account id, `FlexQueryResponse`,
+      `AccountInformation`, or the owner's email.
+- [x] **STOCK REALIZED (A).** One real Flex sync (payload 4,908,464 chars, 103 tickers). The audit
+      reported **0 MISMATCH and 0 GRAIN_SUM lines** — every STK row in the owner's query is
+      `levelOfDetail=EXECUTION`, so there is **no duplicate grain anywhere to double-count**.
+- [x] **SPCH proven from the broker's own rows.** The 1,000-share sale is **2026-09-08 15:10:17 ET**,
+      sent as FOUR EXECUTION fills: 300 @ 10.69 → −2,043.77; 100 @ 10.69 → −681.97; 500 @ 10.70 →
+      −3,407.71; 100 @ 10.69 → −681.94. **1,000 shares, −$6,815.39 exactly.** The expected −$2,412.39
+      appears NOWHERE in the payload. **The reported double-count did NOT reproduce.**
+- [x] **Total == drill-down, on screen.** `רווח/הפסד מניות` 09-2026: SPCH row −$6,815.39, expanding to
+      exactly those four fills. Month total −$15,377.59 (BTCI −1,914.57, SOFI −3,077.21, NOK −3,570.42,
+      SPCH −6,815.39).
+- [x] **Historical audit, all 114 ticker-months**: 93 agree to the cent; 21 differ, classified —
+      buy-to-cover has no feed event (MULL 2026-07 +3,159.07, PLUG 2026-06 −691.07, QQQ 2026-02 −4.30);
+      the same-second `(timestamp, amount)` feed fingerprint collapses two real fills (BCAR 2026-01
+      proves it exactly — two fills at 12:33:36 both realizing 1.48, one skipped); the rebuilt total is
+      windowed while feed events accumulate (GPUS 2026-01 −39.68); and 11 cases of ±0.01 rounding.
+      **None is a double-count.**
+- [x] **WATCHLIST (D).** Both surfaces show the SAME 15 tickers with the SAME prices and day changes.
+      The `רשימת מעקב` section on `התראות ומעקב` previously showed **no price and no day change at
+      all**. Default order verified live, ascending by signed move: NVTX −0.5, SNXX −0.3, ASTX −0.3,
+      IRE −0.3, TSLL −0.2, WDCX −0.1, NVDA −0.0, FAS +0.0, MVLL +0.1, NEBX +0.2, CWVX +0.3, SOXL +0.4,
+      RKLX +0.4, ELIL +0.6.
+- [x] **Shared persisted sort.** Tapped `מחיר` on the ALERTS surface → `opt_table_sort.xml` gained
+      `watchlist_shared_col=PRICE`, `watchlist_shared_asc=false`; the FULL screen then opened showing
+      `מחיר ▼` active and ordered 218.26 → 173.95 → 122.28 → 29.34 → 26.04 → 25.08 → 17.12. Restored to
+      the approved default (`MOVE` / asc) afterwards.
+- [x] **Navigation prefill from BOTH surfaces.** Tapping WDCX on the full screen and on the alerts
+      section each opened `פוזיציה חדשה` with ticker WDCX and `מחיר נוכחי` = **17.12**. **No trade was
+      saved.**
+- [x] **No request storm.** 4 `WATCHLIST_VOL` lines across the whole session — one batch per screen
+      entry, each `seeded 15/15 refreshed 15/15 showing 15`, so rows had prices on the FIRST frame and
+      a failed refresh could not blank them. 0 `CC_QUOTE` calls (correctly gated by the shut book).
+- [x] **CC (C) — stale/last-known labelling verified, which is all a shut book allows.** MULL:
+      `ביד אחרון שנצפה לחוזה: $110.00` `(פקיעה 16.10.26 · סטרייק 29)` + `לא ציטוט חי — נקרא לפני 13 שעות.`
+      SPCH: `אין כרגע ציטוט אמין לחוזה.` + `פרמיה אחרונה שמכרת: $44.00 · 10.09.26` (the SOLD date, its
+      own label). Neither said `ביד נוכחי`. No midpoint was invented from half a book.
+- [x] **PUT (B) — closed-market path.** `פוטים לפי פרמיה / בטחונות` → `אין מחירי מסחר רגיל להיום.` with
+      `ראה הכל ←` present and **no fabricated candidate**.
+- [x] **MARKET BRIEF (E).** Card renders `מצב השוק` → `השוק בארה״ב סגור היום — סוף שבוע. אין מסחר.` →
+      `מה צפוי בהמשך היום` → `פוקעות בהמשך השבוע:` with RKLX 18C 18.09, ELIL 29P 18.09, SNXX 14P 18.09,
+      WDCX 15.67P 18.09. The row WRAPS to a second line and both lines share the same right edge; dates
+      render LTR (`18.09`, `15.67P`), no tofu from the LTR isolate.
+
+OWNER-PENDING — could NOT be proven this session, and are NOT claimed:
+- [ ] **CC BID / ASK / MID live.** Needs the REGULAR session (09:30–16:00 ET). Open the dashboard and
+      confirm a ticker with 100+ uncovered shares shows `פרמיה משוערת לחוזה (אמצע)`, a
+      `ביד / ביקוש / אמצע לחוזה` line, and `לימיט מומלץ (אמצע, לא מובטח ביצוע)`. Check the mid by hand:
+      bid 0.42 / ask 0.44 → mid 0.43 → **$43.00 per contract** (never $0.43, never $4,300). If the book
+      quotes only one side, the card must fall back to the bid alone with NO mid line.
+- [ ] **PUT 2–60 DTE live.** During market hours on a red day, confirm every ranked candidate is DTE
+      2–60 and that **no 2027/2028 LEAP appears** (they used to dominate). Confirm the dashboard's top 3
+      are the first 3 of the full list, same order, same numbers.
+- [ ] **SUPERSEDED — owner approved:** the S2.3 FINAL ADDENDUM item that asked for `ביד נוכחי לחוזה $X`
+      during the session. With a two-sided book the headline is now the MID and reads
+      `פרמיה משוערת לחוזה (אמצע)`; `ביד נוכחי לחוזה` remains the wording only when the book quotes a
+      bid and no usable ask. Kept for history.
+- [ ] **Market brief alignment with SEVERAL explanation rows.** Saturday produced only two rows, so the
+      multi-row case (a sector group + a broad-market row + an overflow row) is covered by fixtures
+      only. Confirm on a trading day that every row starts at the same edge and wrapped rows align.
+- [ ] **Where −$2,412.39 came from.** The app is not double-counting; IBKR's four fills sum to
+      −$6,815.39. If IBKR's own screen shows −$2,412.39 for this sale, it is a different report,
+      period or lot-matching basis — please send the exact IBKR view so it can be reconciled. Nothing
+      was changed toward that number.
+
+### 2026-09-12 S2.4 — device checks added by the REVIEW rounds (final head)
+
+Re-verified on the device after the review fixes, on the final build:
+- [x] **The orphaned-price defect, on the exact row that broke.** NVDA (target strategy `מניות`) tapped
+      from the `רשימת מעקב` section on `התראות ומעקב` now opens `פוזיציה חדשה` with the ticker field
+      holding **NVDA** and `מחיר נוכחי` **218.26**. Before the fix that tap produced an EMPTY ticker with
+      the price sitting in the field, belonging to nothing.
+- [x] **Navigation really is unified.** Tapping WDCX on the FULL `רשימת מעקב` screen now opens the same
+      form the alerts surface opens: **CSP selected, WDCX, `מחיר נוכחי` 17.12**. Before, the full screen
+      passed no strategy and opened a bare form. **No trade was saved** on any of these taps.
+- [x] Final build launches clean: 0 FATAL, 0 AndroidRuntime, 0 SQLite/Room/migration; 0 token, key,
+      account id, raw Flex XML or owner email in the app log.
+- [x] Installed == built == delivered APK hash on the final head; `firstInstallTime` still
+      2026-04-22 22:53:57; signer SHA-1 `5d3d855c…`.
+
+Still owner-pending (unchanged — a shut market bounds them):
+- [ ] CC **BID / ASK / MID** during the regular session (09:30–16:00 ET). Check the mid by hand:
+      bid 0.42 / ask 0.44 → mid 0.43 → **$43.00 per contract**. With only one side quoted there must be
+      NO mid line and the card must fall back to the bid alone.
+- [ ] PUT ranking during market hours on a red day: every candidate DTE 2–60, **no 2027/2028 LEAP**, and
+      the dashboard's top 3 identical to the first 3 of the full list.
+- [ ] **NEW — worth one look after the IV fix.** A contract whose own IV is above 500 % now has no
+      usable IV and is excluded (`NO_OWN_IV`) instead of rendering as a wrong small number. If a
+      candidate you expected to see is missing on a very-high-IV name, that is why.
+- [ ] Market-brief alignment with SEVERAL explanation rows (needs a trading day with movers).

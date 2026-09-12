@@ -119,3 +119,21 @@ is shown, and the broad-market row states co-movement rather than "no reason fou
 was root-caused to Yahoo answering `401 Invalid Crumb` to keyless option requests; the cookie+crumb
 handshake fixes it and the device now ranks 4 live candidates from 1,194 contracts. 624 JVM tests green.
 Read cc-latest.md first.
+
+### 2026-09-12 pointer (Claude Code) — S2.4 finished; rolling handoff is cc-latest.md
+Same branch `s2/ibkr-reconciliation-lifecycle-dashboard`, PR #19 OPEN `needs-owner` + `no-automerge`,
+NOT merged; main still `7225b7af`. **The headline is a negative result, and it matters:** the SPCH
+"double-count" this round was commissioned to fix **does not exist**. A real Flex sync shows IBKR sends
+the 1,000-share sale as FOUR EXECUTION fills summing to exactly −$6,815.39, the whole payload contains
+**zero** duplicate grains, the per-ticker total and the per-sale drill-down agree to the cent on
+screen, and −$2,412.39 appears nowhere in the data. Nothing was changed toward that number.
+
+What DID ship: one canonical stock-sale grain rule used by both surfaces (defensive — they really were
+reading different row sets), an import audit that names every ticker-month it moves, and a full
+114-ticker-month historical audit (93 exact; 21 differing, every one classified and none a
+double-count). Plus puts capped to DTE 2–60, a CC card that shows BID/ASK/MID with the mid as both the
+estimate and the recommended limit, one unified watchlist with a shared persisted sort, and
+market-brief rows that all start and wrap at the same edge. Device QA found two extra real defects: the
+drill-down printed the DEVICE's calendar day for a trade (which is why this task was written against
+"the 2026-09-09 sale" — it traded on 09-08), and the audit's row cap hid the one ticker it existed to
+explain. 716 JVM tests green. Read `cc-latest.md` first.

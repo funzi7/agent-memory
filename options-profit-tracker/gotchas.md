@@ -835,3 +835,103 @@ explicit NOT REVIEWED section is worth more than an exhaustive report that never
   on the failing side: an attribution 70 characters past the cut point never reaches the ellipsis branch.
 - **Half a timezone migration is worse than none.** Moving one month key to New York while its sibling
   stayed on the device zone would have shown two different months on one card.
+
+### 2026-09-12 (S2.4) — lessons that cost real time this round
+
+**A reported defect is a HYPOTHESIS until the device agrees.** S2.4 was commissioned on "SPCH
+reconciles to −$2,412.39 but the app shows −$6,815.39, therefore a duplicate report grain is being
+double-counted", and the arithmetic even supported it (`−2,412.39 + −4,403.00 = −6,815.39` exactly).
+One real sync destroyed the theory: IBKR sends the 1,000 shares as FOUR EXECUTION fills
+(−2,043.77 / −681.97 / −3,407.71 / −681.94) that sum to −6,815.39, the audit found **0 duplicate
+grains in the whole payload**, and −2,412.39 is nowhere in the data. A coincidental subtraction is not
+evidence. Build the generic correctness first, then let the device say whether it was the bug.
+
+**A bounded diagnostic must be bounded by RELEVANCE, not by arrival order.** The audit's first real run
+capped itself at 40 rows in payload order and spent every one of them on tickers beginning with A and
+B — it never reached SPCH, the single ticker the whole round existed to explain, so the run had to be
+repeated. Order a capped diagnostic by the magnitude of the thing being questioned, and emit a compact
+per-bucket SUMMARY line for everything so nothing is invisible.
+
+**The device timezone reached a TRADE DATE, and then the wrong date became the brief.**
+`getStockSalesForTicker` formatted the drill-down day with `ZoneId.systemDefault()`. On the owner's
+UTC+7 phone a 2026-09-08 15:10 ET fill printed `09/09/2026` — while the month CHIP beside it already
+keyed on New York. One sale, two dates, one screen. The task itself was then written against "the SPCH
+2026-09-09 sale". Fixed as `StockRealizedGrain.saleDayLabel` and unit-tested: **the date is part of
+the claim, so it gets the same standard as the number.**
+
+**Read the app's OWN database when a sync would tell you nothing new.** Flex is a daily snapshot, so
+re-syncing on the same day cannot produce different rows. `run-as com.dima.optionstracker cat
+databases/options_tracker.db` on a debug build (there is no `sqlite3` on the device — copy it off and
+query with python) answered the SPCH question and produced the entire 114-ticker-month historical audit
+without a second import. It also proved the same-second fingerprint collapse exactly: BCAR has two
+fills at 12:33:36 both realizing 1.48, and only one feed event.
+
+**`AnnotatedString.Builder.append(Char)` does not chain.** `append(LRI).append(text).append(PDI)`
+fails to compile ("receiver type mismatch") because the Char overload returns Unit. Three separate
+`append` calls.
+
+**An LTR ISOLATE (U+2066…U+2069) is the right tool when an LTR run must share a PARAGRAPH with
+Hebrew.** `LtrText` is a separate composable, so a wrapped detail resumed at its own inner edge while a
+wrapped label resumed at the card's edge — four different offsets on one card. One `Text` with the
+detail isolated wraps to one common edge and keeps the "2026-09 must never render as 50-2026"
+guarantee. Verified on the device: no tofu, dates correct, both lines flush to the same right edge.
+Write the isolate as an ESCAPE, never a pasted glyph — the pasted-NBSP defect in this same feature is
+why.
+
+**UI-driving by guessed pixel coordinates wastes minutes; `uiautomator dump` does not.** Dump the tree,
+grep for the node's `text=` and read its `bounds`, tap the centre. Scroll-and-dump in a loop until the
+node appears. Several taps in this round landed on the wrong control before switching to this.
+
+**Two surfaces showing "the same list" drift silently.** The watchlist appeared twice and had become
+two different lists with one name: one seeded prices from the shared snapshot and showed the day
+change, the other showed **neither**, and only one carried the price into `פוזיציה חדשה`. Nothing
+failed, nothing logged, and no test could see it because both were private composables. If a list is
+shown twice, the loader, the row, the sort and the tap target belong in one shared file.
+
+### 2026-09-12 (S2.4, review rounds) — what a SECOND MODEL caught that a second pass did not
+
+Codex was quota-blocked when this round started and came back partway through. That accident produced
+the most valuable evidence of the round: **two independent Claude reviewers passed a head, and Codex
+then found three MAJOR defects in it** — one of which the second Claude review had explicitly examined
+and cleared.
+
+1. **Equal money is not the same movement.** The grain rule suppressed a losing tier when its summed
+   `fifoPnlRealized` matched the winning tier's. On the LIVE grouping key — `(ticker, day)`, because
+   neither `ibOrderID` nor `orderID` is in this app's Flex field list — an EXECUTION SELL realizing
+   `+$100` and a SEPARATE buy-to-cover realizing `+$100` have equal sums and are different movements.
+   The buy was deleted and the total read 100 for 200. The fix is to require the signed QUANTITY to
+   match too (IBKR signs sells negative, buys positive), which also stops two break-even rows whose
+   sums are both `0.00` from collapsing into one. **A money comparison is not an identity.**
+
+2. **A suppression rule that only runs at import time does not govern data that PERSISTS.** Letting the
+   grain rule alone decide the feed meant an ORDER-only sale became a `STOCK_SOLD` event; a later
+   payload reporting that same order at EXECUTION grain then inserted its fills ALONGSIDE the surviving
+   aggregate, because the feed is append-only and dedupes on `(timestamp, amount)` with no migration
+   path. `+100` today, `+60` and `+40` tomorrow, and the drill-down reads 200 for a sale of 100 —
+   for ever. The TOTAL is rebuilt from scratch each import and was immune, which is exactly why the
+   asymmetry was invisible. **Before unifying two surfaces on one rule, ask which of them REMEMBERS.**
+
+3. **A magnitude heuristic borrowed from another call site becomes a 100× error.** `rawIv < 5.0 -> ×100
+   else rawIv` is right in `IvService`, where a mirror may already send percent. In `OptionChainQuotes`,
+   which talks to Yahoo v7 and nothing else, IV is always decimal — so a decimal `5.0` (500 %) rendered
+   as **5 %**, while `4.9999` rendered as 499.99 %: a 100× discontinuity across one hundredth of a unit,
+   on the exact-contract IV the approved ranking says may never be substituted. **Copy the rule, inherit
+   the assumption.**
+
+Also from these rounds:
+- **A "unification" can leave the tap target un-unified and make things worse.** Sharing the watchlist
+  ROW while leaving the two navigation callbacks different meant the alerts surface passed
+  `targetStrategy` into `prefillFromBestTrade`, whose `else -> return` bails for five of the picker's
+  seven labels — skipping `updateTicker` while the caller's `prefillCurrentPrice` still ran. Tapping
+  NVDA (`"מניות"`) opened a form with an EMPTY ticker and a price belonging to nothing. Before the
+  round the same tap left the form uniformly blank; adding the price is what turned a gap into a lie.
+- **Weighting one child moves the 0dp hazard, it does not remove it.** Wrapping the row's text group in
+  `weight(1f)` protected the delete button and handed the hazard to the strategy chip — the last
+  unweighted child is always the one that reaches zero. Weight the child that can afford to shrink (the
+  ticker, which ellipsises legibly), not the ones that must not vanish (the numbers).
+- **A KDoc that claims a guard is worse than no KDoc.** `keptRows` said the payload "is guarded rather
+  than trusted" and did no checking at all. On a money path a false safety claim invites exactly the
+  misuse it pretends to prevent.
+- **An audit that explains a discrepancy away stops being an audit.** "drill-down exceeds the total —
+  this month is only partly covered" cannot be concluded from comparing two signed totals; a genuinely
+  double-counted feed looks identical. It now says UNEXPLAINED and names the possibilities.
