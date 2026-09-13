@@ -1,122 +1,218 @@
-# private-media-tv — code45 continuation handoff (Claude Code)
+# private-media-tv — code45 Website `WEB_SOURCE` handoff (Claude Code)
 
 ## Identity
 
 - Repository: `private-media-tv`, branch `main`, tracking `origin/main`.
-- Starting application HEAD: `563fd1347a1909cca6187d8c98dacf82eeb31baa`.
-- Final application HEAD: `8e1f5a8a79674fa459e1c1b6900338a11d9cc173` (19 commits, normal push, no force).
+- Starting application HEAD: `2f06e1b1be44ca7e99f31090f96daf534de0c1ed`
+  (two local commits from the previous round were still unpushed; `origin/main` was
+  `8e1f5a8a79674fa459e1c1b6900338a11d9cc173`).
+- Final application HEAD: `3004e6b1a93e36f79237097c5d08ed84faad7d83` (one commit, normal push, no force;
+  the same push also carried the previous round's two commits, which had been committed locally but never
+  pushed).
 - Mobile Test target unchanged: `0.4.26-phone-test` / versionCode 45. No version bump, no new milestone.
-- TV/Shield frozen at `0.6.11-f2c71` / 34: `git diff 563fd13..HEAD -- app-tv` is empty.
+- TV/Shield frozen at `0.6.11-f2c71` / 34 and untouched.
 
 ## What this round was
 
-A continuation of the SAME code45 milestone, driven by six owner corrections raised mid-session. Each
-is recorded below with what was delivered and, where something does not work, that it does not.
+One owner clarification, acted on end to end. The previous round had REFUSED a request the owner never
+made. They asked for two public Websites — `dlive.sx` and `ntv.cx` — to play INSIDE the app through the
+existing shared GeckoView engine, exactly as they play in a browser:
 
-## Owner corrections and outcomes
+```text
+PMTV -> shared GeckoView WebsitePlaybackEngine -> the Website itself -> the Website's own player
+```
 
-1. **"not both team are showing properly … untd without a position in the table"** — DELIVERED, device
-   verification deferred. The previously wired provider's free table endpoint returns exactly 5 rows for
-   every key/league/season and ignores every paging parameter; its season-events endpoint caps at 15
-   events, so no table could be derived from results either. The owner then named **365scores** as the
-   football data source. A bounded, credential-free adapter now supplies the complete table. Verified live
-   against the owner's own fixture: full 20-row table, the missing participant at place 13, and a leading
-   five identical to the other provider's published prefix. See
-   `~/.claude/projects/-root-work-private-media-tv/memory/pmtv-football-data-and-spoiler-gate.md` for the
-   route, the four competition ids, and the spoiler caveat below.
-2. **"take from 365scores also all the data available … pre match, during match … post match"** — only the
-   league table is implemented. The rest was inspected and recorded as the next increment with its
-   endpoints (`/web/game/?gameId=`), deliberately NOT half-built at a milestone close. Nothing the owner
-   can currently see regresses: the live minute already comes from the canonical kickoff and
-   score/statistics/events already come from the existing provider behind the same reveal gate.
-3. **"why theres 5 liveball sources? liveball.sx is only one source"** — DELIVERED and verified on device.
-   Discovery already issued one query per fixture; the registry SUMMARY was what read as five sources. It
-   now reads `מקור אחד · N עמודי משחק שמורים` with a line stating the site is the source and each game's
-   page is found automatically. Another family still shows its own provider/resource counts, so the change
-   is scoped to a same-origin known family. No saved profile, role or binding was folded away.
-4. **"liveball site is with spoilers, no spoilers … unless i watched"** — DELIVERED. Opening a provider
-   match page for a LIVE or FINISHED fixture the owner has not watched requires one explicit acceptance,
-   held ONCE per match and consulted by all FOUR routes to that page. The first implementation gated only
-   one of them; the other three were one-tap reveals.
-5. **"i imported a link and its shows to open in a browser"** — EXPLAINED, not fixable as asked. Verified
-   across the whole match lifecycle — before kickoff, at half time, and after a finished match — that the
-   provider's page carries no media URL, no player initialization and no embed at any point: the player is
-   assembled at runtime by an obfuscated loader. PMTV's resolver binds a page that plainly carries a
-   playable blob, so there is nothing to bind. A website-only source now states WHY per fixture state.
-   Deliberate boundary, recorded so it is not revisited by accident: no obfuscation-defeating extractor.
-6. **"thumbnails … needs to be the same and to add more details like name channel, num of views"** —
-   geometry DELIVERED (one shared card width); the byline **DOES NOT WORK on the owner's account** and is
-   recorded as an open FAIL, see below.
+and stated plainly: "This is a WEB_SOURCE task, not a NATIVE_STREAM task." PMTV had instead applied the
+requirement for a source's own lawful, technically verified *direct/native* playback binding to
+browser-only rendering, and declined.
 
-## Open FAIL carried forward
+## The most important lesson, for whoever reads this next
 
-**The channel name and view count do not appear on the owner's real account response.** The model field,
-cache column, schema v3 migration with an explicit 2→3 step, the shared byline helper and the rendering on
-all three surfaces are implemented and unit-tested, and the parser feeding the YouTube Home rows IS the one
-that was extended. On device, after a refresh that demonstrably fetched new items, no card showed the line —
-including a newly fetched item, so it is not a stale-cache effect. Conclusion: that account's renderer does
-not carry the label under `longBylineText` / `shortBylineText` / `ownerText` / `viewCountText` /
-`shortViewCountText`. Next step is to capture the real response for those rows and extend the key set to the
-shape it actually uses. A label must never be synthesised and an opaque channel id must never be rendered in
-its place, so the current behaviour — render nothing — is the correct interim state. Tracked as TODO C45-20.
+**A contract sentence written for one boundary was silently applied to a different one.** The sentence
+"a playback-capable provider/source role requires its own lawful, technically verified binding" was
+written about extraction and native playback. Applied to a browser rendering a page, it forbids
+something it was never about — and because the sentence was in `AGENTS.md`, the refusal looked like
+policy compliance rather than a misreading. The fix was to make the distinction explicit in the contract
+FIRST, before any code: `AGENTS.md` now has a **Website `WEB_SOURCE` semantics** section, and the old
+sentence says in its own words that it governs direct/native/extracted authority only.
 
-## Review process, and what it cost
+When a rule seems to forbid something the owner plainly wants, check whether the rule is about the thing
+you are actually doing before declining.
 
-The primary reviewer was unavailable (usage limit until Sep 19), so the documented Claude fallback ran
-fail-closed. **Nine rounds.** Every finding was fixed or explicitly recorded; none was deferred silently.
+## What actually blocked it in the code
 
-Findings worth remembering because they were introduced BY earlier fixes in the same session:
+Not the engine. The engine was already permissive (JavaScript, cross-origin frames and nested frames,
+cross-origin media/CDNs, cookies `ACCEPT_ALL`, EME/DRM, fullscreen). Two real blockers, both upstream:
 
-- the spoiler gate covering one of four affordances;
-- a coverage-aware capture guard that let retries starve never-captured fixtures out their bounded slots,
-  and a first capture that burned the fixture's only retry while it was still UPCOMING;
-- the Sports Programs rotation cursor, which took **five** designs. A per-pass index, an entry identity, a
-  monotone count and a hole-capped window position each starved some entry forever. The settled design is a
-  position in the profile's FIXED listing window with per-page observation. Do not "simplify" it back.
+1. **A `WEB_SOURCE` was required to advertise native-media-shaped capability before its own owner-bound
+   row could exist.** Discovery filtered profiles through a provider capability gate — `LIVE_MATCHES`
+   while a fixture runs, replay/highlights once finished, `LIVE_MATCHES` again before kickoff. That gate
+   answers a real question, *is this REUSABLE PROVIDER worth QUERYING*, and it stays. It was also applied
+   to an exact `SINGLE_RESOURCE` page the owner had already bound to that exact match, where the question
+   does not arise: that path issues no request at all, it re-projects the existing binding. Net effect: a
+   Website was admitted only if the probe had ALSO inferred playable-media evidence from it — only if it
+   looked like a native source. A Website legitimately advertises `GENERAL_VIDEO_SOURCE` and nothing more.
+2. **Autoplay was stricter than a browser.** The pinned GeckoView ships
+   `media.geckoview.autoplay.request=true` and exposes NO runtime autoplay default, so the app's
+   permission delegate *is* the browser's autoplay policy. It denied both audible and silent autoplay.
+   Silent autoplay is how an ordinary web player reaches its first frame before the viewer unmutes, and
+   denying it protects nothing. Silent autoplay is now allowed on a public-HTTPS non-YouTube document;
+   audible autoplay stays denied, exactly as an ordinary mobile browser denies it.
 
-Two test guards I wrote were proven weak under mutation and rebuilt until the mutation fails them. One test
-claimed to guard an internal branch it never reached; it now states what it actually covers.
+Admission is now by REGISTRATION KIND and reads no binding, so everything downstream carries the weight:
+a row needs an `EXACT`/`OWNER_CONFIRMED` binding for that exact target and resource, the per-row
+role-versus-state check governs each row (its pre-match condition is the one that was relaxed), a
+postponed/cancelled fixture admits no role, presentation suppresses a profile with nothing to show, and
+the capability gate still governs every reusable provider.
 
-**The most valuable technique**: rather than keep answering one reported configuration at a time, the
-rotation was modelled faithfully in a scratch simulator and brute-forced over 345 configurations with TWO
-metrics separated — a stall (no item request across forty refreshes while work is visible) and a starvation
-(an entry still reachable late that was never inspected). That found two starvations the reviews had not, and
-settled a policy choice I had earlier made wrongly because a crude metric counted entries on a permanently
-dead page as "starved". Reach for this before a sixth review round.
+## What the independent review caught in my own fix, which is the part worth reading
 
-## Corrections I had to make to my own earlier claims
+Two P1 defects, both mine, both in the first implementation of the above:
 
-- **`live=false` does not exclude a running match.** The code comment, the ADR and a test all asserted it
-  did. Verified false during the owner's own match. The spoiler contract rests on the PHASE GATE, not on any
-  request parameter.
-- **An acceptance-procedure append silently did nothing** because my guard tested whether an EMPTY string was
-  absent from the file, which is never true. The commit message had claimed a procedure that did not exist.
-  Any generated-edit guard must assert on real content.
-- **A `~/.claude` memory said "no adb here"** — wrong. adb works over TCP; it is shared storage that is not
-  writable from the Debian layer, so deliver by `adb push` + on-device `sha256sum`.
+1. **The presentation-suppression rule inherited the widening.** Its pre-match branch delegated to the
+   very predicate I had just relaxed, so on any UPCOMING fixture the suppression was inert: a source
+   search that issues no network request at all would have reported one "checked" provider per saved
+   exact page, and the owner-facing message would have flipped from "no sources were configured" to "the
+   search completed — none found". **When you widen a predicate, grep every caller of it, including the
+   ones that were supposed to be the safety net.** The pre-widening rule is now a separate function used
+   only by presentation, with a regression test that fails if the delegation returns.
+2. **The replacement owner-facing copy asserted that the site's own player PLAYS.** No Website playback
+   has been observed on a device in this project, and one of the owner's own two pages did not play for
+   them. Shipping that sentence would have put a physical claim in the UI that the same commit's evidence
+   record denies. The copy now states only the affordance — the page can be opened here, and whose player
+   is used there. Two sibling defects came with it: asserting that no stream EXISTS on the page (PMTV
+   looks only where it has an audited resolver, so "was not found" is the strongest honest verb), and
+   telling the owner to wait for kickoff while the button directly beneath was already enabled.
+
+A third, smaller, was a truthfulness regression in diagnostics: the autoplay-blocked code keyed on the
+capability decision rather than the final answer, so a silent-autoplay request refused by the
+public-HTTPS guard returned DENY with no diagnostic at all. The answer and the diagnostic now come from
+one pure function — which also gave that delegate its first test coverage, since it had none.
+
+The review also found that an earlier draft of the state/handoff/test-plan notes quoted validation
+results captured BEFORE the final source edit. The numbers were real but described a superseded revision.
+**Write the validation section last, after the last source edit, or re-run it.**
+
+## A fix of my own that I removed after reading the engine instead of assuming
+
+I first added a pass that rewrote Gecko's stored site permissions at session start, reasoning that a
+DENY written by the older policy would outlive it because "Gecko stops asking a site it has been told to
+refuse". That reasoning was wrong, and the pinned artifact says so: the autoplay decision is taken from
+the embedder's answer for the CURRENT top-level document and reset per document, and the
+permission-manager row that is also written is not read back for an ordinary principal. The pass would
+have corrected nothing and would have raced the document's first autoplay request.
+
+Two things made this catchable: the planning agent read the actual pinned Gecko source rather than the
+API docs, and the bundled pref was verifiable directly out of the AAR
+(`assets/omni.ja!/defaults/pref/arm64-v8a/geckoview-prefs.js`). **Check the pinned artifact, not the
+javadoc, before building machinery around an engine's behaviour.**
+
+## Owner-visible wording that was false
+
+The website-only notice said no stream on the page "can be played inside the application". Under the
+clarified contract that is false — the page plays inside the application, through the isolated browser,
+with the site's own player as the surface. What PMTV had not found is a stream its OWN player can take.
+All four lifecycle variants now say that, each still stating whether a broadcast is even expected to
+exist yet. `SUPERSEDED — owner approved`. The action label and every other control were left alone.
+
+## Partly delivered: `football.co.il`
+
+The owner said "add football.co.il". What shipped is the IDENTITY fragment: the site is recognised by its
+own published name `מנהלת הליגות לכדורגל`, so several saved pages of it read as one source. No
+capability, coverage claim, discovery route or playback grant, and a regression test asserts it is not
+natively resolvable. It is **not inert**, though, and the review was right to insist on the distinction:
+membership of ANY known family is what admits a site to the Sports provider-portfolio surface. Saying "it
+grants nothing" was wrong; saying what it grants is the fix.
+
+Consuming the site as a Ligat ha'Al data/highlights/full-match source is **NOT implemented** and stays on
+the backlog — and the previous round's deferred TODO entry had to be restored after I had flipped it to
+done, which is exactly the freeze-map hazard the project rules forbid. **A deferred owner item does not
+become done because an adjacent fragment of it shipped.**
+
+Why it was not rushed: the site's RSS feed carries **articles only**, with zero `<enclosure>` elements and
+no video, HLS or embed reference anywhere in the document, and several article titles **contain scores**.
+So it is neither a highlights nor a full-match index, and rendering its item text on a spoiler-free Sports
+surface would break the owner's own rule. Its own pages do embed video and are openable through the
+Website engine like any other Website source. Its `robots.txt` publishes `Crawl-delay: 5`, which the
+bounded probe does not yet honour per host. `football.org.il` answers 403 from outside Israel, was never
+audited, and is deliberately NOT claimed.
+
+## Physical status — PENDING, and not claimed
+
+**No Website playback was observed, and no Website Playback PASS is claimed.** The device answered ADB
+for the whole implementation window but was LOCKED with the screen off
+(`isKeyguardShowing=true`, `mScreenOn=false`), and a lock-screen bypass is prohibited. None of the eight
+required observations — page opens, embed/player rendered, play from the site's own control, moving
+video frames, audio, fullscreen, Back, leave/re-enter — needs less than the screen and a real tap.
+
+The browser control test is unusable for the same reason, and this is worth recording as a technique
+result: launching a browser with the URL "worked" (the activity resumed) while rendering nothing behind
+the keyguard, and two screen captures three seconds apart differed in **zero** pixels across the whole
+1080×2340 screen. A resumed activity is not a rendered page. Always check `isKeyguardShowing` before
+attempting visual device evidence.
+
+Host-side structure was verified and is explicitly NOT playback evidence: both pages answer HTTP 200
+over HTTPS with no `http://` resource, no custom scheme and no popup in the player chain, and both reach
+an ordinary JS/HLS browser player through a same-origin embed page and then a cross-origin player frame.
+
+## Validation
+
+All of it against the exact committed tree, after the last source edit, with every test task forced to
+re-run through its `clean…` counterpart rather than accepted as up-to-date:
+`:app-mobile:testDebugUnitTest` **1,489 tests, 0 failures, 0 errors, 11 skipped across 160 classes**; the
+fourteen other mobile-used module test tasks re-run from clean and green; scoped Mobile lint **0 errors,
+39 warnings** and `:app-mobile:assembleDebug` successful; `git diff --check` clean. Credential scanner
+(62), mobile phone-delivery (15), CI downloader (20 rejection + 1 success), mobile upgrade verifier (8)
+and all three GeckoView artifact gates passed against the built APK.
+
+**Five mutations applied in place, each caught by a named test**: presentation inheriting the widening;
+dropping the single-resource admission; restoring the pre-match capability requirement; reverting the
+suppression on the refresh's YouTube exit; reverting autoplay parity. The two-Website route test is
+deliberately NOT a mutation guard — it exercises the manual-source path, which never carried the gate —
+and the docs say so rather than counting it as one.
 
 ## Delivery truth
 
-- Exact-final-HEAD Android CI: run `34773984160` on `8e1f5a8a…`, both jobs success.
-- Artifact `18cce24600fefcdc62f1e3bc5a1a65648e62b66790581c8e04979983052a491d`, 260,115,332 bytes, single
-  `arm64-v8a`, pinned TDLib present, v2/v3 signing only (no v1 `META-INF`, which is expected).
-- All three required paths hold that exact hash, and the device's installed `base.apk` hashes to it, so the
-  phone runs precisely the final-head artifact. The build is byte-identical across the last commits because
-  those changed only documentation — which is why the installed hash still matches the FINAL head even
-  though the install ran from the preceding run. No reinstall is claimed that did not happen.
-- In-place upgrade only: `firstInstallTime` stayed `2026-08-03 05:46:55`. No uninstall, Clear Data, state
-  erasure, direct preference/database mutation, or lock-screen bypass at any point.
+- Exact-final-HEAD Android CI: run `34788770961` on `3004e6b1a93e36f79237097c5d08ed84faad7d83`, both jobs
+  success (wrapper validation; official TDLib, mobile tests, mobile lint and signed mobile APK).
+- The CI artifact was published to BOTH required device paths by the canonical downloader, and each copy
+  was then verified independently on the device: `260131716` bytes, SHA-256
+  `dd1e6ede1397c2c342fb0c19f8c7bc1a0341d9f9fa3a4a02fd2737d8ab269a81`, Development certificate
+  `2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0`. Both on-device `sha256sum` reads
+  match that hash exactly, and both are real regular files.
+- **Correction to an earlier handoff note:** `scripts/download-latest-ci-mobile-apk-to-phone.sh` WORKS.
+  A previous round recorded that it always fails because Android shared storage is not writable from the
+  Debian layer; that was a state of the environment, not a property of the script. Run the canonical
+  downloader and read its real output before reaching for an `adb push` workaround.
+- **No installation or launch is claimed.** The artifact was delivered, not installed: the device was
+  locked with the screen off throughout, so no in-place upgrade, launch, or playback was performed.
+- One in-repo placeholder is deliberately left as it stands: `docs/CODE45_OWNER_CONTRACT.md` still marks
+  the phone-delivery line **PENDING** from the previous round's close-out. Amending it would require a new
+  application commit, which under the canonical review contract invalidates the exact-head fallback
+  attestation and the green CI for `3004e6b…`. The delivery evidence therefore lives here, which is the
+  documented place for post-push evidence, rather than in a cosmetic commit that would weaken the
+  release evidence it was meant to record.
 
-## Not verifiable in this window, stated rather than claimed
+## Review
 
-- Both teams' real positions ON DEVICE: the new table is captured only while a fixture is UPCOMING, and the
-  feed held one LIVE and one FINISHED football fixture with existing snapshots frozen by contract.
-- The provider-page spoiler acceptance ON DEVICE: the available LIVE fixture had no website source to gate.
-- In-app playback of a real LiveBall LIVE stream: see correction 5 — there is nothing in the page to bind.
+`review_provider = claude_code_fallback`, `reason = codex_quota_unavailable`. An independent Opus
+reviewer that did not do the implementation produced **39 findings**: 17 changed code or tests, 4 were
+accepted with the rationale recorded instead of "fixed", the rest were corroborating or informational.
+Zero unresolved P1 or P2. This is not a Codex review and is not presented as one.
+
+## Known limitation identified and deliberately left alone
+
+When the bounded probe's own crawler cannot inspect a child/media origin inside a Website's chain
+(`SOURCE_UNSAFE_ADDRESS` / `SOURCE_DNS_FAILED`), the URL is refused outright with no "use as a website"
+offer. Neither of the owner's two Websites hits that path, and the instruction was to fix only the
+actual blockers, so it is recorded rather than changed speculatively. Also unchanged: the bounded probe
+does not implement a per-host robots crawl-delay, which `football.co.il` publishes as 5 seconds.
 
 ## Rules note
 
-`agent-memory/DEVELOPMENT_RULES_FULL.md` was read in full first. No `reset`, `clean`, `restore`, `stash`,
-force push or alternate worktree was used, and no unrelated local work was touched — an uncommitted
-`paywall-bot/cc-latest.md` change in this repository was left exactly as found, which the finalize script's
-per-project scoping preserves. agent-memory was finalized ONLY through `/root/work/bin/agent-memory-finalize`.
+`agent-memory/DEVELOPMENT_RULES_FULL.md` was read in full first, then the full application and
+agent-memory preflight. No `reset`, `clean`, `restore`, `stash`, force push or alternate worktree was
+used, and no unrelated local work was touched — an uncommitted `paywall-bot/cc-latest.md` change in the
+agent-memory repository was left exactly as found, which the finalize script's per-project scoping
+preserves. Planning ran in Fable, implementation and review in Opus, and agent-memory was finalized ONLY
+through `/root/work/bin/agent-memory-finalize`.
