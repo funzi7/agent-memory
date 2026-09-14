@@ -935,3 +935,58 @@ Also from these rounds:
 - **An audit that explains a discrepancy away stops being an audit.** "drill-down exceeds the total —
   this month is only partly covered" cannot be concluded from comparing two signed totals; a genuinely
   double-counted feed looks identical. It now says UNEXPLAINED and names the possibilities.
+
+### 2026-09-14 — S2.5 addendum gotchas (risk-adjusted puts + leveraged discovery)
+
+**"Highest premium / collateral" ranks the most dangerous contract first.** The ratio is monotone in
+premium, and the richest premium in a chain is the strike nearest the money — i.e. the one most likely
+to be assigned. Ranking by it alone is not a neutral ordering, it is an ordering by risk taken. The
+composite (70 % strategic quality + 30 % return percentile) keeps the ratio visible without letting it
+decide. Generalises: any single-quantity ranking of a risk/reward pair silently optimises the half it
+can see.
+
+**A percentile of one is not 100.** With N = 1 there is no distribution to be at the top of. Awarding
+the maximum lets the only candidate of a quiet day inherit a score it did nothing to earn, and it then
+outranks a genuinely better candidate tomorrow when the pool is large. `LONE_CANDIDATE_PERCENTILE = 50`
+— neutral, and explicitly tested.
+
+**A ticker's SPELLING is not evidence, and neither is a fund's marketing name, on its own.** ProShares
+cut UVXY from 2x to **1.5x** and SVXY from −1x to **−0.5x** in February 2018 and never renamed either.
+Both are listed and optionable today. So "Ultra" means 2x for QLD and 1.5x for UVXY; "Short" means −1x
+for SH and −0.5x for SVXY. Any name-derived leverage ratio is wrong on live products, which is why the
+ratio is stored only when the registered name states an explicit multiple and is otherwise "not
+stated" — never 1x, never inferred.
+
+**`contains("BULL")` puts "Invesco DB US Dollar Index Bullish Fund" in the leveraged list.** Word
+boundaries, always, when matching a word inside a free-text name. Same class as the `Submarine` /
+`Marine` industry-substring defect already in this file. And a bare "Short" is not an inverse signal at
+all — in fund names it is overwhelmingly a maturity ("Short Term Treasury").
+
+**Direction comes from the words, not from the magnitude.** Reading "3X" first files every
+"Daily Semiconductor **Bear** 3X" as a long fund. The sign is part of the fact.
+
+**Two signals, and a category that says something ELSE is counter-evidence, not silence.** "YieldMax
+Ultra Option Income" (*Derivative Income*) and "Simplify Short Term Treasury" (*Long Government*) are
+real, live, optionable funds that trip a name-only classifier and that the category drops — verified
+live. But the provider's catch-all *Trading--Miscellaneous* bucket is NOT a positive classifier: it
+holds genuine 2x crypto products beside unleveraged currency funds. Three states, not two.
+
+**A failed request must never be cached as an answer.** The fund-category store has no expiry by design
+(a fund's strategy does not change), so recording a dropped connection as "asked, and it said nothing"
+strikes that symbol off permanently and nothing ever asks again. Separate "the request failed" from
+"the provider answered nothing" at the point where you can still tell them apart — inside the fetch.
+
+**A process-level cache built from a DAILY file needs the daily clock.** Without a day stamp a process
+that survives midnight keeps yesterday's universe for as long as it lives. Same lesson as `PutScanCache`,
+re-learned on a different cache.
+
+**A cap set below the real population is a coverage bias with no symptom.** The universe arrives sorted
+by symbol, so a 300-symbol price cap over a 409-symbol universe would have silently excluded the end of
+the alphabet from discovery for ever. Set such caps above the measured population, and log the moment
+one actually bites.
+
+**A pasted invisible character in a TEST is the same defect as one in production.** Ten assertions on
+this branch asserted bidi isolates written as pasted U+2068/U+2069, plus a pasted NBSP. The codepoints
+happened to be right so everything passed — but a reviewer cannot see them, and a paste that degrades
+to a plain space leaves every one of those assertions passing while protecting nothing. Escapes only,
+and check with a byte-level scan rather than by eye.

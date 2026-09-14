@@ -1249,3 +1249,84 @@ The post-stabilization feature roadmap (F1–F16: AI per-post analysis, watchlis
   suppressing a different movement; the feed able to double-count one order across imports; a 100x
   exact-contract IV discontinuity; a quantity guard that double-counted when quantity was absent; and
   an order id treated as if it identified a fill.
+
+### 2026-09-14 S2.5 ADDENDUM — risk-adjusted put ranking + leveraged/inverse ETP discovery
+- OPT FINAL: 074de86e52f2a168b89dc21ff32a851570f1b144 (PR #19 OPEN, needs-owner, no-automerge, NOT merged). Build Gate PASS on this head.
+- The put list is no longer ranked by premium/collateral. `PutScore` =
+  `0.70*strategicQualityScore + 0.30*returnPercentileScore`, both 0..100, computed ONCE and read by
+  both the dashboard preview and `HighIvScreen`. The 70 % reuses the EXISTING `StrategicRiskAnalyzer`
+  (`estimateAssignmentProb` / `assessPutBuffer` / `analyze` were already public) — no second
+  probability model, and NO guard-protected file was touched.
+- Break-even = strike − premium/share; P(OTM) = 100 − P(assignment at the strike); P(profit) measured at
+  the BREAK-EVEN. Exact-contract IV, real DTE, real price. ONE global percentile pool for tracked +
+  discovered; ties equal; N=1 scores a NEUTRAL 50 (not 100); NaN never ranked. Ratio-only
+  best-contract-per-ticker is documented SUPERSEDED.
+- Discovery: `LeveragedUniverse` (pure, 23 tests) + `LeveragedEtpService` + `LeveragedEtpStore`
+  (standalone SharedPreferences — NO Room migration was necessary). Universe = Nasdaq Trader
+  `nasdaqtraded.txt` INTERSECT the Cboe option symbol directory, classified by TWO independent signals:
+  the exchange-REGISTERED security name and the fund's assigned category. The SYMBOL is never read.
+- MEASURED LIVE 2026-09-14 through the production parsers: stamp 0914202614:03, 13,220 rows, 5,677 ETFs,
+  5,333 optionable symbols, 1,634 optionable ETPs, 409 name-flagged, 320 with a stated multiple.
+  SOXL/SOXS/TQQQ/NVDL/BITX/TSLL/MSOX correct; SPY/QQQ/NVDA excluded; ULTY dropped by its live category
+  (`Derivative Income`); UVXY kept as leveraged with NO ratio.
+- LIVE DISCOVERY CANDIDATE PATH **OBSERVED**: 409 priced, 209 declining, reddest 8 = GLWG −26.8, SITX
+  −22.9, COHX −22.4, COHH −22.4, TERG −22.1, AXTX −21.3, LABX −21.0, AXTU −20.6; 7 of 8 yield at least
+  one contract passing OTM + DTE 2..60 + exact-contract IV + real BID (best: COHX 20P @1.00 = 5.26 %).
+  AXTU's 262 % "best ratio" is a 2352 % IV quote and is already rejected by the existing
+  `MAX_CONTRACT_IV_PCT = 1000` bound — a live illustration of why ratio-only ranking was wrong.
+- **THE ONE GAP, REPORTED NOT PAPERED OVER: the 2x/3x RATIO is not available as a fact from any free
+  source.** No leverage column in the listing file; the category names Leveraged/Inverse and never the
+  multiple; SEC's Investment Company Series & Class file is identification-only, misses ~21 % of these
+  funds and its ticker column is not unique; 2x and 3x prospectus text of one family is byte-identical.
+  And name inference is WRONG on live products — UVXY is still called "Ultra" and runs 1.5x, SVXY is
+  still called "Short" and runs −0.5x (both cut 2018, neither renamed). A ratio is therefore stored ONLY
+  when the registered name states an explicit multiple; otherwise "not stated", never 1x. The scan
+  filters on `leveraged or inverse`, which IS a fact. Owner options are in roadmap.md.
+- Discovery runs LAST on its own budget, after the tracked result is published, and runs even when no
+  tracked ticker is red. The reddest few are category-VERIFIED before anything is shown. A decline adds
+  NO score points; reddest-first is only how a rationed request budget is spent.
+- New dashboard section `הזדמנויות חדשות — ממונפות יורדות` (top 3 + ראה הכל); DISCOVERED tag on the full
+  screen; a coverage line naming the sources and the file's own date that never says "all".
+- Self-found and fixed before review: a FAILED category request was being cached as "asked, none" in a
+  store with no expiry; the in-process universe had no NY-day rollover; the price cap sat BELOW the real
+  population and would have excluded the end of the alphabet for ever. Also converted 10 pasted
+  U+2068/U+2069 assertions and a pasted NBSP (all introduced on this branch) to escapes.
+- 977 JVM tests, 0 failures. APK 1.0.0 sha256 28ee636132f7a6f00d883555fef1dc5a5865c1fbd46ddc994b5d4d8b124aa767, signer 5d3d855c..., delivered to
+  /sdcard/Download/OptionsProfitTracker/.
+- DEVICE QA NOT RUN: the owner said "pause adb" and never lifted it. Network QA was done without adb.
+
+#### 2026-09-14 — CORRECTIONS to the two blocks above (same round, later evidence)
+
+Appended rather than edited, per CLAUDE.md. Both of these SUPERSEDE what is written above.
+
+- **"No guard-protected file touched" is WRONG.** The PR modifies TWO of them, both from earlier,
+  separately owner-ruled commits on this branch, both carrying in-code `S2 — OWNER RULING` notes:
+  `ProfitCalculator.kt` (an assigned Covered Put realizes $0 on the option and folds the premium into
+  the effective cover basis; plus the diagnostic-trace gate) and `StrategicRiskAnalyzer.kt` (S2 "2B" —
+  `estimateAssignmentProb` published, and its CALL tail corrected from the PUT tail `N(−d)` to `N(+d)`;
+  a short CALL 50 on a 20.68 stock used to report ~96 % assignment). The PUT branch is mathematically
+  unchanged, so `PutScore`'s probabilities are the numbers the risk card has always computed. The PR
+  carries `no-automerge` + `needs-owner` and must NOT auto-merge — `.claude-guard.json` applies.
+- **"DEVICE QA NOT RUN" is WRONG.** The owner lifted the adb pause and device QA was performed during
+  an OPEN US regular session. See `pending-tests.md` for the full table. Headline: the discovery pass
+  ran end to end (`optionableEtps=1634 classified=408 confirmed=34`, `declining=193`,
+  `queued=[TERG, SITX, COHH]`, `discovered=11`), and the risk adjustment **visibly inverted a
+  ratio-only ranking on the owner's screen** — COHH's 14.94 % return is percentile 97, nearly the best
+  in the pool, and it finished LAST at score 56 (quality 39, OTM 50 %), while TERG's 0.50 % return is
+  percentile 13 and finished FIRST at 74 (quality 100, OTM 86 %). A TRACKED row sat between two
+  DISCOVERED ones: one pool, live. 0 FATAL, 0 ANR, no secret in logcat.
+- **Exact-head review round 4** (Claude fallback — Codex quota-blocked until Sep 19; NOT a Codex
+  review): 0 blockers, 1 MAJOR, 11 minor, 4 nits. The MAJOR was in this round's own work —
+  `HighIvScreen` gated on `putScan.candidates` (TRACKED only) while rendering `scored` (tracked +
+  discovered), so on a discovered-only day it printed "no put meets the rules" over a scan that had
+  found puts meeting the rules, and every discovered row plus the coverage claim were unreachable —
+  from the new card's own `ראה הכל`. Fixed, with the other acted-on findings.
+- **Credential leaks found and closed** (pre-existing, outside this task's scope):
+  `PortfolioEventsScreen` logged two full Finnhub URLs including `&token=<key>` at `Log.w` on every
+  dividend fetch; nine more `${e.message}` catches across five files sat over unguarded
+  `URL(...).readText()` on token-bearing URLs (a 4xx throws `FileNotFoundException` whose message IS
+  the full URL); and `FlexLogRedaction` masked `t=`/`token=`/`key=` but **not `crumb=`**, which the app
+  puts in a query string on every option request. All closed, with a test.
+- FINAL HEAD for this round: 074de86e52f2a168b89dc21ff32a851570f1b144. 977 JVM tests, 0 failures.
+  Build Gate PASS. APK 1.0.0 sha256 28ee636132f7a6f00d883555fef1dc5a5865c1fbd46ddc994b5d4d8b124aa767,
+  signer 5d3d855c…, installed == built == delivered, firstInstallTime still 2026-04-22 22:53:57.

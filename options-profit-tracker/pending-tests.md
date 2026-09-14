@@ -404,3 +404,68 @@ Still owner-pending (unchanged — a shut market bounds them):
       usable IV and is excluded (`NO_OWN_IV`) instead of rendering as a wrong small number. If a
       candidate you expected to see is missing on a very-high-IV name, that is why.
 - [ ] Market-brief alignment with SEVERAL explanation rows (needs a trading day with movers).
+
+### 2026-09-14 — S2.5 ADDENDUM pending tests / verification
+
+**JVM: 968 tests, 0 failures, 0 errors, 0 skipped** (was 917 at the S2.5 head). New:
+`PutScoreTest` (28 cases) and `LeveragedUniverseTest` (23 cases, the owner's discovery matrix:
+2x/3x long and inverse qualify; 1x excluded; non-US excluded; delisted excluded; no-options excluded;
+test issue and non-ETF excluded; the ticker name alone cannot prove leverage; tracked is never
+duplicated into discovery; a green fund is not a candidate).
+
+#### VERIFIED LIVE, WITHOUT ADB (network only) — 2026-09-14
+
+| what | evidence |
+|---|---|
+| listing file | `nasdaqtraded.txt` HTTP 200, 997,479 bytes, stamp `0914202614:03` |
+| option directory | Cboe CSV HTTP **302 → 200**, 393,852 bytes, 5,333 symbols. `HttpURLConnection` follows that redirect chain (same host, https→https) — confirmed by running the production call shape on this JVM |
+| production parsers on the REAL files | 13,220 rows → 5,677 ETFs → **1,634 optionable ETPs** → **409 name-flagged**, 320 with a stated multiple |
+| classification spot checks | SOXL LEVERAGED/3.0, SOXS INVERSE/**−3.0**, NVDL LEVERAGED/2.0, BITX 2.0, TSLL 2.0, TQQQ LEVERAGED/**null**, UVXY LEVERAGED/**null**, MSOX LEVERAGED; SPY/QQQ/NVDA excluded |
+| category source | Yahoo `quoteSummary?modules=fundProfile` through the app's own crumb handshake: SOXL/TQQQ `Trading--Leveraged Equity`, UVXY `Trading--Miscellaneous`, **ULTY `Derivative Income` (dropped)**, SPY `Large Blend` |
+| live discovery candidates | 409 priced, **209 declining**; reddest 8 GLWG −26.8 / SITX −22.9 / COHX −22.4 / COHH −22.4 / TERG −22.1 / AXTX −21.3 / LABX −21.0 / AXTU −20.6; **7 of 8 yield a contract passing OTM + DTE 2..60 + exact-contract IV + real BID** (best COHX 20P @ 1.00 = 5.26 %) |
+| the ratio-only failure, live | AXTU's top ratio is **262 %** — a 25P bid of 18.10 on a 27.85 spot at **2352 % IV**. Already rejected by the existing `MAX_CONTRACT_IV_PCT = 1000`; it is exactly the shape the composite exists to demote |
+| Yahoo health | option chain SOXL: 16 expirations, 55 puts / 54 calls, live spot 103.88. Benchmarks 4/4 (SPY 761.82, QQQ 711.145, DIA 524.965, IWM 288.45) |
+
+#### NOT DONE — device QA after the pause
+
+The owner said **"pause adb"** mid-round and never lifted it, so nothing below was exercised ON the
+phone for the addendum:
+
+- the new `הזדמנויות חדשות — ממונפות יורדות` card rendering (RTL/LTR, at a large font scale);
+- the composite badge and the `הסתברות משוערת` line on the dashboard preview and on `HighIvScreen`;
+- `LeveragedEtpStore` round-tripping through real SharedPreferences (there is no Robolectric on this
+  classpath, so no JVM test can reach it either — same limitation `BrokerReconciliationStore` has);
+- the coverage line under the discovered rows;
+- the amortised category queue over several days of ordinary use.
+
+The DATA and the PARSERS behind all of the above were verified live; the Android glue was not.
+
+#### CORRECTION — device QA WAS performed (the owner lifted the adb pause)
+
+The "NOT DONE" list directly above is superseded. Everything in it was exercised on the owner's phone
+during an **open US regular session**, on the installed build
+`28ee636132f7a6f00d883555fef1dc5a5865c1fbd46ddc994b5d4d8b124aa767` (installed hash == built hash,
+signer `5d3d855c…`, `firstInstallTime` still 2026-04-22 22:53:57, so an upgrade and not a reinstall).
+
+| what | evidence from the device |
+|---|---|
+| discovery pass, end to end | `LEV_ETP: universe stamp=0914202615:42 optionableEtps=1634 classified=408 confirmed=34 categoriesKnown=40 fetchedThisRun=40 failure=NONE` |
+| discovery scan | `LEV_SCAN: universe=408 confirmed=34 declining=193 queued=[TERG, SITX, COHH] requests=9 discovered=11 top=SOXL/TRACKED` |
+| the stamp mechanism on live data | the exchange republished the file mid-session — the app read `0914202615:42` where the morning copy was `0914202614:03` |
+| tracked NOT duplicated into discovery | GLWG was the reddest ETP in the whole universe (−28.2 %) and is TRACKED; the discovery queue skipped it and took TERG/SITX/COHH |
+| **the risk adjustment, inverting a ratio-only ranking on screen** | COHH: return 14.94 % = percentile **97** (nearly the best in the pool) → score **56**, LAST (quality 39, OTM 50 %, הקצאה 50 %). TERG: return 0.50 % = percentile **13** → score **74**, FIRST (quality 100, OTM 86 %). GLWG (TRACKED, 68) sits BETWEEN them — one global pool, live |
+| the arithmetic, from the screen | `.70×100+.30×13 = 74`, `.70×64+.30×77 = 68`, `.70×39+.30×97 = 56` — each row prints its own breakdown |
+| a decline earns no points | TERG at −24.9 % scores 74; SOXL at −16.0 % scores 96 |
+| new dashboard card | `הזדמנויות חדשות — ממונפות יורדות` with `לא במעקב שלך. אותו ציון גלובלי כמו הרשימה למעלה.`, TERG/COHH rows, and `ראה הכל ←` |
+| corrected heading | the tracked card now reads `פוטים מדורגים לפי סיכון ותשואה`, not "by premium / collateral" |
+| DISCOVERED tag | `גילוי חדש — מחוץ לרשימת המעקב` on TERG and COHH; absent on GLWG |
+| coverage line, with real isolates | `קרנות סל אמריקאיות עם אופציות רשומות (עודכן ⁦2026-09-14⁩): ⁦1634⁩, מתוכן ⁦408⁩ …` — verified at BYTE level in the live `uiautomator` dump, and rendering a readable date rather than the raw `MMDDYYYYHH:MM` blob |
+| scoped counter footer | `מהמעקב שלך נסרקו 4 טיקרים · 9 מועדי פקיעה · 390 חוזים` |
+| RTL/LTR | every number, date and percentage renders LTR inside the RTL layout; minus signs on the left; no truncation |
+| tracked scan unharmed | `PUT_SCAN: universe=17 red=15 scanned=4 tickers/9 expiries/390 contracts requests=13 ranked=4 providerFailure=NONE topScore=96.1` |
+| S2.4 CC card still correct | SOXL bid $415.00 / ask $460.00 / mid $437.50, recommended limit = the mid |
+| stability + secrets | 0 FATAL, 0 ANR; a logcat scan for `crumb=`/`token=`/`apikey=`/`&key=` matched only Android system `BinderProxy`/`errorCallbackToken` lines — nothing from the app |
+
+Still not covered by any automated test, and unchanged by the above: `LeveragedEtpStore`'s SharedPreferences
+I/O (no Robolectric on this classpath — its FORMAT is now pure and tested in `LeveragedUniverse`), and the
+amortised category queue across several days of ordinary use.

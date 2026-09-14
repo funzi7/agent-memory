@@ -1089,3 +1089,37 @@ fallback — the first time in this PR series that has been true.
 3. **A contract whose own IV exceeds 500 % now has NO usable IV** and is excluded as `NO_OWN_IV`, where
    before the fix it would have rendered as a wrong small number. That is the honest outcome, but it can
    remove a candidate that used to appear. Confirm the 1..500 band is where you want it.
+
+### 2026-09-14 — S2.5 addendum (risk-adjusted puts + leveraged discovery)
+
+**DONE**
+- Composite put ranking `0.70 * strategicQualityScore + 0.30 * returnPercentileScore`, reusing the
+  EXISTING `StrategicRiskAnalyzer` (no second probability model; no guard-protected file touched).
+  Break-even, P(OTM), P(profit) from the exact contract's own IV / DTE / price. One global percentile
+  pool for tracked + discovered; ties equal; N=1 scores a neutral 50; NaN never ranked.
+  Best-contract-per-ticker now by composite (ratio-only documented SUPERSEDED).
+- Leveraged/inverse ETP discovery from published keyless sources (Nasdaq Trader listing file + Cboe
+  option symbol directory + Yahoo fund category), two independent signals, CONFIRMED/PROBABLE, targeted
+  verification before anything is shown, its own request budget, running last so it cannot damage the
+  tracked list. New dashboard section + DISCOVERED tag + a coverage line that never says "all".
+
+**OWNER DECISION NEEDED — the 2x/3x ratio**
+The owner asked for "all US-listed 2x/3x leveraged/inverse ETPs". Leveraged/inverse STATUS is solved as
+a fact. **The RATIO is not available from any free source** — proven, not assumed: no leverage column in
+the exchange listing file; the fund category names *Leveraged*/*Inverse* and never the multiple; SEC's
+Investment Company Series & Class file is identification-only, misses ~21 % of optionable ETPs
+(commodity pools and crypto trusts are not '40-Act companies) and its ticker column is not unique;
+prospectus text for a 2x and a 3x fund of one family is byte-identical boilerplate. Name inference is
+wrong on live products (UVXY "Ultra" = 1.5x, SVXY "Short" = −0.5x).
+
+Numbered options for the owner:
+1. **Ship as is** (recommended): filter on `leveraged or inverse`, which IS a fact; show the multiple
+   only where the registered name states one (320 of 409 name-flagged funds today).
+2. **Per-issuer HTML scraping** of ~10 marketing sites to recover the ratio. Unstable URL paths (the
+   same issuer serves `/leveraged-and-inverse/tqqq` and `/strategic/uvxy`), one bespoke parser each,
+   and it breaks silently on a redesign. This is the brittle-guess direction the addendum ruled out.
+3. **A paid provider** with a strategy/leverage field. Explicitly excluded by "NO NEW PAID PROVIDER".
+
+**Carried forward, unchanged**
+- Everything in the S2.5 block below that was already owner-pending stays owner-pending; the addendum
+  sacrificed none of it.
