@@ -1,105 +1,199 @@
-# automation-core handoff — 2026-08-13 UTC
+# automation-core handoff — 2026-09-15 UTC
 
 ## Outcome
 
-The malformed production Codex Gate, repeated watchdog Telegram alerts, CI Doctor noise, and the remaining Claude credential-isolation weaknesses were repaired. The normal exact-head Codex Gate and Merge Bot flow is active again. The downstream paywall-bot automation rollout also completed through its normal Merge Bot.
+The canonical structured Claude Code fallback review contract required by
+`DEVELOPMENT_RULES_FULL` §12 is implemented centrally in `automation-core`. The
+implicit rule `valid review == Codex review` is retired in favour of:
 
-## Emergency bootstrap repair
+```
+valid exact-head review evidence ==
+  normal Codex evidence
+  OR approved Claude fallback evidence when Codex is provably unavailable
+```
 
-- Bootstrap PR: <https://github.com/funzi7/automation-core/pull/40>
-- Exact CI-validated head: `1ce6f1244801e467bdec196f04f1d557e2ca3ecc`.
-- Squash merge: `fd16f6ad875726386f4f7c029993639cafebaa01`.
-- Exact-head Automation Core CI run `31681764445` passed. This was the authorized one-time bootstrap exception because the default-branch Gate itself could not be parsed; the exact diff was independently re-read before its SHA-pinned merge.
-- Root cause: a roughly 25 KB `actions/github-script` `script: |` scalar directly contained `${{ steps.prs.outputs.numbers }}`. GitHub template expansion made the generated expression exceed the platform's 21,000-character expression limit before jobs could be created. The PR-number JSON now crosses the step boundary through `env`, while JavaScript reads `process.env.PR_NUMBERS_JSON`.
-- Regression coverage parses every tracked workflow YAML, including synced source/mirror pairs and hub-only workflows, extracts every `actions/github-script` body, and rejects every direct GitHub-expression interpolation in script bodies. This covers both the original large-expression failure and quoted/unquoted string or type injection; values must travel through `env`. Source and `.github` mirrors remain byte-identical.
-- The watchdog now records a trusted durable `ai-loop` marker keyed by repository, PR, exact head, operation, and normalized error fingerprint for gate-dispatch, update-branch, and backup-dispatch failures. The first material failure still logs and alerts once; identical scheduled retries log persistence but do not repeat Telegram or duplicate the marker. A new head or materially different error can alert once again.
-- CI Doctor now identifies internal automation by authoritative workflow path as well as display name. A parse-failed run surfaced as `.github/workflows/codex-gate.yml` can no longer open a `claude-fix` issue, while product CI remains eligible.
+The work is on PR <https://github.com/funzi7/automation-core/pull/56>, branch
+`claude/canonical-fallback-review-evidence`, head
+`1b3100a891e834d05ff35270c4f0e5acb66d02ef`. It is **not merged**: `main` is still
+`b91dade2be64c403b9b06c30d007e3a1b5f59b45`.
 
-## Production verification
+## What was built
 
-- Manual Codex Gate run `31681859499` dispatched successfully after the bootstrap merge and did not reproduce `Exceeded max expression length 21000`.
-- Claude Fallback Watchdog workflow ID `302663752` was re-enabled only after that proof.
-- Manual post-enable watchdog runs `31683051350` and `31683055505` passed.
-- Four later real scheduled ticks, runs `31687590924` at 09:39 UTC,
-  `31692340712` at 10:43 UTC, `31695724482` at 11:29 UTC, and
-  `31698865743` at 12:11 UTC, passed. Their jobs completed without an
-  expression-length error, gate-dispatch failure, Telegram alert, or Telegram
-  delivery failure.
-- Deterministic tests prove an identical PR/head/error fingerprint cannot alert repeatedly and that a new head or new normalized error remains alertable.
-- Issue #39 received a factual repair comment and was closed only after the workflow parsed and dispatched. Manual CI Doctor runs `31682946331` and `31683006262` passed, and no equivalent internal-workflow issue was recreated.
+- **`workflows/claude-fallback-review.yml`** (new, synced) is the only
+  sanctioned producer of fallback evidence. `workflow_dispatch` only, so GitHub
+  restricts it to actors with write access. It refuses unless
+  `CLAUDE_FALLBACK_REVIEW_ENABLED == 'true'`, unless dispatched from the default
+  branch, unless `reviewed_head` is the live PR head, unless a trusted Codex
+  code-review quota notice exists, if Codex already has a genuine result on that
+  head, or if any trusted Codex P1/P2 is still active. It checks out nothing and
+  derives `verdict` itself rather than accepting it as input.
+- **Attestation** is one atomic marker, so a partially forged body contributes
+  nothing:
+  `<!-- claude-fallback-review:v1 run= attempt= pr= provider=claude_code_fallback
+  reviewed_head=<40-char SHA> verdict=clean findings_found= findings_fixed=
+  unresolved_p1=0 unresolved_p2=0 validation=passed/<ref>
+  reason=codex_quota_unavailable -->`
+- **One shared decision.** `codex-gate.yml`, `merge-bot.yml` and
+  `claude-fallback-watchdog.yml` carry the identical
+  `CANONICAL EXACT-HEAD REVIEW EVIDENCE` block verbatim. A test asserts the
+  three inline copies are byte-identical and that `tools/review_evidence.js`
+  mirrors their reason codes, so Gate and Merge Bot cannot drift.
+- **Trust, all fail-closed.** Consumers require `github-actions[bot]` authorship
+  AND re-authenticate the run+attempt through the Actions API: the run must be
+  that workflow, event `workflow_dispatch`, `head_branch` the default branch,
+  matching attempt, and the comment must fall inside the run window. Any lookup
+  failure ignores the attestation. The whole evidence call is wrapped so it can
+  never throw into the Gate's technical fail-soft branch, which publishes green.
+  Merge Bot and the watchdog pass their GITHUB_TOKEN `roPage` reader for the
+  Actions read, because their default client is `AUTOMATION_PAT`.
+- **Exact-head binding.** Any new commit invalidates the attestation; a
+  previous-head attestation fails.
+- **Quota episodes.** Route A: the decline landed on this head epoch. Route B:
+  the decline predates this head epoch, Codex has posted nothing since, and the
+  attestation happened within 24 h of it — required because the connector goes
+  silent on later pushes rather than re-declining. Any genuine Codex activity
+  newer than the newest notice closes the episode; no authenticated head epoch
+  means no episode at all.
+- **Nothing existing weakened.** Findings are evaluated before any head signal,
+  so a fallback never bypasses a real Codex P1/P2; a fallback declaring
+  unresolved P1/P2 blocks; a returning Codex result on the current head is the
+  authority. Provenance is truthful and never claims "Codex reviewed" for a
+  Claude review. `codex-p1-acknowledged`, owner override and reaction
+  acknowledgement keep their own semantics and are never reused for fallback.
+- The watchdog counts an accepted fallback as a review signal and dispatches the
+  gate while the verdict is still pending — bounded by the verdict's age, not by
+  ordering — so the green verdict gets published without one transient pending
+  verdict suppressing the head forever or a persistent disagreement
+  re-dispatching every tick.
+  It posts no Codex review request and no missing-review alert on that path, and
+  once the verdict is green its own `isCandidate` test already excludes the head,
+  so it stops on its own rather than re-dispatching every tick.
+- **Outdated is not resolved.** An outdated thread nobody resolved still holds a
+  live Codex P1/P2. A fallback performs no re-examination of it, so it may never
+  clear one — enforced on every evaluation by all three consumers, not only when
+  the attestation is minted, because a resolved thread can be re-opened and a
+  late Codex finding can arrive already-outdated, both without a new commit.
+- Docs: `docs/adr/0001-canonical-review-evidence.md` (new ADR), README operator
+  section and repository-variable table, `LOOP_STATE.md`, `handoffs/CONTEXT.md`,
+  `handoffs/loop-build.md`.
 
-## Protected provenance and PR #38
+## Review outcome
 
-- The repaired Gate initially treated an old Codex capacity notice as a review signal. That race let the old PR #38 head `5933fa16cc48ad6e2bd2d68fcf6aac2c916f089c` merge prematurely as `cdf4c94528fdfd81ab00742c549355912355bcc1` before the intended credential isolation was present. Automation workflows were temporarily disabled for containment; no override acknowledgement was used.
-- Forward-repair PR #41 merged normally as `dd9a9de615eb0613e314b26e989d82375c808e66`. In Issue/new-PR mode, checkout uses `github.token` with `persist-credentials: false`; the model receives only `Read`, `Glob`, and `Grep`; credentials are scrubbed before the model step; and `AUTOMATION_PAT` exists only in trusted post-model PR creation. Existing-PR fixer mode remains separately scoped to an already approved same-repository branch.
-- Follow-up exact-head Codex findings were fixed rather than acknowledged and merged normally through PRs #42–#51. The final sequence includes capacity-notice rejection, protected provenance binding, trusted exact-head/thread authority, backup context hardening, label-race hardening, queued Gate epoch/final merge-candidate revalidation, and top-level Claude digest binding.
-- Final relevant automation-core merges: #42 `3103c6be6bc66cf949e6d67c33960bce882101f0`, #43 `ed5d1a2a79015da7f158f1167bde00329808eb3d`, #44 `47975163b66e48ab32f7c0d81aeb4aa23bc9cf02`, #45 `0c259d4d16286bc0b609dc36805071fee08c57fb`, #46 `7e662c9409a9e6f4405c9bfa06f14b6dd0b3d700`, #47 `16fbf2d1e7c363dc7875c0e030a57c3ec7856d64`, #48 `fd92aece2472aacdb8c1540da2f0ae8378f4a052`, #49 `fae994889c4878813319192254145ecaf6d15e96`, #50 `7e601fd06d9d5cc5038702f76ff62e2b5c54101a`, and #51 `b3cd345e35d0316773925c88468f1e4a6460af22`.
-- Every forward code correction passed full repository CI, received a trusted review bound to its exact head, had all real P1/P2 findings fixed and threads resolved, passed the authoritative Gate, and was squash-merged by the normal Merge Bot. GitHub Codex review capacity was available during the recovery despite the old stale quota notice.
+Three independent Opus review passes, none by the implementing agent.
 
-## Downstream rollout
+- Pass 1: no P1, six P2s — all fixed.
+- Pass 2 (mutation-tested by the reviewer): three further P2s — producer-side
+  enforcement of the outdated-thread rule was not sufficient; the
+  run-authentication hardening was untested; and the wiring that consumes the
+  decision was untested, which mattered most (mutating the gate to
+  `currentHeadSignal: true` greened every PR with the whole suite still
+  passing). All fixed, and the Route A no-TTL decision was confirmed correct.
+- Pass 3: confirmed by execution that both post-mint attack sequences are
+  blocked end to end and that the watchdog rewrite neither suppresses a head
+  forever nor re-dispatches every tick. It found no P1 and two coverage
+  regressions rather than live holes — a silently deleted producer test harness
+  and two new outdated-thread helpers shipped untested — both fixed and
+  mutation-verified.
 
-- Normal sync continuously updated existing paywall-bot PR #94; no replacement PR was needed.
-- Final #94 head `5d65f205708435aab09ce03ace5880c30b342293` contained exactly the seven configured automation workflows and no application/state changes.
-- Exact-head CI run `31699982535`, a fresh clean Codex review, zero unresolved P1/P2 threads, and authoritative Gate run `31700426352` all passed.
-- Normal Merge Bot run `31700719028` squash-merged #94 as `2575f0f2b16c12ebb9b9173e8c9a8248ab529ebe`. There was no owner click and no `codex-p1-acknowledged` override.
+Twenty-two mutations that previously survived are now killed by the suite,
+re-verified locally on scratch copies with the real tree untouched:
+`currentHeadSignal: true` (which alone would have greened every PR), disabling
+the gate's blocking branch, disabling Merge Bot's three evidence guards,
+removing the run status/conclusion/default-branch/edited-comment checks,
+removing the outdated-finding guard and its lazy resolver, the one-character
+`!` slip in either new outdated-thread helper, reverting the
+severity-carrying-notice classification, and removing every producer
+precondition — the trusted-quota requirement, the live-head check, unresolved
+P1/P2, the default-branch guard, the outdated-thread refusal, and the
+truncated-thread guard. That last one has no consumer counterpart: every thread
+query caps comments at 100, so a Codex P1 at comment #101 is invisible
+system-wide and only the producer fails closed on it.
 
-## Subsequent exact-head hardening and final sync
+## Validation actually run
 
-- PR #52 expanded the expression validator from the original large-scalar
-  regression to every direct `${{ ... }}` occurrence in all tracked
-  `github-script` bodies, including hub-only workflows. Its exact reviewed head
-  was `1edbebb1a7c16f2110c94410df73f4cd49c09add`; normal Merge Bot merged it as
-  `961b51d9ff23edd215ff026d8dc0845f9a8124a9`. The downstream expression sync
-  PR #96 used head `d29810b1c2f3e0a4bf425aa364cf3bbfec99aa3d`,
-  passed Gate run `31705628966`, and normally merged as
-  `cb5cc5d87f335963e1f80db54de11fe706e3f6de`.
-- Paywall documentation PR #97 exposed another asynchronous race: an old-head
-  Codex task summary arrived after a new push, and timestamp-only binding let
-  the new head turn green before its own review. It had already merged as
-  `0c4ae03fdbc7c7bf79b41c4fb31dd19db0c10e10` when detected. Merge Bot was
-  disabled temporarily for containment; no override was used.
-- PR #53 removed task-summary and timestamp-only freshness. Its exact head
-  `8a361a5da4c12d916cb5973e945af24c3f1ad5a1` passed full CI and clean Codex
-  review, Gate runs `31707513978` / `31707580139`, and normally merged as
-  `42cf33992116b2a9845d4a060c363d7ea4ae1bda` after Merge Bot was safely
-  re-enabled.
-- Review then identified a legitimate reaction-only clean Codex delivery mode.
-  PR #54 permits that signal only when authenticated Gate marker/run history
-  proves the PR has exactly one observed head; after any head transition an
-  immutable commit-bearing result remains mandatory. Its exact head
-  `fec26d450f9fcfd5440e7ba39cee17f594fd82c2` passed full CI, exact-head Codex,
-  Gate `31709584430`, and normally merged as
-  `cbd154d34e150b1195b62be7cc0f0786e9ce4866`.
-- Review of the downstream sync found that a rejected reaction-history lookup
-  could bubble to the broad technical fail-soft path. PR #55 performs history
-  lookup only for an authenticated trusted `+1` candidate and makes lookup
-  errors return fail-closed `false`, leaving immutable evidence and active
-  threads authoritative. Its exact head
-  `8e61001b03e41090304db8f77f450901619e2295` passed all 84 deterministic tests,
-  every YAML/script/parity check, exact-head CI `31710332461`, a clean Codex
-  result with zero threads, Gate `31710681603`, and normal Merge Bot. It merged
-  as `b91dade2be64c403b9b06c30d007e3a1b5f59b45`, the final automation-core main
-  SHA for this task.
-- Normal sync updated paywall-bot PR #98. Final head
-  `012824a7b8d710cd4fd06245ac19afc27a4de09d` contained the seven byte-identical
-  workflows plus only scoped documentation, passed application CI
-  `31711027957`, received a clean explicitly bound Codex result with all three
-  prior findings resolved/outdated, and passed Gate `31711220444`. The
-  SHA-pinned Merge Bot merge request on run `31711250348` coincided with a
-  server-side successful merge while its client/API call surfaced a 502 (the
-  run logged `#98: unexpected merge error (502), skipping this PR: Server
-  Error`); GitHub independently recorded #98 merged at `2026-08-13T14:40:09Z`
-  as `73c2d3875e49aa038f0ed9790d610eb063e4e90d`, and the immediately following
-  Merge Bot run found no auto-merge candidate because #98 was already merged.
-  Run `31711250348` therefore must not be described as having received a normal
-  successful merge response. Final one-file handoff PR #99
-  passed CI `31711412191`, clean exact-head Codex and Gate `31711526953`; normal
-  Merge Bot run `31711572132` merged it as
-  `d8b3251e49fb9512c4e872dd15663d3513a28d1e`.
+- 127 deterministic tests pass (43 new in `tests/test_review_evidence.js`):
+  the full mandatory acceptance matrix; the paywall-bot **PR #103** regression
+  built on that PR's real timestamps (Codex rounds 01:53:36Z/02:01:39Z/02:09:43Z
+  on earlier heads, usage-limit notices from 02:13:50Z, final head
+  `d068d977a700093affc47a46aa2b1610fe72248f` committed 09:50:19Z), passing only
+  through the valid structured path and failing under each missing requirement;
+  the **shipped inline block** from all three consumers executed directly across
+  the whole trust matrix; the **producer script** executed against its refusal
+  matrix; and proof that the Codex-only decision is unchanged when the policy
+  switch is off.
+- `bash scripts/validate.sh` green: every tracked YAML parses, all synced
+  source/`.github` mirrors byte-identical, all 59 `github-script` bodies
+  expression-safe and syntax-checked.
+- `actionlint` 1.7.7 reports zero findings across every workflow, including the
+  new producer — the real GitHub Actions validation.
+- `git diff --check` clean. Exact-head repository CI green.
+- Read-only real-consumer check against OptionsProfitTracker PR #19's actual
+  comment history: the shipped block finds its four genuine connector
+  usage-limit notices and zero Codex activity and returns `no_attestation`;
+  given a hypothetical exact-head attestation it returns `stale_quota_evidence`
+  because every notice predates the current head; adding a current-head notice
+  flips it to `structured_fallback_clean`.
 
-## Current operating state
+## Defects caught during self-review and fixed
 
-- The Codex Gate, Claude Fixer, Claude Fallback Watchdog, and Merge Bot workflows are active in automation-core and paywall-bot.
-- `no-automerge` remains permanent; manual or unknown `needs-owner` remains a hard stop; only a proven transient `needs-owner` plus `needs-owner-auto` pair may clear after fully green exact-head validation.
-- Bot/Claude protected-path PRs remain fail-closed unless their trusted workflow provenance is cryptographically bound to the exact expected context. Trusted sync still requires its exact signature. Merge remains SHA-pinned and revalidates the final candidate.
-- Do not weaken these invariants to handle capacity notices, stale reviews, queued Gate runs, or label races.
+- The gate's reworded pending check title would have broken the watchdog's exact
+  `PENDING_TITLE` match, silently disabling the late-signal sweep for pending
+  PRs. The original title is restored and a test now pins the two together.
+- `tools/review_evidence.js` did not short-circuit fallback evaluation on a
+  current-head Codex signal the way the inline block does, so a stale
+  attestation could have blocked a Codex-reviewed head in the mirror only.
+
+## Review provenance
+
+`review_provider = claude_code_fallback`, `reason = codex_quota_unavailable`.
+
+Codex posted a genuine usage-limit notice on PR #56 at 2026-09-15T12:49:40Z, so
+normal Codex review is unavailable right now. The change was reviewed by an
+independent Opus reviewer separate from the implementing agent. The new central
+mechanism is explicitly **not** claimed as authoritative for its own PR: it did
+not exist before that PR, and `automation-core` has not set
+`CLAUDE_FALLBACK_REVIEW_ENABLED`.
+
+## What is NOT done — physically pending
+
+- **PR #56 is not merged.** Its Gate is red with
+  `🟡 Waiting for Codex review` because Codex cannot review this head while its
+  quota is exhausted, and fallback is not enabled on automation-core. Merge Bot
+  will not touch it either: it is a `claude/` branch touching protected paths,
+  so `mayAutoMergeProtectedPaths` is false and it is not an auto-merge candidate
+  without an explicit `automerge` label. It needs the owner, or Codex quota to
+  return.
+- **No production validation of the new code paths.** `pull_request_target`
+  loads Codex Gate from the base branch, so the gate run on PR #56 executed
+  main's OLD code. The new gate/merge-bot/watchdog behaviour takes effect only
+  after merge. No fallback attestation has been minted or honoured in
+  production.
+- **Consumer sync not performed.** The sync workflow clones `automation-core`
+  main, so syncing before the merge would deliver the old workflows. Repos with
+  `sync-automation-core.yml`: `paywall-bot`, `OptionsProfitTracker`,
+  `thai-rent-finder`, `agent-memory`. After merge, dispatch
+  `sync-automation-core.yml` on each; the normal sync PR flow applies and no
+  consumer feature PR should be force-merged.
+- **Per-repo opt-in still required.** Actions variables are not synced. Until a
+  repository sets `CLAUDE_FALLBACK_REVIEW_ENABLED=true`, it keeps the Codex-only
+  contract unchanged.
+- **OptionsProfitTracker PR #19 cannot pass yet.** Its newest trusted quota
+  notice is 2026-09-09T17:45:15Z, while its current head
+  `074de86e52f2a168b89dc21ff32a851570f1b144` was pushed 2026-09-14T19:45:26Z, so
+  the notice predates the head epoch (Route A fails) and is ~6 days old (Route B
+  window is 24 h). It also carries permanent `no-automerge` plus `needs-owner`.
+  A pass requires either a current-head trusted Codex quota notice followed by a
+  fresh exact-head Claude fallback review and attestation, or a normal Codex
+  review once quota returns. Do not claim it passes before that evidence exists.
+
+## Operating invariants to preserve
+
+- Authoritative policy stays inline in trusted workflow YAML; `tools/*.js` are
+  pure mirrors for deterministic tests only. Workflows must never load
+  executable policy from a PR-controlled checkout.
+- No direct `${{ }}` inside `github-script` bodies; values cross via `env`.
+- Actions/Checks reads run on GITHUB_TOKEN, not `AUTOMATION_PAT`.
+- Fail closed on every API/history lookup relevant to authority, and never let a
+  new code path reach the Gate's technical fail-soft green.
+- Do not weaken exact-head binding, reaction-history hardening, protected-path
+  provenance, or SHA-pinned merge revalidation.
