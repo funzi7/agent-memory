@@ -224,3 +224,5 @@ date,portfolio_id,strategy,ticker,side,shares,fill_price,commission,cash_after,e
 2026-09-14,swing_10k,swing,DVN,BUY,43.0,51.2056,1.0,4344.68,8620.19,"פריצה #1 +1.5% מעל הרף, RSI 66"
 2026-09-14,swing_10k,swing,ELV,BUY,5.0,422.7513,1.0,2229.93,8626.64,"פריצה #2 +0.9% מעל הרף, RSI 61"
 2026-09-14,swing_10k,swing,QCOM,BUY,12.0,170.8654,1.0,178.54,8737.05,"פריצה #3 +0.3% מעל הרף, RSI 63"
+2026-09-16,rsi2_100,rsi2,SPYM,SELL,1.0,89.2054,0.8921,95.66,95.66,exit
+2026-09-16,momentum_scan_10k,momentum_scan,PANW,BUY,2.0,368.6142,1.0,287.55,7589.56,"מילוי אמצע-חודש — דירוג #2, מומנטום 6-1 +139.6%"
