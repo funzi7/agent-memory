@@ -1054,3 +1054,29 @@ tests, and read a delegated diff for behaviour nobody requested.
 The put-liquidity work defaulted its ticker-aggregate verdict to `UNPROVEN`, which REJECTS. It
 compiled, its unit tests passed, and the live put list would have been permanently empty until the
 ViewModel wiring landed. **A default that is safe in a unit test can be a silent off-switch in production.**
+
+### 2026-09-22 — S2.7: three lessons that cost a round each
+- **A "described" set that drives DELETION must distinguish ABSENT from ZERO.**
+  `StockRealizedGrain.describedDays` fed `StockRealizedLedger.merge`, which removes every stored entry
+  for a day the payload describes. Counting rows with NO `fifoPnlRealized` attribute meant an ordinary
+  BUY row — or a report layout without that column — could silently erase a real stored sale. An
+  explicit `"0"` IS a restatement and must retire the obsolete row; absent says nothing. Same rule the
+  ledger already applies to an absent quantity by writing `-` and never `0`.
+- **Do not "correct" an exchange calendar from first principles.** The NYSE publishes NO July early
+  close when July 4 falls at a weekend (2020, 2021, 2026). A backward walk from the observed holiday
+  looks obviously right and invented a 13:00 close on 2026-07-02, which would have had
+  `OptionTimeRemaining` declare a contract expiring that Thursday dead three hours before the real
+  close. The plain rule — the half-day is July 3, when July 3 is a trading day — is correct in every
+  year because the years it skips are exactly the years with no July early close.
+- **A diagnostic that explains an empty list must have counters that ADD UP.** `PUT_SCAN` took three
+  review rounds because each fix named some causes and not others. The durable answer is a
+  self-healing tail: an `other=[NAME:n]` list plus `unaccounted=`, so a future enum value shows up
+  under a generic name instead of making the line lie. Related: when a collapse threshold sits near a
+  CLASSIFICATION boundary, collapse on the boundary first and on distance second — `isRed` is
+  `pct < 0.0`, so −0.01% and +0.01% are 0.02 apart and classify oppositely.
+- **A request GATE, its WORK and its RESULT must share one lifetime.** `MainActivity` pops the
+  dashboard with `popUpTo(…) { inclusive = true }` after a save, a close and an import, so
+  `DashboardViewModel` dies during ordinary use. Moving TTL claims to process scope while leaving the
+  fetches on `viewModelScope` swapped one defect for another: the pop cancels the request while its
+  claim stands, and the replacement ViewModel reads a CLAIMED, EMPTY pool and suppresses the retry for
+  the whole TTL. Both must move.

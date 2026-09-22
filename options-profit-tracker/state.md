@@ -1372,3 +1372,58 @@ Appended rather than edited, per CLAUDE.md. Both of these SUPERSEDE what is writ
   (run 35708535163 → PR #20 `chore/sync-automation-core`, which carries `claude-fallback-review.yml`).
   The `issues:write` scope is NOT tested. PR #20 is OPEN, not merged.
 - **The S2.6 health check has never protected `main`** — `main` has no `.github/scripts/` at all.
+
+### 2026-09-22 S2.7 FINAL — device QA run, Codex loop closed clean
+- OPT: 4512cbf (`4512cbfa93b0a1623d544626c56e1c8709c06083`), branch `s2/ibkr-reconciliation-lifecycle-dashboard`, PR #19 OPEN, not merged.
+- **Codex exact-head review CLOSED CLEAN** at `4512cbf` — "Didn't find any major issues" — after rounds 10-16 this session.
+- **1409 JVM tests, 0 failures, 0 errors, 1 skipped, 66 classes**; `compileDebugKotlin` clean; `git diff --check` clean; 75/75 health scripts.
+- APK 1.0.0 sha256 `b01e16d701f965ae645fb125f77123272cdfe3ba919f535e2291206fd95ad687`, signer `5d3d855c…`,
+  **INSTALLED IN PLACE** (`adb install -r`), launched clean (no FATAL), also delivered to /sdcard/Download/OptionsProfitTracker/.
+
+#### DEVICE QA WAS RUN — supersedes the earlier "DEVICE QA NOT RUN" note
+ADB came back up; the owner's phone ran a real Flex sync (settings → `סנכרן מ-IBKR`).
+- **SOFI 2026-09 −3077.21, BTCI −1914.57, NOK −3570.42 — all match IBKR Orders & Trades TO THE CENT.**
+  Before S2.7 the app showed −4070.90 / −2210.42 / (NOK already correct and never disturbed).
+- **SPCH 2026-09 shows −4288.73 and that is CORRECT, not a mismatch.** The device printed the fills:
+  the four 2026-09-08 EXECUTION fills sum to exactly **−6815.39** (the owner's 09-01..09-18 figure),
+  and the month additionally holds a NEW **2026-09-21** sale of 800 sh realizing **+2526.66**.
+  −6815.39 + 2526.66 = −4288.73. The owner's reference is a WINDOW; the card is a MONTH.
+- The four reference tickers restricted to the owner window sum to **−15,377.59** vs IBKR's header
+  **−15,377.60** — the documented one-cent broker aggregate rounding, not corrected toward.
+- Dashboard: `ממומש מניות: −$12,850.93` = the exact sum of those four ledger rows;
+  `סה״כ החודש: −$8,478.03` = 4,372.90 + (−12,850.93). Combined is DERIVED.
+- `StockRealizedScreen`: coverage line `נצבר מ-2025-11-21 · …` (date LTR-correct), `כל הזמן` chip,
+  agreeing per-ticker drill-down, combined `11,692.98 + 209.45 = 11,902.43`.
+- `STOCK_LEDGER`: `incoming=272 stored=0 -> 272 tickers=103 span=2025-11-21..2026-09-21`, then
+  `stored=272 -> 272` on repeat — the scoped merge is idempotent.
+
+#### NOT verified on device, stated plainly
+`CloseRowAudit.contractViolations==0`, the fixed acceptance-window OPTIONS/STOCK/COMBINED triple, the
+broker subtotals (+6,916.31 IBKR; SOFI −6,795.78) and same-snapshot import idempotency **all print on
+the IMPORT path**, and `syncFromIbkr` does NOT call `reconcileWithBroker`. The owner then instructed
+**"no more syncing"**, so no import was run. Task C could not be reproduced (no index news today).
+Task D needed a same-day expiry and none existed. The put list ranked 0.
+
+#### Yahoo chain volume/OI is NOW PROVEN — supersedes "unproven, host 429"
+`PUT_CHAIN` on device: `18 puts, 18 with own IV, 16 with volume, 18 with open interest`. Both fields
+are populated; the 16-of-18 is `LIQUIDITY_UNPROVEN` occurring naturally.
+
+#### Fixes, rounds 10-16
+- **10** `BID/ASK` wrapped in an LTR isolate; the What-if re-evaluates at the REAL exchange cutoff.
+- **11** `StockRealizedGrain.describedDays` counts only rows that STATE a realized figure —
+  **absent != zero**, and that set is the DELETION scope, so a BUY row could erase a stored sale.
+  The Independence Day half-day reverted to plain **July 3**: my own earlier backward-walk INVENTED a
+  13:00 close on 2026-07-02 (NYSE publishes none when July 4 is a weekend) which would have declared a
+  Thursday expiry dead three hours early.
+- **12-14** `PUT_SCAN` counters must SUM TO `puts`: added the eight liquidity causes, then
+  `NOT_RED`/`NO_UNDERLYING_PRICE`/`BAD_STRIKE`, a self-healing `other=[…]`/`unaccounted=` guard, every
+  live pct rather than the last page's, and collapse decided on the RED BOUNDARY (`isRed` is `pct<0`)
+  rather than numeric distance.
+- **15** the three Finnhub-spending pools (company news, market context, industry) joined
+  `MarketEvidenceCache` at process scope, completing S2.6 finding 21.
+- **16** all SIX evidence fetches moved to the injected application scope, so claim, work and result
+  share ONE lifetime — a cancelled fetch no longer leaves a standing claim over an empty pool.
+
+Guard-protected files untouched except the owner-approved `BlackScholesCalculator.calculateForYears`.
+No Room migration; schema still **v31**. `build-gate` and `scripts-test` pass; `codex-gate-evaluator`
+is the expected fail-closed-pending.
