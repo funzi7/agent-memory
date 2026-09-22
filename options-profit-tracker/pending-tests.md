@@ -469,3 +469,67 @@ signer `5d3d855c…`, `firstInstallTime` still 2026-04-22 22:53:57, so an upgrad
 Still not covered by any automated test, and unchanged by the above: `LeveragedEtpStore`'s SharedPreferences
 I/O (no Robolectric on this classpath — its FORMAT is now pure and tested in `LeveragedUniverse`), and the
 amortised category queue across several days of ordinary use.
+
+## S2.7 (2026-09-22) — DEVICE QA NOT RUN. ADB was down for the entire round.
+
+`adb devices` returned `cannot connect to daemon at tcp:127.0.0.1:5037` from the first check to the
+last. An ADB server must never be started from inside PRoot, so nothing below was observed. The APK
+was built and delivered but **not installed**.
+
+### Owner acceptance that is still UNVERIFIED on the device
+
+| # | check | reference |
+|---|---|---|
+| 1 | Sep 1–18 STOCK total | **−15,377.60** |
+| 2 | Sep 1–18 OPTIONS total | **+3,033.53** |
+| 3 | Sep 1–18 COMBINED | **−12,344.07** |
+| 4 | SPCH | **−6,815.39** |
+| 5 | BTCI | **−1,914.57** |
+| 6 | SOFI | **−3,077.21** |
+| 7 | NOK — must be UNCHANGED, it already matched | **−3,570.42** |
+| 8 | same snapshot synced twice ⇒ zero economic delta | `OPTIONS_SYNC … idempotent=true`, ledger row count unchanged |
+| 9 | `CLOSE_AUDIT summary … contractViolations=0` | the product contract expressed as a number |
+| 10 | IBKR subtotal through 2026-09-18 | **+6,916.31** (Q4 2025 −27,433.13 + 2026 YTD +34,349.44) |
+| 11 | SOFI IBKR subtotal | **−6,795.78**; the app previously showed all-time −12,646.22, a −5,850.44 gap to ATTRIBUTE, never to offset |
+
+Read from a real sync: `STOCK_HEADLINE … displayed=… ordersTradesDiag=… delta=…` (both bases per
+ticker-month), `REALIZED_LEDGER WINDOW_2026-09-01..2026-09-18 …`, `REALIZED_LEDGER MTD/YTD/ALL_TIME`
+with the TS/IBKR split, and `CLOSE_AUDIT` sorted largest `localVsBroker` first.
+
+### PUT liquidity — and the one thing that could make the list legitimately EMPTY
+
+Yahoo returned **HTTP 429** to this host for both the crumb handshake and the chain, so it is
+**UNPROVEN** whether the keyless v7 payload carries per-contract `volume` / `openInterest`.
+
+**First thing to read on the device:** the `PUT_CHAIN` log line prints how many rows arrived with each
+field. If the provider does not supply them, every ticker is `TICKER_OPTION_VOLUME_UNPROVEN` and the
+card says `לא ניתן להוכיח ווליום פוטים מספיק לטיקרים שנסרקו`. **That is correct behaviour under the
+owner's "unproven ⇒ exclude" rule, not a bug** — but it means an empty list, so it must be
+distinguished from a broken scan before anything is "fixed".
+
+During a live option session, on at least 5 accepted candidates: bid exists, ask exists, spread ≤ 25 %,
+OI ≥ 100, contract volume ≥ 10, ticker aggregate ≥ 100, exact-contract IV present; `P(רווח)` varies by
+contract and is not confused with the BTC target; the recommended BTC target varies with the inputs;
+tapping prefills that same target into `פוזיציה חדשה`; a manually edited target survives a refresh.
+Also find one genuinely rejected thin contract — do not fabricate one.
+
+### 0DTE
+
+If a live 0DTE option exists before 16:00 ET, confirm a theoretical price and a delta now appear on the
+edit screen (the WDCX case showed neither). After 16:00 ET confirm
+`פג תוקף — המסחר נסגר ב-16:00 ניו יורק`. If no live 0DTE is available, say **"live 0DTE path not
+observed"** — the deterministic clock-controlled tests cover the logic, not the screen.
+
+### Market brief
+
+No repeated `חדשות היום…` heading; no `NASDAQ:` listing headline as a Nasdaq-100 explanation; no
+minimum-bid-compliance headline as benchmark news; no support/resistance "live levels" piece presented
+as a cause; a causal headline may appear once; Social explanation still works; attribution visible; a
+duplicate story appears once; RTL/LTR correct.
+
+### Regression that must survive
+
+SPCH open CC stays `COVERED_CALL` through sync and cold start; CC coverage correct; signed
+commissions; blank close fee = zero; BTC What-if FAST/BALANCED/PATIENT; PUT DTE 2–60; no ITM
+candidate; exact-contract IV; 70/30 composite; strict ±2x/±3x discovery; top-3 discovery + see-all;
+BLS / Investing RSS / issuer evidence; no direct Reuters fetch; canonical watchlist.

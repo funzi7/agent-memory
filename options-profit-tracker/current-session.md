@@ -1,139 +1,46 @@
-# OptionsProfitTracker — Current Session Snapshot (handover for a new chat)
+# Current session — OptionsProfitTracker
 
-_Last updated: 2026-09-10 (S2.3 FINAL ADDENDUM). **Read `cc-latest.md` FIRST** — it is the complete handoff for the most recent task. origin/main is `7225b7af` and has not moved; the live work is on branch `s2/ibkr-reconciliation-lifecycle-dashboard` at `8be1fac`, open as PR #19 (`needs-owner` + `no-automerge`, NOT merged). Then read this file top-to-bottom, then `state.md` (chronological log), `gotchas.md`, `roadmap.md`, `pending-tests.md`, and `parallel-agents.md`. NOTE: the phone was unlocked for the FIRST time in three rounds during this task, so decision 3 and the CC premium fix were verified on screen; the keyguard then re-armed, so the later date fix was not re-photographed. Codex has no quota until 2026-09-15 — the fallback review ran three times instead, and `codex-p1-acknowledged` was NOT used as a substitute._
+**Round:** S2.7 — broker-exact realized P&L, one canonical ledger, broker provenance, 0DTE,
+PUT liquidity, model BTC exit target, market-brief fixes
+**Date:** 2026-09-22
+**Agent:** Claude Code (Opus 5, 1M context)
 
-> **Since this snapshot was written (2026-06-21) the workflow moved to the phone**: builds run in Termux/PRoot via `/root/work/bin/heavy-run -- ./gradlew …` with `JAVA_HOME=/usr/lib/jvm/java-21-openjdk-arm64` and SDK `/opt/android-sdk` (`PHONE_BUILD.md` is the runbook), and Room is at **v31**, not the version named below. The parallel-agent protocol in §2 is still current, including the `in-progress.md` ownership lock.
+## State at handoff
 
----
+| | |
+|---|---|
+| branch | `s2/ibkr-reconciliation-lifecycle-dashboard` |
+| HEAD | `a6e18376fad85e85a57da2fabdf5959be9c76cab` (pushed) |
+| PR | **#19 OPEN**, `needs-owner`, `no-automerge`, NOT merged. `main` untouched. |
+| compile | `:app:compileDebugKotlin` BUILD SUCCESSFUL, zero `e: ` lines |
+| tests | 1384 JVM tests, 0 failures, 0 errors, 1 skipped, 65 classes |
+| APK | 1.0.0 sha256 `b84a0069c80cb56bcdf547f4d06ed3ed1bb5d614c1e7b13106b99fa4629c3d34`, signer `5d3d855c…`, delivered to `/sdcard/Download/OptionsProfitTracker/`, **NOT installed** |
+| device QA | **NOT RUN — ADB down all round** |
+| review | Codex Gate **fail-closed pending** on `a6e1837` ("Codex has not reviewed head") — the expected state right after a push, not a verdict |
 
-## 1) PROJECT
-- **App**: OptionsProfitTracker, package `com.dima.optionstracker`. Android, **Kotlin / Jetpack Compose / Hilt / Room / WorkManager**. Hebrew **RTL** app, dark theme. Tracks options (CSP, CC, spreads, long put/call, iron condor, straddle, strangle) + stock, syncs with IBKR via the Flex Query API.
-- **Two clones, both push `origin/main`:**
-  - `OptionsProfitTracker_git` → **CLAUDE_CODE** (runs in the Android Studio terminal).
-  - `OptionsProfitTracker_codex` → **CODEX**.
-- **agent-memory** repo (this repo) is the shared source of truth: `options-profit-tracker/state.md` (dated log), `gotchas.md` (hard-won lessons), `roadmap.md` (backlog), `in-progress.md` (live file-ownership locks), `pending-tests.md` (device tests to run), `parallel-agents.md` (the protocol), and THIS `current-session.md`.
+## The two things to do first next session
 
-## 2) PARALLEL-AGENT WORKFLOW (the key process)
-Two agents run **simultaneously** per round, each given a **non-overlapping file set** with explicit **ALLOWED**/**FORBIDDEN** lists. Per-round protocol (in `parallel-agents.md`):
-1. `git fetch` + `git pull --rebase origin main` (STOP if uncommitted).
-2. Read `state.md`, `gotchas.md`, `roadmap.md`, **and `in-progress.md`** first.
-3. Touch ONLY allowed files. If a file you need is owned by the other agent in `in-progress.md`, **STOP** and report.
-4. **APPEND an ownership line to `in-progress.md` and push it BEFORE editing code** (e.g. `CLAUDE_CODE OWNS: X.kt, Y.kt — <task> — <timestamp>`).
-5. **Build ONLY in your own clone.**
-6. Push OPT, then update agent-memory: `pull --rebase` right before push; if push rejected, `pull --rebase` and retry. Finally **REMOVE your in-progress line** and push.
-7. **Shared files** (`Screen.kt`, `MainActivity`, `AppModule`, `ReportGenerator`, DB schema) — only ONE agent may own them in a given round, and only if `in-progress.md` shows the other agent is not in them.
-- The human owner hands each agent its prompt; agents run autonomously (`claude` / `codex --yolo`).
-- **Build gate** (run in your own clone): `./gradlew :app:compileDebugKotlin 2>&1 | tee /tmp/optbuild.log`. PASS only if `grep "^e: " /tmp/optbuild.log` is EMPTY **and** the log contains `BUILD SUCCESSFUL`. Never commit a red build. (For an installable APK run `./gradlew clean assembleDebug` once at the very end.)
-- **Email privacy**: commits must use the funzi7 noreply identity or GitHub rejects the push (GH007). Use `funzi7 <207505227+funzi7@users.noreply.github.com>` for every commit. NOTE: a `git pull --rebase` AFTER committing rewrites the committer back to the local git config — set `GIT_AUTHOR_*`/`GIT_COMMITTER_*` env vars (name + email) so the rebase keeps funzi7, or amend right before pushing.
+1. **Reconnect ADB from Termux**, install `-r` in place (never uninstall / `pm clear` / wipe DB), and
+   work through the `pending-tests.md` S2.7 table. Every acceptance number is still unverified.
+2. **Read the `PUT_CHAIN` log line before judging the put list.** Yahoo 429'd this host, so it is
+   unproven whether the chain carries per-contract volume/open interest. An empty put list may be
+   correct behaviour under "unproven ⇒ exclude", not a defect.
 
-## 3) SHORT-STOCK FEATURE — FINAL STATE (arc GD1→GK + Codex follow-ups)
-A long arc made short stock positions first-class. Final behavior:
-- **`parseStockPositions` returns SIGNED quantity** (no `abs()`); a short is negative shares.
-- **Snapshot stores negative shares** with a **flip-aware merge** (a sign change always wins; otherwise the larger `|qty|` wins). Background sync (`FlexSyncWorker`) mirrors the same merge so shorts persist without a manual import.
-- **avgCost OVERWRITE for shorts**: when post-merge snapshot shares < 0, the snapshot `avgCost` is overwritten with the Flex `costBasisPrice` (the short ENTRY, ≈ 714.78 for MULL) instead of the stale long basis. Logged as `SHORT_AVGCOST`. (Longs keep "never overwrite".)
-- **Short value = `(avgCost − current) * |shares|` = INVERTED unrealized P&L** (green when price < entry). NOT `shares*price` (that would double-count the cash proceeds already sitting in the account).
-- **Sub-100 short** shows in **"לא נכלל"** (not the main "מניות בתיק" list, which is 100+ only) but **keeps its inverted-P&L value** (not 0). A short with no valid avgCost stays excluded/unvalued (logs `SHORT_VALUE`), never guessing a basis.
-- **`openPositionsCount`** includes distinct open short-stock tickers (shares < 0 with a valid avgCost, not already an open-option ticker).
-- **`STOCK_SHORT_OPENED` event** (assignment that flips long→short, oci has BOTH 'C' and 'O'): emits TWO feed events — a `STOCK_SOLD` for the CLOSED portion (realized = fifoPnlRealized) AND a `STOCK_SHORT_OPENED` for the short-open leg (`amount = null`, realized 0). For MULL: 46 closed + 54 short-open = 100. The short-open **proceeds are shown INFORMATIONALLY** in the description, computed from `rawFlexXml` `costBasisPrice` (`svc.parseOpenPositions`, key = underlyingSymbol ?: symbol.first(), NOT uppercased) — the snapshot avgCost is still null when `importStockSoldEvents` runs. The description runs are **bidi-isolated** (FSI/PDI) so the mixed Hebrew/LTR text renders in logical order. `amount = null` → never in any realized total.
-- **Tapping a `STOCK_SHORT_OPENED` feed row → `ShortPositionDetailScreen`** (nav route `short_detail/{ticker}`). It reads the short LIVE from the snapshot via `DashboardViewModel.shortHoldingFor(ticker): Flow<ShortHoldingInfo?>` and shows: ticker, `-<qty> שורט`, מחיר כניסה (avgCost ≈ 714.78, NOT the trade price 690), שווי כניסה/התקבל (`|qty|×avgCost`), מחיר נוכחי, and רווח/הפסד לא ממומש `= (avgCost−current)×|qty|` colored green/red (inverted). (Replaced an earlier GL3 AlertDialog that parsed a wrong ~690 entry from the trade price.)
-- **MULL worked example**: a CC at strike 690 was assigned → 46 shares closed (≈ **+$12,222 realized**), 54 shares short-opened @ **714.78** (entry = 690 strike + $24.78 premium). Proceeds **$38,598** (cash IN; the short liability equals it → net 0 at open). At price ≈ 972 the short shows ≈ **−$13,897** unrealized. **MULL total stock realized ≈ $24,736.**
+## Decisions recorded in CLAUDE.md this round
 
-## 4) STOCK-REALIZED SHOWN EVERYWHERE (consistent across 4 surfaces)
-Per-month stock-sale realized P&L is surfaced in **four** places, all reading the SAME source — `stockRealizedByTicker` prefs → `StockRealizedData.totalForMonth("YYYY-MM")` (captured by `captureStockRealized`, keyed by IBKR tradeDate / ET):
-1. **"רווח/הפסד מניות" screen** — per-ticker rows with per-sale drill-down (tap to expand individual `STOCK_SOLD` sales), month chips, sortable column-aligned header, feed-tap deep-link + highlight + scroll.
-2. **Monthly-target card ("יעד חודשי")** — a `"ממומש מניות"` subline beneath the options "ממומש החודש" figure, plus a bold `"סה\"כ החודש"` combined line = options realized + stock realized. Shown only when stock ≠ 0.
-3. **Calendar ("לוח שנה")** — under the month-totals row, `"ממומש מניות (חודש): ±$X"` + `"סה\"כ החודש (כולל מניות): ±$Y"` (Y = options monthlyRealized + stock); follows the displayed month.
-4. **Reports ("דוחות")** — monthly + yearly/all-years stock realized and combined options+stock totals (CODEX; reads the same `DashboardViewModel.stockRealized`, logs `REPORTS_STOCK`).
-- **June example, consistent across all four**: stock realized **$16,500.07**, options **−$1,364.49**, combined **$15,135.58**.
-- **No double-count**: options figures (`combinedTotalRealized`, `CalendarViewModel.monthlyRealized`/`allTimeRealized`, reports) are OPTIONS-ONLY (closed positions, `ibkrRealizedPnl ?: ProfitCalculator.realizedPnL`). Stock is purely additive.
+- The headline stock figure is IBKR's own `fifoPnlRealized` again — S2.6's average-cost headline is
+  `SUPERSEDED — owner approved`, on the strength of the owner's current Orders & Trades screenshots.
+- ALL-TIME is one canonical ledger with broker provenance derived from the owner's date boundary.
+  **No Room migration; schema stays v31.**
+- After reconciliation the displayed realized P&L is IBKR's, to the cent — `CloseRowAudit` measures it.
+- 0DTE prices from the real fractional time to 16:00 ET (owner-approved protected change).
+- A PUT candidate must be genuinely tradable; `ask/2` ESTIMATE is superseded for that ranking.
+- The BTC exit target is a model result; the hardcoded 80 % is superseded.
+- The market brief prints a category heading once; an exchange is not an index.
+- OPT → Trading Tracker is specified, not built.
 
-## 5) OTHER RECENT FIXES (final state)
-- **Feed-tap deep-link to stock-realized**: tapping a `STOCK_SOLD` row scrolls the exact ticker's row into view in `StockRealizedScreen`. Working approach = **discrete LazyColumn items** (header card idx 0, sort header idx 1, `itemsIndexed` rows idx 2+) + `animateScrollToItem(2 + indexOfTicker)`, with the index computed in a SEPARATE effect keyed on the FRESH month-filtered rows (computing it in the same effect that sets the month read the STALE list → idx −1). Earlier `positionInRoot` / `BringIntoViewRequester` offset-math FAILED (single-item table / tableTopY 0f at effect time).
-- **Assignment records open their EXISTING position page** (ticker fallback only if truly gone): feed onClick resolution order = (1) stored `positionId` valid (>0 AND in `existingPositionIds`) → its position page; (2) null/0/stale id on a lifecycle event → resolve via `positionIdByTicker[ticker.uppercase()]` (VM `StateFlow<Map<String,Long>>` = `getAllPositions()` filtered `status!=DRAFT`, groupBy ticker, value = max-id) → open that position; (3) no position for the ticker → `onNavigateToTickerDetail` (never a dead "פוזיציה לא נמצאה"). Drafts/targets keep edit-nav. Both feed surfaces (DashboardActivityRow + ActivityFeedScreen.ActivityEventCard). Log `FEED_CLICK "ASTX-case ... resolved=.."`.
-- **Ghost CC reminder filter** (CODEX): CC-reminder holding evidence accepted ONLY from a current snapshot/manual override or a genuinely live OPEN position; closed/assigned rows, positions past the 16:00 ET expiry boundary, assignment-history-alone, and snapshots predating the latest CC close are all rejected. Logs `CC_REMINDER_FILTER` for every include/exclude.
-- **Calendar stable layout**: fixed **6-row** grid (empty same-size trailing cells; out-of-range cell = `Box(Modifier.weight(1f).aspectRatio(0.85f))`, not a zero-height Spacer); per-week "שבוע" total row always composed + `alpha`-reserved; **fixed-height summary card** (stock/combined lines always composed, `alpha 0` when zero, `maxLines=1, softWrap=false` so a big value can't wrap to a 2nd line); **fixed-width month-title Box (140.dp, centered, maxLines=1)** with the **"היום" chip slot always reserved** (`enabled=!isCurrentMonth` + `alpha`) so the arrows + chip never reflow with month-name length. The "היום" chip sits beside the name on its (visual RTL) left and reuses `CalendarViewModel.goToCurrentMonth()`.
-- **IV/buffer-aware `StrategicRiskAnalyzer` + consistent intel** (CODEX): shared `assessPutBuffer` — `expectedMovePct = IV*sqrt(max(DTE,1)/365)*100`, probability bands plus an 8% / 1.5×-expected-move floor before calling a strike "far"; thin/elevated short-PUT bands cap the strategic score at caution-or-worse and the intel warns instead of "supports holding". Logs `RISK_DBG`. (This resolved the earlier "~$1 OTM + 122% IV reads as 'strike far' / 'supports holding'" sanity bug — now CLOSED.)
+## Open blockers
 
-## 6) OPEN TODOs (carry forward)
-- **(a) Alerts not firing during pre-market** despite several tickers moving sharply — INVESTIGATE the alert trigger/scheduling (AlertWorker, 15-min periodic; pre-market thresholds).
-- **(b) Expiry banner undercounts** — shows only 1 expiring position when 4 are actually expiring; fix the banner's count/source.
-- **(c) `CC_REMINDER_FILTER` log noise** — prints `Log.d` for many long-gone tickers; they're CORRECTLY excluded (behavior is right), it's only log spam. Optionally quiet it.
-- **(d) Cosmetic** — the short-open row proceeds wording could read **"התקבל בפתיחה"** for clarity.
-- **(e) Tables-UX** — persist the last-used sort across ALL table screens (PortfolioBreakdown persists via VM; StockRealized sort is in-memory only). Candidates: PositionsList, PortfolioBreakdown, StockRealized, Collateral, Reports tables, TaxReport.
-- **(f) GF3 multi-flip-trade count-attribution edge** — a theoretical edge in splitting a multi-flip assignment's share counts; not observed in practice.
-- **(g) Calendar STILL jumps between a month WITH a progress bar and one WITHOUT** — the `monthlyTarget > 0` progress bar (in `MonthNavigationHeader`, CalendarScreen.kt) is still conditional, so its height appears/disappears across months and shifts the layout vertically. Fix next: **reserve the bar's height in no-bar months too** using the SAME alpha-reserved / `maxLines=1` approach already applied to the summary-card stock lines (always compose the bar + its `%` text, `alpha 0` when `monthlyTarget <= 0`), so navigating never shifts anything. (The "היום" chip and the summary card already stay put from GL10.)
-- **(h) Risk/intel IV-buffer fix (CODEX `24c50b6`) is NOT yet device-verified** — the user had no open PUT at the time to test. Verify later on device: a PUT at price ≈ 25 / strike ≈ 24 / IV ≈ 122% → **HIGH / caution** risk + a **consistent** (cautionary, not "supports holding") intel line; and a genuinely-far low-IV case (e.g. price 100 / strike 80 / IV 20%) → still **far / low-risk**. Confirm `RISK_DBG` shows bufferPct, IV, expMovePct, band/verdict.
-
-## 7) IBKR NOTE
-"**statement could not be generated this time**" was an **IBKR Flex server-side error (intermittent)**, NOT an app bug — retry later. Consider showing a friendlier in-app message that distinguishes an IBKR server hiccup from a real import failure.
-
-## 8) IRON RULES
-- **Hebrew written naturally** — no `div dir=rtl`; never embed Latin letters INSIDE a Hebrew word.
-- **Numbers / Latin runs / dates wrapped LTR / bidi-safe** in the RTL UI — use the shared `LtrText` composable or `CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr)`; signs go on the LEFT of the number; `maxLines = 1, softWrap = false` so numbers never wrap/reverse (e.g. `50-2026`).
-- **Do NOT touch** `ProfitCalculator` / IV (Black-Scholes) math / Room DB schema & migrations / realized-P&L formulas / `AppPreferences` / `AvgCostResolver` **without explicit human OK** (they are the financial / data-integrity core and are guarded). If a fix needs one of them, open a PR and escalate (`needs-dima`).
-- **Device tests** are written in **English** with the Hebrew on-screen area names quoted, and are listed only **AFTER a summary is brought** (appended to `pending-tests.md`).
-- **Claude Code prompts** are **plain text in a code block** — never artifacts.
-- **Delete & sync** must use `deleteImportedNonDraftPositions()` (never `deleteAllPositions()`); never wipe the stock snapshot on resync (manual/enriched data must survive).
-
-### 2026-06-29 — Covered Put implementation (OPT 8d8907b)
-ARCHITECTURE of the feature:
-- Domain: `CoveredPutCalculator` (domain/calculator) is pure BigDecimal, no Android deps, fully JVM-unit-tested. It owns ALL covered-put math (coverage, statics, open P/L, assignment, expiration, BTC, coverage recheck, forward-split). The entity reuses existing fields: sharesHeld = linked short shares (positive), stockPurchasePrice = short entry, new contract_multiplier column = shares/contract.
-- Persistence: Room bumped 30->31 (MIGRATION_30_31 adds contract_multiplier default 100; migrationToLatest retargeted to 31; registered in AppModule). Backward compatible.
-- Engine integration: ProfitCalculator gives COVERED_PUT its own ASSIGNED path (realize option premium, not CSP $0 fold) and a capitalAtRisk branch. CC/CSP/short assignment untouched — proven by ProfitCalculatorCoveredPutTest regressions.
-- UI: AddPositionScreen exposes "Covered Put" in the picker, shows short-stock fields + a coverage warning, auto-detects the short from the snapshot. CoveredPutDetailScreen (dashboard) renders status/coverage/economics/open-PL/assignment-simulation/unlimited-upside warning; reached via Screen.CoveredPutDetail from PositionDetailScreen's "פתח תצוגת פוט מכוסה" banner.
-- Tests: app/src/test (new source set; junit added; testOptions.unitTests.isReturnDefaultValues=true for android.util.Log). 23 tests, all green.
-
-UNRESOLVED / follow-ups: see roadmap 2026-06-29 (custom multiplier input, partial-assignment entity split + dialog, IBKR auto-classification, dedicated reporting grouping). Money rounds to cents HALF_UP; per-share prices keep full precision (4dp) — do not cent-round effectiveCoverPrice/upsideBreakEven.
-
----
-### 2026-09-06 pointer (Claude Code) — this snapshot dates from 2026-06-21; the rolling handoff is now `cc-latest.md`
-Since 2026-07-04 every task OVERWRITES `cc-latest.md` with the latest complete handoff — read it first, then `state.md` (dated log), `pending-tests.md`, `roadmap.md`, `gotchas.md`. State as of 2026-09-06 (S1-final): the phone-only build loop (`PHONE_BUILD.md` in the OPT repo) is fully proven — original debug keystore recovered, the phone-built APK (sources = `5445921`, built from `d0d5d3d`) was installed IN PLACE with `adb install -r` and launched on the real device with the existing data files intact; the owner's visual acceptance and the reboot test are still pending. Nothing in §3–§8 above changed.
-
-### 2026-09-07 pointer (Claude Code) — S2 finished; rolling handoff is cc-latest.md
-S2 (branch s2/ibkr-reconciliation-lifecycle-dashboard, OPT f327a7e8f3b22792b176f12ac310243ca2835696, PR #19 OPEN needs-owner, NOT merged): IBKR-authoritative reconciliation (FlexCycleBuilder/IbkrReconciler/BrokerReconciliationStore), SOFI + feed-timestamp root causes fixed, Covered Put owner ruling (option $0, premium in effective cover price), CALL probability tail, CC yield on cost basis, dashboard "מה קורה היום בשוק", CC reminder wording + coverage fix, PNL log gate; 91 JVM tests green; APK delivered; device QA + reboot pending; Codex review blocked by usage limits. Owner S1 visual acceptance PASSED. Read cc-latest.md first.
-
-### 2026-09-07 pointer (Claude Code) — S2 device QA complete; PR #19 still OPEN
-S2 branch HEAD 1ab4c824c4c0c0d087ed4d3fde851968e1cf4493. ADB returned, so the S2 build was installed and the real IBKR import was run 3x on the phone: SOFI now closes as BTC with its real −$26.88 loss and a real execution time, BKSY's lost buy-to-close was reinserted, the reconciliation converged (updated=0), and the PNL log storm measured 0 (was ~68k lines). 97 JVM tests green. Codex review still blocked by the account's usage limits; reboot still pending. Read cc-latest.md first.
-
-### 2026-09-09 pointer (Claude Code) — S2.2 finished; rolling handoff is cc-latest.md
-S2.2 (same branch `s2/ibkr-reconciliation-lifecycle-dashboard`, OPT `4935ba6`, PR #19 OPEN needs-owner,
-NOT merged; main still `7225b7af`): the three owner physical findings root-caused and fixed generically —
-the partial-close feed event now belongs to the CLOSED slice (it was on the row that stays OPEN, which is
-why the cold-start repair turned it into $0.00 at the expiry), the stock snapshot can finally follow a
-holding DOWN (SPCH 1800 → 800, so the "1000 מניות לא מכוסות" reminder is gone), and the market brief lists
-no mover it cannot explain from a real source. Plus one defect the device QA itself exposed: an OPEN broker
-cycle recombined the 8-contract remainder back to 18 and double-charged the opening commission. 272 JVM
-tests green; two non-destructive imports converged; audit mismatches all 0. **Open question for the owner:
-IBKR reports SPCH 12C as 18 contracts open — it has the 1,000-share stock sale but not the 10-contract
-buy-to-close.** Read cc-latest.md first.
-
-### 2026-09-10 pointer (Claude Code) — S2.3 physical-QA addendum finished; rolling handoff is cc-latest.md
-Same branch `s2/ibkr-reconciliation-lifecycle-dashboard`, **final OPT `c1b9300`** (the addendum's work
-plus FOUR fix rounds answering successive exact-head reviews — r5 returned APPROVE_WITH_COMMENTS with no
-BLOCKER and no MAJOR). PR #19 OPEN needs-owner, NOT
-merged; main still `7225b7af`. **The reboot gate is CLOSED: the owner rebooted physically and Android,
-the app and the data all came up normally — nothing anywhere should still say "reboot pending".** The
-market brief now EXPLAINS instead of listing the movers twice (the aggregate `עולות/יורדות היום` lines
-are gone, sector movers group into one row, a market headline must name something you follow before it
-is shown, and the broad-market row states co-movement rather than "no reason found"). The empty put list
-was root-caused to Yahoo answering `401 Invalid Crumb` to keyless option requests; the cookie+crumb
-handshake fixes it and the device now ranks 4 live candidates from 1,194 contracts. 624 JVM tests green.
-Read cc-latest.md first.
-
-### 2026-09-12 pointer (Claude Code) — S2.4 finished; rolling handoff is cc-latest.md
-Same branch `s2/ibkr-reconciliation-lifecycle-dashboard`, PR #19 OPEN `needs-owner` + `no-automerge`,
-NOT merged; main still `7225b7af`. **The headline is a negative result, and it matters:** the SPCH
-"double-count" this round was commissioned to fix **does not exist**. A real Flex sync shows IBKR sends
-the 1,000-share sale as FOUR EXECUTION fills summing to exactly −$6,815.39, the whole payload contains
-**zero** duplicate grains, the per-ticker total and the per-sale drill-down agree to the cent on
-screen, and −$2,412.39 appears nowhere in the data. Nothing was changed toward that number.
-
-What DID ship: one canonical stock-sale grain rule used by both surfaces (defensive — they really were
-reading different row sets), an import audit that names every ticker-month it moves, and a full
-114-ticker-month historical audit (93 exact; 21 differing, every one classified and none a
-double-count). Plus puts capped to DTE 2–60, a CC card that shows BID/ASK/MID with the mid as both the
-estimate and the recommended limit, one unified watchlist with a shared persisted sort, and
-market-brief rows that all start and wrap at the same edge. Device QA found two extra real defects: the
-drill-down printed the DEVICE's calendar day for a trade (which is why this task was written against
-"the 2026-09-09 sale" — it traded on 09-08), and the audit's row cap hid the one ticker it existed to
-explain. 716 JVM tests green. Read `cc-latest.md` first.
+See `roadmap.md` S2.7 backlog. The two that are not the owner's to wait on: PR #20 (brings the
+canonical Claude review fallback) and the `MIGRATION_30_31` registration gap at 16 of 17 database
+builders.

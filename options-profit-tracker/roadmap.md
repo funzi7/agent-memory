@@ -1123,3 +1123,58 @@ Numbered options for the owner:
 **Carried forward, unchanged**
 - Everything in the S2.5 block below that was already owner-pending stays owner-pending; the addendum
   sacrificed none of it.
+
+## S2.7 backlog (2026-09-22)
+
+### Blocking the round's own acceptance
+1. **Device QA.** ADB was down for the whole of S2.7; every Sep 1–18 acceptance figure is unverified
+   on the device. See `pending-tests.md` for the exact table and the log lines to read.
+2. **Read `PUT_CHAIN` first.** Yahoo 429'd this host, so it is unproven whether the keyless v7 chain
+   carries per-contract `volume`/`openInterest`. If it does not, the put list is legitimately EMPTY
+   under the owner's "unproven ⇒ exclude" rule. Distinguish that from a broken scan before changing
+   anything.
+
+### Owner decisions
+3. **PR #20 `chore/sync-automation-core`** — OPEN, not merged. Carries `claude-fallback-review.yml`
+   (the canonical structured Claude review fallback, absent from this repo until now) plus updates to
+   `claude-fallback-watchdog`, `codex-gate`, `merge-bot`, `ci-doctor`.
+4. **Does `AUTOMATION_PAT` have `issues:write`?** Checkout/push/PR are proven. The original crash was
+   on the ISSUE path. NOT tested here because `main` still runs the pre-S2.6 workflow that treats a
+   Yahoo 429 as a real failure, so a dispatch would likely open a spurious Issue.
+5. **`ibOrderID` into the Flex query field list.** One IBKR-portal change. Three subsystems wait on
+   it: `StockRealizedGrain` grain suppression, `SpreadEvidence` auto-linking, and the put scan's order
+   identity. Until then each of them correctly refuses to act on ambiguous evidence.
+6. **SOFI all-time −12,646.22 vs the IBKR portion −6,795.78.** A −5,850.44 difference to be
+   ATTRIBUTED to historical rows by the audit. Never a manual offset.
+
+### Data-integrity hazard found during recon, deliberately NOT fixed
+7. **`MIGRATION_30_31` is registered at exactly ONE of 17 `Room.databaseBuilder` call sites**
+   (`di/AppModule.kt:61`). The other sixteen stop at `MIGRATION_29_30` —
+   `MainActivity` (×5), `OptionsTrackerApp`, `FlexSyncWorker`, `DraftUpdateWorker`, `AlertWorker`,
+   `DashboardViewModel`, `PortfolioEventsScreen` (×3), `PortfolioHistoryScreen`, `PortfolioNewsScreen`,
+   `SettingsScreen`. `OptionsTrackerApp`'s builder is inside a swallowing `try`, so the failure would be
+   silent. `migrationToLatest` also hardcodes target `31`. Out of S2.7's scope and it touches the
+   guard-protected `OptionsDatabase.kt`; the right fix is one shared migration array.
+
+### Housekeeping
+8. Seven pre-existing pasted bidi/NBSP glyphs remain on untouched lines: `AddPositionScreen` (2),
+   `CoveredPutDetailScreen`, `DashboardScreen`, `PortfolioBreakdownScreen`, `LeveragedUniverseTest` (2).
+9. `ReportGenerator.getOverallReport`'s `profitByMonth` still filters `closeDate != null`, so expired
+   rows fall out of the monthly journal bars — the same null-skip class converged everywhere else.
+10. `PortfolioSnapshotDaily.openAsOf` still treats `closeDate == null` as "open forever", so an
+    expired row keeps contributing collateral.
+
+### FUTURE — explicitly NOT implemented in S2.7
+11. **Phase 3 — personal historical exit learning.** Compare the owner's real trade history against
+    `BtcExitOptimizer`'s recommendations under similar IV / DTE / strike buffer / risk band /
+    underlying volatility / liquidity. **Not trained, not started:** the historical ledger was being
+    corrected in this very round and is not yet a clean training set.
+12. **OPT → Trading Tracker.** Specified in full in `docs/OPT_TO_TRADING_TRACKER_CONTRACT.md`,
+    implemented nowhere. Next round runs `clauto trading-tracker` for the receiving half, then the
+    enabled sender/receiver E2E. Two structural problems to solve first, both named in the doc:
+    `OptionsRepository` is not a choke point (`AutoAssignCC`, `FlexSyncWorker`, `DraftUpdateWorker`
+    write straight to `positionDao`), and delete-and-reimport must not replay history.
+13. **The conditional daily ChatGPT report** belongs to Trading Tracker / the relay, not to OPT.
+    Primary report after the US after-hours session, scheduled off `America/New_York` so DST is
+    correct; a SECOND message only when broker reconciliation changes something material, otherwise
+    silence. No PAT or ChatGPT credential inside any APK.

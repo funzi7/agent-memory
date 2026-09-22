@@ -990,3 +990,67 @@ this branch asserted bidi isolates written as pasted U+2068/U+2069, plus a paste
 happened to be right so everything passed — but a reviewer cannot see them, and a paste that degrades
 to a plain space leaves every one of those assertions passing while protecting nothing. Escapes only,
 and check with a byte-level scan rather than by eye.
+
+## S2.7 (2026-09-22)
+
+### Work that was never RUN is not work that was verified
+
+The round opened on 2,768 lines of uncommitted S2.6 follow-up that **did not compile**:
+`ImportViewModel` was the app's only `BuildConfig.DEBUG` reference and AGP 8.x does not generate
+`BuildConfig` without `buildFeatures { buildConfig = true }`. It also shipped **two test assertions
+that contradicted documented behaviour** and **three pasted U+2066/U+2069 glyphs** — in a feature
+whose own CLAUDE.md rule says bidi characters must be escapes.
+
+A finished-looking diff proves nothing. Compile it and run the suite before believing any of it.
+
+### `?:` on a nullable Double is not "is this value meaningful?"
+
+`ReportGenerator`'s `CAL_MISS` diagnostic asks `(it.ibkrRealizedPnl ?: 0.0) == 0.0` — *is the BROKER
+field absent or zero?* Routing it through the canonical `selectedRealized` would make the predicate
+`calc == 0.0 && calc != 0.0`, permanently false, and the diagnostic would go silent rather than being
+"converged". **A sweep that replaces every syntactic match will break the sites that were asking a
+different question.** One of ~35 was left alone, with a comment saying why.
+
+### An objective that divides by expected time must handle "it already happened"
+
+`BtcExitOptimizer`: a target the contract ALREADY meets exits at t = 0. Expected holding time is then
+zero, and the objective is either infinite or — handled naively as 0.0 — ranks **the best available
+outcome LAST**. Floored at one lattice step, which is the finest interval the model can observe.
+
+A related fixture trap: a flat test premium (0.55) regardless of strike, IV and DTE is many times what
+a low-IV contract is actually worth, so EVERY target is already met and the whole grid degenerates.
+Price the fixture at model value.
+
+### The naive intuition about deep exit targets is wrong, and the model says so
+
+"A 90 % target is rarely reached" is false for an OTM put: theta drags the contract toward zero, so it
+is usually reached — but only near the very end. **The penalty is in the CARRY, not the probability**,
+which is exactly why the objective is per collateral-DAY rather than per trade.
+
+### Recon can be right about the facts and wrong about the verdict
+
+The storage recon concluded a broker-provenance ledger was impossible without a Room migration, and
+every fact it cited was correct: `syncSource` is ingestion provenance, no broker id is persisted,
+`positions` is options-only. The verdict was still wrong, because **the owner had supplied the missing
+fact as a RULE** — a date boundary — which makes provenance derivable. Ask what the owner already
+decided before concluding that the schema must change.
+
+### Debug the test, don't deduce it
+
+A failing market-brief assertion cost three wrong hypotheses in a row. A ~30-line throwaway probe test
+that printed the actual `BriefLine`s and diagnostics settled it in one run: the headline was correctly
+SPENT as the mover's explanation, so the assertion — not the behaviour — was wrong. Write the probe,
+read the data, delete the probe.
+
+### A subagent will quietly widen the scope you gave it
+
+A Task C agent added "drop a TICKER news item when any of its tickers already has a CONTEXT row",
+which is strictly broader than the existing `spentEvidence` rule and silently removed real news rows.
+It was not asked for. **The pin that caught it was a test asserting the card is unchanged.** Keep those
+tests, and read a delegated diff for behaviour nobody requested.
+
+### A feature can ship inert
+
+The put-liquidity work defaulted its ticker-aggregate verdict to `UNPROVEN`, which REJECTS. It
+compiled, its unit tests passed, and the live put list would have been permanently empty until the
+ViewModel wiring landed. **A default that is safe in a unit test can be a silent off-switch in production.**

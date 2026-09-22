@@ -1330,3 +1330,45 @@ Appended rather than edited, per CLAUDE.md. Both of these SUPERSEDE what is writ
 - FINAL HEAD for this round: 074de86e52f2a168b89dc21ff32a851570f1b144. 977 JVM tests, 0 failures.
   Build Gate PASS. APK 1.0.0 sha256 28ee636132f7a6f00d883555fef1dc5a5865c1fbd46ddc994b5d4d8b124aa767,
   signer 5d3d855c…, installed == built == delivered, firstInstallTime still 2026-04-22 22:53:57.
+
+### 2026-09-22 S2.7 — broker-exact realized P&L, one canonical ledger, broker provenance, 0DTE, put liquidity, model BTC target
+- OPT: a6e1837 (PR #19 OPEN, `needs-owner`, `no-automerge`, NOT merged; `main` untouched).
+  Preceded by `ff2b41f`, which RECOVERED 2,768 lines of uncommitted S2.6 follow-up that had never
+  compiled (`BuildConfig.DEBUG` with `buildFeatures { buildConfig = true }` missing in AGP 8.x).
+- **SUPERSEDED — owner approved:** S2.6's average-cost stock headline. The owner's CURRENT IBKR
+  Orders & Trades screen shows SPCH at **−6,815.39**, which IS the Flex FIFO figure, inside a stock
+  headline of **−15,377.60** for 2026-09-01..2026-09-18 (options **+3,033.53**, combined
+  **−12,344.07**). The displayed figure is IBKR's own `fifoPnlRealized` again; `OrdersTradesRealized`
+  survives as the logged diagnostic. Nothing hardcoded, September not special-cased, NOK untouched.
+- **ONE selection rule**: `RealizedLedger.selectedRealized` replaces ~35 hand-typed copies of
+  `ibkrRealizedPnl ?: ProfitCalculator.realizedPnL`. `ProfitCalculator` CALLED, never modified.
+- **ONE realized date**: `closeDate ?: expirationDate`. Three YTD paths disagreed (two fell back to
+  `openDate`), and `openDate` is simply the wrong year for a cycle opened in January and closed in June.
+- **Broker provenance is a DATE boundary** — TradeStation ≤ 2025-10-17, IBKR ≥ 2025-10-18 — because
+  `syncSource` is INGESTION provenance (`IMPORTED` covers TradeStation CSV *and* IBKR Flex) and no
+  broker account/order/execution id is persisted anywhere. **NO ROOM MIGRATION; schema stays v31.**
+- **A rolling Flex window can no longer erase history**: `StockRealizedLedgerStore`, one key per
+  realized stock row, scoped merge. It starts EMPTY and `coverage()` states its real span rather than
+  claiming completeness.
+- Two real defects: a reconciled row's % and annualized return took their numerator from
+  `ProfitCalculator` while its P&L came from IBKR; and `optionsRealized.total` counted rows its own
+  month buckets did not.
+- 0DTE (owner-approved protected change): `OptionTimeRemaining` + `BlackScholesCalculator.calculateForYears`,
+  used ONLY when the whole-day DTE is 0, so no existing theoretical price moves.
+- PUT liquidity: real BID, OI ≥ 100, vol ≥ 10, spread ≤ 25 %, ticker aggregate ≥ 100; UNPROVEN excludes.
+- `BtcExitOptimizer` replaces the hardcoded 80 % CSP target — expected P&L per expected collateral-day
+  over the COMPLETE policy, deterministic CRR lattice, refuses rather than guessing.
+- Market brief: category heading rendered ONCE; plain NASDAQ is the exchange, not the index;
+  technical/levels headlines are context, never a cause.
+- **1384 JVM tests, 0 failures, 0 errors, 1 skipped, 65 classes** (1133 at S2.6). compile green,
+  `git diff --check` clean, 75/75 health scripts pass.
+- APK 1.0.0 sha256 `b84a0069c80cb56bcdf547f4d06ed3ed1bb5d614c1e7b13106b99fa4629c3d34`,
+  signer `5d3d855c…`, delivered to /sdcard/Download/OptionsProfitTracker/.
+- **DEVICE QA NOT RUN — ADB was down the whole round** (`cannot connect to daemon at tcp:127.0.0.1:5037`).
+  Every acceptance figure above is UNVERIFIED ON THE DEVICE. APK built and delivered but NOT installed.
+- **Yahoo 429'd this host**, so whether the option chain carries per-contract volume/openInterest is
+  UNPROVEN; the code excludes rather than guessing.
+- `AUTOMATION_PAT` renewed by the owner mid-round and VERIFIED working for checkout/push/PR
+  (run 35708535163 → PR #20 `chore/sync-automation-core`, which carries `claude-fallback-review.yml`).
+  The `issues:write` scope is NOT tested. PR #20 is OPEN, not merged.
+- **The S2.6 health check has never protected `main`** — `main` has no `.github/scripts/` at all.
