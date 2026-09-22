@@ -1080,3 +1080,28 @@ ViewModel wiring landed. **A default that is safe in a unit test can be a silent
   fetches on `viewModelScope` swapped one defect for another: the pop cancels the request while its
   claim stands, and the replacement ViewModel reads a CLAIMED, EMPTY pool and suppresses the retry for
   the whole TTL. Both must move.
+
+### 2026-09-22 — S2.7 finalization: two operational cautions
+
+- **Do NOT perform a manual price/market-data refresh for QA on this project.** The owner reports
+  that one refresh action appears to execute approximately **three** provider refresh passes in
+  succession, which can rapidly consume the monthly quota of the configured market-data/API keys
+  (MarketData.app, Alpha Vantage, Massive, RapidAPI, Tradier, Yahoo option, Finnhub, and the
+  BLS/Investing/issuer feeds).
+  **This is an OWNER OBSERVATION with an UNDIAGNOSED cause — it is not a known bug and no root cause
+  has been established.** Do not guess one, do not mark it fixed, and above all do not reproduce it
+  to "confirm" it. It is recorded as a future audit task in `roadmap.md` (item 14): the exact user
+  action, every trigger it generates, ViewModel recreation, WorkManager/background overlap,
+  per-provider fan-out, shared refresh functions, repeated IV refresh, repeated stock-quote refresh,
+  option-chain refresh, cache/TTL ownership, in-flight request deduplication. Acceptance: one owner
+  refresh action must not create duplicate equivalent provider requests.
+
+- **A sync path and an import path are not the same acceptance surface — check which one a
+  diagnostic lives on before promising it.** The device QA used the settings `סנכרן מ-IBKR` path,
+  which refreshes prices and the STOCK half but does **not** call `reconcileWithBroker`. Everything
+  that prints from `reconcileWithBroker` — `CloseRowAudit`, the fixed-window
+  OPTIONS/STOCK/COMBINED triple, `OPTIONS_SYNC`, `REALIZED_LEDGER` — therefore produced nothing,
+  and none of it could be claimed. The lesson is to map each acceptance row to the code path that
+  emits it *before* the session, so the QA plan asks for the right action. The related trap: the
+  ledger's `stored=272 -> 272` repeat on the sync path is **not** the same-snapshot IMPORT
+  idempotency check, and must not be written up as if it were.

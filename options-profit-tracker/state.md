@@ -1427,3 +1427,60 @@ are populated; the 16-of-18 is `LIQUIDITY_UNPROVEN` occurring naturally.
 Guard-protected files untouched except the owner-approved `BlackScholesCalculator.calculateForYears`.
 No Room migration; schema still **v31**. `build-gate` and `scripts-test` pass; `codex-gate-evaluator`
 is the expected fail-closed-pending.
+
+### 2026-09-22 S2.7 FINALIZATION — exact-head gates verified green, handoff reconciled
+
+Finalization-only pass. **No project code changed, no project commit created, no broker sync or
+import, no price/market-data refresh, no ADB or device action, no new build, no new Codex review.**
+OptionsProfitTracker HEAD is unchanged at `4512cbf` (`4512cbfa93b0a1623d544626c56e1c8709c06083`).
+
+**CORRECTION to the "S2.7 FINAL — device QA run, Codex loop closed clean" block above.** Its closing
+line read: *"`build-gate` and `scripts-test` pass; `codex-gate-evaluator` is the expected
+fail-closed-pending."* That was true at the moment it was written and is now **SUPERSEDED**. Verified
+read-only at the exact head during this pass, **all four checks PASS**:
+
+| check | result |
+|---|---|
+| `build-gate` | pass |
+| `scripts-test` | pass |
+| `check-codex-status` | pass |
+| `codex-gate-evaluator` | pass |
+
+The Codex review at the exact head (2026-09-22T15:10:20Z) states **"Codex Review: Didn't find any
+major issues."** for **reviewed commit `4512cbfa93`**. This is genuine Codex evidence and must never
+be described as a Claude fallback. Ten older active review threads had already been addressed by
+later commits and were resolved; the gate was then rerun **without changing project code** and
+passed. Review threads now stand at **37 total — 10 resolved, 27 unresolved and all 27 outdated**
+(anchored to lines later commits replaced), i.e. **zero unresolved current-head threads**.
+
+PR #19: **OPEN**, not a draft, **NOT merged** (`mergedAt` null, `mergeCommit` null), base `main`,
+labels `no-automerge` + `needs-owner`. `origin/main` remains `7225b7af16c183de00a9f064ead03a01ad6af1d3`
+and HEAD is **not** an ancestor of it, so `main` is untouched by this PR. PR #20
+`chore/sync-automation-core` is still OPEN and separate; it is **not** required to validate this head.
+
+Round totals against the merge-base: **196 files, +54,945 / −1,476**, 18 commits from
+`1a51e5e41a3e8a13a05d6833d862783243fa62cb`.
+
+**Owner rulings recorded this pass:**
+- **No further IBKR sync or import.** The account is already synchronized and no new broker data is
+  expected. The IMPORT-only diagnostics (`CloseRowAudit.contractViolations == 0`, the fixed
+  2026-09-01..2026-09-18 OPTIONS/STOCK/COMBINED triple, the IBKR subtotal +$6,916.31, the SOFI
+  subtotal −$6,795.78, same-snapshot import idempotency, `OPTIONS_SYNC`/`REALIZED_LEDGER` lines)
+  are therefore **NOT RE-RUN — owner explicitly declined further broker synchronization**. Not a
+  PASS, not a FAIL, and not an acceptance blocker.
+- **No price / IV / option-chain / market-data / news refresh**, for QA or otherwise. The owner
+  reports a manual refresh appears to execute ~3 provider refresh passes and can rapidly consume the
+  monthly API-key quota. **Cause undiagnosed**; recorded as roadmap item 14 for a future audit and
+  deliberately NOT reproduced here.
+
+**Documents reconciled:** `cc-latest.md` (full replacement — it still named `a6e1837` as Final HEAD
+and still claimed device QA not run, APK not installed, Codex gate pending and Yahoo volume/OI
+unproven), `current-session.md` (full replacement, same stale claims), `pending-tests.md` (stale
+S2.7 section marked SUPERSEDED; authoritative "S2.7 FINAL" results section appended),
+`roadmap.md` (S2.7 FINAL backlog reconciliation appended: items 1–2 superseded, items 3–13 carried
+forward, new items 14 and 15 added), `state.md` and `gotchas.md` (this block and a matching
+operational caution).
+
+**Next repository task is not this repo:** OPT → Trading Tracker one-way lifecycle sync, contract
+already written in `docs/OPT_TO_TRADING_TRACKER_CONTRACT.md`, nothing implemented. Next manager
+session runs `clauto trading-tracker`.

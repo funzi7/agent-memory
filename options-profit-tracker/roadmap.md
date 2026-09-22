@@ -1178,3 +1178,91 @@ Numbered options for the owner:
     Primary report after the US after-hours session, scheduled off `America/New_York` so DST is
     correct; a SECOND message only when broker reconciliation changes something material, otherwise
     silence. No PAT or ChatGPT credential inside any APK.
+
+## 2026-09-22 — S2.7 FINAL backlog reconciliation (HEAD `4512cbfa93b0a1623d544626c56e1c8709c06083`)
+
+Written in a finalization-only pass: no code changed, no commit created, no broker sync, no
+market-data refresh, no device action. This block reconciles the **"S2.7 backlog (2026-09-22)"**
+section above against the verified final state.
+
+### SUPERSEDED entries from that block
+
+- **Item 1, "Device QA. ADB was down for the whole of S2.7" — SUPERSEDED.** ADB came back up, the APK
+  was installed in place and launched, and the device QA ran. SOFI −$3,077.21, BTCI −$1,914.57 and
+  NOK −$3,570.42 match IBKR Orders & Trades to the cent; SPCH's month figure −$4,288.73 is the
+  owner's −$6,815.39 window plus a later 2026-09-21 sale of +$2,526.66. Results are in
+  `pending-tests.md` → "S2.7 FINAL (2026-09-22)".
+- **Item 2, "Read `PUT_CHAIN` first — Yahoo 429'd this host" — SUPERSEDED.** The live phone showed
+  `18 puts / 18 with own IV / 16 with volume / 18 with open interest` and
+  `10 puts / 10 with own IV / 10 with volume / 10 with open interest`. **The keyless v7 chain DOES
+  carry per-contract `volume` and `openInterest`.** Missing volume still means UNPROVEN ⇒ EXCLUDED;
+  that behaviour is unchanged and must stay. The live scan ranked zero candidates in the final
+  session, which is not a failure by itself.
+
+### Items 3–13 of that block CARRY FORWARD unchanged
+
+PR #20; `AUTOMATION_PAT` `issues:write`; `ibOrderID` into the Flex field list; the SOFI
+−$5,850.44 attribution; the `MIGRATION_30_31` 1-of-17 registration hazard; the 7 pre-existing bidi
+glyphs; `getOverallReport.profitByMonth`'s `closeDate != null` filter; `PortfolioSnapshotDaily.openAsOf`;
+Phase 3 exit learning; OPT → Trading Tracker; the conditional daily ChatGPT report.
+
+One clarification on **PR #20**: it is **not required** to validate this head. HEAD
+`4512cbfa93b0a1623d544626c56e1c8709c06083` has a genuine clean **Codex** review
+("Didn't find any major issues.", reviewed commit `4512cbfa93`) and a green `codex-gate-evaluator`.
+PR #20 stays a separate, still-OPEN infrastructure rollout.
+
+### NEW — item 14: price/API refresh appears to run ~3× per owner action
+
+**Owner observation, cause UNDIAGNOSED. Do not guess it, do not mark it fixed, do not reproduce it.**
+
+A manual price refresh appears to execute approximately **three** refresh passes in succession, which
+can rapidly consume the monthly quota of the configured market-data/API keys.
+
+A future task must audit:
+
+- the exact user action;
+- every trigger generated from that action;
+- ViewModel recreation;
+- WorkManager / background overlap;
+- per-provider fan-out;
+- shared refresh functions;
+- repeated IV refresh;
+- repeated stock-quote refresh;
+- option-chain refresh;
+- cache / TTL ownership;
+- in-flight request deduplication.
+
+**Acceptance for that future task:** one owner refresh action must not create duplicate equivalent
+provider requests.
+
+**Until the owner explicitly authorizes it, do not perform a manual price/market-data refresh — not
+even for QA.** That includes stock price, option chain, IV, PUT scan, watchlist, MarketData.app,
+Alpha Vantage, Massive, RapidAPI, Tradier, Yahoo option, Finnhub, market/news and BLS/Investing/issuer
+smoke calls.
+
+### NEW — item 15: durable stock-ledger coverage is PARTIAL and must not be relabelled
+
+The ledger's measured stored span on the device is **2025-11-21 .. 2026-09-21** (272 rows,
+103 tickers). `StockRealizedScreen` prints `נצבר מ-2025-11-21 · …` and correctly declines to claim
+unseen earlier stock history. **Do not present `כל הזמן` as complete TradeStation + IBKR lifetime
+history until the missing earlier broker rows are actually present.**
+
+### Owner-deferred, NOT a blocker
+
+The IMPORT-only diagnostics — `CloseRowAudit.contractViolations == 0`, the fixed
+2026-09-01..2026-09-18 OPTIONS/STOCK/COMBINED triple, the historical IBKR subtotal +$6,916.31, the
+SOFI IBKR subtotal −$6,795.78, same-snapshot IMPORT idempotency, and the `OPTIONS_SYNC` /
+`REALIZED_LEDGER` import lines — were **NOT RE-RUN because the owner explicitly declined further
+broker synchronization**. The account is already synchronized and no new broker data is expected.
+This is an owner acceptance decision: do not record them as passed, and do not treat them as an open
+acceptance blocker that justifies another sync.
+
+### NEXT REPOSITORY TASK — not this repo
+
+**OPT → Trading Tracker**, direct one-way lifecycle sync. The contract is already finalized in
+`docs/OPT_TO_TRADING_TRACKER_CONTRACT.md`; nothing is implemented or activated. Scope: OPEN, CLOSE,
+ROLL as a factual close + a factual open tied by one correlation id, ASSIGNMENT, EXPIRY; a durable
+idempotent outbox; receiver ACK; retry when Trading Tracker is unavailable; an OPT save is never
+blocked; Trading Tracker displays `OPT · ממתין לאישור IBKR`; the daily IBKR reconciliation remains
+broker authority in both apps; no duplicates; differences audited. The next manager session runs
+`clauto trading-tracker`.

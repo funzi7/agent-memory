@@ -470,11 +470,17 @@ Still not covered by any automated test, and unchanged by the above: `LeveragedE
 I/O (no Robolectric on this classpath — its FORMAT is now pure and tested in `LeveragedUniverse`), and the
 amortised category queue across several days of ordinary use.
 
-## S2.7 (2026-09-22) — DEVICE QA NOT RUN. ADB was down for the entire round.
+## S2.7 (2026-09-22) — SUPERSEDED. Device QA DID run later the same day.
 
-`adb devices` returned `cannot connect to daemon at tcp:127.0.0.1:5037` from the first check to the
-last. An ADB server must never be started from inside PRoot, so nothing below was observed. The APK
-was built and delivered but **not installed**.
+> **SUPERSEDED — see "S2.7 FINAL (2026-09-22)" at the end of this file.** This section was written at
+> the `a6e1837` handoff, when ADB was down. ADB came back up, the APK was installed in place and the
+> device QA below WAS carried out. The table and notes are kept for history; the **results** are in
+> the FINAL section.
+
+Historical note, as written at the time: `adb devices` returned
+`cannot connect to daemon at tcp:127.0.0.1:5037` from the first check to the last. An ADB server must
+never be started from inside PRoot, so nothing below had been observed at that point. The APK had
+been built and delivered but not installed.
 
 ### Owner acceptance that is still UNVERIFIED on the device
 
@@ -498,8 +504,10 @@ with the TS/IBKR split, and `CLOSE_AUDIT` sorted largest `localVsBroker` first.
 
 ### PUT liquidity — and the one thing that could make the list legitimately EMPTY
 
-Yahoo returned **HTTP 429** to this host for both the crumb handshake and the chain, so it is
-**UNPROVEN** whether the keyless v7 payload carries per-contract `volume` / `openInterest`.
+**SUPERSEDED — proven on the device; see the FINAL section.** As written at the time: Yahoo returned
+**HTTP 429** to this host for both the crumb handshake and the chain, so it was **UNPROVEN** whether
+the keyless v7 payload carries per-contract `volume` / `openInterest`. The live phone has since shown
+both fields present.
 
 **First thing to read on the device:** the `PUT_CHAIN` log line prints how many rows arrived with each
 field. If the provider does not supply them, every ticker is `TICKER_OPTION_VOLUME_UNPROVEN` and the
@@ -533,3 +541,102 @@ SPCH open CC stays `COVERED_CALL` through sync and cold start; CC coverage corre
 commissions; blank close fee = zero; BTC What-if FAST/BALANCED/PATIENT; PUT DTE 2–60; no ITM
 candidate; exact-contract IV; 70/30 composite; strict ±2x/±3x discovery; top-3 discovery + see-all;
 BLS / Investing RSS / issuer evidence; no direct Reuters fetch; canonical watchlist.
+
+---
+
+## S2.7 FINAL (2026-09-22) — device QA RESULTS at HEAD `4512cbfa93b0a1623d544626c56e1c8709c06083`
+
+This section is authoritative for S2.7 and supersedes the "S2.7 (2026-09-22)" section above, which
+was written while ADB was down. ADB came back up; the APK (1.0.0, sha256
+`b01e16d701f965ae645fb125f77123272cdfe3ba919f535e2291206fd95ad687`, signer `5d3d855c…`) was
+**installed in place with `adb install -r`**, launched clean, and delivered to
+`/sdcard/Download/OptionsProfitTracker/`. No uninstall, no `pm clear`, no data wipe.
+
+The device session used the supported settings path `סנכרן מ-IBKR`, which refreshes prices and the
+STOCK half. It does **not** call `reconcileWithBroker`, so the IMPORT-only diagnostics did not run —
+see the NOT RE-RUN table.
+
+### VERIFIED ON DEVICE
+
+| # | check | reference | result |
+|---|---|---|---|
+| 4 | SPCH, owner window 2026-09-01..2026-09-18 | −6,815.39 | **PASS** — the four 2026-09-08 EXECUTION fills sum to exactly −6,815.39 |
+| 5 | BTCI (Sep) | −1,914.57 | **PASS — to the cent** |
+| 6 | SOFI (Sep) | −3,077.21 | **PASS — to the cent** |
+| 7 | NOK — must be UNCHANGED, it already matched | −3,570.42 | **PASS — unchanged, not disturbed** |
+
+Supporting device evidence:
+
+```
+SUM SPCH 2026-09 total=-4288.73 sells=5/-4288.73 buys=0/0.00 days=2026-09-08|2026-09-21
+ROW SPCH 2026-09-08 SELL grain=EXECUTION qty=-500 px=10.70 realized=-3407.71
+ROW SPCH 2026-09-08 SELL grain=EXECUTION qty=-300 px=10.69 realized=-2043.77
+ROW SPCH 2026-09-08 SELL grain=EXECUTION qty=-100 px=10.69 realized=-681.97
+ROW SPCH 2026-09-08 SELL grain=EXECUTION qty=-100 px=10.69 realized=-681.94
+ROW SPCH 2026-09-21 SELL grain=EXECUTION qty=-800 px=10.76 realized=+2526.66
+```
+
+**The SPCH month figure −$4,288.73 is CORRECT, not a mismatch.** The app month is a WIDER period than
+the owner's screenshot window: `−6,815.39 + 2,526.66 = −4,288.73`. Do not compare the two as if they
+were the same period, and do not "fix" toward −6,815.39.
+
+Also verified on device:
+
+- **Reference stock window.** The four reference tickers over the owner's fixed window give a visible
+  rounded row sum of **−$15,377.59** against IBKR's headline **−$15,377.60**. The one cent is IBKR
+  aggregate/internal rounding. **No adjustment was added; production math was not changed.**
+- **Derived combined arithmetic.** Dashboard month: stock realized **−$12,850.93**, options realized
+  **+$4,372.90**, combined **−$8,478.03** = `+4,372.90 + (−12,850.93)`. Combined is DERIVED.
+- **Durable ledger, and its scoped merge.** `STOCK_LEDGER` first population
+  `incoming=272 stored=0 -> 272 tickers=103 span=2025-11-21..2026-09-21`; repeat pass
+  `stored=272 -> 272`. Idempotent on that already-running sync path. NOTE: this is the SYNC path's
+  repeat, **not** the same-snapshot IMPORT idempotency check (#8), which was not re-run.
+- **Honest coverage wording.** `StockRealizedScreen` prints `נצבר מ-2025-11-21 · …` and does not claim
+  unseen earlier stock history. All-time stock coverage is therefore **partial** by construction.
+- **Yahoo per-contract liquidity fields PRESENT.** Live chains showed
+  `18 puts / 18 with own IV / 16 with volume / 18 with open interest` and
+  `10 puts / 10 with own IV / 10 with volume / 10 with open interest`. This settles the previously
+  UNPROVEN question. Missing volume still means **UNPROVEN ⇒ EXCLUDED** — unchanged behaviour.
+
+### NOT RE-RUN — owner explicitly declined further broker synchronization
+
+The owner ruled that the account is already synchronized and no new broker data is expected, so no
+further sync, import, full re-sync or same-snapshot import test was performed. These live on the
+IMPORT / reconciliation path:
+
+| # | check | reference | status |
+|---|---|---|---|
+| 1 | Sep 1–18 STOCK total | −15,377.60 | **NOT RE-RUN — owner declined further broker sync** |
+| 2 | Sep 1–18 OPTIONS total | +3,033.53 | **NOT RE-RUN — owner declined further broker sync** |
+| 3 | Sep 1–18 COMBINED | −12,344.07 | **NOT RE-RUN — owner declined further broker sync** |
+| 8 | same snapshot synced twice ⇒ zero economic delta | `OPTIONS_SYNC … idempotent=true` | **NOT RE-RUN — owner declined further broker sync** |
+| 9 | `CLOSE_AUDIT summary … contractViolations=0` | the product contract as a number | **NOT RE-RUN — owner declined further broker sync** |
+| 10 | IBKR subtotal through 2026-09-18 | +6,916.31 | **NOT RE-RUN — owner declined further broker sync** |
+| 11 | SOFI IBKR subtotal | −6,795.78 | **NOT RE-RUN — owner declined further broker sync** |
+
+Also not re-run for the same reason: the `REALIZED_LEDGER WINDOW_2026-09-01..2026-09-18` and
+`REALIZED_LEDGER MTD/YTD/ALL_TIME` broker-split lines, and `OPTIONS_SYNC` delta reporting.
+
+**This is a deliberate owner acceptance decision.** It is not a PASS, it is not a FAIL, and it is not
+an acceptance blocker to be reopened. Do NOT initiate a sync to chase these rows.
+
+### NOT OBSERVABLE in the final session — do not fabricate
+
+| area | status |
+|---|---|
+| PUT liquidity, a live ACCEPTED candidate | **NOT OBSERVED.** The live scan ranked **zero** candidates that session. Not a failure by itself. Rounds 12–14 made the `PUT_SCAN` counters account for every contract — liquidity causes, `NOT_RED`, structural causes, a self-healing `other=[…]`/`unaccounted=` tail, and every expiry page's live percentage — so an empty list is now explainable rather than mute |
+| 0DTE on screen | **NOT OBSERVED.** No same-day expiring live contract existed. The logic is covered by deterministic clock-controlled unit tests, and was hardened across Codex rounds (exchange-specific early close, real cutoff display, refresh when the cutoff passes, the What-if fractional-time path, closed-session wording) |
+| market brief, the repeated `חדשות היום…` heading and the `NASDAQ:` false positive | **NOT REPRODUCED.** No qualifying broad-index news item existed that session, so the original visual case could not recur. Implementation and tests cover: heading grouped once, plain NASDAQ as exchange context rather than Nasdaq-100 identity, listing/compliance headlines excluded from broad-market explanation, technical levels/support-resistance never causal, evidence dedup, source hierarchy, Social fallback |
+
+### Regression that must survive (unchanged, carried forward)
+
+SPCH open CC stays `COVERED_CALL` through sync and cold start; CC coverage correct; signed
+commissions; blank close fee = zero; BTC What-if FAST/BALANCED/PATIENT; PUT DTE 2–60; no ITM
+candidate; exact-contract IV; 70/30 composite; strict ±2x/±3x discovery; top-3 discovery + see-all;
+BLS / Investing RSS / issuer evidence; no direct Reuters fetch; canonical watchlist.
+
+### Standing constraint for whoever runs the next physical QA
+
+**Do not perform a manual price/market-data refresh to "warm up" a screen.** The owner reports one
+refresh action appears to execute ~3 provider refresh passes and can burn the monthly API-key quota.
+The cause is **undiagnosed** — see the roadmap backlog item. Wait for explicit authorization.
