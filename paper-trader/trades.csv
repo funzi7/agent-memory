@@ -230,3 +230,6 @@ date,portfolio_id,strategy,ticker,side,shares,fill_price,commission,cash_after,e
 2026-09-18,swing_10k,swing,DVN,SELL,43.0,47.996,1.0,2241.37,8930.79,המהלך נגמר — מתחת לממוצע 10
 2026-09-18,swing_10k,swing,TMO,BUY,3.0,657.0784,1.0,269.13,8933.51,"פריצה #1 +1.1% מעל הרף, RSI 69"
 2026-09-18,twitter_track_100,twitter_track,ARDX,BUY,1.0,3.4417,0.0344,26.59,96.44,קנייה לפי @theaiportfolios
+2026-09-21,rsi2_10k,rsi2,SPY,SELL,13.0,765.8669,1.0,10175.49,10175.49,close>5SMA (762.60>759.84)
+2026-09-21,swing_100,swing,SMCI,BUY,1.0,40.6503,0.4065,39.8,81.0,"פריצה #4 +0.2% מעל הרף, RSI 59"
+2026-09-21,twitter_track_100,twitter_track,MGNI,SELL,1.0,25.1374,0.2514,51.48,96.88,קנייה לפי @theaiportfolios
