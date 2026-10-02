@@ -1,17 +1,17 @@
 # thai-rent-finder — State
 
 > Living document. Auto-updated daily at 02:00 UTC by `auto-update-state.yml`.
-> Last auto-update: 2026-09-26
+> Last auto-update: 2026-10-02
 > Production: https://thai-rent-finder.vercel.app
-> Total listings in DB: 2753
+> Total listings in DB: 2759
 
 ## Sources status (current)
 
 | Source | Tier | Cron (ICT) | Status | Listings 7d |
 |--------|------|------------|--------|-------------|
-| FAZWAZ | 2 (GH Actions) | 03:00 | ✅ active | 81 |
-| RENTHUB | 2 (GH Actions) | 03:30 | ✅ active | 504 |
-| THAILAND_PROPERTY | 2 (GH Actions) | 09:00 | ✅ active | 24 |
+| FAZWAZ | 2 (GH Actions) | 03:00 | 🔴 broken (0 fresh, stale) | 0 |
+| RENTHUB | 2 (GH Actions) | 03:30 | ✅ active | 420 |
+| THAILAND_PROPERTY | 2 (GH Actions) | 09:00 | 🔴 broken (0 fresh, stale) | 0 |
 | LIVING_INSIDER | 2 (GH Actions) | paused | ⏸️ paused (access blocked) | n/a |
 | LAZUDI | 2 (GH Actions) | paused | ⏸️ paused (access blocked) | n/a |
 | HIPFLAT | 2 (GH Actions) | paused | ⏸️ paused (access blocked) | n/a |
@@ -43,7 +43,7 @@ _No open issues_
 - `pr-build-gate.yml`
 - `scrape.yml` — cron `0 2 */3 * *` UTC
 - `site-health.yml` — cron `0 1 * * *` UTC
-- `sync-automation-core.yml` — **disabled_manually**
+- `sync-automation-core.yml` — cron `0 3 * * *` UTC
 
 ## Admin endpoints
 
