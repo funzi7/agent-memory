@@ -1,247 +1,234 @@
-# paywall-bot handoff — 2026-10-04 UTC (Provider Discovery v1: PR #110 merged; first natural cycle; PR #112 GitHub-id fix)
+# paywall-bot handoff — 2026-10-04 UTC (Tech Feed IL: autonomous runtime ops, freshness and publication guardian — DRAFT PR #113, NOT merged)
 
 ## Headline
 
-The owner milestone "Autonomous Provider Discovery & Promotion v1 — TheMarker
-only" is merged and working in production up to the scout launch.
+The owner milestone "Tech Feed IL: autonomous runtime ops, freshness and publication guardian" is implemented, hostile-reviewed and pushed as **draft PR #113**.
 
-- PR #110 was merged by **Merge Bot** as
-  **`8578a4120b12ada72dab604447dcd79cb1616036`**.
-- The first natural discovery cycle ran on `main`: request, Issue #111, known
-  re-probe, launch, ingestion, cooldown, close. It ended at the model with
-  **`billing_error`**, because Anthropic credit is exhausted.
-- **The real web scout is NOT verified:** no inference ran and no
-  WebSearch/WebFetch call was made.
-- There was no viable candidate, so **no integration, canary or promotion**
-  happened. No provider was promoted.
-- That cycle exposed a real defect: GitHub ids were clamped to 10**9 in core
-  state, which broke evidence dedup. **PR #112** fixes it. Its status is
-  under "Git / PR / review (exact)" below.
+- **It is NOT merged and NOT deployed.**
+- Nothing on `main` changed through this task; no production state was edited.
+- Everything below is labelled with its evidence class:
+  - **DETERMINISTICALLY TESTED**
+  - **READ-ONLY PHYSICALLY OBSERVED**
+  - **POST-MERGE OBSERVATION PENDING**
 
-## Git / PR / review (exact)
+## Git / PR (exact)
 
-### PR #110
+- START_MAIN_SHA: **`ad974de877da614eb5ab3bf6e71d3a0f25a83c71`**.
+  - Branch-point `origin/main`, checked with `gh api` at task start.
+  - `origin/main` later gained only state commits: `17c60b1` (techfeedil source health 10:04Z) and `70ae2a4` (themarker 10:54Z), with no code changes.
+- Branch: `feat/techfeedil-autonomous-runtime-freshness-20261004`.
+- Final project HEAD: **`7af4d7d8a65c25f1cd545e600966606121a548e6`**. Verified equal on local HEAD, the remote branch (`git ls-remote`) and the PR head (`gh api …/pulls/113`).
+- Commits:
+  - `00f0fa4` script policy + description completeness
+  - `447a168` Runtime Ops profiles + repository-wide repair single flight + config-gated discovery
+  - `b4d686c` Tech freshness / current-first queue / Runtime Ops enrollment / Source Health ownership / quality
+  - `f31c70e` Guardian
+  - `7af4d7d` docs
+- **Draft PR #113:** https://github.com/funzi7/paywall-bot/pull/113
+  - Created as a real draft; the API reports `draft: true`, no labels.
+  - No `automerge`, override or `no-automerge` label was needed, because Merge Bot skips drafts (`isAutoMergeCandidate`: `pr.draft` → false).
+- **CI on #113 (GitHub runner, Python 3.11):** `test-message-format` **success** in 2m4s (Actions run 37199666333, job 111428567352). That job includes the full `unittest discover`, the focused Tech suites, compileall, the node tests, the workflow YAML parse, `bash -n`, and the `state/` and `diff --check` checks.
+- **Codex review and Gate on #113: not yet observed.** The Gate's `check-codex-status` reads "🟡 Waiting for Codex review" ("Codex has not reviewed head 7af4d7d"). That is its expected initial state; its conclusion is `failure` by design until a clean review.
+- Coordinator: review, then mark ready.
 
-- Starting `origin/main`: **`521bc52a87d99976478aca638c50e0aa163abee8`** (after #108).
-- Branch `feat/themarker-provider-discovery-v1-20261003`, opened
-  2026-10-03T20:58Z.
-- Nine heads, CI success on each:
-  - `53c20e1` 37153465376
-  - `cf31f31` 37154340576
-  - `7f893dc` 37155057667
-  - `b7c9ab6` 37156421460
-  - `ddd041b` 37157053647
-  - `3ff5430` 37162893798
-  - `b900601` 37164218503
-  - `6c7465f` 37165200576
-  - `af4117d` 37170740766
-- Codex rounds 1–9:
-  - Every P1/P2 was fixed by the coordinator; the `@claude fix` hand-offs
-    ended `billing_error`.
-  - Round 8 on `6c7465f` was clean.
-  - Round 9 on `af4117d` first hit Codex's own "Something went wrong"
-    (02:20Z); re-requested, it came back clean at 02:33:42Z.
-  - The finding-by-finding record is in evidence report §11.
-- Gate:
-  - `check-codex-status` stayed `failure` after the clean review.
-  - Once the fixed findings' threads were resolved, a status comment
-    (03:59:34Z) re-ran the Gate (run 37175661363). It went green "🟢
-    Reviewed — clear" at 03:59:54Z (check run 111357670998).
-  - No override, acknowledgement or `automerge` label was used.
-- Merge: Merge Bot run 37175679796 cleared the transient `needs-owner` and
-  `needs-owner-auto` labels after exact-head fully-green validation, then
-  merged at 2026-10-04T04:00:23Z. Head `af4117d9cf1b00eea86eacd851bb85af13623b14`;
-  merge `8578a41`. CI on `main` afterwards: 37175708496, success.
-- Synthetic smoke Mode A: run 37175789982 on `8578a41` → `result ok`, 17 steps
-  (`promotion_decision render=ok exact=ok; discarded`,
-  `hard_stop_config_untouched`). This is not provider evidence.
+## Production evidence inspected (read-only)
 
-### PR #112
+- **State copies**
+  - `git show origin/main:state/techfeedil.json`: blob `8a10e806…`, written by `ab32523965` at 06:29:38Z.
+  - `state/techfeedil-health.json`, written by `73f6380267`.
+  - Replay copies from `17c60b1` and `70ae2a4`.
+- **Actions** (`gh api` GET only)
+  - `poll-techfeedil.yml`: 633 runs (628 schedule + 5 dispatch).
+  - Non-success runs explained:
+    - budget: 36284663019 and 33355852516;
+    - git push failure after 8 posts: 34292712178;
+    - timeout: 31947704293;
+    - runner not acquired: 31125869870 and 31121072192.
+  - Last 7 days: 13 of 168 hourly slots ran. 111 of the misses fall in the budget blackout 09-26T23:50Z → 10-01T23:22Z; the rest are schedule events GitHub never delivered. The repo gets about 25% delivery overall, and queue delay was 0 s on every run.
+  - Three repository-wide budget blackouts: 5.3 d, 4.0 d, 4.9 d.
+- **Stale post.** Gadgety iPhone Duo (https://www.gadgety.co.il/369122/iphone-duo-announced/) went out as Telegram message 1192 at 10-04T00:11:48Z. Its first-party `article:published_time` is 09-09T18:35:27Z, so it was 581.6 h old at publication. All 103 traced posts since 09-10 were older than 72 h.
+- **Pipeline block.** 12 of 13 polls since the blackout posted 0, from two causes:
+  - phase-2 head-of-line blocking by 403-blocked The Verifier and TGspot rows;
+  - oldest-first phase-1 admission that dropped current items over the cap.
+- **Backlog at task start**
+  - `deferred_items` 521: pc 89, tgspot 88, theverifier 84, geektime 77, n12 70, gadgety 66, walla 30, TGR 14, hwzone 3.
+  - 483 rows carry a trusted `published_at`, all older than 7 d; 38 are undated (35 N12 TECH12, 3 TGR).
+  - `suppressed_items` was at its 300 cap: 74 evicted, 2 rediscovered.
+  - No `runtime_ops` block. Source Health had 9 open incidents, 25–76 d old.
+- **Subtitle regression.** Geektime iOS 27, read via Telegraph `getPage`: the stored subtitle (148 chars) is a clipped prefix of the 181-char first paragraph, ending mid-date. The same text went to Telegram.
 
-- Branch `fix/themarker-provider-discovery-github-ids-20261004` from `89c0cb1`.
-- Head `c3487fb753036ec7ba9e30ca533058b8ec740fd1`; CI `test-message-format`
-  success.
-- Codex: the automatic review on PR open finished "✅ Completed" at
-  2026-10-04T07:41:22Z on `c3487fb`; 👍 by `chatgpt-codex-connector[bot]` at
-  07:41:25Z; 0 reviews, 0 inline comments. Clean.
-- Gate: the `pull_request_target` run 37186387909 and the `issue_comment`
-  run 37186399310 ran BEFORE the review ("🟡 Waiting for Codex review").
-  The Codex summary edit triggered `issue_comment` run 37186551387, and
-  `check-codex-status` went to success "🟢 Reviewed — clear" at 07:41:43Z
-  (check run 111389620812). No comment, label or override from the
-  coordinator.
-- Merge: Merge Bot run 37186570626 (`workflow_run`, 07:41:48Z) merged at
-  2026-10-04T07:42:06Z →
-  **`c851459e4f9eef6c30bfa1078195fca46a8b75d2`**. No label was needed: this
-  is an owner same-repo `fix/*` branch.
+## What was implemented
 
-## First natural cycle (physically observed)
+### Freshness (`core/freshness.py`, `freshness:` config; TheMarker inert)
 
-GitHub skipped the scheduled polls after the merge; the last scheduled run
-was 2026-10-03T23:30Z. So the normal production `poll.yml` was dispatched
-three times: 37184788861, 37184910088 and 37184993996.
+- **Tiers:** time_sensitive 24 h, time_bound 48 h, normal 72 h (default), evergreen 168 h (structural evidence only).
+- **Hard cap:** 168 h, clamped in code.
+- **Classification:** structural evidence only — publisher RSS categories kept on the row, publisher-scoped URL rules, feed tiers. Conflicts take the shorter tier. Title words are support only.
+- **Proven age** = the maximum of a trusted `published_at` (counted even without `first_seen`), `first_seen_at` (a lower bound), and a trusted page date (`meta`/`jsonld`/`wp_rest`/`jina`, older-only).
+- **Unknown dates:** never evergreen. **An age that cannot be proven is never published:** an undated row whose page has no trusted date is suppressed as `unknown_publication_date:<tier>:seen<h>h`.
+- **Checks:** at admission (before the cap), by a per-poll queue pass over ALL rows, by a pre-network gate (also covers backfill), and by a pre-publication gate (before the quality gate and before Telegraph).
+- **Stale rows are SEEN/SUPPRESSED.** No retry, event, terminal, Telegraph page or DM, and never publisher-recovery proof.
+- **Registry:** cap 3000, evicted by last feed sighting (TheMarker keeps 300 FIFO).
+- **Current-first:**
+  - every fresh identity is admitted (`admit_all_discovered_identities`);
+  - dated rows are planned newest-first, then undated rows;
+  - one probe per blocked publisher;
+  - `max_items_per_run: 10` stays the single attempt budget, and the 30-min grace is unchanged.
+- **Merges** keep the earliest trusted date.
 
-These are ordinary production polls. They published 0, 4 and 2 articles via
-one3ft once the outage had ended. That is normal bot operation, not a test.
-No owner DM was sent.
+### Copy-only replay (`tools/techfeedil_freshness_replay.py`)
 
-- **Poll 37184788861** (07:06Z, `main` `ab32523`): `provider_discovery
-  phase=IDLE->REQUESTED cycle=pd-e10-20261003T194051Z-n1-9d96
-  reason=external_outage_sustained`, then `summary phase=REQUESTED …
-  candidates=5` (the seeded known list). The sync logged
-  `action=issue_created issue=111` and `action=scout_triggered`.
-- **Issue #111**: author `funzi7` (PAT); labels `provider-discovery` and
-  `provider-scout`; marker present; no assignee, no `@`, no `claude-fix`,
-  no onrender host.
-- **Scout run 37184820543** (`issues`): all three jobs succeeded. The
-  duplicate-event scout run 37184820340 and three Claude Fixer runs were
-  skipped.
-  - Gate: re-probed 4 known entries, 0 viable (`latency_budget_exceeded`,
-    `landing_page` ×2, `no_content`), then posted `kind=known` and
-    `kind=launch`.
-  - Model job: read-only token, no checkout, no PAT, agent mode. It checked
-    the actor with the read-only token ("Verified human actor: funzi7", so
-    R8 is observed OK).
-  - Model args: `--tools`/`--allowedTools "WebSearch,WebFetch"`, a full
-    disallow list, `--strict-mcp-config`, `--setting-sources user`,
-    `--max-turns 40`, `--max-budget-usd 3.00`, `--json-schema`.
-  - Result: `is_error: true`, empty `modelUsage`, so `billing_error`. The
-    sanitize job posted `kind=scout` with `outcome=billing_error` and 0
-    candidates.
-- **Poll 37184910088**: the outage incident went `WAITING_EXTERNAL→RESOLVED`
-  (`provider_recovered`); discovery went `REQUESTED→SCOUTING`; the sync
-  ingested `known`, `launch` and `scout`.
-- **Poll 37184993996**: absorbed the evidence:
-  - `scout_ai_requests_total` 1, `ai_requests_total` 0→1, `known_rechecks_total` 4;
-  - `SCOUTING→COOLDOWN` (`billing_error`, terminal `ai_unavailable`), then
-    `COOLDOWN→IDLE` (`outage_resolved`);
-  - `next_scout_eligible_at` 2026-10-05T07:07:31Z (launch + 24 h);
-  - Issue #111 closed at 07:11:29Z with its summary;
-  - `owner_dms_total` 0, `ai_failure_cycles` 1 of 2, sync `ok`,
-    `credential_failure` null.
-- Tech Feed IL poll 37182923828 succeeded; `state/techfeedil.json` has no
-  `runtime_ops` key.
+**READ-ONLY PHYSICALLY OBSERVED** (copy-only; the tracked files' sha256 values were unchanged).
 
-## Defect found and fixed (PR #112)
+| Measure | Result |
+| --- | --- |
+| Rows before | 521 |
+| Suppressed | **505**, all older than 168 h (normal 496, evergreen 9) |
+| Retained | **16** (n12 13, TGR 3), all undated; first-sighting lower bound ≤ 59.9 h; each still needs a trusted page date to publish |
+| Registry | 300 → 805 of 3000, 0 evicted |
+| Ledgers | 575 events, 1224 `posted_guids`, 25 terminal: all unchanged |
+| Retries consumed | 0 |
+| Second pass | 0 (idempotent) |
+| Plan | newest-first; 16 ready, attempt limit 10 |
+| Source Health "stale awaiting suppression" | gadgety 66, geektime 77, pc 89, tgspot 88, theverifier 84, n12 57, walla 30, TGR 11, hwzone 3 → 0 |
 
-**Symptom.** After poll 37184993996, the committed state held the absorbed
-evidence records as `run_id`/`comment_id` **1000000000**. Three duplicates
-sat beside them under the real ids: run 37184820543; comments 5977569156,
-5977569245 and 5977573942.
+Identical counts at 10:26Z (`17c60b1`) and 11:26Z (`70ae2a4`).
 
-**Cause.** `core/provider_discovery.py` normalized GitHub ids with
-`_count`'s default bound of 10**9.
+### Runtime Ops (generalized, not forked)
 
-**Impact.**
+- **Profiles:**
+  - `pipeline`: TheMarker, byte-identical.
+  - `multi_publisher`: Tech, with a per-publisher WAITING_EXTERNAL `external_source_access` incident that resolves only on real extraction or publication evidence after the epoch.
+  - `guardian`: no code-fix ladder, no needs-owner Issue.
+- **Source Health bridge** (read-only, ≤ 30 h). A health verdict never outranks newer send-path evidence (`completed_at` versus `last_seen_at` / `last_post_at`).
+- **`shared_credential_wait`.** Tech waits while TheMarker's GitHub-sync activity (any outcome) is within 18 h. One shared `AUTOMATION_PAT`, one DM, and no false "renew" DM after a renewal.
+- **Owner DMs only for OWNER_ACTION_REQUIRED,** in five parts (`הבעיה` / `המערכת` / `צריך ממך` / one `קישור`).
+- **Sync tool:** a new `claude-fix` repair waits while ANOTHER tenant's runtime-incident repair is open (`single_flight_wait`).
+- **Provider discovery** runs only for a config with a discovery section. Tech never runs it, even over planted state.
+- **Tech AI provider scouting stays disabled.**
 
-- The evidence comments sit within the read anchor's 10-minute slack before
-  the close comment. So v1 re-ingests them on every poll of the 48 h late
-  window.
-- After 8 such polls, `MAX_EVIDENCE_RUNS` trims the absorbed records. From
-  then on, core would count the launch (AI) and the re-check again on every
-  poll. A v1 emulation reproduces this: 1 → 2 → 3 …
-- A canary's second run (a real id) collapses onto its first and is dropped,
-  so no canary could ever pass.
-- A refused comment is refused again on every poll.
+### Guardian
 
-**Fix.**
+- **Schedule:** `guardian-techfeedil.yml` at `47 * * * *` plus dispatch with `dry_run`. The poll cron moved from `0 * * * *` to `17 * * * *` (SUPERSEDED).
+- **Classifier** (`core/publication_guardian.py`, pure): the expected slot S = the latest HH:17 at or before now − 30 min, read from the real Actions API and the production heartbeat. States:
+  - HEALTHY_QUIET, HEALTHY_WAITING
+  - SCHEDULER_GAP, POLL_DELAYED_OR_STUCK
+  - WORKFLOW_FAILED / CANCELLED / TIMED_OUT
+  - HEARTBEAT_STALE, PIPELINE_BLOCKED
+  - OBSERVABILITY_FAILURE
+- **Self-heal:**
+  - one dispatch of the NORMAL poll per slot, deduplicated by the sidecar and the Actions API;
+  - never while a poll is queued or running, or while the tenant lock (Source Health / Backfill) has a pending member;
+  - never Backfill; cap 8 per rolling 24 h; confirmed via the API.
+  - A run that provably failed before the poll step (including a budget block that has already lifted) gets one redispatch.
+- **Owner DMs:** only `owner_actions_permission` (a refused dispatch, GitHub's `disabled_inactivity`, a read 403 on 2 consecutive slots). A 401, `disabled_manually` and transient errors never DM. `owner_actions_budget` is never emitted.
+- **Writer safety:**
+  - own concurrency group;
+  - checkout persists no token; the GitHub and Telegram steps run separately;
+  - sidecar `state/techfeedil-guardian.json`, body-free, committed alone and only on a material change.
+- **Documented residuals:**
+  - a lost sidecar commit can cause one duplicate owner DM;
+  - the in-GitHub Guardian cannot see a total GitHub outage, so the **external dead-man is PENDING**.
 
-- `GITHUB_ID_MAX = 2**63-1` and `_github_id()` for every stored GitHub id.
-- `_v1_duplicate()`: an entry whose cycle holds ANOTHER record of the same
-  kind and attempt at exactly 10**9 is marked absorbed without being counted
-  (fail closed; history row `evidence_duplicate … v1_id`).
-- The fakes and the smoke now use production-sized ids.
-- `tests/test_provider_discovery_github_ids.py` has 9 tests. Mutations: clamp
-  restored → 8 fail; duplicate rule removed → 2 fail; both → 9 fail.
-- Docs: ADR §27; report §0/§11–§17 filled; §12.1 records this finding;
-  CONTEXT.md.
+### Source Health ownership
 
-**Production when the fix was written** (state `89c0cb1`): counters exact
-(AI 1, scout AI 1, re-checks 4, DMs 0). Three re-ingested records sat in the
-inbox, waiting.
+- Runtime Ops owns actionability: no urgent or reminder DMs for Tech, and ONE daily digest with a "Runtime Ops (autonomous):" section. The section is built from a deep copy and includes the Guardian line (only run-creating dispatches are counted).
+- Stale rows count as `stale_awaiting_suppression`, never stuck.
+- Only the bridged owner-action component/reason pairs stop being red. Corrupt token files, transient errors and failed DM delivery stay red.
 
-**After #112 merged** (verified in production). CI on `main` for
-`c851459`: run 37186588847, success. The normal poll was dispatched once more
-because GitHub skipped the 07:00Z cron.
+### Quality monitor (Tech profile)
 
-- Poll 37186657246, on head `c851459`, wrote three history rows:
-  `evidence_duplicate launch/known/scout run=37184820543 attempt=1 v1_id`.
-- All six evidence records are absorbed and the inbox is 0.
-- Counters are unchanged: AI 1, scout AI 1, re-checks 4, DMs 0,
-  `ai_failure_cycles` 1.
-- The poll log has 0 `evidence_ingested`/`evidence_refused` lines, so the
-  re-ingest loop is closed.
-- Sync `ok`, `credential_failure` null, posted 0.
-- A copy-only replay of the pre-fix state (`89c0cb1`) through the fixed
-  `evaluate` had predicted exactly this.
+- **What it inspects:** the poll re-checks the page as stored by Telegraph, via a read-only `getPage`.
+- **Finding classes:**
+  - the publisher's own validators: foreign script, vendor label, bidi/wrapper;
+  - structure;
+  - provable truncation and subtitle/body duplicates;
+  - title duplicates, with direction marks stripped;
+  - boundary refusals;
+  - missing Instant View, which replaces the old IV owner DM.
+- **Bounds:** samples ≤ 80 chars, at most 10 findings per post, 200 stored, 20 filed per run.
+- **Filing:** in-job, by the poll step "Record Tech quality findings", on the tenant's own rolling Issue (label `quality-findings-techfeedil`).
+  - It uses the job `GITHUB_TOKEN`: no workflow trigger, `@`/`#` neutralized, no git commands.
+  - It logs to the tenant's gitignored log.
+- **Routing:** a switched-off section files nothing; only TheMarker uses the legacy filer. TheMarker's `quality-monitor.yml` is unchanged.
 
-**Same poll:** the outage incident `68c5cb55d1c6bdc5` went
-`RESOLVED → WAITING_EXTERNAL` (`outage_reopened`). That is expected
-behaviour, not an error.
+### Descriptions and Unicode
 
-- Discovery can request a new cycle after 3 consecutive `WAITING_EXTERNAL`
-  evaluations and 8 h in the epoch.
-- The scout cannot launch before 2026-10-05T07:07:31Z.
-- If Anthropic credit is still exhausted then, that second billing cycle
-  makes the owner AI-credit DM fire, by design.
+- **Descriptions:** the first STRUCTURALLY complete candidate wins (deck → og → meta → JSON-LD).
+  - Rejected: clipped prefixes, paragraph + clipped start, and a candidate's own ellipsis.
+  - Missing final punctuation is never truncation.
+  - A duplicate of any opening paragraph renders once.
+  - Telegram gets exactly the Telegraph subtitle (`resolve_display_subtitle`); dynamic fitting is unchanged.
+- **`core/script_policy.py`** (`features.script_policy_v1`, Tech only): Hebrew plus every Unicode "LATIN" letter, ª/º and µ/μ.
+  - Marks are allowed only on a valid base, and only Latin/common diacritics or Hebrew points.
+  - Cyrillic, Arabic, Greek, CJK, fullwidth/math and homoglyphs stay blocked; invisible format characters are cleaned.
+  - TheMarker is byte-identical: a reviewer ran 1,493 probes against base and branch.
 
-## Validation actually run
+### Workflows
 
-- On the fix branch:
-  - `python -m unittest discover`: **2334 OK**.
-  - `python -m tests.test_message_format`: pass.
-  - `state/` byte-clean; `git diff --check` clean; Python 3.11 grammar scan clean.
-  - Local Mode A smoke with production-sized ids: `ok`, 17 steps.
-- On #110, before merge: full suite OK on every head, consolidated mutation
-  run (26 design rows, all killed), pre-PR adversarial review, and the
-  verification re-review (evidence report §3–§10).
+- **`poll-techfeedil.yml`:**
+  - cron `17 * * * *`; ff-refresh; Runtime Ops sync step (`AUTOMATION_PAT` only there); quality filing step;
+  - permissions `contents: write`, `issues: write`, `pull-requests: read`;
+  - checkout `persist-credentials: false`, with the token only in the git and API steps via env;
+  - job timeout 26.
+- **`commit_tenant_state.sh`:** `--autostash`.
+- **Unchanged:** `quality-monitor.yml`, `claude.yml`, Codex, Gate, Merge Bot, watchdog and CI Doctor. **No second fixer, Gate, Merge Bot or watchdog was added.**
 
-## PENDING / known limits
+## Hostile review (§33)
 
-1. **Anthropic credit (owner).** The real web scout (WebSearch/WebFetch, the
-   manifest, the sanitizer on real output) cannot be verified until credit
-   is added. The AI-credit owner DM fires only after 2 consecutive
-   billing/auth cycles; it is at 1.
-2. **Unobserved stages.** Nothing after the scout launch has been physically
-   observed: pre-probe of a scouted candidate, integration PR + `@claude`,
-   Fixer PR-mode delivery, guard on a delivered head, exact-head Codex,
-   integration merge, canary, acceptance, promotion PR and merge,
-   post-promotion verification, and demotion.
-3. **PR #107** (sync from automation-core): still OPEN and untouched; head
-   `3892cc0`, last updated 2026-10-03T09:02Z.
-4. **Residuals from the ADR:**
-   - R15: Merge Bot latest-wins per check name.
-   - R16: committed Telegraph tokens are readable by same-repo PR code in CI
-     (backlog).
-   - R17: adapter computation the AST policy cannot bound.
-   - A canary comment not ingested at gate time costs at most one extra
-     canary run.
-   - `known` posted but `launch` failed: the cycle waits for
-     `scout_stall_hours`.
-5. **Older items, still open:**
-   - the #104 cutover gap (a legacy DM was never closed);
-   - the `core/health.py` 24 h comparison ignores `suppressed_items`;
-   - #105's adaptive cap > 4 is unobserved;
-   - the internal-defect Issue → Fixer → PR chain is unobserved.
-6. **Scheduled polls.** GitHub skips the `0 5-23/2` poll schedule for hours
-   at a time. Dispatching the normal poll is the operator remedy.
+- **Coverage.** Four parallel read-only reviewers: runtime/Guardian/workflows; freshness/queue; description/Unicode/quality; data safety/tests.
+- **Outcome.** 6 P1-class items, all fixed, plus P2/P3s, all fixed or documented. Every fix has a regression test.
+- **Biggest catch.** The quality-filing step logged into TheMarker's TRACKED `state/errors.log`, which would have made every Tech state push fail. Fixed.
+- **Process note.** A reviewer's scratch script dirtied the tracked `state/errors.log` (two lines at 10:52:56Z). Those lines were removed by hand before committing; `state/` is identical to HEAD.
 
-## Rules note
+## Deterministic validation (local; CI is 3.11, this venv is 3.13)
 
-- DEVELOPMENT_RULES_FULL.md was followed.
-- Every branch was cut from `origin/main`; there was no
-  reset/clean/restore/stash/force-push.
-- No Telegram/Telegraph write came from tests. The only production
-  publications were the normal polls' (above).
-- No fabricated review evidence and no override labels. Both merges were
-  made by Merge Bot.
-- agent-memory is finalized only via `/root/work/bin/agent-memory-finalize`.
+| Check | Result |
+| --- | --- |
+| `python -m unittest discover` on `7af4d7d` | **Ran 2668 tests, OK** |
+| `python -m tests.test_message_format` | All passed |
+| compileall | OK |
+| node | 21 pass |
+| tracked workflow YAML | 21 parsed |
+| `bash -n` | OK |
+| `git diff --check` | clean |
+| `git diff --exit-code -- state/` | clean |
+| 3.11 grammar check | 38 files OK |
+| TheMarker, provider, Runtime Ops and health regressions (32 modules) | 1871 OK |
 
-## STATUS BLOCK
+New suites: freshness 38, replay 3, Tech Runtime Ops/owner-DM 39, quality 29, descriptions 31, script policy 33, Guardian classifier 86, Guardian tool 68.
 
-- paywall-bot main: `ad974de877da614eb5ab3bf6e71d3a0f25a83c71` (the state
-  commit after poll 37186657246; code = `c851459`, #112). Later state
-  commits move `main`.
-- Real scout path: executed end to end up to the model; web search NOT
-  verified (billing_error).
-- Real viable-candidate promotion: not physically observed (no candidate).
+## Read-only physical validation (READ-ONLY PHYSICALLY OBSERVED)
+
+- **Guardian dry-run** on remote main (GET only, no dispatch, no DM, no sidecar):
+  - 10:35Z: `SCHEDULER_GAP` (slot 09:17Z, 3 missed); latest run 37182923828; heartbeat 06:29:29Z.
+  - 11:30Z, after the fixes: 4 GETs including the tenant-lock reads, `SCHEDULER_GAP`.
+  - Five real failed runs diagnosed correctly.
+- **Live Geektime GETs** through the production parser in-process: iOS 27, Anthropic and Duo now resolve to their complete decks (100/118/117 chars) instead of the clipped og.
+- **Jalapeño** (NFC and decomposed) passes V1 and V2 in-process; the blocked classes stay blocked.
+- **Publisher probes** from this sandbox:
+  - TGspot: direct 403 + Jina 403, classified `publisher_direct_and_jina_403`;
+  - The Verifier: item-level failure, and its newest item is a 73.7 h deal, stale at admission;
+  - N12 and TGR: healthy, with `meta` dates;
+  - pc.co.il: RSS 403 from this sandbox.
+- **Quality detectors** on real stored pages: iOS 27 gives `description_truncated`; the clean page gives none (reviewer: 14 pages, no false positives).
+
+## NOT physically observed / POST-MERGE OBSERVATION PENDING
+
+- A real Guardian self-heal dispatch on `main`, plus its replacement run and sidecar commit.
+- The first post-merge poll's cleanup: 505 suppressed, registry about 805, no stale post.
+- A real rolling-Issue write by the Tech quality filer.
+- A Source Health digest that carries the Runtime Ops section.
+- **The external dead-man outside GitHub Actions:** PENDING, no vendor selected.
+- **Tech AI provider scouting:** disabled until the shared discovery path has real successful scout evidence and a future owner decision enables it.
+- **Known limitations:**
+  - Walla RSS labels local time as GMT (+3 h), bounded by `first_seen_at`;
+  - no production time-bound category yet;
+  - Actions budget headroom: realistic cost about +300–450 min/month; worst case bounded by the dispatch cap of 8/day. Owner review recommended.
+- **CI, Codex and Gate results on #113:** not observed at handoff.
+
+## No merge, no deploy
+
+This task merged nothing and dispatched nothing in production. It sent no Telegram message, made no Telegraph write and ran no Backfill.
+
+Previous handoff (Provider Discovery v1, PRs #110/#112, merged) is in the git history of this file.
