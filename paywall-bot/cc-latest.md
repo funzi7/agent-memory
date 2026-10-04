@@ -17,18 +17,107 @@ The owner milestone "Tech Feed IL: autonomous runtime ops, freshness and publica
   - Branch-point `origin/main`, checked with `gh api` at task start.
   - `origin/main` later gained only state commits: `17c60b1` (techfeedil source health 10:04Z) and `70ae2a4` (themarker 10:54Z), with no code changes.
 - Branch: `feat/techfeedil-autonomous-runtime-freshness-20261004`.
-- Final project HEAD: **`7af4d7d8a65c25f1cd545e600966606121a548e6`**. Verified equal on local HEAD, the remote branch (`git ls-remote`) and the PR head (`gh api …/pulls/113`).
+- Project HEAD: **`1ea76189cbaba110b92accdbb55a4aafb54241f9`**. It carries the Codex round-1 to round-6 fixes (`36b4a02`, `02767de`, `d19d80d`, `ef053c3`, `4942206`, `1ea7618`) on top of `7af4d7d`. Verified equal on local HEAD and on the remote branch (`git ls-remote`). The PR head (`gh api …/pulls/113`) reports `1ea7618`.
 - Commits:
   - `00f0fa4` script policy + description completeness
   - `447a168` Runtime Ops profiles + repository-wide repair single flight + config-gated discovery
   - `b4d686c` Tech freshness / current-first queue / Runtime Ops enrollment / Source Health ownership / quality
   - `f31c70e` Guardian
   - `7af4d7d` docs
+  - `36b4a02` fix(runtime-ops): gate every fixer wake on the repository repair slot (Codex P1 on PR #113)
+  - `02767de` fix(feeds): a feed duplicate keeps its earliest plausible publication date (Codex P2 on PR #113)
+  - `d19d80d` fix(guardian): give the job time for its own capped steps (Codex P2 on PR #113)
+  - `ef053c3` fix(freshness): a queued article seen again keeps its best evidence (Codex P2 on PR #113)
+  - `4942206` fix(runtime-ops): acquire the repository repair slot in two phases (Codex P1 on PR #113)
+  - `1ea7618` fix(guardian): count only the scheduler slots no poll run covered (Codex P3 on PR #113)
 - **Draft PR #113:** https://github.com/funzi7/paywall-bot/pull/113
   - Created as a real draft; the API reports `draft: true`, no labels.
   - No `automerge`, override or `no-automerge` label was needed, because Merge Bot skips drafts (`isAutoMergeCandidate`: `pr.draft` → false).
 - **CI on #113 (GitHub runner, Python 3.11):** `test-message-format` **success** in 2m4s (Actions run 37199666333, job 111428567352). That job includes the full `unittest discover`, the focused Tech suites, compileall, the node tests, the workflow YAML parse, `bash -n`, and the `state/` and `diff --check` checks.
-- **Codex review and Gate on #113: not yet observed.** The Gate's `check-codex-status` reads "🟡 Waiting for Codex review" ("Codex has not reviewed head 7af4d7d"). That is its expected initial state; its conclusion is `failure` by design until a clean review.
+- **CI on `36b4a02`:** `test-message-format` **success** (Actions run 37204625281, job 111443133072). Local `unittest discover` passed: **2695 tests OK**.
+- **CI on the final head `1ea7618`:** `test-message-format` **success** (Actions run 37209219164, job 111456774903). Local `unittest discover` passed: **2711 tests OK**.
+- **Codex round 1** (requested 12:15Z, comment 5979793881; review 5406049273 on `7af4d7d`) raised **one P1**: the cross-tenant repair single flight guarded only the create. This was REAL.
+  - It was fixed in `36b4a02`. Three independent verifier subagents checked the fix (wake paths, semantics/liveness, mutation testing). Their P2/P3 findings are fixed in the same commit:
+    - **Gate only real wakes.** The create, the `claude-fix` add and the new-epoch re-trigger are gated. An attach that wakes nothing never waits, and the found Issue is attached first. The old top-of-function gate would have orphaned a crash-recovered Issue.
+    - **Slot owner.** The slot belongs to the OLDEST open `runtime-incident` + `claude-fix` Issue, read with a dedicated query (`state=open`, both labels, `direction=asc`). This removes mutual waits and the 100-Issue window limit.
+    - **Visible, bounded wait.** The wait is recorded in `code_fix.slot_wait`, shown in `next_action`/`queued` and `status`, and the stall clock is off until the wake (re-stamped then). It escalates as OWNER_ACTION_REQUIRED `repair_slot_blocked` after 48 h. It self-releases when the wait ends, and resolves with one cancel DM if the defect heals.
+    - **Owner hold.** An incident waiting on the owner never wakes the fixer.
+    - **Failed slot read.** A failed slot read holds the wake (`single_flight_lookup`), and a 401 on it is a credential failure.
+    - **Close race.** An earlier-epoch pending close no longer shuts the Issue a waiting new epoch reuses.
+  - A mutation run on the final code caught 22/22 mutants. Two had survived the first pass; tests were added for them.
+  - Documented, not changed: the read/write race between the two tenants' syncs, and discovery's own `@claude` request (outside the slot).
+- **Codex round 2:** requested 13:10Z on `36b4a02` (comment 5980296171). Review 5406352796 came in at 13:14:36Z.
+  - The P1 was **not repeated**.
+  - It raised **one new P2**, REAL, at `core/feeds.py` `_dedupe_feed_items`. The dedupe kept the first occurrence's metadata, so N12's undated TECH12 listing entry discarded the same article's dated Digital RSS date. A page without a trusted date of its own was then suppressed for good as unknown-date.
+  - Fixed in **`02767de`**: the merge keeps the EARLIEST plausible timestamp (`trusted_timestamp`), the same contract as the queue merge. TheMarker has 0 aggregate feeds and is unaffected.
+  - Four tests were added, one using the real N12 feed order through `_try_all_feeds` and `decide_row`. Three mutants (no merge, latest wins, no plausibility check) were all caught.
+  - Local `unittest discover`: **2699 OK**.
+- **ai-loop bridge (automation-owned, not touched):** for each round's finding it posted `@claude fix [auto-triggered]` as the owner PAT, for attempts 1 and 2. Both Actions fixer runs ended in **`billing_error`** (Anthropic credit exhausted, 0 tokens, nothing pushed). Each handed off to `claude-fallback-watchdog`.
+  - The watchdog does NOT skip drafts. It is cron `*/5`, but in practice it runs rarely; the last run was 11:05Z.
+  - When it next runs on a head that still carries an unfixed finding, it advances the ladder. Depending on repository variables, that means the Codex API backup, then `@codex fix` to Codex Cloud, then `needs-owner` plus an owner notification.
+  - Pushing the fix first means a new head with no request, so there is nothing to escalate.
+- **Codex round 3:** requested 13:22:41Z on `02767de` (comment 5980416044). Review 5406415170 came in at 13:27:09Z.
+  - Neither earlier finding was repeated.
+  - It raised **one new P2**, REAL, in `guardian-techfeedil.yml` (this PR's own workflow). The job's `timeout-minutes: 5` was below its own step caps (3 + 2 + 2), so a slow run could be cancelled before the `always()` sidecar commit persisted DM bookkeeping.
+  - Fixed in **`d19d80d`**: the job cap is now 10 = 3 + 2 + 2 + 3 reserve; setup measures about 15 s on the poll.
+  - The contract test now pins the invariant, which replaces the old "≤ 5" pin. Three mutants were caught.
+  - Local `unittest discover`: **2699 OK**.
+  - The bridge's attempt 3 also ended in `billing_error`.
+- **Review threads:** the round-1 P1 thread (`PRRT_kwDOSZRyh86oyM1u`, outdated) and the round-2 P2 thread (`PRRT_kwDOSZRyh86oyzEk`) were each **replied to with their fixing commit and resolved** at about 13:32Z. Codex's round-3 re-review had not repeated either.
+  - The round-2 thread had stayed NOT-outdated because GitHub re-anchored it to line 915. That alone kept the Gate 🔴 on the new head.
+  - The Gate lists resolving a thread as a legitimate path. The PR is still a draft, and Merge Bot skips drafts.
+- **Codex round 4:** requested 13:34:36Z on `d19d80d` (comment 5980541890). Review 5406471689 came in at 13:39:03Z.
+  - No earlier finding was repeated.
+  - It raised **one new P2**, REAL, a follow-on to round 2. Once an article is queued, `exclude_deferred_from_discovery_cap` filters every later sighting out before phase 1, and even the phase-1 merge only unioned discovery ids. So an article admitted undated while N12's RSS was down could never take the RSS date from the next poll.
+  - Fixed in **`ef053c3`**: for a freshness tenant, `_filter_fresh_items` folds each re-sighting into the queued row before filtering it out.
+    - The earliest trusted date wins.
+    - Categories and feed ids are unioned.
+    - The tier is re-derived via `classify`, which picks the shortest tier, so more evidence never lengthens a limit.
+    - TheMarker is untouched.
+  - Five tests were added, including the two-poll RSS-outage scenario through the real `run_poll`. Five mutants were caught; one survived a first pass, and a placeholder/undated test was added for it.
+  - Local `unittest discover`: **2704 OK**.
+  - The round-3 Guardian thread was replied to with its fix and resolved.
+- **`needs-owner` + `needs-owner-auto` labels on #113** were added at 13:39:24Z by `github-actions[bot]`. That was the **Codex Auto-Fix circuit breaker** (`codex-auto-fix.yml`, `MAX_FIX_ROUNDS = 3`): three bridge `@claude fix` markers, all `billing_error`, and then a fourth Codex finding.
+  - Its code also sends the owner a Telegram escalation: "3 @claude fix rounds didn't converge".
+  - The breaker stops auto-triggering on this PR.
+  - These are temporary automation labels, which Merge Bot clears after exact-head fully-green validation (`merge-bot.yml` ~L1174). Merge Bot skips drafts, so they stay while #113 is a draft.
+  - At first I left them untouched on purpose, since they are a human-attention stop.
+  - **Removed at the owner's explicit request** at 14:54:43Z / 14:54:45Z (`unlabeled` by funzi7).
+    - Both labels were removed together, the way Merge Bot clears them. A dangling `needs-owner-auto` would make Merge Bot treat a later HUMAN `needs-owner` as transient and clear it.
+    - The Auto-Fix marker count stays at 3, so another Codex P1/P2 on a new head would trip the breaker again (labels plus an owner DM).
+- **Codex round 5:** requested 13:48:21Z on `ef053c3` (comment 5980681010). Review 5406537494 came in at 13:53:03Z.
+  - No earlier finding was repeated.
+  - It raised **one P1**, REAL: make repair-slot acquisition atomic. This is the read/write race I had documented as a known limit.
+    - The two tenants' syncs use separate concurrency groups, so both could find the slot free and open Issues WITH `claude-fix`.
+    - Opening an Issue with the label starts its fixer immediately, and nothing can stop a run that has started.
+  - Fixed in **`4942206`** with **two-phase acquisition:**
+    1. Create the Issue WITHOUT `claude-fix`, as a claim. Its number is the ticket.
+    2. Wait `CLAIM_SETTLE_SECONDS` = 2, then re-elect with the own claim in place, adding a label-free newest-first read (a fresh claim's labels land 1–4 s late).
+    3. Only the elected owner adds `claude-fix`. A losing claim waits attached and is woken via path 0.
+    - The `Fixes #N` patch now lands before the wake.
+  - **Election rule:**
+    - Claims are open Issues whose body STARTS with the repair marker, with or without the label. A quoted marker is no claim, and neither is `needs-owner` without `claude-fix`.
+    - The owner is the OLDEST WOKEN claim while any exists, else the OLDEST claim. A plain "oldest claim wins" would have let an older waiting claim wake a second fixer beside a running one; the existing tests caught that during the change.
+  - **Verified:**
+    - `claude.yml`'s `if:` wakes only on opened-with-`claude-fix`, labeled `claude-fix`, assigned, or an owner comment containing `@claude`. An Issue opened without the label wakes nothing, even with "@claude" in its body.
+    - Six tests were added, including the real race with a hidden, lagged older claim. Six mutants were caught.
+    - Local `unittest discover`: **2710 OK**.
+  - The round-4 thread was replied to with its fix and resolved.
+- **Codex round 6:** requested 14:11:07Z on `4942206` (comment 5980893195). Review 5406628222 came in at 14:19:11Z.
+  - **No P1/P2.** The Codex Gate on `4942206` turned **🟢 "Reviewed — clear"**.
+  - It left **one P3**, REAL but telemetry-only. `missed_slots` returned `floor(gap) + 1`, so it counted the last run's own slot when that run started on its cron minute (an 11:17 run plus a missing 12:17 read as 2).
+  - Fixed in **`1ea7618`**: a ceiling over the uncovered span (`slot − last − tolerance`). Five cases are pinned and two mutants were caught.
+  - Local `unittest discover`: **2711 OK**.
+  - The documented live-smoke counts are unaffected: those runs were created minutes after their cron minute, where both formulas agree.
+  - The round-5 P1 thread was replied to with its fix and resolved.
+- **Codex round 7: CLEAN.** Requested 14:26:00Z on `1ea7618` (comment 5981027524). Codex comment 5981068900 at 14:30:18Z: "Didn't find any major issues… Reviewed commit `1ea76189cb`". It added 👍 on the PR, and the summary reads "Code Review ✅ Completed `1ea7618`".
+  - **Codex reports a clean result as an issue comment plus 👍, not as a PR review object.** A watcher keyed only on reviews misses it, so check the summary comment and reactions too.
+  - Final state on `1ea7618`:
+    - `check-codex-status` 🟢 "Reviewed — clear", and the `codex-gate-evaluator` reports "✅ current_head_signal_no_active_findings";
+    - CI `test-message-format` passed;
+    - all **6/6** Codex finding threads were replied to with their fix and resolved;
+    - **no labels**; the PR is still a **draft**.
+- Gate evaluator warning, pre-existing and automation-owned, NOT touched: "trusted head marker publish failed … Resource not accessible by integration".
 - Coordinator: review, then mark ready.
 
 ## Production evidence inspected (read-only)
@@ -225,7 +314,7 @@ New suites: freshness 38, replay 3, Tech Runtime Ops/owner-DM 39, quality 29, de
   - Walla RSS labels local time as GMT (+3 h), bounded by `first_seen_at`;
   - no production time-bound category yet;
   - Actions budget headroom: realistic cost about +300–450 min/month; worst case bounded by the dispatch cap of 8/day. Owner review recommended.
-- **CI, Codex and Gate results on #113:** not observed at handoff.
+- **CI, Codex and Gate results on #113:** all green on `1ea7618` after 7 Codex rounds (see Git / PR).
 
 ## No merge, no deploy
 
