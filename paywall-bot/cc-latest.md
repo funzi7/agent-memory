@@ -4,6 +4,8 @@
 
 The owner milestone "Tech Feed IL: autonomous runtime ops, freshness and publication guardian" is implemented, hostile-reviewed and pushed as **draft PR #113**.
 
+After seven Codex rounds (clean on `1ea7618`) and coordinator review, a narrow docs/comments-only finalization round produced **`9aca413`**. See "FINAL STATE" below.
+
 - **It is NOT merged and NOT deployed.**
 - Nothing on `main` changed through this task; no production state was edited.
 - Everything below is labelled with its evidence class:
@@ -11,13 +13,119 @@ The owner milestone "Tech Feed IL: autonomous runtime ops, freshness and publica
   - **READ-ONLY PHYSICALLY OBSERVED**
   - **POST-MERGE OBSERVATION PENDING**
 
+## FINAL STATE — narrow finalization round after coordinator review (2026-10-04)
+
+This round changed documentation and comments only, verified in two ways. Python ASTs and parsed workflow YAML are identical to `1ea7618`, and the full suite re-ran.
+
+### Finalization commit `9aca413` (docs/comments only)
+
+- **Changed (10 files):**
+  - `reports/techfeedil-autonomous-runtime-20261004.md`: §0 at a glance; §2.1 earlier vs §2.2 current replay; §3 labelled historical; §4.1 exact-head CI; §4.2 historical local run; §4.3 two-column counts; §4c seven Codex rounds; §5 backlog.
+  - `docs/techfeedil-autonomous-runtime-20261004.md`: status, the owner list (adds `repair_slot_blocked`), the §3.7 replay, the pre-R1.5 diagnosis labelled as never-committed pre-fix code next to the final budget contract, Guardian counts 87/68, §13 DONE/PENDING/SUPERSEDED/FUTURE, and a new §14 "Pre-merge record".
+  - `handoffs/CONTEXT.md`: the Tech section relabelled; Status (DONE/PENDING/SUPERSEDED/FUTURE) and Final record added.
+  - `README.md`: the owner-DM list and the replay wording.
+  - Comments and docstrings only: the `core/main.py` quality comment; the `guardian-techfeedil.yml` header (the budget is not an owner action); the `poll-techfeedil.yml` Guardian dispatch comment; the `sites/techfeedil/config.yaml` shared-PAT comment; the `core/runtime_ops.py` module and `_collect_guardian` docstrings; the `core/quality_inspector.py` module docstring.
+- **Proof of no behaviour change:** the scratch script `prove_docs_only.py 1ea7618` reports `docs_only_proven`.
+  - Python ASTs are identical with docstrings excluded, and nothing reads `__doc__`.
+  - The workflow and config YAML parse identically.
+  - Nothing is untracked and no `state/` path changed.
+- **Local validation on the final tree:**
+  - `unittest discover` passed: **2711 tests OK**.
+  - message format: all passed; compileall OK; 21 workflow files parsed; `bash -n` OK; py3.11 grammar OK.
+  - node gate tests 21/21; `git diff --check` clean.
+- **Process:** three read-only auditor subagents covered the ADR, the report + README, and CONTEXT + code comments. A fourth read-only final reviewer found 0 blockers, 1 MAJOR (CONTEXT lacked explicit DONE/SUPERSEDED/FUTURE) and 13 MINOR issues; all were fixed before the commit.
+- **Fact corrected by an auditor:** TheMarker's legacy `quality-monitor.yml` files on ONE rolling `quality-findings` Issue (owner-triaged, no report PR) since `e62a3f5`.
+- **Deliberately NOT changed** (out of a docs-only scope, recorded as FUTURE):
+  - The Guardian `owner_actions_permission` incident reuses the `owner_credentials_required` runbook, whose internal `next_action` reads "owner renews the rejected credential". The owner DM is correct.
+  - Pre-existing TheMarker-only stale text: `quality-monitor.yml`'s job name and comments, and `core/quality_inspector.py` ~L104/L444 still mention the old report PR.
+
+### Git / PR
+
+- Final paywall-bot HEAD: **`9aca4135d5eb4614e91a586a3aa97d613f9c0ece`**, the docs/comments-only finalization commit on top of `1ea76189cbaba110b92accdbb55a4aafb54241f9`.
+  - Verified equal on local HEAD, `git ls-remote` and the PR head (`gh api …/pulls/113`).
+- PR #113 is **OPEN, DRAFT, not merged**, with no labels.
+- `origin/main` = `22d1c34af229b9ed28307038ce510b7a90b09c68`. Since the merge-base `ad974de` it has gained four STATE-ONLY commits (only `state/` paths):
+  - `17c60b1` Tech source health 10:04Z;
+  - `70ae2a4` TheMarker 10:54Z;
+  - `e5a58cb` Tech 12:55Z;
+  - `22d1c34` TheMarker 15:39Z, which arrived after the coordinator's review.
+  - The PR stays mergeable (`clean`).
+
+### Codex review progression (eight rounds)
+
+| Round | Head | Finding | Fixed in |
+| --- | --- | --- | --- |
+| 1 | `7af4d7d` | P1: the cross-tenant repair single flight guarded only the create | `36b4a02` (with the verifier P2/P3s) |
+| 2 | `36b4a02` | P2: a feed duplicate dropped the RSS publication date | `02767de` |
+| 3 | `02767de` | P2: the Guardian job timeout was below its step caps | `d19d80d` (10 = 3+2+2+3) |
+| 4 | `d19d80d` | P2: a queued re-sighting never merged its freshness evidence | `ef053c3` |
+| 5 | `ef053c3` | P1: repair-slot acquisition was not atomic | `4942206` (two-phase) |
+| 6 | `4942206` | no P1/P2 (Gate 🟢); P3 `missed_slots` off by one (telemetry only) | `1ea7618` |
+| 7 | `1ea7618` | **clean**: "Didn't find any major issues" plus 👍 | — |
+| 8 | `9aca413` (finalization) | PENDING at this agent-memory commit: `@codex review` is posted only after the exact-head CI is green | — |
+
+- Every valid P1/P2 was fixed, and the P3 too. All 6 finding threads were replied to with their fixing commit and resolved.
+- The ai-loop bridge's three `@claude fix` attempts ended in `billing_error`. The Codex Auto-Fix circuit breaker then added `needs-owner` + `needs-owner-auto`, and both were removed at the OWNER's request at 14:54Z.
+
+### Exact-head validation
+
+- **`1ea7618`:** CI run 37209219164 / job 111456774903 (Python 3.11.16), success.
+  - Ran 2711 tests, OK.
+  - Parsed 21 workflow files.
+  - `git diff --check` and `git diff --exit-code -- state/` passed.
+  - node gate tests 21/21.
+  - `check-codex-status` 🟢 "Reviewed — clear"; evaluator "current_head_signal_no_active_findings".
+- **Finalization head `9aca413`:** CI in progress at this agent-memory commit; Gate result recorded in the next agent-memory commit.
+
+### Current pre-merge freshness replay (copy-only)
+
+Setup:
+- `--now 2026-10-04T17:00:25Z`, on copies of origin/main `22d1c34`;
+- the Tech state was last written by `e5a58cb` at 12:55:34Z;
+- sha256 of the copies was unchanged, every invariant held, and the second pass suppressed 0.
+
+Results:
+- **526 rows** (40 undated) → **505 suppressed**, all older than 168 h:
+  - by basis: `published_at` 474, `first_seen_at` 31;
+  - by tier: normal 496, evergreen 9.
+- **21 retained:** n12 15, TGR 4, Geektime 1, TGspot 1. By tier, normal 20 and evergreen 1; 18 undated; max 65.5 h.
+- **Registry** 300 → 805.
+- **Ledgers unchanged:** 1224 `posted_guids`, 575 events, 25 terminal.
+
+How this relates to the earlier copy-only replay (on the `ab32523` state, at 10:26Z and 11:26Z): it measured 521 → 505 / 16 / 805. That record is historical and was not rewritten. The real first post-merge poll will measure again.
+
+### Backlog reconciliation
+
+- **DONE** (deterministically tested, Codex-clean; NOT production-accepted):
+  - the freshness tiers and gates, the current-first queue, and the queued-duplicate evidence merge;
+  - Runtime Ops `multi_publisher`, Source Health ownership, and the repository-wide repair slot (every wake gated, two-phase, bounded wait);
+  - the Guardian classifier/tool/workflow (job cap 10, exact missed-slot count);
+  - descriptions, the script policy, and the Tech quality profile with in-job filing.
+- **PENDING (post-merge physical):**
+  - a real Guardian self-heal dispatch, its replacement run and the sidecar commit;
+  - the first post-merge production cleanup, confirming that no stale article is posted;
+  - a real Tech rolling quality-Issue write;
+  - a Source Health daily digest that carries the Runtime Ops section.
+- **PENDING (future / owner decision):**
+  - the external dead-man outside GitHub Actions (no vendor);
+  - Tech AI provider scouting stays disabled until real successful shared-discovery evidence and an owner decision;
+  - the Walla RSS +3 h timezone mislabel;
+  - production `time_bound` category evidence;
+  - the Actions budget/headroom review.
+- **SUPERSEDED** (unchanged labels from the ADR):
+  - poll cron `0 * * * *` → `17 * * * *`;
+  - Tech Source Health urgent/reminder DMs → Runtime Ops ownership;
+  - the original "only a new create waits" single flight → every fixer wake waits plus two-phase acquisition (Codex rounds 1 and 5).
+
 ## Git / PR (exact)
 
 - START_MAIN_SHA: **`ad974de877da614eb5ab3bf6e71d3a0f25a83c71`**.
   - Branch-point `origin/main`, checked with `gh api` at task start.
-  - `origin/main` later gained only state commits: `17c60b1` (techfeedil source health 10:04Z) and `70ae2a4` (themarker 10:54Z), with no code changes.
+  - `origin/main` later gained only state commits: `17c60b1` (techfeedil source health 10:04Z), `70ae2a4` (themarker 10:54Z), `e5a58cb` (techfeedil 12:55Z) and `22d1c34` (themarker 15:39Z), with no code changes.
 - Branch: `feat/techfeedil-autonomous-runtime-freshness-20261004`.
-- Project HEAD: **`1ea76189cbaba110b92accdbb55a4aafb54241f9`**. It carries the Codex round-1 to round-6 fixes (`36b4a02`, `02767de`, `d19d80d`, `ef053c3`, `4942206`, `1ea7618`) on top of `7af4d7d`. Verified equal on local HEAD and on the remote branch (`git ls-remote`). The PR head (`gh api …/pulls/113`) reports `1ea7618`.
+- Project HEAD: **`9aca4135d5eb4614e91a586a3aa97d613f9c0ece`**, the docs/comments-only finalization commit on top of the final code tree `1ea76189cbaba110b92accdbb55a4aafb54241f9`.
+  - `1ea7618` carries the Codex round-1 to round-6 fixes (`36b4a02`, `02767de`, `d19d80d`, `ef053c3`, `4942206`, `1ea7618`) on top of `7af4d7d`.
+  - Verified equal on local HEAD, the remote branch (`git ls-remote`) and the PR head (`gh api …/pulls/113` reports `9aca413`).
 - Commits:
   - `00f0fa4` script policy + description completeness
   - `447a168` Runtime Ops profiles + repository-wide repair single flight + config-gated discovery
@@ -30,6 +138,7 @@ The owner milestone "Tech Feed IL: autonomous runtime ops, freshness and publica
   - `ef053c3` fix(freshness): a queued article seen again keeps its best evidence (Codex P2 on PR #113)
   - `4942206` fix(runtime-ops): acquire the repository repair slot in two phases (Codex P1 on PR #113)
   - `1ea7618` fix(guardian): count only the scheduler slots no poll run covered (Codex P3 on PR #113)
+  - `9aca413` docs(techfeedil): finalize PR #113 docs and comments after coordinator review (docs/comments only)
 - **Draft PR #113:** https://github.com/funzi7/paywall-bot/pull/113
   - Created as a real draft; the API reports `draft: true`, no labels.
   - No `automerge`, override or `no-automerge` label was needed, because Merge Bot skips drafts (`isAutoMergeCandidate`: `pr.draft` → false).
@@ -167,7 +276,7 @@ The owner milestone "Tech Feed IL: autonomous runtime ops, freshness and publica
 
 ### Copy-only replay (`tools/techfeedil_freshness_replay.py`)
 
-**READ-ONLY PHYSICALLY OBSERVED** (copy-only; the tracked files' sha256 values were unchanged).
+**EARLIER run, historical:** during the task, on the task-start Tech state (`ab32523`) and the pre-Codex code. For the current pre-merge replay (526 → 505 / 21 / 805), see FINAL STATE. **READ-ONLY PHYSICALLY OBSERVED** (copy-only; the tracked files' sha256 values were unchanged).
 
 | Measure | Result |
 | --- | --- |
@@ -192,7 +301,11 @@ Identical counts at 10:26Z (`17c60b1`) and 11:26Z (`70ae2a4`).
 - **Source Health bridge** (read-only, ≤ 30 h). A health verdict never outranks newer send-path evidence (`completed_at` versus `last_seen_at` / `last_post_at`).
 - **`shared_credential_wait`.** Tech waits while TheMarker's GitHub-sync activity (any outcome) is within 18 h. One shared `AUTOMATION_PAT`, one DM, and no false "renew" DM after a renewal.
 - **Owner DMs only for OWNER_ACTION_REQUIRED,** in five parts (`הבעיה` / `המערכת` / `צריך ממך` / one `קישור`).
-- **Sync tool:** a new `claude-fix` repair waits while ANOTHER tenant's runtime-incident repair is open (`single_flight_wait`).
+- **Sync tool (final, after Codex rounds 1 and 5):** every fixer wake waits while ANOTHER tenant holds the repository repair slot. That covers a create, a `claude-fix` label add, and a new-epoch re-trigger.
+  - The slot is the oldest WOKEN claim, else the oldest claim.
+  - Acquisition is two-phase: open the claim without `claude-fix`, settle, re-elect with a label-free read, and label only if elected.
+  - The wait is visible and bounded: `code_fix.slot_wait`, with `repair_slot_blocked` after 48 h.
+  - The original "only a new create waits" rule is SUPERSEDED.
 - **Provider discovery** runs only for a config with a discovery section. Tech never runs it, even over planted state.
 - **Tech AI provider scouting stays disabled.**
 
@@ -266,11 +379,15 @@ Identical counts at 10:26Z (`17c60b1`) and 11:26Z (`70ae2a4`).
 ## Hostile review (§33)
 
 - **Coverage.** Four parallel read-only reviewers: runtime/Guardian/workflows; freshness/queue; description/Unicode/quality; data safety/tests.
-- **Outcome.** 6 P1-class items, all fixed, plus P2/P3s, all fixed or documented. Every fix has a regression test.
+- **Outcome.** All fixed or documented, and every fix has a regression test.
+  - The evidence report's §4a table records three P1 rows (R1.1, R1.2, R4.1); the rest are P2/P3.
+  - An earlier summary said "6 P1-class items". That figure could not be re-derived from the table, so the table is the record.
 - **Biggest catch.** The quality-filing step logged into TheMarker's TRACKED `state/errors.log`, which would have made every Tech state push fail. Fixed.
 - **Process note.** A reviewer's scratch script dirtied the tracked `state/errors.log` (two lines at 10:52:56Z). Those lines were removed by hand before committing; `state/` is identical to HEAD.
 
-## Deterministic validation (local; CI is 3.11, this venv is 3.13)
+## Deterministic validation (local; CI is 3.11, this venv is 3.13): historical, at `7af4d7d` before the Codex rounds
+
+For the final tree, see FINAL STATE: exact-head CI on `1ea7618` ran 2711 tests OK. The counts below are the pre-Codex figures, kept as recorded.
 
 | Check | Result |
 | --- | --- |
@@ -305,7 +422,9 @@ New suites: freshness 38, replay 3, Tech Runtime Ops/owner-DM 39, quality 29, de
 ## NOT physically observed / POST-MERGE OBSERVATION PENDING
 
 - A real Guardian self-heal dispatch on `main`, plus its replacement run and sidecar commit.
-- The first post-merge poll's cleanup: 505 suppressed, registry about 805, no stale post.
+- The first post-merge poll's cleanup on production state, and no stale post.
+  - The replays measured 505 suppressed at both clocks: earlier 521/505/16, current 526/505/21, registry 805.
+  - The real count depends on the poll's own time and state.
 - A real rolling-Issue write by the Tech quality filer.
 - A Source Health digest that carries the Runtime Ops section.
 - **The external dead-man outside GitHub Actions:** PENDING, no vendor selected.
