@@ -4,7 +4,12 @@
 
 The owner milestone "Tech Feed IL: autonomous runtime ops, freshness and publication guardian" is implemented, hostile-reviewed and pushed as **draft PR #113**.
 
-After seven Codex rounds (clean on `1ea7618`) and coordinator review, a narrow docs/comments-only finalization round produced **`9aca413`**. See "FINAL STATE" below.
+After seven Codex rounds (clean on `1ea7618`) and coordinator review, a narrow finalization round followed:
+- the docs/comments-only **`9aca413`**;
+- Codex round 8 on it raised one REAL P2 (shared-PAT incidents were not reconciled when governance moved), fixed in **`1071b6f`**;
+- round 9 on `1071b6f` was CLEAN, and the exact-head CI and Gate are green there.
+
+Final head: **`1071b6f35fb0d52244c52175fc6639142141f362`**. See "FINAL STATE" below.
 
 - **It is NOT merged and NOT deployed.**
 - Nothing on `main` changed through this task; no production state was edited.
@@ -15,7 +20,26 @@ After seven Codex rounds (clean on `1ea7618`) and coordinator review, a narrow d
 
 ## FINAL STATE — narrow finalization round after coordinator review (2026-10-04)
 
-This round changed documentation and comments only, verified in two ways. Python ASTs and parsed workflow YAML are identical to `1ea7618`, and the full suite re-ran.
+- **`9aca413`** changed documentation and comments only, verified two ways: Python ASTs and the parsed workflow YAML are identical to `1ea7618`, and the full suite re-ran.
+- Codex round 8 then found a real P2. Per the coordinator spec ("reproduce and fix it on the SAME PR/branch") it was reproduced and fixed in the code+tests+docs commit **`1071b6f`**, with the full regression suite run.
+
+### Round-8 fix commit `1071b6f` (code + tests + docs)
+
+- **The finding** (Codex review 5407425382 on `9aca413`, P2, `core/runtime_ops.py`): Tech observes either `shared_credential_wait` (TheMarker's verdict on the shared `AUTOMATION_PAT` is fresh) or its own `owner_github_credential`. Whichever went unobserved stayed open until the token recovered.
+  - After TheMarker went stale, the wait lingered.
+  - After TheMarker became current again, Tech's owner incident kept sending 24 h reminders beside TheMarker's.
+- **REPRODUCED on the unfixed code:** a scratch run produced 2 extra "⏰ reminder" DMs, and both incidents stayed open.
+- **The fix:**
+  - Both the collector and `_apply_quiet` decide from one predicate, `_shared_credential_governed(ctx)`.
+  - TheMarker stale: the wait resolves (`shared_owner_stale`).
+  - TheMarker current again: Tech's owner incident resolves (`shared_owner_resumed`) with `owner_notified=False`, so there is NO false "resolved automatically" cancel while the PAT is still rejected.
+  - A real recovery still sends its one cancel (`credential_recovered`).
+  - TheMarker (no shared owner configured) is unaffected.
+- **Tests and mutation check:**
+  - `tests/test_techfeedil_runtime_ops.py`: the four-step governance round trip, plus the real-recovery cancel. Tech Runtime Ops now has 41 tests.
+  - 3/4 mutants were caught. S4 is equivalent: a defensive guard on a path the collector already excludes.
+- **Docs:** the ADR §5/§13/§14, the evidence report §0/§4.3/§4c and CONTEXT record round 8.
+- **Validation:** local `unittest discover` passed, **2713 OK**; message format, compileall, 21 workflow YAML, `bash -n`, py3.11 grammar, node 21/21 and `git diff --check` were all clean; `state/` unchanged.
 
 ### Finalization commit `9aca413` (docs/comments only)
 
@@ -41,9 +65,12 @@ This round changed documentation and comments only, verified in two ways. Python
 
 ### Git / PR
 
-- Final paywall-bot HEAD: **`9aca4135d5eb4614e91a586a3aa97d613f9c0ece`**, the docs/comments-only finalization commit on top of `1ea76189cbaba110b92accdbb55a4aafb54241f9`.
+- Final paywall-bot HEAD: **`1071b6f35fb0d52244c52175fc6639142141f362`** (round-8 fix). The chain is `1ea7618` (round 7 clean) → `9aca413` (docs-only finalization) → `1071b6f`.
   - Verified equal on local HEAD, `git ls-remote` and the PR head (`gh api …/pulls/113`).
-- PR #113 is **OPEN, DRAFT, not merged**, with no labels.
+- PR #113 is **OPEN, DRAFT, not merged**, with **no labels**.
+  - The Codex Auto-Fix circuit breaker re-added `needs-owner` + `needs-owner-auto` on the round-8 finding at 17:57:24Z/17:57:25Z.
+  - After round 9 came back clean they were removed again at 18:20:04Z/18:20:05Z. The owner had explicitly asked for their removal earlier in this session, for the same breaker on the same PR.
+  - Their marker count stays at 3, so any future Codex P1/P2 re-adds them along with an owner DM.
 - `origin/main` = `22d1c34af229b9ed28307038ce510b7a90b09c68`. Since the merge-base `ad974de` it has gained four STATE-ONLY commits (only `state/` paths):
   - `17c60b1` Tech source health 10:04Z;
   - `70ae2a4` TheMarker 10:54Z;
@@ -51,7 +78,7 @@ This round changed documentation and comments only, verified in two ways. Python
   - `22d1c34` TheMarker 15:39Z, which arrived after the coordinator's review.
   - The PR stays mergeable (`clean`).
 
-### Codex review progression (eight rounds)
+### Codex review progression (nine rounds)
 
 | Round | Head | Finding | Fixed in |
 | --- | --- | --- | --- |
@@ -62,9 +89,10 @@ This round changed documentation and comments only, verified in two ways. Python
 | 5 | `ef053c3` | P1: repair-slot acquisition was not atomic | `4942206` (two-phase) |
 | 6 | `4942206` | no P1/P2 (Gate 🟢); P3 `missed_slots` off by one (telemetry only) | `1ea7618` |
 | 7 | `1ea7618` | **clean**: "Didn't find any major issues" plus 👍 | — |
-| 8 | `9aca413` (finalization) | PENDING at this agent-memory commit: `@codex review` is posted only after the exact-head CI is green | — |
+| 8 | `9aca413` (docs-only finalization; review 5407425382) | P2: the shared-PAT incidents were not reconciled when governance moved (2 extra reminder DMs reproduced) | `1071b6f` |
+| 9 | `1071b6f` | **clean**: comment 5982979102 at 18:18:12Z, "Didn't find any major issues" (reviewed commit `1071b6f35f`), plus 👍 | — |
 
-- Every valid P1/P2 was fixed, and the P3 too. All 6 finding threads were replied to with their fixing commit and resolved.
+- Every valid P1/P2 was fixed, and the P3 too. All **7** finding threads were replied to with their fixing commit and resolved; the round-8 one was replied to and resolved at 18:19Z.
 - The ai-loop bridge's three `@claude fix` attempts ended in `billing_error`. The Codex Auto-Fix circuit breaker then added `needs-owner` + `needs-owner-auto`, and both were removed at the OWNER's request at 14:54Z.
 
 ### Exact-head validation
@@ -75,7 +103,12 @@ This round changed documentation and comments only, verified in two ways. Python
   - `git diff --check` and `git diff --exit-code -- state/` passed.
   - node gate tests 21/21.
   - `check-codex-status` 🟢 "Reviewed — clear"; evaluator "current_head_signal_no_active_findings".
-- **Finalization head `9aca413`:** CI in progress at this agent-memory commit; Gate result recorded in the next agent-memory commit.
+- **`9aca413`:** CI run 37221930718 / job 111493846645, success. It ran 2711 tests OK and parsed 21 workflow files. Its Gate then went 🔴 on the round-8 P2.
+- **Final head `1071b6f`:** CI run 37223289156 / job 111497742662, success (Python 3.11).
+  - Message format: "All tests passed."
+  - **Ran 2713 tests, OK.**
+  - node 21/21; parsed 21 workflow files; the `git diff --exit-code -- state/` and `git diff --check` steps passed.
+  - **Gate:** `check-codex-status` completed/success "🟢 Reviewed — clear" (18:20:18Z); `codex-gate-evaluator` reported "✅ current_head_signal_no_active_findings on head 1071b6f".
 
 ### Current pre-merge freshness replay (copy-only)
 
@@ -123,9 +156,10 @@ How this relates to the earlier copy-only replay (on the `ab32523` state, at 10:
   - Branch-point `origin/main`, checked with `gh api` at task start.
   - `origin/main` later gained only state commits: `17c60b1` (techfeedil source health 10:04Z), `70ae2a4` (themarker 10:54Z), `e5a58cb` (techfeedil 12:55Z) and `22d1c34` (themarker 15:39Z), with no code changes.
 - Branch: `feat/techfeedil-autonomous-runtime-freshness-20261004`.
-- Project HEAD: **`9aca4135d5eb4614e91a586a3aa97d613f9c0ece`**, the docs/comments-only finalization commit on top of the final code tree `1ea76189cbaba110b92accdbb55a4aafb54241f9`.
+- Project HEAD: **`1071b6f35fb0d52244c52175fc6639142141f362`**, the round-8 fix, which is the final code tree.
+  - Below it sit the docs/comments-only finalization `9aca4135d5eb4614e91a586a3aa97d613f9c0ece` and the round-7-clean tree `1ea76189cbaba110b92accdbb55a4aafb54241f9`.
   - `1ea7618` carries the Codex round-1 to round-6 fixes (`36b4a02`, `02767de`, `d19d80d`, `ef053c3`, `4942206`, `1ea7618`) on top of `7af4d7d`.
-  - Verified equal on local HEAD, the remote branch (`git ls-remote`) and the PR head (`gh api …/pulls/113` reports `9aca413`).
+  - Verified equal on local HEAD, the remote branch (`git ls-remote`) and the PR head (`gh api …/pulls/113` reports `1071b6f`).
 - Commits:
   - `00f0fa4` script policy + description completeness
   - `447a168` Runtime Ops profiles + repository-wide repair single flight + config-gated discovery
@@ -139,6 +173,7 @@ How this relates to the earlier copy-only replay (on the `ab32523` state, at 10:
   - `4942206` fix(runtime-ops): acquire the repository repair slot in two phases (Codex P1 on PR #113)
   - `1ea7618` fix(guardian): count only the scheduler slots no poll run covered (Codex P3 on PR #113)
   - `9aca413` docs(techfeedil): finalize PR #113 docs and comments after coordinator review (docs/comments only)
+  - `1071b6f` fix(runtime-ops): reconcile shared-PAT incidents when governance moves (Codex P2 on PR #113, round 8)
 - **Draft PR #113:** https://github.com/funzi7/paywall-bot/pull/113
   - Created as a real draft; the API reports `draft: true`, no labels.
   - No `automerge`, override or `no-automerge` label was needed, because Merge Bot skips drafts (`isAutoMergeCandidate`: `pr.draft` → false).
@@ -300,6 +335,7 @@ Identical counts at 10:26Z (`17c60b1`) and 11:26Z (`70ae2a4`).
   - `guardian`: no code-fix ladder, no needs-owner Issue.
 - **Source Health bridge** (read-only, ≤ 30 h). A health verdict never outranks newer send-path evidence (`completed_at` versus `last_seen_at` / `last_post_at`).
 - **`shared_credential_wait`.** Tech waits while TheMarker's GitHub-sync activity (any outcome) is within 18 h. One shared `AUTOMATION_PAT`, one DM, and no false "renew" DM after a renewal.
+  - Since `1071b6f` (Codex round 8), each governance move closes the incident that no longer owns the DM: `shared_owner_stale` for the wait, and `shared_owner_resumed` for Tech's owner incident, the latter without a false cancel or reminders.
 - **Owner DMs only for OWNER_ACTION_REQUIRED,** in five parts (`הבעיה` / `המערכת` / `צריך ממך` / one `קישור`).
 - **Sync tool (final, after Codex rounds 1 and 5):** every fixer wake waits while ANOTHER tenant holds the repository repair slot. That covers a create, a `claude-fix` label add, and a new-epoch re-trigger.
   - The slot is the oldest WOKEN claim, else the oldest claim.
