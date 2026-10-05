@@ -1,4 +1,4 @@
-# paywall-bot handoff — 2026-10-04 UTC (Tech Feed IL: autonomous runtime ops, freshness and publication guardian — DRAFT PR #113, NOT merged)
+# paywall-bot handoff — 2026-10-05 UTC (Tech Feed IL: autonomous runtime ops, freshness and publication guardian — PR #113 MERGED by Merge Bot at 62e467b; one post-merge Codex P2 open)
 
 ## Headline
 
@@ -11,12 +11,53 @@ After seven Codex rounds (clean on `1ea7618`) and coordinator review, a narrow f
 
 Final head: **`1071b6f35fb0d52244c52175fc6639142141f362`**. See "FINAL STATE" below.
 
-- **It is NOT merged and NOT deployed.**
-- Nothing on `main` changed through this task; no production state was edited.
+- **Merged on 2026-10-04 at 18:44:37Z by Merge Bot, not by the owner** (merge commit `62e467bde752ba3382045634f227dea4cf5b2e11`), 58 s after the owner marked it ready. It is deployed: the Guardian has self-dispatched in production. See "POST-MERGE" below.
+- The sections from "FINAL STATE" on are the pre-merge record, as written before the merge.
+- No production state was edited by hand.
 - Everything below is labelled with its evidence class:
   - **DETERMINISTICALLY TESTED**
   - **READ-ONLY PHYSICALLY OBSERVED**
   - **POST-MERGE OBSERVATION PENDING**
+
+## POST-MERGE (2026-10-04 18:43Z → 2026-10-05 ~09:05Z)
+
+### How #113 merged (READ-ONLY PHYSICALLY OBSERVED)
+
+- 18:43:39Z: the owner marked #113 ready for review. The owner states they did not merge it.
+- 18:43:48Z and 18:43:50Z: two `issue_comment` events from Codex re-ran the Codex Gate (runs 37225549099 and 37225551079). Codex created no comment at that time, so these were most likely edits to its summary comment as its ready-for-review review started. This is inferred, not observed.
+- 18:44:09Z and 18:44:27Z: `check-codex-status` stayed 🟢 "Reviewed — clear", still on the strength of round 9's clean result on the same head `1071b6f`.
+- 18:44:38Z: Merge Bot run 37225576753 (job 111504419020, `workflow_run` on the Gate's success) logged `#113: merged ✅`. The head branch was deleted at 18:44:39Z.
+- `merged_by` shows `funzi7` because Merge Bot merges with `AUTOMATION_PAT`.
+- **Why it was eligible.** Claude Code's `gh pr create` ran as `funzi7`, on a same-repo `feat/` branch with no `claude-generated` label, so `isAutoMergeCandidate` takes the `isOwnerSameRepo` path, which needs no `automerge` label. Leaving draft made #113 a candidate, and CI and the Gate were already green on the exact head.
+- **Gap.** Merge Bot does not wait for Codex's automatic ready-for-review review, because a prior clean result on the same head keeps the Gate green.
+  - **To hold an owner-authored PR through that review:** add `no-automerge` BEFORE marking it ready, then remove it after the review lands. It is a stop while it is the latest `no-automerge` label event; Merge Bot never removes it itself.
+
+### Post-merge Codex P2 (OPEN, no follow-up PR yet)
+
+- **The finding.** Review 5407653987, 18:47:44Z, on `1071b6f`, at `tools/techfeedil_guardian.py:703`: "Make tenant-lock acquisition atomic". `read_tenant_lock` GETs, then `dispatch_poll` POSTs, which is time-of-check-to-time-of-use. A Source Health or Tech Backfill run that becomes pending inside that window is replaced, i.e. cancelled, by the newly queued poll, because the `bot-state-techfeedil` group keeps one pending run.
+- **Assessment: VALID, low likelihood.**
+  - The window is the two lock GETs plus the POST plus GitHub's asynchronous queueing: seconds.
+  - A cancel also needs another group member in progress at that moment. The lock deliberately lets an in-progress Source Health through, and Source Health runs about 25–35 s once a day.
+  - GitHub offers no atomic primitive for this. The scheduled poll has no lock at all, so the same replacement already applies to it.
+- **Proposed fix (owner decision, not started):**
+  - dispatch only into an IDLE group, by treating an in-progress Source Health as blocking, so a cancel would then need two arrivals inside the window;
+  - add a post-dispatch audit that reports a Source Health or Backfill run that was cancelled without ever starting, so the loss is not silent.
+  - It needs a NEW branch/PR from `main`. Open it as a draft or with `no-automerge`.
+- **Labels.** The circuit breaker re-added `needs-owner` + `needs-owner-auto` at 18:48:05Z/18:48:06Z, and `check-codex-status` on `1071b6f` went 🔴 at 18:48:07Z. Both are on the merged PR; they were left as they are.
+
+### Production since the merge (READ-ONLY PHYSICALLY OBSERVED, to ~09:05Z 2026-10-05)
+
+- **The Guardian has self-dispatched for real** (formerly POST-MERGE OBSERVATION PENDING). Sidecar `state/techfeedil-guardian.json` on `origin/main` (`b519b04`) records 3 dispatches, all `accepted`, `confirmed` and `scheduler_gap`:
+
+  | Slot | Dispatched at | Poll run |
+  |---|---|---|
+  | 21:17Z | 21:59:12Z | 37238250650 |
+  | 00:17Z | 01:18:02Z | 37250890466 |
+  | 06:17Z | 07:42:20Z | 37279233171 |
+
+  All three polls succeeded.
+- **GitHub's cron is starving both hourly schedules.** Only 3 scheduled Guardian runs (21:58:55Z, 01:17:43Z, 07:42:05Z) and 3 scheduled polls (22:19:56Z, 01:59:41Z, 09:01:53Z) fired in about 14 h. The external dead-man stays FUTURE.
+- **No collisions yet.** No Source Health or Backfill run has run since the merge, and the API lists no cancelled Source Health or Backfill run at all.
 
 ## FINAL STATE — narrow finalization round after coordinator review (2026-10-04)
 
