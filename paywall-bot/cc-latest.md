@@ -1,4 +1,19 @@
-# paywall-bot handoff — 2026-10-05 UTC (Tech Feed IL: non-replacing tenant queue, follow-up to merged #113 — PR #114 DRAFT + `no-automerge`, NOT merged)
+# paywall-bot handoff — 2026-10-05 UTC (Tech Feed IL: non-replacing tenant queue, follow-up to merged #113 — PR #114 marked READY by funzi7 at 11:45Z, `no-automerge` still on, NOT merged)
+
+## Update 2026-10-05 ~11:55Z (READ-ONLY PHYSICALLY OBSERVED, after the finalization below)
+
+- **11:45:19Z.** funzi7 marked PR #114 ready for review (`ready_for_review` by funzi7). This task never marked it ready.
+  It is now `draft=false`, still OPEN and NOT merged, and **`no-automerge` is still present**.
+- **11:50:13Z.** Codex's automatic review (trigger "Draft marked ready") completed on `4db114f` with NO findings: the
+  summary comment reads "✅ Completed", with 👍 at 11:50:17Z. There is no new comment, review object or inline finding.
+- **`check-codex-status` on `4db114f`.** 🟢 "Reviewed — clear" at 11:45:54Z and 11:50:37Z.
+- **`codex-gate-evaluator`** still shows its stale pre-review failure (11:25:21Z). It is diagnostic only for Merge Bot,
+  and it is why GitHub shows `mergeable_state: unstable`.
+- **Merge Bot runs at 11:46 and 11:50** (37305047152, 37305546775) evaluated only #107 ("a check failed, skip"). #114
+  was not even a candidate, because `isAutoMergeCandidate` returns false on `no-automerge`. So the hold worked: the
+  ready-for-review review landed (clean) BEFORE any merge could happen, unlike #113.
+- **To merge:** the owner removes `no-automerge`, after which Merge Bot merges it on its next wake, since CI and the
+  Gate are green on the exact head; or the owner merges it by hand. Then follow "Next steps" 2–4 below.
 
 ## Headline
 
