@@ -1,63 +1,282 @@
-# paywall-bot handoff — 2026-10-05 UTC (Tech Feed IL: autonomous runtime ops, freshness and publication guardian — PR #113 MERGED by Merge Bot at 62e467b; one post-merge Codex P2 open)
+# paywall-bot handoff — 2026-10-05 UTC (Tech Feed IL: non-replacing tenant queue, follow-up to merged #113 — PR #114 DRAFT + `no-automerge`, NOT merged)
 
 ## Headline
 
-The owner milestone "Tech Feed IL: autonomous runtime ops, freshness and publication guardian" is implemented, hostile-reviewed and pushed as **draft PR #113**.
+Codex's post-merge P2 on #113 (the Guardian's tenant lock was check-then-act) is fixed at the queue layer, on a NEW
+branch and PR.
+- **Branch and PR.** `fix/techfeedil-tenant-queue-20261005`, PR **#114**: a **DRAFT carrying `no-automerge`, NOT
+  merged, never marked Ready**, kept for coordinator review.
+- **The fix.** Every member of `bot-state-techfeedil` declares `queue: max`, so a newly queued member waits instead of
+  cancelling a pending one.
+- **TheMarker** is unchanged. #113 and its deleted branch were not touched.
+- **Final head:** **`4db114fec71f63ba8ab5e014bd7f55bd632a9792`**. See "FINAL STATE".
+- No production state was edited, no workflow was dispatched, no Telegram or Telegraph write was made, and no
+  production collision was manufactured.
 
-After seven Codex rounds (clean on `1ea7618`) and coordinator review, a narrow finalization round followed:
-- the docs/comments-only **`9aca413`**;
-- Codex round 8 on it raised one REAL P2 (shared-PAT incidents were not reconciled when governance moved), fixed in **`1071b6f`**;
-- round 9 on `1071b6f` was CLEAN, and the exact-head CI and Gate are green there.
+## FINAL STATE (2026-10-05 ~11:40Z)
 
-Final head: **`1071b6f35fb0d52244c52175fc6639142141f362`**. See "FINAL STATE" below.
+- **paywall-bot HEAD:** `4db114fec71f63ba8ab5e014bd7f55bd632a9792` on `fix/techfeedil-tenant-queue-20261005`. It is verified
+  equal on the local HEAD, `git ls-remote` and the PR head. It is two commits on `origin/main` `b519b04`:
+  - `f8b6701` fix(techfeedil): non-replacing tenant queue for bot-state-techfeedil (Codex P2 after #113). It changes the
+    workflows, Guardian comments and docstrings, tests and docs.
+  - `4db114f` docs(techfeedil): PR #114 and the first post-merge Source Health digest. Docs only.
+- **PR #114** (https://github.com/funzi7/paywall-bot/pull/114):
+  - OPEN, **DRAFT**, carrying **`no-automerge`** (labelled at creation, 11:23:01Z, by funzi7), NOT merged;
+  - never marked Ready or labelled `automerge`;
+  - author funzi7, base `main`.
+  - Merge Bot skips it twice over: it is a draft, and `no-automerge` is a hard stop.
+- **`origin/main` at the end:** `a0a2a62`, one state-only commit past the branch start (Tech Source Health 10:49Z). The
+  branch was not rebased.
+- **Exact-head CI on `4db114f`.** Run 37302820477, job 111739354492, Python 3.11.16: success.
+  - Message format "All tests passed.", and the focused suites OK.
+  - `unittest discover` "Ran 2742 tests", OK.
+  - Node 21/21; 21 workflow files parsed; `bash -n` passed.
+  - `git diff --exit-code -- state/` and `git diff --check` passed.
+- **Codex: CLEAN in one round.**
+  - Requested with "@codex review" (comment 5993527675, 11:28:44Z) while the PR was a draft.
+  - Result: comment 5993618004 at 11:34:55Z, "Codex Review: Didn't find any major issues", **Reviewed commit
+    `4db114fec7`**, with 👍 at 11:35:00Z.
+  - No review object, no inline finding, no thread.
+- **The Gate on `4db114f`.**
+  - `check-codex-status`: success, "🟢 Reviewed — clear" (11:35:18Z), "No unresolved non-outdated trusted Codex P1/P2
+    thread blocks 4db114f (current_head_signal_no_active_findings)".
+  - `codex-gate-evaluator` still shows its pre-review failure from 11:25:21Z. It is diagnostic only: Merge Bot lists it
+    in `NON_BLOCKING_DIAGNOSTIC_CHECKS`. No later evaluator run was created.
+- **#113 was NOT touched** in this task. Its late P2 thread 4178858301 stays unresolved, `check-codex-status` on `1071b6f`
+  stays red, and `needs-owner`/`needs-owner-auto` remain on the closed PR. On `main` the race stays live until #114
+  merges.
 
-- **Merged on 2026-10-04 at 18:44:37Z by Merge Bot, not by the owner** (merge commit `62e467bde752ba3382045634f227dea4cf5b2e11`), 58 s after the owner marked it ready. It is deployed: the Guardian has self-dispatched in production. See "POST-MERGE" below.
-- The sections from "FINAL STATE" on are the pre-merge record, as written before the merge.
-- No production state was edited by hand.
-- Everything below is labelled with its evidence class:
-  - **DETERMINISTICALLY TESTED**
-  - **READ-ONLY PHYSICALLY OBSERVED**
-  - **POST-MERGE OBSERVATION PENDING**
+### Next steps (coordinator / owner)
 
-## POST-MERGE (2026-10-04 18:43Z → 2026-10-05 ~09:05Z)
+1. **Review PR #114.** To merge it, the owner must decide to mark it Ready and remove `no-automerge`.
+   - Keep `no-automerge` until Codex's automatic ready-for-review review has landed: marking Ready triggers it, and
+     Merge Bot does not wait for it.
+2. **Right after the merge, check BY HAND that the first run of each changed workflow starts** (poll at :17, the next
+   Source Health and Backfill).
+   - A `startup_failure` alerts nobody: CI Doctor filters `conclusion === 'failure'`, and the Guardian records it as
+     telemetry.
+   - Example:
+     `gh api "repos/funzi7/paywall-bot/actions/workflows/poll-techfeedil.yml/runs?per_page=3" -q '.workflow_runs[] | "\(.id) \(.event) \(.status)/\(.conclusion)"'`
+3. **When two Tech members first wait together,** `GET /repos/funzi7/paywall-bot/actions/concurrency_groups/bot-state-techfeedil`
+   must list both as `pending`, with neither ending `cancelled`. That is the runtime proof of `queue: max`, still
+   PENDING.
+4. **Never Re-run a Tech run created before the merge, and never dispatch Tech workflows from stale branches.** Either
+   would bring back the old queue in the production group.
+5. **After the merge,** #113's late P2 thread can be answered with a pointer to #114.
 
-### How #113 merged (READ-ONLY PHYSICALLY OBSERVED)
+## What was implemented (DETERMINISTICALLY TESTED)
 
-- 18:43:39Z: the owner marked #113 ready for review. The owner states they did not merge it.
-- 18:43:48Z and 18:43:50Z: two `issue_comment` events from Codex re-ran the Codex Gate (runs 37225549099 and 37225551079). Codex created no comment at that time, so these were most likely edits to its summary comment as its ready-for-review review started. This is inferred, not observed.
-- 18:44:09Z and 18:44:27Z: `check-codex-status` stayed 🟢 "Reviewed — clear", still on the strength of round 9's clean result on the same head `1071b6f`.
-- 18:44:38Z: Merge Bot run 37225576753 (job 111504419020, `workflow_run` on the Gate's success) logged `#113: merged ✅`. The head branch was deleted at 18:44:39Z.
-- `merged_by` shows `funzi7` because Merge Bot merges with `AUTOMATION_PAT`.
-- **Why it was eligible.** Claude Code's `gh pr create` ran as `funzi7`, on a same-repo `feat/` branch with no `claude-generated` label, so `isAutoMergeCandidate` takes the `isOwnerSameRepo` path, which needs no `automerge` label. Leaving draft made #113 a candidate, and CI and the Gate were already green on the exact head.
-- **Gap.** Merge Bot does not wait for Codex's automatic ready-for-review review, because a prior clean result on the same head keeps the Gate green.
-  - **To hold an owner-authored PR through that review:** add `no-automerge` BEFORE marking it ready, then remove it after the review lands. It is a stop while it is the latest `no-automerge` label event; Merge Bot never removes it itself.
+### The race
 
-### Post-merge Codex P2 (OPEN, no follow-up PR yet)
+- `tools/techfeedil_guardian.py` `read_tenant_lock` GETs the Source Health and Backfill runs. `pg.apply_tenant_lock`
+  holds while one waits; otherwise `dispatch_poll` POSTs `workflow_dispatch` for `poll-techfeedil.yml`.
+- `bot-state-techfeedil` used GitHub's default `queue: single`: at most one pending run, "any existing pending job or
+  workflow run in the same group is canceled and replaced", even with `cancel-in-progress: false`.
+- So a Source Health or Tech Backfill run that went pending between the GET and the POST was cancelled by the Guardian's
+  poll. The cron and manual polls replaced pending members the same way, without any check.
 
-- **The finding.** Review 5407653987, 18:47:44Z, on `1071b6f`, at `tools/techfeedil_guardian.py:703`: "Make tenant-lock acquisition atomic". `read_tenant_lock` GETs, then `dispatch_poll` POSTs, which is time-of-check-to-time-of-use. A Source Health or Tech Backfill run that becomes pending inside that window is replaced, i.e. cancelled, by the newly queued poll, because the `bot-state-techfeedil` group keeps one pending run.
-- **Assessment: VALID, low likelihood.**
-  - The window is the two lock GETs plus the POST plus GitHub's asynchronous queueing: seconds.
-  - A cancel also needs another group member in progress at that moment. The lock deliberately lets an in-progress Source Health through, and Source Health runs about 25–35 s once a day.
-  - GitHub offers no atomic primitive for this. The scheduled poll has no lock at all, so the same replacement already applies to it.
-- **Proposed fix (owner decision, not started):**
-  - dispatch only into an IDLE group, by treating an in-progress Source Health as blocking, so a cancel would then need two arrivals inside the window;
-  - add a post-dispatch audit that reports a Source Health or Backfill run that was cancelled without ever starting, so the loss is not silent.
-  - It needs a NEW branch/PR from `main`. Open it as a draft or with `no-automerge`.
-- **Labels.** The circuit breaker re-added `needs-owner` + `needs-owner-auto` at 18:48:05Z/18:48:06Z, and `check-codex-status` on `1071b6f` went 🔴 at 18:48:07Z. Both are on the merged PR; they were left as they are.
+### Why GET-before-POST is insufficient
 
-### Production since the merge (READ-ONLY PHYSICALLY OBSERVED, to ~09:05Z 2026-10-05)
+- A read-then-dispatch sequence always leaves a window between the last read and the POST, plus GitHub's asynchronous
+  queueing. A second read only moves the window.
+- GitHub has no compare-and-set for queueing a run.
+- Post-dispatch "cancelled" telemetry is not prevention. None was added.
 
-- **The Guardian has self-dispatched for real** (formerly POST-MERGE OBSERVATION PENDING). Sidecar `state/techfeedil-guardian.json` on `origin/main` (`b519b04`) records 3 dispatches, all `accepted`, `confirmed` and `scheduler_gap`:
+### The final queue/concurrency contract
 
-  | Slot | Dispatched at | Poll run |
-  |---|---|---|
-  | 21:17Z | 21:59:12Z | 37238250650 |
-  | 00:17Z | 01:18:02Z | 37250890466 |
-  | 06:17Z | 07:42:20Z | 37279233171 |
+- **Docs.** Official, from github/docs `data/reusables/actions/actions-group-concurrency.md`, commit 336b7f546d,
+  2026-05-06, version-gated `actions-nga` = fpt/ghec:
+  - `single` (default) keeps 1 pending and replaces it;
+  - `max` keeps up to 100 pending, FIFO by wait start, and the 101st is cancelled;
+  - `max` + `cancel-in-progress: true` is a validation error.
+  - Nothing documents `queue` as an expression. SchemaStore's `github-workflow.json` enum is `single | max`, with no
+    expression branch.
+- **The members** of `bot-state-techfeedil` all declare `cancel-in-progress: false` and `queue: max`:
+  - `poll-techfeedil.yml` (workflow level): the cron, a manual run and the Guardian's dispatch;
+  - `source-health-techfeedil.yml` (workflow level);
+  - `backfill.yml`, new job `backfill-techfeedil` (job level, `if:` default branch `&& inputs.site == 'techfeedil'`).
+    It also gains "Refresh tenant state from the default branch", Source Health's form: a waited run starts from its
+    trigger commit, and Tech has `reconcile_destination: false`.
+- **The Guardian** stays in its own group `guardian-techfeedil` (default queue). Its logic is unchanged:
+  - it dispatches only the normal poll;
+  - the per-slot sidecar and runs-after-slot dedup are unchanged;
+  - `daily_dispatch_cap` stays 24 in code and 8 in the Tech config.
+  - The GET tenant lock is now documented as a courtesy hold plus evidence, NOT the guarantee. It still holds while a
+    Source Health run waits or ANY Backfill run is unfinished, a TheMarker one included.
 
-  All three polls succeeded.
-- **GitHub's cron is starving both hourly schedules.** Only 3 scheduled Guardian runs (21:58:55Z, 01:17:43Z, 07:42:05Z) and 3 scheduled polls (22:19:56Z, 01:59:41Z, 09:01:53Z) fired in about 14 h. The external dead-man stays FUTURE.
-- **No collisions yet.** No Source Health or Backfill run has run since the merge, and the API lists no cancelled Source Health or Backfill run at all.
+### TheMarker isolation
+
+- `poll.yml` is untouched: `poll-themarker`, the default queue.
+- The `backfill.yml` TheMarker job keeps:
+  - job id `backfill`, group `poll-themarker`, the default queue, `cancel-in-progress: false`;
+  - the same runner, timeout, permissions, inputs, steps, env and commit step.
+  - It only drops the Tech step, which never ran there, and its `if:` adds `inputs.site == 'themarker'`.
+- The skipped other-tenant job resolves to `backfill-<tenant>-skipped-<run_id>`. GitHub does not document whether
+  skipped jobs enter their group.
+
+### Validation (DETERMINISTICALLY TESTED unless stated)
+
+- **The local CI-equivalent run before the push**, all passing:
+  - message format;
+  - the 18 focused CI suites, plus the Guardian classifier (87), the Guardian tool (68) and Tech Runtime Ops (41);
+  - `python -m unittest discover`: **Ran 2742 tests, OK** (2713 plus 29 new);
+  - `compileall`; node 21/21; 21 workflow files parsed;
+  - SchemaStore `github-workflow.json` validation, 21/21. The negative controls were rejected: `queue: maxx`, an
+    expression, an unknown key;
+  - `bash -n` (3 scripts); `state/` unchanged; `git diff --check`.
+- **New `tests/test_techfeedil_tenant_queue.py` (29 tests).**
+  - **What it does.** It reads the workflows as YAML 1.2, with a GitHub-expression evaluator: loose `==`,
+    case-insensitive names, strict `format()`. It discovers every member of each lock per `site` option, including
+    skipped jobs. It pins:
+    - the exact contract;
+    - both Backfill jobs and `backfill.yml` as wholes;
+    - that only 4 workflow files mention `bot-state`;
+    - the Guardian outside the group;
+    - `TENANT_LOCK_WORKFLOWS` against the members;
+    - no `always()` in a Tech job `if`.
+    It also drives the documented-queue model with the modes of the members that resolve to each lock (scenarios
+    1–6).
+  - **On #113's tree** (`git archive 62e467b`): 15 of 29 fail (16 failures and 3 errors counting subtests). The Tech
+    scenarios fail through the model itself: scenario 1 gives "['source health'] != []". TheMarker's behavioural and
+    scenario tests pass on both trees.
+- **Mutations: 41 of 41 caught, all by the new module alone.** 16 are my own; 25 came from the independent tests review.
+  10 of the review's mutants survived the module's first version, and the guards were added for them.
+- **actionlint 1.7.7** reports only "unexpected key queue" on the 3 changed blocks; the tool predates the key, and
+  even 1.7.12 lacks it. GitHub's `@actions/workflow-parser` 0.3.61 accepted all 21 files (the YAML reviewer's run).
+- **Reviews.** Four subagents ran through the Agent tool; the Workflow tool is denied in this session's "don't ask"
+  mode.
+  - **Fable planner (design).** Correct and near-minimal; the Tech Backfill refresh step is REQUIRED.
+  - **YAML reviewer.** No P1/P2; 4 P3s, all fixed or documented:
+    - "`queue` takes no expression" reworded: GitHub's parser accepts one, and the runtime behaviour is undocumented;
+    - "the next run re-evaluates the slot" corrected;
+    - the Re-run risk added;
+    - persisted Backfill credentials recorded as FUTURE.
+  - **Tests reviewer.** No P1/P2; 4 P3s and 3 nits, all fixed.
+  - **Docs reviewer.** 1 P1, 5 P2s and 7 P3s, plus nits, all fixed.
+    - The P1 was my false claim that "CI Doctor reports startup_failure".
+    - The P2s: the post-age count, an overclaim in the status block, the unmerged fix listed as DONE, the open P2 left
+      out, and "the Guardian never queues a second poll".
+
+### Not physically tested (PENDING, post-merge only)
+
+No existing safe mechanism allows this before the merge, and no production collision was manufactured. A branch
+dispatch of the real poll or Source Health enters the PRODUCTION group (workflow-level concurrency applies even when
+the job is skipped). A probe workflow would be new scope with its own minutes; it was NOT done.
+
+1. **The first scheduled or dispatched run of each changed workflow starts normally.**
+   - GitHub's own workflow parser has not yet run on these files: they trigger only on `schedule`/`workflow_dispatch`,
+     and nothing was dispatched. (GitHub's `@actions/workflow-parser` library accepted them offline.)
+   - A rejected file would show as `startup_failure`, which ALERTS NOBODY: CI Doctor filters `failure`, and the Guardian
+     records it as telemetry. Check BY HAND ("Next steps" 2).
+2. **A natural moment with two Tech members waiting.** `GET /repos/funzi7/paywall-bot/actions/concurrency_groups/bot-state-techfeedil`
+   must list both as `pending`, and neither may end `cancelled` with "higher priority waiting request".
+
+### Risks (also in ADR §16.7)
+
+- A dispatch of a Tech workflow from a branch whose YAML predates this change, or a Re-run of a Tech run created before
+  the merge (re-runs reuse the original commit's workflow file, for up to 30 days), joins the production group with the
+  old queue. Mixed modes are undocumented. Don't.
+- A duplicate poll that the old queue cancelled now runs (≈2 min).
+  - The Guardian does not dispatch while its GET snapshot shows a poll queued or running. The same read window applies
+    to that snapshot.
+  - A late cron or a human can still stack a second poll.
+- Both Backfill jobs keep checkout's persisted token while they process article content. This is pre-existing,
+  recorded as FUTURE, and unchanged here.
+- A poll that waits more than 20 min behind a Tech Backfill classifies `POLL_DELAYED_OR_STUCK` (telemetry).
+- FIFO order is not guaranteed by GitHub. Every member refreshes state first.
+- There is a 100-pending cap.
+- TheMarker's Backfill still has no state refresh (pre-existing).
+- actionlint ≤ 1.7.12 does not know `queue` (noise).
+
+## #113 post-merge evidence and backlog (READ-ONLY PHYSICALLY OBSERVED, to 2026-10-05 ~11:25Z; ADR §13, §15)
+
+### DONE, physically observed
+
+- **How #113 merged.** The owner marked it ready at 18:43:39Z, and Merge Bot run 37225576753 merged it at 18:44:37Z as
+  `62e467b`. Merge Bot uses `AUTOMATION_PAT`, so GitHub shows funzi7.
+  - Codex's ready-for-review review, which raised the P2, landed 3 min after the merge.
+  - Rule since: our PRs are DRAFT plus `no-automerge`.
+- **Three real Guardian self-heals,** each `accepted` and `confirmed` with reason `scheduler_gap`:
+
+  | Slot | Dispatched | Poll run | Sidecar commit |
+  | --- | --- | --- | --- |
+  | 21:17Z | 21:59:12Z | 37238250650 | `1931f0b` |
+  | 00:17Z | 01:18:02Z | 37250890466 | `7c54deb` |
+  | 06:17Z | 07:42:20Z | 37279233171 | `ba4347e` |
+
+  All three replacement polls succeeded.
+- **The stale-backlog cleanup.** The first post-merge poll (37238250650, 22:01:19Z) suppressed 505, the replay's
+  figure. The later polls suppressed 10, 3, 1, 0 and 0, so 519 `stale_recovery_age` in all. The queue went 535 → 13 and
+  `suppressed_items` 300 → 819.
+- **The sidecar is tracked** since `1931f0b`, so CI's `state/` diff check covers it.
+- **The quality-filing step ran in all 6 post-merge polls** ("no new quality issues to file").
+
+### PARTIALLY OBSERVED
+
+- **No stale post.**
+  - 33 posts in all; 30 carry a stored date: 29 were 2.0–33.3 h old, plus Walla `item/3870903` at −0.9 h (its +3 h
+    label).
+  - The 3 undated mako rows have lower bounds only (4.8, 9.1 and 9.1 h): their trusted page date is not
+    persisted, and mako's bot manager blocks a re-fetch from here.
+- **The Source Health daily digest.**
+  - The first post-merge Source Health run, 37298998393 at 10:49:15Z, started at once.
+  - It reported `actionability: runtime_ops` and `alert_delivery: sent`, and its sidecar `a0a2a62` advanced
+    `last_digest_at` to 10:49:31Z.
+  - The "Runtime Ops (autonomous):" text is inferred from the governed code path, not seen.
+
+### PENDING
+
+- **Codex's P2 on `main`,** until #114 merges.
+- **The runtime observation of `queue: max`,** plus the by-hand check of the first runs.
+- **A real Tech quality-Issue write.** None has been needed yet.
+- **The external dead-man.** GitHub delivered about 3 of 15 Guardian slots and 3 of 14 poll slots.
+- **Tech AI scouting** stays disabled.
+- **Walla's +3 h label** (still seen).
+- **`time_bound` evidence.** Only the `normal` (510) and `evergreen` (9) tiers were logged.
+- **The Actions budget.**
+  - The billing API needs the `user` scope.
+  - Run time since the merge: Guardian 1.4, Tech polls 9.6, TheMarker polls 2.1 min. Billing rounds jobs up, so that is
+    roughly 3, 12 and 3 min.
+- **The Guardian's lost-sidecar duplicate DM** (a residual risk).
+
+### Cancellation history
+
+Server-side `status=cancelled` counts over the API's retained history:
+- Source Health 0 of 64;
+- Backfill 0 of 4;
+- Tech poll 1 of 641. That one, 31947704293 on 2026-08-16, was a 20-min timeout.
+
+This absence is no proof that the race cannot occur.
+
+### FUTURE
+
+- an external heartbeat;
+- Tech AI scouting;
+- a Walla timezone;
+- owner-verified `time_bound` terms;
+- the Guardian runbook `next_action` text;
+- optionally, a record-only courtesy hold or a read of the concurrency-groups API;
+- hardening: give both Backfill jobs `persist-credentials: false` with environment-only git auth (pre-existing).
+
+### SUPERSEDED
+
+- the owner-approved items of ADR §12;
+- engineering only, effective once #114 merges: the tenant lock's ROLE as the replacement guard, which `queue: max`
+  takes over. The hold itself remains.
+
+### Process notes
+
+- Run `gh pr create --draft --label no-automerge` in one command.
+- `gh pr edit` fails here with a Projects (classic) GraphQL deprecation error. Update a body with
+  `gh api -X PATCH repos/funzi7/paywall-bot/pulls/N -F body=@file`.
+- A clean Codex result is still a comment plus 👍, with no review object; `watch_codex_pr.sh` handles both shapes.
+
+---
+
+# Previous handoff (historical): PR #113 pre-merge record, as written on 2026-10-04
+
+Everything below predates the merge of #113 and is kept unchanged as history. Where it says #113 is a draft or
+not merged, that was true then. The current state is above.
 
 ## FINAL STATE — narrow finalization round after coordinator review (2026-10-04)
 
