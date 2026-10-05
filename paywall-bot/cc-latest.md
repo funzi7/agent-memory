@@ -1,258 +1,230 @@
-# paywall-bot handoff — 2026-10-05 UTC (Tech Feed IL: official publisher Telegram channels + finished descriptions — PR #115 marked READY by the owner, `no-automerge` held, NOT merged)
+# paywall-bot handoff — 2026-10-05 UTC (Tech Feed IL post-merge acceptance of #114 + #115; docs-only PR #116 DRAFT + `no-automerge`, NOT merged; Codex quota exhausted → Claude Code fallback review)
 
 ## Headline
 
-Owner-approved Tech Feed IL follow-up after merged #113/#114, on a NEW branch and ONE PR.
-- **Branch and PR.** `feat/techfeedil-telegram-sources-descriptions-20261005` from `origin/main` `3427b55`, PR
-  **#115**: opened as a DRAFT carrying `no-automerge`; the **owner** marked it ready (15:38:54Z, not the task);
-  **`no-automerge` is still present; NOT merged.**
-- **Goal 1 (official channels).** Tech Feed IL reads the VERIFIED official Telegram channels of its own publishers:
-  Geektime `geektimecoil` (native text posts + linked text) and The Verifier `TheVerifier` (linked text).
-- **Goal 2 (descriptions).** Today's 20 descriptions audited: none truncated (OK 6, A 12, C 2, B 0). A subtitle
-  PROVEN complete without terminal punctuation now renders with one final period (Telegram === Telegraph).
-- No production state was edited, no workflow was dispatched, no Telegram/Telegraph write was made, no existing
-  message/page/ledger was touched, and no concurrency collision was manufactured. #113/#114 were not modified.
+Post-merge acceptance and final handoff for Tech Feed IL after the merged PRs **#114** (`dc9ab26`, `queue: max`) and
+**#115** (`6929d95`, official publisher Telegram channels + finished descriptions). Evidence reconciliation and
+documentation ONLY.
+- **No defect was reproduced, so no runtime code, workflow, config, test or state changed.**
+- ONE docs-only PR, **#116**: DRAFT, carrying `no-automerge` (verified present), not marked ready, NOT merged.
+- No production state was edited, nothing was dispatched or re-run, there was no Telegram send or Telegraph write, no
+  concurrency collision was manufactured, and no native story was manufactured or backfilled.
 
 ## FINAL STATE
 
-- **paywall-bot HEAD:** `cea598b1e2c7f6725c3650ae046a9583c88c5183` on `feat/techfeedil-telegram-sources-descriptions-20261005`,
-  verified equal on the local HEAD, `git ls-remote` and the PR head (17:48Z). Seven commits on `origin/main` `3427b55`,
-  all authored by this task (no foreign commit):
-  - `7b4a382` feat(techfeedil): official publisher Telegram channels + finished descriptions;
-  - `afa5be7` fix: count native-phase crashes and verify native fixes per stage (Codex round 1, 2 P2);
-  - `4313811` fix: never index a linked post with an unresolved short link (Codex round 2, 1 P2);
-  - `d76f640` fix: keep the native route marker outside the bounded item sample (Codex round 3, 1 P2);
-  - `76a0033` fix: show native media via a pinned preview; detect unlinked URLs and cross-promotion (Codex round 5, 2 P2);
-  - `b2cb34c` fix: never finish a subtitle ending in a scheme-less URL with a path (Codex round 6, 1 P2);
-  - `cea598b` fix: window-pruned equivalence state, revalidate cleaned natives, any domain tail (Codex round 7, 3 P2).
-- **PR #115** (https://github.com/funzi7/paywall-bot/pull/115): OPEN, **not a draft** (owner `ready_for_review`
-  15:38:54Z), **NOT merged**. Labels:
-  - **`no-automerge`**: applied at creation (14:19Z, funzi7 via `gh pr create --label`) and verified present at the end;
-  - `needs-owner` + `needs-owner-auto`: added by github-actions[bot] (15:48:57–58Z) when Codex Auto-Fix's 3-round
-    breaker tripped on the round-5 review. Merge Bot's provenance check treats this bot-added pair as a transient
-    escalation (merge-bot.yml `transientEscalation`), not a manual hard stop.
-  - `mergeable: MERGEABLE`; `mergeStateStatus: UNSTABLE` only because of the stale pre-review `codex-gate-evaluator`
-    run.
-  - The PR body was refreshed at the end through a REST PATCH, because `gh pr edit` fails on the Projects-classic
-    GraphQL deprecation. Editing the body triggers no workflow.
-- **`origin/main` at the end:** `58bd224a87e643fd1de75c27be8179299343d28b`. Since `3427b55` it has only two bot state
-  commits: `84c7494` (guardian state, 16:24:16Z) and `58bd224` (techfeedil state, 16:25:37Z). The branch was not rebased
-  and is still mergeable.
-- **Exact-head CI on `cea598b`:** run 37349205043, job 111895474021 `test-message-format`, CPython 3.11.16,
-  17:32:40Z→17:34:38Z, success. Message format "All tests passed."; 18 focused modules 404 OK; `unittest discover`
-  "Ran 2885 tests" OK; Node 21/21; "parsed 21 workflow files"; `bash -n`, `git diff --exit-code -- state/` and
-  `git diff --check` passed.
-- **Codex: 8 rounds, CLEAN on the final head.** Rounds 1–4 were requested with "@codex review" while the PR was a
-  draft. Round 5 was Codex's automatic ready-for-review pass. Rounds 6–8 were requested with "@codex review" after the
-  owner marked the PR ready.
-  - Round 1 on `7b4a382` (review 5416117249, 14:29:36Z): 2 P2. A caught native-phase crash counted no pipeline
-    failure, and native fix verification was not stage-aware → fixed in `afa5be7`.
-  - Round 2 on `afa5be7` (review 5416344390, 14:45:56Z): 1 P2. A linked post with an unresolved `gkt.me` link could
-    attach its teaser to the wrong article → fixed in `4313811`.
-  - Round 3 on `4313811` (review 5416537265, 15:00:14Z): 1 P2. The native sentinel could be dropped by a full
-    incident item sample → fixed in `d76f640`.
-  - Round 4 on `d76f640`: comment 5997426935 at 15:18:18Z, "Didn't find any major issues. Bravo.", plus a 👍.
-  - Round 5 on `d76f640`, the ready-for-review pass (review 5417177113, 15:48:29Z): 2 P2. Media posts were republished
-    caption-only, and scheme-less URLs in monospace were not detected → fixed in `76a0033`. Six more independent
-    reviewers (four on the fixes, two on the implementation) then widened both fixes to their whole class.
-  - Round 6 on `76a0033` (review 5418127273, 17:12:27Z): 1 P2. `example.com/pricing` got a final period → fixed in
-    `b2cb34c`.
-  - Round 7 on `b2cb34c` (review 5418277509, 17:26:26Z): 3 P2 → fixed in `cea598b`:
-    - article hashes were count-capped inside the 7-day window;
-    - the published native text was not re-validated after the global cleaner;
-    - a domain tail with an unlisted TLD (`startup.tech`) got a period.
-  - **Round 8 on `cea598b`:** comment 5999862876 at 17:42:52Z, "Codex Review: Didn't find any major issues. You're on
-    a roll.", **Reviewed commit `cea598b1e2`**, with a 👍 at 17:42:58Z. There was no review object and no inline
-    finding.
-  - All 10 finding threads were answered with the fix commit and resolved (10/10).
-  - The bridge's ai-loop attempts 1–3 (14:30Z, 14:47Z, 15:01Z) ended in `state=billing`. At 15:48Z, Codex
-    Auto-Fix's trigger job tripped its 3-round breaker (→ `needs-owner`) instead of requesting a fix. No fixer ran,
-    no fix request was posted, and every other Claude Fixer/Codex Auto-Fix run was `skipped`.
-- **The Gate on `cea598b`:** `check-codex-status` success, "🟢 Reviewed — clear" (17:43:16Z).
-  `codex-gate-evaluator` still shows its pre-review failure (17:32:59Z). It is diagnostic only (Merge Bot's
-  `NON_BLOCKING_DIAGNOSTIC_CHECKS`).
-- **#113 and #114 were NOT modified.** The #113 ADR §13 and CONTEXT now record #114's merge (backlog
-  reconciliation only).
+- **paywall-bot HEAD:** `1d7881d3b3d4c28c506d39d95c34959fc2249425` on `docs/techfeedil-postmerge-acceptance-20261005`,
+  four docs-only commits on `origin/main` `824a7b86d3deb83e8f2cc3b14375b410d3c3f272`:
+  - `9f41b5e`: the acceptance docs;
+  - `352175e`: the fallback-review fixes;
+  - `cfffbc3`: the final verifier's P3 wording;
+  - `1d7881d`: one last scoping nit ("the #114 merge" in report §8.7).
+  Verified equal on the local HEAD, `git ls-remote` and the PR head at 20:11Z. The worktree is clean.
+- **PR #116** (https://github.com/funzi7/paywall-bot/pull/116): OPEN, **DRAFT**, **`no-automerge`** applied at
+  creation and verified, NOT merged. Six `.md` files only, proven docs-only: no `state/` change, nothing untracked.
+- **Exact-head CI on the final head `1d7881d`:** run 37367296834 (job 111955425119), CPython 3.11.16, success
+  (20:08:36Z → 20:10:33Z).
+  - Message format passed; "Ran 2885 tests" OK; Node 21/21; "parsed 21 workflow files".
+  - Earlier heads:
+    - `9f41b5e`: run 37361633585, success, 2885 OK;
+    - `352175e`: run 37365088492, success, 2885 OK;
+    - `cfffbc3`: CI was still queued when `1d7881d` superseded it.
+  - Locally: `unittest discover` 2885 OK under the t.me/gkt.me request guard; `test_message_format` passed.
+- **Review: NOT Codex.** Codex answered "@codex review" (19:11:53Z) with comment 6001297396 at 19:12:02Z: "You have
+  reached your Codex usage limits for code reviews." The owner then asked for a Claude Code review.
+  - `review_provider = claude_code_fallback`, `reason = codex_quota_unavailable`.
+  - Before the first commit, an adversarial fact-check found 0 P1, 2 P2 and 15 P3, all fixed.
+  - Two independent reviewers then reviewed `9f41b5e`:
+    - requirements/policy: 0 P1, 3 P2, about 12 P3;
+    - accuracy: 0 P1, 1 P2, 9 P3.
+    All were fixed in `352175e`. Among them: the pre-merge §7 list restored verbatim as history, the CONTEXT §6
+    SUPERSEDED entries named, a TheMarker-on-#115 PENDING item added, PC rows marked inferred, and time bounds added.
+  - Final verifier on `352175e`: CLEAN (no P1/P2). Its 7 P3 wording nits were fixed in `cfffbc3`.
+  - An independent check rated `cfffbc3` CLEAN (0 P1/P2) with 2 P3:
+    - the report §8.7 nit, fixed in `1d7881d` (a one-line diff, confirmed);
+    - the PR-body nit, fixed in the description.
+  - Accepted as-is: 1 cosmetic source-line wrap in report §8.2, which renders identically.
+  - **Attestation:** PR comment 6002119915 (20:11:37Z), fields:
+    - `provider=claude_code_fallback`, `reviewed_head=1d7881d3b3d4c28c506d39d95c34959fc2249425`, `verdict=clean`;
+    - `findings_found=34`, `findings_fixed=33`, `unresolved_p1=0`, `unresolved_p2=0`;
+    - `validation=exact-head CI 37367296834 …`, `reason=codex_quota_unavailable`.
+  - This repository's Codex Gate has no fallback-attestation path, so `check-codex-status` gets no review signal for
+    this head. The PR stays DRAFT + `no-automerge`.
+- **`origin/main` at the end:** `824a7b86d3deb83e8f2cc3b14375b410d3c3f272`, unchanged since the branch start (20:11Z). No
+  Tech poll ran after 18:27Z; any later state commits are production writes, not task changes.
 
-## What was implemented (DETERMINISTICALLY TESTED)
+## #115 — merged (READ-ONLY PHYSICALLY OBSERVED)
 
-### Finished descriptions (`core/article_parser.py`)
-- `finalize_subtitle_punctuation`, behind feature `subtitle_terminal_punctuation` (Tech only; TheMarker never reaches
-  it).
-- It appends one `.` when the accepted subtitle ends with a letter (the base letter under niqqud), a digit, `%` or `°`,
-  after closing quotes/brackets are peeled. The period goes after the closers (mako `…שמיעה".`).
-- It leaves the text unchanged after:
-  - `. ! ? … ׃` or any other punctuation (connectors);
-  - symbols and emoji;
-  - an e-mail, a `#hashtag` or an `@mention`;
-  - a URL or domain: any dotted host of any TLD shape, with or without a path, also after a Hebrew prefix
-    (Codex rounds 6–7).
-- Brand-shaped final tokens (`Claude.ai`, `Node.js`) therefore get no period. This is documented and conservative.
-- Runs ONCE in `_finalize` → `_resolve_rich_subtitle`, after `_select_subtitle`, before Telegraph/Telegram (one text).
-  The classifier never sees the period; a rejected candidate never gets one. "Missing final punctuation alone is not
-  truncation" is NOT superseded.
-- Shown-once fold: a subtitle equal to an opening paragraph up to its terminal punctuation removes that paragraph.
+- **Merge sequence.** The owner marked it ready (15:38:54Z) and removed `no-automerge` (17:51:10Z).
+  - Merge Bot run 37351589338 (job 111903483146) logged at 17:52:08Z "#115: cleared transient needs-owner +
+    needs-owner-auto after exact-head fully-green validation; continuing to merge", then "#115: merged ✅".
+  - The result was squash `6929d9565f5bd2ebbae01e64d329bf6f1a9a1a2c` at 17:52:10Z. GitHub shows `funzi7` because the
+    PAT is the owner's.
+- **The merged head `cea598b`:**
+  - exact-head CI 37349205043: 2885 tests OK;
+  - Codex round 8 clean (17:42:52Z);
+  - `check-codex-status` 🟢 at 17:43:16Z and 17:51:37Z.
+  - Its code equals `6929d95`; only the 16:24–16:25Z state files differ.
+- **Main CI 37351655460** (job 111903705393, CPython 3.11.16) on `6929d95`: success.
+  - message format passed; 18 focused suites OK; "Ran 2885 tests" OK;
+  - Node 21/21; "parsed 21 workflow files";
+  - `bash -n`, `git diff --exit-code -- state/` and `git diff --check` all passed.
 
-### Official channels (`core/telegram_channel.py`, `official_telegram:` in `sites/techfeedil/config.yaml`)
-- Allow-list with first-party `verified_by` proof and pinned `channel_id` (Geektime -1282228958, The Verifier
-  -1185382821); feature `official_telegram_sources` + `official_telegram.enabled`. One anonymous GET of
-  `t.me/s/<handle>` per channel per poll.
-- LINKED (primary link = one publisher article): never a second publication. Its description candidate is the first
-  prose line after the headline: edge emoji and label hashtags removed, lines with pointers or inner hashtags
-  skipped, 40–600 chars.
-  - The candidate is ranked deck → Telegram → og → meta → JSON-LD AT PARSE TIME
-    (`_with_official_telegram_candidate`). `_finalize` only appends it after a provisional winner (hostile-review P1:
-    otherwise the lede could be lost).
-  - A linked post that also carries an unresolved publisher short link is never indexed.
-- NATIVE: substantive Hebrew text with NO publisher article link. Links counted:
-  - anchors, hidden citations and preview cards;
-  - URLs written in the text: scheme, `www.`, `t.me/`, the publisher's host or shortener, any dotted name with a
-    path, and path-less common TLDs; inside code spans, any dotted name;
-  - `gkt.me`, resolved one HEAD hop (chains and home targets stay unresolved).
-- Rejected structurally:
-  - promotions, deals, registrations and CTA links/lines;
-  - URL buttons;
-  - other Telegram chats (mentions, invites, bots, other chats' posts): `telegram_cross_link`;
-  - struck or spoiler text: `struck_or_hidden_text`;
-  - polls, replies, forwards, short captions and link-only posts.
-- Quote/code blocks are line borders. The channel signature and join lines are chrome. A line that carried a URL
-  token is dropped whole.
-- The substantive-text rules (`substantive_text_reason`: length, sentences, Hebrew ratio) run at classification AND
-  again on the text actually published, after the global cleaner (Codex round 7).
-- Format: bold headline, RTL lines, original `https://t.me/<handle>/<id>`, tags; no Telegraph page.
-  - **Media** (Codex round 5): the post is sent with the link preview pinned to the original post
-    (`LinkPreviewOptions(url=…, is_disabled=False, prefer_large_media=True)` via
-    `tg_bot.post_to_channel(preview_url=…)`), so its media stays visible.
-  - A text-only native keeps the preview off.
-  - Every other `post_to_channel` caller is unchanged.
-- Pipeline (`core/main.py` PHASE 1n, after the flash snapshot, before phase 2), in order:
-  1. per-channel first-enable baseline (`poll_baseline_sources["geektime::official-telegram"]`; older posts
-     re-entering the preview → `baseline_history`);
-  2. posted/baseline/suppressed filter;
-  3. 30-min grace (undated posts wait ≤ 3 polls);
-  4. tiered freshness, once per poll;
-  5. classification, with ≤ 6 shortener HEADs per poll;
-  6. dedup;
-  7. ≤ 3 natives per poll, in the shared budget.
-- Dedup:
-  - identity = the t.me URL (edits never republish);
-  - A/B: a linked post is never native;
-  - B: a native repeating a published article's description/lead → `article_equivalent`;
-  - C: an article whose description/lead equals a native PROSE paragraph (7 days, same publisher) → published
-    equivalent;
-  - E: scoped by `source_id`;
-  - reposts (first 8 prose paragraphs) → `duplicate_content`;
-  - a publisher-scoped content fingerprint, both ways.
-- State `telegram_native` holds body-free 64-bit hashes.
-  - `ledger` and `article_hashes` are pruned to the 7-day equivalence window, with backstop caps of 300 and 1000.
-  - `article_hashes` is recorded only for native publishers (Codex round 7). `attempts` is capped at 100.
-  - Natives also add the legacy `posted_fingerprints` entry.
-- Publication accounting: `pub_telegram_native` (a tenant-only key, rendered only when non-zero), plus a publication
-  event/ledger entry with `iv_status: not_applicable`.
-- Runtime Ops:
-  - Identity `telegram_native`, plus a `native` route marker kept in `evidence.routes` for native send failures
-    (never `flash`). The marker survives a full MAX_IDENTITIES item sample.
-  - `native_exercised` / `native_recovered`.
-  - A phase crash is a phase-1 failure with route `native` and its stage (read/admit/classify/build/send/record). It
-    is verified only by the matching stage counter, and counts as `native_error` in `pipeline_failures`.
+## First post-merge poll 37352458678 (manual `workflow_dispatch` as `funzi7`, `6929d95`, 17:58:35Z → 18:00:41Z, success)
 
-## Evidence (READ-ONLY PHYSICALLY OBSERVED)
+- **Official channels:** "geektimecoil: 20 messages", "TheVerifier: 20 messages", "channels read=2 unreadable=0
+  linked_articles=31".
+- **Geektime first-enable baseline:** "phase1 bootstrap source=geektime::official-telegram: recorded 20 existing feed
+  identities without publishing; use manual backfill for history".
+  - State `poll_baseline_sources["geektime::official-telegram"]`: `initialized_at` 2026-10-05T17:59:22.083931Z,
+    `generation` 1, keys `https://t.me/geektimecoil/17867`–`17886` (20, consecutive).
+  - The Verifier is linked-only (`native_posts` not enabled), so it has no native baseline, by design.
+- **No historical native flood.** "posted=10 (telegram: 0, direct: 10, …)". Those numbers are `pub_<source>` counts:
+  `telegram: 0` is `pub_telegram` (articles published through the `telegram` extraction source), and a native would show
+  as a separate `telegram_native: N`, rendered only when non-zero. The 10 posts are messages 1237–1246, all `direct`: PC 8, Gadgety 1, Walla 1.
+  There was no `NATIVE-POST` line, no `telegram_native` block, no `pub_telegram_native` and no `native_rejected:*`.
+- **Day totals.** "Today total: posted=35, deferred=29 (retries-pending), permanent_fail=0, errors=0".
+  - State: posted 25 → 35 = `pub_direct` 35.
+  - `deferred` counts deferral EVENTS (28 → 29). The queue itself went 24 → 15 rows.
+- **State commit:** `2624d4b4b489a5908a295d707a31b98c11de7bd9` (github-actions[bot], 18:00:35Z) changes only
+  `state/techfeedil.json`. Every other state file is byte-identical, TheMarker's included.
+- **Quality:** "quality_inspector: no new quality issues to file". This is not proof of future quality.
+- **Runtime Ops:** open=1 waiting_external=1. The incident is `eee81f7e4c48a57e`, TGspot's publisher block (403
+  direct+Jina), unrelated.
 
-- Description audit: messages 1212–1231 (complete window; no Tech poll ran from 09:03Z to the audit's end). The
-  required examples were verified:
-  - Geektime 73/87-char decks: C;
-  - PC 459001/458996/458990/458985/458978/458977/458970: A;
-  - Walla 3870762/3870903: A;
-  - mako f6773f3f87601a1026 (closing quote): A; 8324ad20a2601a1027: A;
-  - contrasts: Walla 3870814/3870772 and Gadgety 370229/370226/370202/370255: OK.
-  The fixture is `tests/fixtures/techfeedil_descriptions_20261005.json`.
-- Channel audit (12:22–12:34Z, 7 channels, proof per channel in ADR §4); N12/Walla have no proven channel.
-- Live validation (13:30Z, shipped module, channel-id pins matched, nothing published):
-  - Geektime, 20 messages: 4 native (17869; 17879 via gkt.me→politico; 17883; 17886 with a tag-page citation),
-    13 linked, 2 captions, 1 poll;
-  - The Verifier, 20 messages: 19 linked with 111–149-char teasers, 1 short.
-- After the round-5 fixes: 10 of 458 audited real messages changed verdict or description, each justified (TGspot
-  25142 → `telegram_cross_link`). Natives 17869/17879/17883/17886 stayed native in every later round.
-- #114 merged 11:54:17Z (`dc9ab26`) after the owner marked it ready (11:45:19Z) and removed `no-automerge` (11:53:11Z).
-  Its **first natural Tech runs on `queue: max` were OBSERVED** on `3427b55`, which contains `dc9ab26`:
-  - Guardian run 37340511887 (schedule, 16:23:53Z→16:24:22Z): success;
-  - its self-dispatched Poll & Post run 37340553586 (workflow_dispatch by github-actions[bot],
-    16:24:12Z→16:25:41Z): success, state commit `58bd224`;
-  - no `startup_failure`.
-  A natural two-member wait is still unobserved.
+## Production punctuation + bounded audit of the 10 descriptions (READ-ONLY)
 
-## Hostile review (4 + 6 independent reviewers) + mutation testing
+- **Where the period was added.** `DIAG subtitle finish=period` appears on the 8 PC posts. Gadgety 370270 (og 148)
+  and Walla 3870955 (deck 184) already ended with `.` and were unchanged.
+- **Classes:** OK 2 (Gadgety, Walla: first-party verified), A 8 (PC: INFERRED from the production trail), C 0,
+  **B (clipped) 0, D (other, incl. ambiguous) 0**. This covers this bounded sample only.
+- **Telegram = Telegraph = `SUBTITLE-RECORD`** for all 10, each with exactly one final mark and no `..`.
+- **Why the PC rows are inferred, not observed:** PC pages and their `r.jina.ai` copies answer 403 (Cloudflare) to
+  this sandbox, so they rest on the production trail.
+  - Production fetched each page with HTTP 200 (268,912–273,556 bytes).
+  - No `DIAG subtitle overlap=` rejection line appears, so the first candidate (PC's visible deck) was accepted.
+  - The texts share at most 11 opening characters with the body, and `candidate_chars + 1` equals the published
+    length.
+- **PC's `●` separator:** publisher-owned and pre-existing (messages 1212/1219/1220/1228/1235; polls 37250890466,
+  37287364094, 37340553586); it never ends a subtitle.
 
-- R1 provenance/spoofing, R2 dedup/baseline/state, R3 completeness/RTL, R4 workflow/TheMarker; private copies only.
-  - 1 P1 (R3: a Telegram candidate displacing a provisional winner after it folded the lede) and 9 P2 were fixed and
-    pinned. P3s were fixed or documented (ADR §16).
-  - R4: TheMarker poll logs and state byte-identical before/after.
-- After Codex round 5, six more reviewers widened the media and URL fixes to their class (ADR §16).
-- Mutation testing: 111 reviewer mutants; a final 30-mutant run over the fixes killed 29, 1 equivalent.
-- Codex rounds 1–3 and 5–7 found 10 P2, all fixed with tests; rounds 4 and 8 were clean.
+## Second post-merge poll 37355922941 (schedule, `2624d4b`, 18:26:11Z → 18:27:39Z, success; state `824a7b8`)
 
-## Validation
+- It was the first scheduled Tech poll since 09:01:53Z.
+- It read both channels again and published 5 `direct` posts (messages 1247–1251: mako 2, Gadgety 1, Geektime 2), no
+  native. Day total 40 = `pub_direct` 40.
+- Two more `finish=period` lines appeared, on mako (299→300, 176→177). Gadgety and Geektime already ended with
+  `.`/`?`.
+- **First `telegram_native` write:** an empty native `ledger` plus two body-free `article_hashes` (`source_id`
+  geektime), created by publishing the Geektime articles.
 
-- Local, final tree:
-  - `unittest discover`: **2885 tests OK**, under a guard that fails any request to t.me/telegram.me/gkt.me (none
-    made);
-  - the CI focused suites (18 modules): 404 OK;
-  - `python -m tests.test_message_format`: all passed;
-  - `compileall -q .`, the Python 3.11 grammar check, Node gate 21/21, 21 workflow YAMLs, `bash -n` and
-    `git diff --check`: all pass;
-  - no tracked `state/` change. Two accidental `log_info` lines from a read-only live script were removed by editing
-    before any commit; nothing else was ever written there.
-- New/changed test modules (re-run at the end, 174 OK):
-  - `tests.test_techfeedil_official_telegram`: 126 tests, with the real bounded fixture
-    `tests/fixtures/techfeedil_official_telegram_20261005.json`;
-  - `tests.test_techfeedil_description_completeness`: 48 tests.
-- Acceptance matrix §11 (10 items): mapped to named tests in ADR §11.
+## Linked description and native: status (PRECISE)
 
-## PENDING POST-MERGE (explicit; none observed)
+- **Linked:** 31 linked articles indexed per poll. `_linked_telegram_text` runs before every article parse and logs
+  `DIAG official telegram description candidate` when it has text; that line appears in neither poll. The two
+  Geektime articles published their visible decks: their channel posts (1249 ← 17884, 1250 ← 17882) are headline +
+  link only, so they offer no candidate.
+  - **PENDING:** the first publication actually using an official-Telegram linked-description candidate.
+  - **PENDING:** a NEW channel post classified LINKED whose article publishes exactly once.
+- **Native:** at 18:33:49Z the geektimecoil preview's newest message was still 17886 (13:04:59Z), so Geektime has
+  posted nothing since the baseline.
+  - **PENDING:** the first real post-baseline native: its classification, format, original t.me attribution, pinned
+    source-media preview where applicable, `pub_telegram_native`, ledger, and no duplicate afterwards.
+  - Nothing was manufactured.
 
-1. First natural ingestion cycle per channel: baseline recorded, no publication on that poll,
-   `official telegram: channels read=2`.
-2. First real native publication (format, pinned media card, `pub_telegram_native`, t.me link).
-3. A linked post + its article → exactly ONE publication.
-4. No historical flood.
-5. The final period visible on a real new subtitle (`DIAG subtitle finish=period`).
-6. No real clipped description after rollout (`description_truncated` absent).
-7. A real The Verifier article taking its linked teaser (only without a complete deck).
-8. #114: a natural two-member wait
-   (`GET /repos/funzi7/paywall-bot/actions/concurrency_groups/bot-state-techfeedil`). The first natural runs on
-   `queue: max` are already observed (Evidence).
+## #114 (`queue: max`) acceptance
 
-## FUTURE / residual risks
+- **DONE: GitHub accepts and runs the changed poll workflow.** This settles the workflow-level `queue: max` form,
+  which Source Health also uses; the job-level Backfill form has not run yet. All three runs succeeded:
+  - 37340553586: the Guardian's dispatch, 16:24:12Z, `3427b55`, which contains `dc9ab26`;
+  - 37352458678;
+  - 37355922941.
+- **No `startup_failure`:** 0 among the 330 runs created from the #114 merge to ~18:35Z, and 0 among the 1239 runs
+  since 2026-09-28T18:00Z (the earliest at 2026-10-01T23:22Z), counted on `conclusion`. The `status=startup_failure`
+  filter accepts any value.
+- **The Guardian (4th self-heal).** Guardian 37340511887 (schedule 16:23:53Z, success) logged `tenant_lock {"pending": [],
+  "readable": true}`, `SCHEDULER_GAP … missed_slots=7`, and `dispatch … 204 accepted run_id=37340553586
+  confirmed=true`.
+  - Sidecar `84c7494`; counters 4/4/4.
+  - The Guardian is outside `bot-state-techfeedil`: its own group, default queue, comment-only change in #114.
+- **TheMarker's workflow and queue configuration is unchanged by #114:** `poll.yml` has no diff; the Backfill
+  `site=themarker` group, queue and cancel settings are identical. No TheMarker poll has run since #115 merged; that
+  check is PENDING.
+- **PENDING:**
+  - the first `source-health-techfeedil.yml` run (cron `37 3 * * *`; last run 10:49Z, before #114) and the first Tech
+    Backfill run on the new queue;
+  - a NATURAL two-member wait. The three member runs never overlapped, and the concurrency-groups API showed 0 active
+    groups and a 404 for the group at 18:14Z/18:29Z. Never manufacture a collision.
 
-- Natives for more publishers (owner decision).
-- Natives citing an OLDER own article (the Geektime 17837/17832 shape) are `linked_citation` today.
-- No structural signal exists yet for og-only publisher clips (Walla 155), publisher-clipped visible decks (Geektime
-  2026-10-04), or short (< 80 chars) non-visible prefixes (the #113 floor).
-- Other open items: the shared MarkdownV2 backslash escape; a total deadline/byte cap for preview GETs; Gadgety
-  doubled bullets in Telegraph bodies.
-- Documented, conservative behaviour:
-  - code-span file names (`main.py`) reject a native;
-  - brand tokens at a subtitle's end get no period;
-  - the media card repeats the original post, including lines our cleaning removes.
-- The pre-existing `flash` route sentinel has the same bounded-item-sample limit Codex found for natives. A route
-  marker would change TheMarker's incident evidence, so it needs its own change.
+## DONE / PENDING / FUTURE (reconciled; repo: CONTEXT §6 block 2026-10-05c, #113 ADR §13, #115 report §7)
 
-## SUPERSEDED — owner approved 2026-10-05
+- **DONE (merged):** #113 `62e467b`, #114 `dc9ab26`, #115 `6929d95`.
+- **DONE (observed):**
+  - #114: workflow startup for the poll, and for the Guardian workflow (comment-only change);
+  - the first Guardian and poll runs on the post-#114 main;
+  - #115: main CI, both official channel reads, the Geektime baseline, no history flood, production punctuation, the
+    bounded 10-post audit (0 clipped), quality filing ("no new issues"), the first `article_hashes` write;
+  - 4 Guardian self-heals; the 505-row cleanup.
+- **PARTIALLY OBSERVED:**
+  - no stale publication: 20/20 posts since #114 were dated, 1.8–9.4 h old; Walla rows 7.3–8.8 h corrected; 3 older
+    undated mako rows remain;
+  - the Source Health digest via the governed path (DM text not visible; no Source Health run since 10:49Z);
+  - no clipped description (first polls only).
+- **PENDING:**
+  - the first TheMarker poll on #115's merged shared code (none since the merge; the last TheMarker poll was
+    37306827516 at 12:02Z on `dc9ab26`). Its isolation is deterministically tested only;
+  - the first real native post (discovery, classification, format, t.me, pinned media, `pub_telegram_native`,
+    ledger, no duplicate);
+  - the first linked-description use;
+  - a linked post plus its article publishing ONE time;
+  - #114: Source Health and Backfill first runs, plus a natural two-member wait;
+  - a real Tech quality-Issue write (none needed yet);
+  - the external dead-man (no vendor; 2026-10-05 again had no scheduled Tech poll from 09:01:53Z to 18:26:11Z, and
+    the Guardian was undelivered from 07:42Z to 16:23Z);
+  - Tech AI provider scouting stays disabled;
+  - Walla +3 h: still reproduces (3870955 page `13:45:00+03:00`, stored `13:45:00+00:00`);
+  - `time_bound`: none in 9 post-#113 polls (normal 510, evergreen 11);
+  - Actions budget (not readable);
+  - the lost-sidecar duplicate DM (not observed);
+  - cosmetic: Codex thread 4178858301 on closed #113 is unresolved and unanswered (fix merged).
+- **FUTURE:**
+  - the #113 ADR §13 list;
+  - the #115 report §7 list: natives for more publishers, older-article citations, og-only and visible-deck clips,
+    the #113 prefix floor, MarkdownV2 backslash, preview GET deadline, `flash` sentinel, Gadgety "• •" (seen again in
+    37352458678), and the generic Telegram layer's (b)–(d);
+  - **owner roadmap (2026-10-05), roadmap only:**
+    1. channel branding/marketing identity: subtle differentiation; tagline, bio and pinned message; no per-post
+       marketing noise without approval;
+    2. an original logo: avatar-size legible; square plus a later wide variant; no publisher look-alike; NOT
+       generated;
+    3. a future Android app on the same data/publication layer: no second ingestion system; categories, sources,
+       notifications, read-later, article/IV; architecture later; NOT started.
+- **SUPERSEDED:**
+  - owner approved 2026-10-04: #113 ADR §12;
+  - owner approved 2026-10-05: README's "does not ingest another Telegram channel", replaced by the verified
+    allow-list. "Missing final punctuation alone is not truncation" is NOT superseded;
+  - engineering, in effect since `dc9ab26`: the tenant lock's guarantee role, now provided by `queue: max`. The hold
+    stays as a courtesy.
 
-- README "Tech Feed IL does not ingest another Telegram channel in production." → the verified official-channel
-  allow-list. NOT superseded: "missing final punctuation alone is not evidence of truncation".
+## Subagents used (read-only, up to 4 in parallel)
+
+1. The 10-post description audit.
+2. Runtime/Actions/Merge Bot reconciliation.
+3. The state-commit semantic diff.
+4. The stale-docs and backlog inventory.
+
+Then, one at a time or in pairs:
+- an adversarial fact-check of the first draft;
+- the two fallback reviewers on `9f41b5e`;
+- a final verifier on `352175e`;
+- an independent check of the `cfffbc3` delta.
+
+Every figure recorded here was re-verified against primary evidence.
 
 ## Next steps (coordinator / owner)
 
-1. Review PR #115. The owner already marked it ready; the ready-for-review Codex pass ran (round 5), and round 8 on the
-   head is clean.
-   - To merge: remove `no-automerge`.
-   - Merge Bot then merges an owner-authored same-repo PR within about a minute when it is mergeable and the required
-     checks are green. It needs no `automerge` label, and the bot-added `needs-owner` pair is a transient escalation.
-   - Keep the label until the review is done.
-2. After the merge, watch the first Tech poll: the Geektime baseline record, no native published on that poll, both
-   channels read. Then watch for the first real native post and the first finished subtitle.
-3. Watch for #114's first natural two-member wait (a `startup_failure` alerts nobody).
-
-Docs: `docs/techfeedil-telegram-sources-descriptions-20261005.md` (ADR, §16 all review rounds),
-`reports/techfeedil-telegram-sources-descriptions-20261005.md`, `handoffs/CONTEXT.md` (2026-10-05b), README.
+1. Review PR #116 (docs only). It merges only if the owner marks it ready and removes `no-automerge`.
+2. Watch for the first real Geektime native post after the baseline: the `NATIVE-POST` line, the t.me link, the
+   pinned media preview and `pub_telegram_native`. Watch also for the first `DIAG official telegram description
+   candidate` that wins.
+3. Watch the first Source Health run (03:37Z cron) on `queue: max`, and any natural two-member wait. A
+   `startup_failure` alerts nobody, so check it by hand.
