@@ -257,3 +257,17 @@ date,portfolio_id,strategy,ticker,side,shares,fill_price,commission,cash_after,e
 2026-10-01,pullback_10k,pullback,FTNT,SELL,11.0,178.9605,1.0,5542.56,10358.23,"מימוש חלקי +17% — נמכרה מחצית, סטופ הועלה לכניסה"
 2026-10-01,pullback_10k,pullback,MET,BUY,29.0,93.7569,1.0,2822.61,10374.44,משיכה #1 — חוזק יחסי 92% · מרחק מממוצע 50 +1.3%
 2026-10-01,pullback_10k,pullback,TECH,BUY,38.0,72.5362,1.0,65.23,10368.26,משיכה #2 — חוזק יחסי 91% · מרחק מממוצע 50 +0.6%
+2026-10-05,rotation_100,rotation,SPYM,SELL,1.0,90.5447,0.9054,99.18,99.18,rotate->QQQ (4.2%)
+2026-10-05,rotation_10k,rotation,SPY,SELL,12.0,769.3052,1.0,9860.34,9860.34,rotate->QQQ (4.2%)
+2026-10-05,rotation_10k,rotation,QQQ,BUY,13.0,749.7247,1.0,112.92,9943.52,rotate->QQQ (4.2%)
+2026-10-05,leveraged_momentum_10k,leveraged_momentum,ROM,SELL,3.0,166.5567,1.0,2163.2,10143.02,"מימוש חלקי +17% — נמכרה מחצית, סטופ הועלה לכניסה"
+2026-10-05,screener_track_100,screener_track,CELH,SELL,1.0,26.9665,0.2697,50.86,95.44,dropped from screener shortlist
+2026-10-05,screener_track_10k,screener_track,PODD,BUY,15.0,131.7558,1.0,2134.36,10813.36,screener shortlist #8
+2026-10-05,screener_track_10k,screener_track,SHOP,BUY,13.0,153.1365,1.0,142.58,10903.01,screener shortlist #7
+2026-10-05,swing_100,swing,VTRS,SELL,2.0,17.8111,0.3562,39.46,82.65,המהלך נגמר — מתחת לממוצע 10
+2026-10-05,swing_10k,swing,AKAM,SELL,9.0,108.8156,1.0,1039.51,8710.09,המהלך נגמר — מתחת לממוצע 10
+2026-10-05,swing_10k,swing,DHR,SELL,10.0,213.7031,1.0,3175.54,8634.02,המהלך נגמר — מתחת לממוצע 10
+2026-10-05,swing_10k,swing,QCOM,SELL,6.0,184.9875,1.0,4284.46,8658.21,המהלך נגמר — מתחת לממוצע 10
+2026-10-05,swing_10k,swing,TMO,SELL,3.0,647.716,1.0,6226.61,8570.07,המהלך נגמר — מתחת לממוצע 10
+2026-10-05,swing_10k,swing,VTRS,SELL,133.0,17.8111,1.0,8594.49,8594.49,המהלך נגמר — מתחת לממוצע 10
+2026-10-05,swing_10k,swing,MU,BUY,7.0,1070.2149,1.0,1101.98,8549.7,"פריצה #1 +0.1% מעל הרף, RSI 64"
