@@ -1,4 +1,124 @@
-# private-media-tv — D1 guarded isolation rollback and validator checkpoint (2026-10-04)
+# private-media-tv — canonical coordination adoption / current D1 and LATER truth (2026-10-07)
+
+Application HEAD `2429b8010bf0f63470b9a34b13b77099ce9616f3` is normally pushed and independently remote-verified,
+main/origin equal. Adoption parent `072297c2548587768552dc85ad17cf0a4479da4c`; application source remains
+`eed05a0c865efc71072c71449c7a7c6a5706a0ae`; all subsequent changes are Markdown only.
+Exact independent Codex read-only review is clean after two corrected coordination P2s; 10 Markdown,
+198add/15del; diff-check and tracked-byte equality PASS. Not an external GitHub PR review signal.
+Repository-triggered exact-head Android CI `37637004972` succeeded for `2429b8010bf0f63470b9a34b13b77099ce9616f3` (both wrapper/mobile test jobs, lint and signed APK publication). No manual workflow dispatch or local Android build for adoption.
+Canonical `download-latest-ci-mobile-apk-to-phone.sh` completed successfully after exact-head validation: artifact `private-media-tv-mobile-apk-2429b8010bf0f63470b9a34b13b77099ce9616f3`, 267,603,086 bytes, APK SHA-256 `0974d31d098fe235ea4e6b53f7552e0e8ff437d34d025f77ff6c874e3bd5d1af`, TDLib JNI SHA-256 `790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f`, Development certificate `2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0`, ARM64 only, version47/`0.4.28-phone-test`. Verified publication refreshed both required general and Mobile Test Download paths, byte-identical to the already-installed parent artifact. No install, app launch, new version or TV artifact claimed for adoption. Same-version `-local` predecessor was already absent; no material file deletion by this download.
+
+## Canonical coordination — operative, not a second backlog
+
+Use ONLY /root/work/_agent-coordination/private-media-tv/, outside both Git repositories.
+Eight live logical files: PROTOCOL, CURRENT, TASKS, CLAUDE_FINDINGS, CODEX_ACK, CLAIMS,
+OWNER_REQUESTS_CODEX, OWNER_REQUESTS_CLAUDE (.md). All reads/writes use its permanent flock,
+fresh owned-row reads/preimages and atomic publication. Codex primary/integration/Git owner, one
+ACTIVE TRACKED_WRITER. Claude defaults read-only; each actor owns its inbox and its own shared
+task/claim rows; Claude findings/Codex ACK separate. Register every new project action before
+substantive work; both read both inboxes/tasks/claims/findings/ACK and semantically deduplicate.
+Owner need not remember the receiving agent. DUPLICATE→existing/extends/supersedes, not repeated work.
+Valid Claude research ends READY_FOR_CODEX/completed task/exact base+rechecked SHA/CL evidence,
+requirements, existing behavior, failures, ambiguities and missing runtime, handoff_to_codex=READY.
+Codex ACKs/consumes it; recheck applicability or truly time-sensitive evidence, not a full redo.
+Resumed/stale claims are explicitly reconciled, never silently expired or reused.
+
+The root without the underscore is NON-CANONICAL/ARCHIVED with eight redirect stubs; its originals/
+digests retained in archive-20261007-adoption. Earlier underscore-root prototype/JSON claims/current/
+events/results are preserved in archive-epoch1. JSON stubs are non-operational; CLAIMS.md sole live
+authority. events.log immutable byte-equal epoch1; new administrative audit in owned ACK, not a
+ninth mutable ledger or fabricated CL. No unique evidence deleted, no third root. Claude bootstrap
+COORD-001/002 and REQ-CLAUDE-001 DONE were imported/reused; no CL/READY package invented.
+SUPERSEDED — owner approved: split roots/JSON authority/implicit old-context execution.
+Historical `coordination.md` is bootstrap evidence, not live authority; its milestone-closure
+claim was inaccurate: LATER-2/3 implementation landed, physical FAIL/PENDING remain.
+
+Validated one live root/eight regular files, eight retired stubs/original checksums, one writer,
+distinct inbox ownership, dedupe/READY rules and unique linked current requests/tasks.
+No product, runtime, versions, schedule, roadmap, ADB, Shield, VPS/deployment or local heavy build
+for adoption. Existing product diagnosis checkpoint had no half-written mutation or active heavy
+build; current source work is not abandoned. Repository policy triggers Android CI on all pushes;
+its actual build/delivery is recorded separately, not physical coordination acceptance.
+
+## Current requests and exact next work
+
+REQ-CODEX-001/COORD-003 is coordination adoption. Following its finalization, resume
+REQ-CODEX-002/COORD-004: current legacy CW metadata runtime FAIL/OPEN. Two retained episode cards
+have missing title/parent; one stored poster is machine-matched to another exact series' season
+metadata. Exact cached facts exist, but current hot worker warms them without repairing persisted
+presentation. No fix implemented by this docs task. Current diagnosis is preserved privately/
+sanitized in external results; no raw owner titles/IDs/images/source pointers belong in public memory.
+Next minimum repair: legacy-deficient snapshot-only expected-snapshot CAS from exact facts via
+existing worker, preserve healthy captured snapshots and all playback/Eye/source/recency state.
+Post-bootstrap sync needs a nonsemantic local fold marker, not a fabricated playback/position event;
+no schema/wire/version change proposed. Add focused CAS/race/exact-art/fallback/identity/sync coverage,
+then existing queue/real owner retest. No stress/copied sandbox. This is not a rewrite of landed
+one-card/artwork-capture/Back work.
+
+REQ-CODEX-003/COORD-005 retains PublicVideo replay/local PMTV History runtime acceptance:
+implemented/host/CI/phone-installed, physically/upstream/Shield PENDING. Keep prior completion,
+verified replay proof/floor, signed-out local History/account History separation and account-write
+scope. Do not reimplement those changes. One completed-series report retains a FUTURE next target
+after today with valid completion; no new next-policy failure is proved, no official date confirmed.
+Do not change released-only Home/Up Next based on guesses.
+
+REQ-CODEX-004/COORD-006 is existing D1 standing-authority goal, not new deployment authority.
+D1 source `41593a823ec3f934def33411c6d7bcc059f07053` / transaction `pmtv-data-20261007T061443Z` stays live;
+three services UP/startup/deploy green, original node/volumes/O-D3 preserved, O-D2 absent/revoked.
+Next actual worker slot `2026-10-07T21:30:00Z`; fresh worker/resource/public/restart/gate/isolation/
+existing/sibling and actual +1/+7 reviews PENDING, clocks not started. Observe active→complete+
+manifest advance before numeric<=192MiB build-check. Idle evidence is not build acceptance.
+Standing D1 authorization allows reviewed guarded operations/retries/narrow fixes/targeted exact CI,
+no repeated generic approval; stop for real private owner input, unresolved product/contract change,
+out-of-contract destruction, failed rollback/unproven preservation or D1 complete. Mandatory rollback
+on required failed/inconclusive gate. Stop BEFORE D2; it needs separate owner decision.
+Tailscale last owner-confirmed OFF; request named operational toggles only when needed. Goal ACTIVE.
+Due D1 preempts other work; no deploy/restart because application/doc HEAD advanced.
+Subsequent read-only idle review: all captures/shape true, restart/OOM0, available1185MiB/swap187,
+PSI60some/full0, load.19/.12/.04,disk30%,sidecar/web/worker18/3.219/5.859MiB, retained volumes
+238.1MB/1.661MB. Not fresh build or required day/week review.
+
+REQ-CODEX-005/COORD-007 is current priority exact eight-source addendum G, conditional after full
+TV port. Existing source/backend evidence reused, no automatic admission or duplicate DaddyLive
+adapters. New post-TV A–G and source candidates are in C45_LATER_ADDENDUM; do not implement early.
+D1→D2→D3→RANK-1→SY7→T3→T4 then A–G then remaining approved roadmap. Original Claude T3/T4 refresh,
+D2/D3/D4 briefs/surveys still exist; named continuity artifacts already verified, do not regenerate.
+Future D4 unresolved owner identity/order choices remain a future stop, not an earlier blocker.
+
+## Existing source validation/artifact/device evidence (not adoption tests)
+
+Composed3894=3882PASS+12oldSKIP (core616/shared1403/phone1315/TV560), lint0Error/Fatal; golden4;
+inventory3278=3267PASS+11oldSKIP; 31added/one owner-policy test-name conversion, no unexplained retirement.
+FocusedCW75/replay53/History16/Back45; genuine two-app Back RED→GREEN; six source P2s fixed.
+Initial import/time fixture/Sports clock-expiry failures remain documented, not relabelled green.
+Existing47/67 dual local build2m57s and four exact local Download copies passed, no version bump:
+phone local270940138/a54c85d5…e3c; TV268846037/6e12700c…ae3. Signer unchanged, native/privacy/Gecko/
+notices passed. Those local artifacts are not CI authority.
+
+Parent1f Android37614409509/data37614409438 SUCCESS/no stress; canonical CI phone publication/
+one guarded install-only PASS:267603086/SHA0974d31d098fe235ea4e6b53f7552e0e8ff437d34d025f77ff6c874e3bd5d1af,
+JNI790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f. Same Development signer,
+version47, primary first-install2026-08-03 05:46:55 unchanged, other app stayed foreground; no
+launch/navigation/uninstall/ClearData/wake. Canonical local predecessor cleanup only; build output/
+prior baselines recoverable, older siblings untouched. Exact072 Android37620151940 SUCCESS,
+artifact verified by exact immutable run/head/branch/event/workflow/sole-artifact checks and unchanged
+canonical verifier/publication components after default latest selector failed closed on stale older
+listings; bytes identical to installed parent, no second install.
+
+Owner opens/tests, never agent launch. Actual phone CW legacy FAIL above remains release-blocking.
+Phone replay/History/upstream and Shield new TV67 deployment/runtime unrun/PENDING; no phone→TV PASS.
+Older startup heaviness FAIL/OPEN, height/mixed-script/Shield/other LATER-2/3 physical PENDING retained.
+Owner-observed regular-Hebrew punctuation PASS is preserved, not redone.
+
+All existing commits/work/recovery preserved; four excluded diagnostics remain untouched/out of commits.
+Agent-memory Git finalization ONLY /root/work/bin/agent-memory-finalize; no direct Git mutation here.
+D1 not complete, TV port not complete, no D2/source-admission authority or fake physical PASS.
+
+# Historical — D1 guarded isolation rollback and validator checkpoint (2026-10-04)
+
+
+**SUPERSEDED — owner approved:** the historical fresh-approval requirement below no longer applies within D1. The subsequent standing authorization covers the reviewed D1 sequence, safe guarded retries and narrow internal fixes through D1 completion; genuine owner-only input and fail-closed preservation/rollback gates remain. D2 is outside that authorization. Historical deployment/HEAD statements below are dated evidence, not current state.
+
 
 Application HEAD `16d83a2cbda79faa0ef3e98c1ddc8f2c20188b50` is pushed and equals
 `origin/main`. Exact-head pmtv-sync run `37199574029`, pmtv-data run `37199574125`, and Android run

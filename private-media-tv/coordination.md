@@ -1,4 +1,23 @@
-# private-media-tv — coordination protocol: Codex owns the repository (recorded by Claude Code, 2026-10-07)
+# Historical bootstrap — coordination recorded by Claude Code (2026-10-07)
+
+**SUPERSEDED — owner approved:** this truncated-input bootstrap note is preserved as history,
+not a live queue, current HEAD, claim or execution instruction. Full canonical adoption is pushed
+at application HEAD `2429b8010bf0f63470b9a34b13b77099ce9616f3`; current handoff is `cc-latest.md`.
+Use ONLY `/root/work/_agent-coordination/private-media-tv/` and its eight live logical files.
+The other root is NON-CANONICAL/ARCHIVED with original evidence retained. Codex is primary/integration
+owner and sole tracked writer; Claude defaults read-only. Both read both distinct agent-owned
+request inboxes, register before substantive work, semantically deduplicate, and use Claude
+READY_FOR_CODEX → Codex ACK/consumption. The owner need not remember the receiving agent.
+Claude reports through its owned live findings/inbox, not by concurrently updating agent-memory;
+final memory integration remains Codex-owned and Git finalization uses the mandatory helper.
+
+Correction to historical paragraph5: LATER-2/LATER-3 implementation landed, but physical acceptance
+was not wholly completed. Current CW names/artwork is FAIL/OPEN; replay/history/Shield and other
+physical checks remain PENDING. The quota-limited heaviness audit is not a completed audit.
+Original local planning/surveys are preserved and reused, not regenerated. D1 is now the existing
+standing-authority scheduled acceptance goal, not a fresh-generic-approval blocker; D2 is separate.
+Exact-head adoption CI `37637004972` and canonical signed APK publication passed; no adoption
+device launch/install, VPS operation, version change or fabricated runtime PASS. Original body:
 
 Recorded by Claude Code from the owner's coordination instruction. The instruction reached the Claude session
 truncated (its opening lines were missing; the received tail began "…itory writer is allowed."). This note records
