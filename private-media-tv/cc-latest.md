@@ -1,4 +1,125 @@
-# private-media-tv — canonical coordination adoption / current D1 and LATER truth (2026-10-07)
+# private-media-tv — current CW repair installed / Claude briefs reused / D1 scheduled (2026-10-07)
+
+Application HEAD `980030addc059134ece9feaa108ae3d4dbb92023`, parent
+`2429b8010bf0f63470b9a34b13b77099ce9616f3`, is normally pushed and independently remote-verified.
+Main/origin equal, tracked/index clean; four excluded diagnostics untouched/untracked. This checkpoint
+does not complete D1, the TV port or physical CW acceptance. D1 goal remains ACTIVE; STOP BEFORE D2.
+
+## Actual source/validation truth — existing CW follow-up, not recreated work
+
+Narrow episode-only legacy presentation repair is implemented: expected-snapshot CAS from exact
+series/episode facts; copy only deficient presentation columns; retain healthy captures, playback,
+duration/completion/rewatch/CW/Eye/source/history/recency. An appended nonsemantic local journal marker
+folds repaired snapshots into sync without inventing playback or exhausting semantic invalidations.
+The already-frozen deficient first player sample cannot overwrite the repair; healthy new samples
+remain allowed. Empty/unavailable durable lookup leaves visible deficient rows retryable only at a
+later genuine enqueue. No schema/wire/version change, provider search or broad artwork refresh.
+Already-landed one-card/Back/30-second/released-only/replay/History rules are preserved.
+
+Exact source/doc independent Codex read-only reviews CLEAN, P1/P2 zero; commit tree
+`a0501b24058144dfd4ccdd5450201d81b0081a9b`,22 paths/765add15del, full-index range patch SHA
+`665d925764ede2791eb37a9bd599ee881d9d418631840228b712283d31c0cff1`. Diff-check and tracked equality PASS.
+Genuine initial Home RED2→GREEN2 and frozen-snapshot RED1 retained; focused Room26+SY2 23+Home7
+=56PASS. Full core622/shared1410/phone1315/TV560 =3907 (3895PASS,12 existing SKIP), lint0Error/Fatal.
+13 additive regressions:6 core outside inventory+7 shared. Canonical three-app inventory3285
+=3274PASS/11 existing SKIP, no old retirement/status change. Post-package golden4/4 PASS44s.
+Full XML/lint receipts archived BEFORE focused golden replaced live results; do not regenerate full
+inventory from current focused4 XML. Receipts `/tmp/pmtv-cw-snapshot-repair.8Ayytd/`.
+No repeated C14 mutation/fuzz/stress, sandbox module copies or concurrent heavy builds.
+
+## Exact Android CI / publication / one authorized phone install
+
+Repository-triggered exact980 Android `37657093188` SUCCESS; both jobs completed. Single CI waiter
+closed, canonical downloader exit0. Immutable artifact
+`private-media-tv-mobile-apk-980030addc059134ece9feaa108ae3d4dbb92023` is267603086bytes,
+SHA-256 `8ec846c719d3557ad5db20fd1f6f8ba367f90e3c16e11572a13e1016572d4a22`,
+JNI `790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f`, ARM64 only,
+Development signer `2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0`.
+Package/version unchanged:phone47/`0.4.28-phone-test`. Exact artifact package/native/credential gates
+passed; both required general and Mobile Test versioned Download paths refreshed and hash-verified.
+Older sibling files untouched; same-version local predecessor absent, no new material cleanup.
+
+Owner explicitly requested latest installation. Existing untraced Termux-host ADB used with explicit
+5037 socket; no PRoot server lifecycle. Fresh guards proved known other foreground, PMTV tasks invisible,
+no owned active media/audio. One `install -r` returned Success. Post-guard rejected missing PMTV task
+after package update; independent read-only check then proved installed base SHA=8ec, version47,
+PMTV task count0, Termux foreground/no active PMTV media, original primary first-install timestamp
+2026-08-03 05:46:55 retained. No repeat install, launch/navigation/wake/lock bypass/uninstall/Clear Data.
+Earlier model/task/timestamp/window parser-only stops changed no device state. The planned all-profile
+timestamp comparison did not execute after post-task rejection; do not claim it as PASS.
+Owner has been asked to open/retest retained CW names/art and first-play/Back stability; actual runtime
+acceptance remains OPEN, prior physical failure is not relabelled PASS merely by installation.
+
+One queued TV67 local assemble2m8/323tasks produced268848332bytes,
+SHA `41681f637facf7c5d1603623e30fef3d5043e3af1fe336cfbc539c6ea23cafd0`.
+Built from owned2429-based task diff, identical compiled source later committed980; not pristine2429
+or CI artifact authority. Package/native/signing/strict privacy/DEX/Gecko/notices gates and required
+versioned Download publication/read-hash PASS. Prior same-version6e retained in receipt directory;
+normal publication touch/sync corrected emulated-storage inherited mtime, no clock change.
+Shield absent/new install UNRUN. Installed Shield remains older0ad candidate, not the new repair.
+
+## New questions / continuity reused without duplicate research
+
+REQ-CODEX-006/COORD-008 DONE: Home refresh itself takes no VPN lease. A separate foreground stale
+official-Israeli YouTube live-channel check may briefly acquire PMTV's app-only Proton Israel route,
+with5-minute cache/15-second release grace, because streams can be hidden outside Israel. All concurrent
+PMTV requests can share that route; other apps excluded. It never activates Tailscale; current TV has
+no such activation wiring. ADR0073 owner-approved existing policy preserved. Exact owner's refresh
+activation was not correlated by runtime logs; code proof is not a fabricated event. No settings change.
+Evidence external `results/home-refresh-vpn-980.md`. REQ-CODEX-007 DUPLICATE→002 install action fulfilled.
+
+REQ-CODEX-008/COORD-012 DONE: read export INDEX and relevant historical D1 brief;36 verbatim copies+
+INDEX checks37/37 PASS under `results/claude-briefs-20260928/` in the canonical coordination root.
+Independent bounded A1 tvg/A2 runtime comparison matches current/deployed-source-equivalent Go format1
+11-column grammar/tri-state/clamp/coupling/manifest fields, News10763 policy and STATIC_DETAILS14d.
+D2/D3/RANK consumer parsing, bit layout, memory/timing estimates remain unbuilt design targets; PMTVDATA1
+still OtherService. Old no-build/no-VPS framing is historical. Do not regenerate/re-plan D1 or later briefs.
+Reuse D2/D3/D4/RANK/T3/T4 at their actual milestone, rechecking only changed anchors/premises or truly
+time-sensitive facts. Historical question lists are not proof later owner answers are absent.
+
+Claude COORD009/010/011 DONE, claim explicitly RELEASED18:05; REQ-CLAUDE-002 READY_FOR_CODEX.
+New `results/claude-surveys-20261007/G-AUDIT.md` + ABCEF-SURVEY digests2/2 PASS. CL001–026 read/ACKed;
+no current P1/P2/blocker. READY G/A/B/C/E/F/Sports/YouTube research is future input, not source admission,
+runtime/physical acceptance or owner UX approval. Five code/redundancy no-adoption verdicts reused;
+other portal/browser/unknown candidates retain evidence/decision gaps. Do not duplicate these audits.
+Current owner order wins over any survey's after-RANK/after-T3 suggestion: A–G implementation AFTER
+FULL TV port. Detailed dispositions/consumption receipt in owned ACK/results. No premature owner questions.
+
+## Existing D1 scheduled acceptance — no new deployment, clocks not started
+
+Deployed source remains `41593a823ec3f934def33411c6d7bcc059f07053`, guarded transaction
+`pmtv-data-20261007T061443Z`; three services/startup/deploy passed; original machine, volumes/secrets/
+O-D1 preserved, O-D2 key absent/revoked. Application980 changes no relevant server source; no redeploy,
+clock/cache-marker change or forced once. Fresh worker slot2026-10-07T21:30:00Z remains pending.
+Observe active→complete AND advancing manifest before numeric<=192MiB build-check; then reviewed
+public-OFF/restart-proof/gate-test/isolation-ON/existing+sibling checks in contract order. Request
+specific owner Tailscale toggles before they are needed; Tailscale last confirmed OFF. Required failed/
+inconclusive gate triggers mandatory reviewed rollback preserving data/volumes/secrets/other tenants.
+Fresh/resource/immediate/+1/+7 PENDING; day/week clocks start only after all immediate gates green.
+Old status1182/peak193 retained from a rolled-back failure is NOT the fresh415 result.
+Latest read-only idle review17:17:all captures/shape true,restart/OOM0; host1199MiB available/swap187,
+PSI60some/full0,sidecar/web/worker18.1/3.219/5.859MiB;volumes238.1MB/1.661MB unchanged.
+This is idle evidence, not completed-build/physical/+1/+7 PASS. Goal ACTIVE, due D1 preempts other work.
+Standing D1 authority/secret-input gates/mandatory rollback unchanged; STOP BEFORE D2, separately gated.
+
+## Canonical coordination and remaining actual work
+
+Use ONLY `/root/work/_agent-coordination/private-media-tv/`, eight live files/permanent flock,
+one ACTIVE Codex tracked writer; Claude default read-only/own inbox/findings/rows only. Both read both
+inboxes; intake before substantive work; semantic dedupe; owner need not remember receiving agent.
+Valid READY_FOR_CODEX→Codex ACK/consumption, not full research redo. Other root NON-CANONICAL/ARCHIVED,
+originals/digests and epoch1 evidence preserved. Current external snapshot reflects980/CI/install/READY
+truth; earlier snapshots explicitly historical. Agent-memory finalization only through required helper.
+
+Phone legacy CW physical OPEN; owner Eye marks unchanged. PublicVideo replay/local PMTV History source/
+host/CI installed, owner/upstream/Shield PENDING. Completed-series cached next target FUTURE; no new
+completion/released-only defect proved, official date unconfirmed. Regular-Hebrew punctuation owner
+PASS retained; startup heaviness and other LATER2/3/height/mixed-script/Shield physical FAIL/PENDING retained.
+Roadmap D1→D2→D3→RANK1→SY7→T3→T4, new A–G after port then existing approved future work. No D2 or
+early source/product integration, Android version bump, fabricated physical PASS or completed TV port.
+Both repository remote truth must be verified after helper; final memory SHA is not invented in this file.
+
+# Historical checkpoint — canonical coordination adoption (2026-10-07,2429)
 
 Application HEAD `2429b8010bf0f63470b9a34b13b77099ce9616f3` is normally pushed and independently remote-verified,
 main/origin equal. Adoption parent `072297c2548587768552dc85ad17cf0a4479da4c`; application source remains
