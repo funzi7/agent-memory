@@ -1,3 +1,89 @@
+# private-media-tv — Sports Programs finalized / authoritative CW stills next / D1 scheduled (2026-10-08)
+
+Application `main`, fetched `origin/main` and independent `ls-remote` equal exact pushed HEAD
+`120494acd722ff34b86404638209addcc486839e`. The Sports Programs implementation is
+`9f802c428205626a2965011af734adc8b5039ff4`; scoped CW-art evidence is `7d2005cc1e9e3c916353da9b76b53e6d3f70dd2f`;
+local APK-publication records are `55f802694344aa11631bfdd221541f6c4e7c615f`; the final receipt-only
+documentation commit is `120494ac…`. All pushes were normal fast-forwards. Tracked/index are clean;
+two JVM crash reports plus the three known accidental diagnostics/research files remain untracked,
+untouched and excluded. D1 is still ACTIVE and this is not D1, TV-port or overall-project completion.
+STOP BEFORE D2.
+
+## Sports Programs LATER checkpoint — implementation/host/CI/artifact/install PASS, physical PENDING
+
+COORD-017 / REQ-CODEX-011 consumed Claude CL-027 and the settled CL-031 Q1–Q3 decisions instead of
+repeating research. Phone Sports Programs now has safe provider art, provider-edition date/neutral
+kind, equal cards, one truthful source line, whole-card native or reached-safe Website PLAYER action,
+Europe/London morning refresh plus manual Home/screen actions. Raw provider prose/known-score art
+remain quarantined; there is no extraction, new Website admission, fabricated air date/competition/
+round, TV Sports port or D2/VPS scope. Encrypted V6 state preserves all retained source siblings via
+bounded commit-last chunk banks and shared vault publication/rollback durability; image and Website
+action paths keep their reviewed network/authorization gates. Manual and automatic refresh use one
+serialized flight whose coverage is exact profile revision/generation, so edited/removed profiles
+cannot be resurrected by an older flight.
+
+Focused AutoRefresh is 19/19 PASS; final app-mobile is 1,369 discovered / 1,363 PASS / six existing
+skips; focused core-security 124/124, core-provisioning 154/154 and `.pmtprov` 4/4 PASS. Local lint has
+zero errors. The final local lint+assemble passed. One earlier combined eight-module attempt remains
+truthfully FAILED only because the `feature-catalog` JVM exited134 with a native libc SIGSEGV after
+no assertion failure; its crash reports remain excluded and it is not relabelled PASS. Independent
+post-fix source and final nine-file receipt reviews found no P1/P2; diff-check passed.
+
+Exact-final-head Android CI `37830753096` succeeded in 28m11s: wrapper, mobile-used core,
+feature-catalog, app-mobile, lint, signed ARM64 assembly, package/version/signer/pinned TDLib/exact
+GeckoView verification, checksum and upload all passed. The authenticated phone47 artifact is
+267,685,006 bytes, SHA-256
+`0b01a4e06038c00ba1d7bab732543b18e5d023c18e43598824068464f18d9f15`; both required Download paths
+and installed phone `base.apk` independently equal it. The final-head artifact matched the already
+installed bytes, so no second install or launch occurred. Version47 / `0.4.28-phone-test` and original
+first-install `2026-08-03 05:46:55` remain preserved. Owner-run phone art/date/kind/layout/refresh/
+native/Website frames/audio/fullscreen/Back acceptance and historical C45-8 remain PHYSICAL
+PENDING/OPEN. No Sports or other feature PASS is inferred from host/CI/install evidence.
+
+## Next LATER lane during the D1 wait — existing CW task, no repeat survey
+
+REQ-CODEX-012 remains inside existing COORD-004 and now consumes READY CL-037. Owner evidence is
+scoped: Kupa Rashit ep1 has a genuine episode still in Details/CW; `אנשים שפגשתי` shows the exact
+played YouTube thumbnail; other sampled Sisters/Kan episode pages have no episode still and CW uses
+the own-series poster. This rejects the previous cross-series art symptom for those cards but does
+not close names, Next-Episode duplication, full-set/position/Shield acceptance or prove a general CW
+PASS.
+
+Exact-head read-only applicability confirms: season cache stays fresh for five days; an exact Episode
+Details reconciliation can fill its resident episode but does not persist/propagate the authoritative
+still to every episode-list/playback/Next/CW path; CW continues still→backdrop→poster. A guarded phone
+cache query stopped because Android has no sqlite3 and PMTV retained a cached process. No force-stop,
+DB/WAL copy, provider request, launch or data write occurred. The next minimum source slice is bounded
+current-season authoritative-still refresh plus exact still propagation/artwork-only snapshot CAS,
+preserving identity, progress, completion, Eye, source, history, recency and all existing non-null art.
+No phone/TV composable fallback change is required for that slice.
+
+The owner subsequently recorded answers 42=A / 43=A in REQ-CLAUDE-015 for CL-037 P1/P2. Active
+read-only COORD-025 is mapping those answers into an exact READY_FOR_CODEX handoff; no fallback or
+TheTVDB code starts before that handoff is reconciled. Changing the episode-list placeholder/
+series-art fallback remains a separate owner-visible boundary and is not silently bundled. Existing
+poster/placeholder behavior remains until an applicable accepted package is consumed.
+
+## Coordination, surveys and D1 truth
+
+Canonical live coordination remains `/root/work/_agent-coordination/private-media-tv/`, eight files
+under the permanent lock. COORD-017 is DONE; REQ-CODEX-011 remains the temporary D1-wait umbrella;
+COORD-004/REQ-CODEX-012 is current. Codex remains the sole TRACKED_WRITER/integration/Git owner;
+Claude is ACTIVE only in read-only COORD-025, mapping the newer owner corrections/answers, with no
+product/device/VPS write authority. CL-037 was ACKed at exact application HEAD and reused. The
+archived Claude brief bundle verifies 37/37 files; newer G/Zovex/source surveys are present and
+preserved for their authorized milestone, not re-surveyed or automatically admitted.
+
+D1 source/runtime remains exact `1d87762261856d84c9537d3d60b7b42329b4921a`, data+sync UP after
+the guarded startup, owner Tailscale OFF, clocks0. Frozen validator/helper inputs remain unchanged.
+External coordination records observer19156 as the sole byte-identical observer for the existing
+21:29 sampler / 21:30 UTC scheduled-worker gate. Event-only cadence applies; do not create a second
+observer or routine polling spam. D1 preempts local LATER work when due. Actual fresh resource/
+immediate/+1/+7 acceptance remains PENDING; any required failed/inconclusive gate triggers the
+existing fail-closed rollback. D2 is outside authority.
+
+# Historical handoff below — preceding D1 startup / TV install-only checkpoint, preserved verbatim
+
 # private-media-tv — D1 guarded startup / TV install-only verified / scheduled run pending (2026-10-08)
 
 Current application documentation HEAD `5e1a933c19539639632782bacbd16f56dd3e5a16`, parent
