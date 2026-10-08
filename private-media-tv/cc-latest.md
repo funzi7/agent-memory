@@ -1,3 +1,103 @@
+# private-media-tv — D1 retry source/bundle verified; operational ON pending (2026-10-08)
+
+Application documentation HEAD `e6dcc3985aa58024cd7d156f6b6979c88b84f892`, parent deployment-source
+candidate `1d87762261856d84c9537d3d60b7b42329b4921a`, normally fast-forward pushed and independently
+verified against fetched origin/main and ls-remote. Eleven documentation files,131 additions/42
+deletions; tree684e993d315ce8d286081939d04c359304bc4f0b. Full-index range patchSHA256
+54dc50b0be759d8d0ac289767d6c9482e1d3becba4b457359eaf8869280621ab equals the independently
+reviewed draft, CLEAN/P1P2zero; diff-check and docs-only/source-byte-equality checks PASS.
+Tracked/index clean; the four unrelated diagnostics/research files remain untracked and untouched.
+This publishes a D1 readiness/evidence checkpoint; D1 and the TV port remain incomplete. STOP BEFORE D2.
+
+## Exact source, local evidence and CI
+
+The actual verified VPS bundle and non-secret source tag are exact
+`1d87762261856d84c9537d3d60b7b42329b4921a`, not the later documentation HEAD. That source implements
+only the already-approved >15k/day fallback for conclusive ENDED/CANCELED/RELEASED seasons at14days,
+with20h daily details, changed/active/missing forced refresh and unknown/default72h preserved.
+It adds a bounded idle-first host sampler pinned to worker image/process-start/cgroup/cache status,
+observing one idle→active→idle attempt plus30s finalization. Only bounded current/peak/max/stat/events
+counters and a keyed opaque target enter its mode0600 private receipt; target drift, incomplete/
+malformed evidence, over-cap/limit/OOM events and timeout fail closed. The192MiB cap, canonical
+build-check and immediate rollback priority remain. No causal build/Purge/Stats attribution or live
+memory remedy is claimed. Shared remote transport reads the key first, captures only the remaining
+script privately, executes with empty stdin and supplies the helper throughfd9 outside argv.
+
+Focused TTL/operator/bundle coverage, isolated sampler12/12, syntax/module/vet/host-isolation checks
+and independent source/security/test/scope reviews pass. The1,723.231s non-verbose ordinary local
+deploycheck reported one stale static transport-assertion failure; its test-only corrected focused
+rerun passed. The failed local aggregate is retained, never relabelled PASS.
+Required exact-source dataCI37732818465 and manually dispatched sibling syncCI37732907237 SUCCESS,
+all3jobs each including ordinary/race deployment coverage. C14 mutation/restoration/fuzz-stress
+steps SKIPPED. Android37732818511 CANCELLED during SDK setup, tests/lint/assembly/verify/upload
+SKIPPED and artifact_count0. No Android build/version/APK/device work belongs to D1.
+
+The later docs HEAD e6dcc398 also passes triggered dataCI37735920387, all3jobs (vet/unit/race/static,
+ordinary/race root deploycheck), C14 mutation/restoration/fuzz SKIPPED. Android37735920430 cancellation
+was requested during checkout; terminal cancellation occurred during Robolectric-jar restoration.
+Wrapper validation PASS; Android tests/lint/assembly/verify/upload SKIPPED, artifact_count0. Its
+successful setup/cache/cleanup steps are not a mobile test or build. One read-only CI poller exited.
+No sibling sync dispatch merely for the docs HEAD; both required workflows are green at actual source1d.
+Source/deploy/operator/workflow and sibling-sync bytes are unchanged between1d ande6. Do not
+retag/rebundle/redeploy merely because the documentation HEAD advanced.
+
+## Actual current server state and next input
+
+The fresh415 scheduled run genuinely completed105minutes with publication/canaries passing, but
+canonical build-check FAILED193MiB>unchanged192. Mandatory transaction061443 rollback completed
+23:40:37Z, preserved all data volumes/cache/public/ts-state/O-D3, kept O-D2 absent/revoked and restored
+sync. Subsequent owner-ON full isolation/restoration passed its reachable positive, every protected
+negative, exact firewall/lifecycle pins and unrelated-state comparison. That supersedes the earlier
+restoration-pending handoff below; it does not erase the failed memory gate.
+
+Pretransaction readiness for source1d reported hostavailable1230MiB,swap187,PSI60some/full0,
+load0.09/0.06/0.07,disk30%,retained cache239.5MB/public1.66MB. Access, volume/O-D3/config metadata,
+sync deploy/volume and unchanged unrelated-state comparison passed. The member positive was blocked
+with the owner last-confirmed OFF; no new full-isolation PASS is inferred from that OFF capture.
+Exact new bundle and independent bundle-check PASS123/123,zero missing/content/mode/unexpected.
+Only the checked061443 pmtv-data.env.predeploy-held was restored through the reviewed no-clobber
+inverse; then only PMTV_DATA_TAG atomically advanced to exact1d. The first quoted tag command failed
+shell parsing before execution; the corrected stdin-fed operation passed. No private value was
+printed or changed. Data remains DOWN, sync UP. No new isolation transaction/image build/data
+startup/enrollment/policy action has begun. Public/restart/gate-test/data-isolation and real+1/+7
+reviews remain unrun; their clocks have never started.
+
+Goal is ACTIVE at this checkpoint. Specific required input: owner turns TailscaleON and confirms
+connected before the next transaction's positive isolation control. Keep it ON through sync
+restoration/preflight/image/default startup and original-singular-machine/no-replacement check;
+request OFF after that check. Do not infer ON from an automatic goal-continuation message.
+After confirmation, resume the existing guarded transaction sequence at exact verified1d, using a
+new transaction, reviewed dead-man/fresh-SSH confirmation and mandatory fail-closed rollback. No
+new generic D1 approval or O-D2/O-D3 entry is needed. Recheck fresh readiness before live mutation.
+
+**SUPERSEDED — owner approved:** the generic runbook's old same-HEAD/source-image-only retry label,
+under the later standing decision explicitly authorizing narrow-fix retries after a new exact HEAD.
+Accepted93e→9cab→1182→415 receipts already retained enrolled ts-state/O-D3 across source changes.
+The reconciled retained-state branch requires exact pushed/CI-green bundle and new-source step5
+worker build through the heavy queue, existing volume/identity/isolation gates, original singular
+node/no replacement, absent/revoked O-D2 and default startup without key/overlay/--enrolling.
+This corrects stale wording; security/product/architecture,cap/network/rollback and D2 boundaries
+are unchanged. Do not restart D1, re-enroll, rotate secrets, repeat broad C14/stress/sandbox or
+advance D2. Detailed tracked truth: docs/C45_DATA.md, TODO/state/handoff/test/release/security,
+serverREADME and ADR0079. This handoff adds no release/physical PASS.
+
+## Coordination, preserved physical truth and finalization scope
+
+Only `/root/work/_agent-coordination/private-media-tv/`, eight logical files/permanent flock;
+Codex sole tracked/integration/Git writer, Claude RELEASED/default read-only. Both owned inboxes,
+semantic dedupe and valid READY_FOR_CODEX→ACK consumption remain mandatory. The owner need not
+remember which agent received a request. REQ-CODEX-004/COORD-006 is the existing D1 continuation;
+CL027–030/REQ-CLAUDE-004/005 are future READY packages, not D1 implementation. Reuse all exported
+briefs/surveys at their approved step; no repeated survey or roadmap reorder.
+Phone47 latest980 installed without launch, TV67/Shield install/runtime and CW/replay/localHistory
+physical/upstream acceptance remain OPEN/PENDING. Regular-Hebrew punctuation ownerPASS retained;
+prior phone startup heaviness and every other FAIL/PENDING remain. No Android/ADB/device action here.
+Roadmap D1→D2→D3→RANK1→SY7→T3→T4; A–G after fullport. The narrow wait-period LATER exception
+does not authorize D2 or displace due D1 gates. Agent-memory Git finalization uses only the mandatory
+helper; this checkpoint does not complete immediate or day/week D1 acceptance.
+
+# Historical handoff below — prior failure/restoration checkpoint, preserved verbatim
+
 # private-media-tv — fresh D1 memory failure / mandatory rollback / restoration pending (2026-10-08)
 
 Application bookkeeping HEAD `3e31fe774a4e8c97a1c402d432d7eca5ada58ebb`, parent
