@@ -1,3 +1,97 @@
+# private-media-tv — D1 guarded startup / TV install-only verified / scheduled run pending (2026-10-08)
+
+Current application documentation HEAD `5e1a933c19539639632782bacbd16f56dd3e5a16`, parent
+`e6dcc3985aa58024cd7d156f6b6979c88b84f892`, normally fast-forward pushed and independently
+ls-remote/fetched-origin verified. Fourteen Markdown files314 additions/39 deletions; tree
+3aa371cd05cc04ffb761efb380dda6cc06add8fe. Reviewed diff SHA-256
+9a637818abaa3a1eb5a0902b8bdc1056555a40dae0da13d574f970d437e9f9ec matched the staged bytes;
+independent final review CLEAN/P1P2zero/diff-checkPASS after privacy, tailnet-policy and stale-install
+state corrections. Tracked/index clean; four unrelated diagnostics remain untracked/untouched.
+Actual worker/image/source tag stays exact `1d87762261856d84c9537d3d60b7b42329b4921a`; runtime,
+deploy, operator/helper, workflows and sibling-sync bytes are unchanged from that green source.
+Never retag/redeploy merely because this documentation HEAD advanced. D1 remains OPEN; STOP BEFORE D2.
+
+## Actual fresh guarded startup — PASS, not fresh resource acceptance
+
+Owner ON was confirmed and the required member positive became reachable, unrelated state unchanged.
+Fresh headroom1239MiB/swap188/PSI60zero/load0.12/0.12/0.09/disk30% and retained239.5MB/1.66MB
+volume/O-D3/config metadata passed; exact source1d bundle recheck123/123/zero unexpected/mismatch.
+New transaction `pmtv-data-20261008T063435Z` verified exact tag/absent enrollment/unused path,
+stopped data then sync without-v, selected/staged three data ranges plus five-rule combined plan,
+validated syntax, applied under reviewed dead-man and immediately confirmed through a genuinely
+fresh SSH session. Immutable valid/applied/confirmed/livefiles/firewall/recreate status passed,
+no rollback failure. Only the reviewed PMTV host-firewall transaction changed; existing volumes,
+keys/tokens/Tailscale policy and unrelated services/tenants were preserved.
+Sync restored FIRST; deployment/full-isolation/existing passed (all protected negatives blocked,
+required positive reachable, stable tagged probe, exact INPUT/FORWARD/UFW/lifecycle pins). Data
+network preflight then passed allfive collision-free ranges, exact sync topology/socket/env modes.
+Exact worker image build through the global queue exited0 and exact tagged image existence passed.
+Volume checks then normal NON-ENROLLING up and strict default deploy-check exited0/PASS: allthree
+services, exact tag/DNS/network/firewall/mount/tmpfs/health/auth-absence/no-leak gates, no peers/sync
+visible, zero restarts/OOM/new listeners. O-D2/O-D3 were not repeated or rotated.
+Owner privately confirmed one ORIGINAL data machine/no replacement, then confirmed Tailscale OFF.
+Independent receipt review CLEAN through startup. Data and sync UP; no rollback invoked.
+
+Exact healthy resident run process started2026-10-08T06:41:41Z, private binding verified. At06:50:57,
+valid retained manifest/facts build2026-10-07T21:30:08Z/stale=false and old105minutes/53368entries/
+239501312bytes/193MiB/anon49 status were observed. These remain RETAINED prior-run statistics.
+Current cgroup67567616 current/82178048 peak/201326592 maxbytes, limit/OOM counters0: idle ceiling
+79MiB only, not completed-build PASS. Subsequent host review1203MiB/swap193/PSI60zero/load.14/.20/.22/
+disk30%, service32.23/2.141/6.387MiB, zero restart/OOM/24h events, security/volumes captured valid.
+A diagnostic facts filename read was corrected locally to a bounded regular-file observation;
+no product source/runtime change. No allocation cause or memory remedy is claimed.
+
+## Scheduled monitoring — reuse the one live observer
+
+The validated last-good pair was <13h old at startup; the unchanged resident scheduler next runs
+2026-10-08T21:30:00Z. One low-rate exact-target observer is LIVE and has repeatedly verified the
+same healthy idle worker with unchanged82178048-byte peak. Locate its actual handle/temporary
+operator scripts ONLY in canonical external CURRENT/TASKS; do not publish keyed handles or
+ephemeral process/scratch identifiers to Git, and never create a duplicate observer.
+It checks5min with<=60s sleep chunks and will revalidate idle before invoking the already-approved
+canonical memory-sample at21:29UTC. Narrow orchestration review corrected preattach limit/group-OOM
+and exact private receipt-target binding/postcheck gaps; final review CLEAN, syntax and real ticks
+pass. Freeze canonical validator/helper inputs until observation/sampling finishes; docs-only
+changes are allowed. No manualonce/restart/cache-marker/clock mutation or repeated broad stress.
+Required sample/fresh-build/manifest advance/build-check, public-OFF/restart/gate-test/data-isolation/
+existing/sibling checks and real+1/+7 reviews remain PENDING; clocks have never started. On an
+observation timeout revalidate the SAME authoritative process; do not infer termination or restart.
+Any required failed/inconclusive gate triggers immediate mandated rollback, without waiting for
+sampler. Goal ACTIVE; Tailscale stays OFF until the later named positive-control isolation gate.
+
+## Owner TV install-only action — DONE, no app opening or feature PASS
+
+REQ-CODEX-009 owner "install on tv" extends existing002/COORD004's pending Shield installation.
+No new APK/version/build: existing LOCAL TV67/0.6.44-c45tv-later3,268848332bytes,
+SHA41681f637facf7c5d1603623e30fef3d5043e3af1fe336cfbc539c6ea23cafd0 rechecked. Host ADB was
+initially absent; owner started it in normal Termux, reachable socket and TracerPid0 verified.
+Configured Wi-Fi transport was initially unauthorized; owner accepted Shield debugging prompt.
+All clients used explicit5037 remote-host socket; no PRoot server lifecycle or phone pairing.
+NVIDIA/SHIELD identity/device and pre-version67/same name/oldbase8880a680…11e6/original-firstinstall
+2026-08-02 01:42:37/Awake/PMTVnotfront verified. Canonical deploy-shield.sh --no-launch exited0.
+Independent postreads prove latest exact41681 base/version67/name/sameoriginal-firstinstall/known
+otherforeground/untraced host. One in-place installation, no launch/wake/navigation/uninstall/
+ClearData/lock bypass. Do NOT reinstall same bytes. CW/replay/History/player/D-pad/other feature
+acceptance remains physically PENDING, previous FAILs stay OPEN, regular-Hebrew phone PASS scoped.
+
+## CI/finalization/coordination truth
+
+Exact docs-head dataGo37747219234 SUCCESS3/3 (ordinary/race root deployment, vet/unit/race/static/
+helper/sampler); C14 mutation/restoration/fuzz SKIPPED, artifact_count0. Android37747219000 terminal
+CANCELLED immediately: wrapperPASS, mobilejobCANCELLED with steps=[] in GitHub API. No named
+cancelled step or explicit per-step skipped rows exist; no mobile tests/lint/build/upload ran,
+artifact_count0. Existing source1d paired CI remains green; no extra sync dispatch for docs head.
+One CI poller exited; separate scheduled observer continues. Both push verification and memory
+finalization use actual results; memory Git mutations ONLY through the mandatory helper.
+Only `/root/work/_agent-coordination/private-media-tv/` eight logical files/permanent lock;
+Codex sole writer/integration/Git owner, Claude released/read-only. Owned inbox registration,
+semantic dedupe and READY_FOR_CODEX consumption/ACK remain; owner need not remember receiving
+agent. Existing Claude research is reused, future packages remain future. Current D1/observer and
+completed TV install are separate; no D2 or TV-port-completion authority. Roadmap and all physical
+FAIL/PENDING retained. This checkpoint is finalized evidence, not D1/full-port completion.
+
+# Historical handoff below — preceding readiness checkpoint, preserved verbatim
+
 # private-media-tv — D1 retry source/bundle verified; operational ON pending (2026-10-08)
 
 Application documentation HEAD `e6dcc3985aa58024cd7d156f6b6979c88b84f892`, parent deployment-source
