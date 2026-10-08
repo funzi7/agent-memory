@@ -1,4 +1,110 @@
-# private-media-tv — current CW repair installed / Claude briefs reused / D1 scheduled (2026-10-07)
+# private-media-tv — fresh D1 memory failure / mandatory rollback / restoration pending (2026-10-08)
+
+Application bookkeeping HEAD `3e31fe774a4e8c97a1c402d432d7eca5ada58ebb`, parent
+`980030addc059134ece9feaa108ae3d4dbb92023`, normally pushed and independently ls-remote verified.
+Main/origin equal; tracked/index clean except four preserved untracked diagnostics. Ten task-only
+Markdown files,195 additions/7 deletions; no source, configuration, version, new device operation or
+new VPS retry. This is the factual D1 failure/rollback checkpoint, NOT D1/TV-port completion.
+Goal remains ACTIVE; STOP BEFORE D2. Tailscale last owner-confirmed OFF; operational ON requested
+for restored-sync full isolation/positive control, not a new D1 approval or secret request.
+
+## Actual fresh scheduled run — real resource FAIL, not old retained status
+
+Live worker source was exact `41593a823ec3f934def33411c6d7bcc059f07053`, transaction
+`pmtv-data-20261007T061443Z`. The same verified resident run process, healthy/restart0/OOMfalse,
+really transitioned idle→ACTIVE observed2026-10-07T21:30:47Z→COMPLETE observed23:18:14Z.
+Manifest build advanced04:00→21:30:08Z, stale=false; keyed manifest/facts pair changed and validated.
+No forced once, restart, clock/cache-marker/config change or fabricated worker evidence.
+
+Fresh aggregate status:105minutes,53368entries/13namespaces/239501312bytes,gates/canariesPASS,
+TMDB daily18143/HTTP429zero,IMDb hit.900933,EDbon/reachabilityfalse/daily5/early1/overdue4246/days3;
+invalidEDb1/otherinvalid0,seriesunencodable1/overflow171. Canonical build-check EXIT1:
+memory_peak_within_limit=false/build_check=false, cgroup lifetimepeak193MiB>unchanged192;
+anon49 is final sample, not anonymous peak. No floor/rounding exception/cap increase.
+Independent narrow read-only review proves begin resets old metrics and final current-cgroup read
+overwrites them; pre-run current-container peak69MiB. This is a real fresh415 failure, not copied
+earlier1182 statistics. Raw failure peak bytes/current/events were not captured before required down;
+no precise allocation cause or memory remedy is claimed.
+
+Actual in-run samples approximately21:34/22:03/22:35/22:59Z: current worker25.85/32.3/35.06/43.9MiB,
+7pids,sidecar18.06–18.08/web3.219MiB; hostavailable1171/1165/1166/1163MiB,swap187→188,
+60-second memoryPSI0,disk30%,restart/OOM0/events24h0,valid inspect/environment/mount/security captures.
+Load.53/.23/.13,.22/.21/.19,.24/.16/.15,.30/.20/.18. These samples cannot disprove an unsampled
+lifetimepeak, replace the cap gate, or satisfy actual +1-day/+7-day reviews.
+
+## Mandatory rollback and actual preservation evidence
+
+Reviewed061443 confirmed rollback completed2026-10-07T23:40:37Z: exact checked transaction/helper/
+prestatus, canonicaldata+syncdown without-v, --after-confirm inverse, valid completed status/
+rollback_failedfalse/expected restored files+firewall/reload, exact same-FS no-clobber dotenv hold
+pmtv-data.env.predeploy-held. No post-hold transaction-status rerun. Canonicalsyncup passed;
+dataDOWN/syncUP. No volumes deleted, no new enrollment/token rotation/policy/unrelated-tenant action.
+
+Restored sync deploy-check PASS: exact sync-only two-rule network/firewall/security/healthyAPI/
+expected tag/name/absent enrollment/zero new listeners/restart/OOM. Syncvolume-check PASS;
+data retained Tailscale/cache/public volumes and O-D3/config/serve-file ownership/modes/secret-size
+PASS, no secret contents read. Canonicalsyncexisting EXIT0 proves Remote Sources serveconfig,
+28hostservices and3othercontainers unchanged versus keyed baseline; owner-memberpingblocked
+while TailscaleOFF. Full restored isolation/positive control PENDING operationalON. Keep dataDOWN;
+no retry before every required restoration/preservation gate passes. No preserved-node identity
+PASS is newly inferred merely from tag/name/volume metadata.
+
+PublicOFF/restart-proof/publicationgate-test/data-isolation/final immediate acceptance NOT RUN after
+resourceFAIL. +1/+7 clocks NEVERSTARTED; D1open. Standing D1 authority and exact secure/local
+owner-input boundaries unchanged. Do not ask repeated approval for in-contract engineering fixes.
+
+## Bounded diagnosis and reused Claude brief — no implementation or re-planning
+
+Read-only source trace identifies duplicate publication row projections and cached TMDB reads/gunzip,
+plus competing full bbolt Purge/Stats page-touch over239.5MB. These paths are real, but attribution
+of193 to heap versus charged file pages is unavailable. Minimum further diagnosis is aggregate
+phase memory.current/peak,anon/file/active_file/inactive_file/file_mapped andmemory.events at
+build/publication/Purge/Stats boundaries; no private provider bodies/secret capture or broad redesign.
+No source patch or repeated C14/mutation/fuzz/stress/sandbox has been performed.
+
+Reused owner-approved D1-BRIEF§4 measured>15k/day fallback is triggered:18143daily/15425run.
+Ended-series season14-day refresh branch remains missing (current non-active TTL72h).
+OPEN D1 follow-up after restored-sync validation; preserve daily details revalidation, active/change
+forced refresh, unknown/OTHER conservative72h and exact TTL boundaries. This is not a claimed
+memory fix, a new owner UX choice, a new milestone plan, or permission to redo already-landed D1.
+Detailed actual ledger/next steps: docs/C45_DATA.md; TODO/state/handoff/test/release/security,
+serverREADME and ADR0079 reconcile current versus earlier UP/scheduled observations.
+
+## Exact checkpoint review / CI / publication limits
+
+Independent Codex read-only full/addendum/exactcheckpoint reviews CLEAN/P1P2zero; tree
+19d3126d73fda8224d067ed3af495508c6a571ca, full-index parent-range patchSHA256
+8b16adf1d47c8346d39b7f1af57f1e2e8b9005ae8fb6532e45d10048c52bb26e.
+Range/worktree diff-check and tracked-byte equality PASS. Only post-review change was temporal
+bookkeeping wording, independently reconstructed against reviewed blob. Not a fabricated PR signal.
+Repository-triggered exact3e31 dataGo37705532016 SUCCESS: ordinary/vet/unit/race/static and
+root deploycheck ordinary/race all3jobs; C14 mutation/source-restoration/fuzz campaigns SKIPPED.
+Single CIwaiter11089 ended EXIT0. Android37705532056 CANCELLED duringSDKsetup; wrapperjobSUCCESS,
+mobile tests/assembly/upload SKIPPED, APIartifact_count0. No Android APK/version/localbuild/delivery/
+install/ADB/Shield work is performed by this D1 records checkpoint; syncCI path did not trigger.
+Deployed D1 source415 is unchanged; CI cannot turn its live193 failure into PASS.
+
+## Current coordination / physical truth / actual next step
+
+ONLY /root/work/_agent-coordination/private-media-tv/, eight logical files/permanent flock;
+CodeX sole ACTIVE TRACKED_WRITER, Claude default read-only/claim RELEASED. Register new requests
+in own inbox, read both, semantically deduplicate; owner need not remember receiving agent.
+Reuse valid READY_FOR_CODEX→ACK research; no full survey redo. Other root ARCHIVED with originals.
+COORD006/REQ-CODEX004 remains current D1; no new request for this continuation. Existing Claude
+export37/37 and new surveys2/2 checksums/CL001–026 ACKs are reused, not source admission/UX decisions.
+
+Separate Android source980/phone47 remains installed8ec846c719d3557ad5db20fd1f6f8ba367f90e3c16e11572a13e1016572d4a22,
+no launch; both required Download copies remain from verified980 artifact. Prior3907/lint/3285/
+golden4 evidence not rerun here. Phone CW metadata/replay/localHistory physical OPEN; Shield new
+TV67 install/runtime UNRUN, prior startupheaviness/otherLATER2/3 FAIL/PENDING retained. Regular-Hebrew
+punctuation ownerPASS preserved. No physical status or product/source behavior changes by records.
+Roadmap D1→D2→D3→RANK1→SY7→T3→T4; A–G AFTER fullport, no unrelated early LATER/D2 work.
+Next: owner confirms TailscaleON, finish canonical restored-sync isolation/existing preservation;
+then only evidence-backed in-contract D1 correction/targeted tests/exactCI/guarded retry as needed.
+Never restart D1 or redeploy merely because this documentation HEAD advanced. No finalization/completion
+claim until all real immediate and actual day/week gates pass; memoryGit only via required helper.
+
+# Historical checkpoint — CW repair installed / Claude briefs reused / D1 scheduled (2026-10-07)
 
 Application HEAD `980030addc059134ece9feaa108ae3d4dbb92023`, parent
 `2429b8010bf0f63470b9a34b13b77099ce9616f3`, is normally pushed and independently remote-verified.
