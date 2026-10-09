@@ -1,3 +1,23 @@
+# private-media-tv — D1 formally BLOCKED on private preservation input (2026-10-09T09:01:09Z)
+
+The existing full D1 goal is now BLOCKED after the same unaccounted-service preservation condition
+persisted across three consecutive goal turns. Previous checkpoint turn made progress; subsequent
+turns revalidated the genuine gate without new causal evidence. Fresh canonical sync `existing`
+EXIT0 still reports serviceschanged1/serve+othercontainersunchanged/memberblocked; original
+October4 baseline mtime is intact. Receipt command success is not preservation PASS. No verified
+live CI/sampler wait remains; do not restart an observer, repeat green tests or retry deployment.
+Application stays pushed `6ed7adf7a82db688354085b9b023d2c15d949c68`; source9979 is CI-green but
+undeployed. Data DOWN/sync UP, earlier resource FAIL, later immediate/+1/+7 unrun, clocks0/D2stop.
+No source/Android/version/device/VPS/policy/secret/data/baseline change occurred in these audits.
+Required owner-only action remains the enhanced private TTY helper below: identify the managing
+app privately, account for its06:27:15Z restart using maintenance/deployment evidence and confirm
+intended current running state. Keep identifiers/output private and Tailscale OFF. Recognition or
+healthy status alone is insufficient. Once evidence resolves the gate, resume the existing goal
+for the already-authorized guarded D1 continuation, not a new generic D1 approval. Current project
+TODO/state/handoff remain accurate for this same unresolved gate; no new app commit/CI is needed.
+
+# Historical checkpoint below — preserved verbatim; goal status above is current
+
 # private-media-tv — D1 source green / preservation UNKNOWN / no live retry (2026-10-09)
 
 Application `main`/tracking `origin/main`, fetched remote and independent `ls-remote` equal normally
