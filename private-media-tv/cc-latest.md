@@ -1,3 +1,86 @@
+# private-media-tv — verified cache APK checkpoint; D1 FIRST pending (2026-10-09T20:54:27Z)
+
+Application `main` / tracking / independently observed remote:
+`c20f63ad5e38cc41daf6842aabcb3b487eef3847`, normally pushed. Its nine receipt-only Markdown files
+are130add/44del; independently reviewed CLEAN, `git diff --check` PASS. Reviewed unstaged,
+staged and committed diff SHA256 all equal
+`2505ad65c9dbf3d53cb0f5c92089a5a1278898241a3b7767b13c2517685f73e6`.
+No source/version/server change. Known five untracked diagnostics and recovery backup preserved.
+
+This is a truthful checkpoint, NOT completed D1 or physical product acceptance. Full D1 goal ACTIVE;
+STOP BEFORE D2. Server source/bundle/image remains `78391b2679d3bd0a25bff31401d0e395e2f89338`;
+current confirmed TX163136/data+syncUP/held first worker, selected FIRST21:30Z/attach21:29Z/
+deadline21:35Z. Owner OFF confirmed before startup; keep OFF steady through capture. One original
+reviewed observer63032 re-polled LIVE20:54:27Z, privately checking the same original keyed worker/hold.
+No duplicate producer/observer, early once/reset, source/image/C14 redo, secret/policy/vendor change.
+Validator/helper and snapshot/controller pinned hashes remain unchanged. FIRST/resource/public/
+restart/gate-test/data isolation/preservation and actual +1/+7 reviews remain PENDING; clocks0.
+Prior real source1d192MiB resource FAIL and completed older rollbacks remain recorded, not overwritten.
+
+## Local LATER cache correction — source/test/CI evidence
+
+Consumed existing CL-051/REQ-CLAUDE-026 in COORD038, no log/survey redo. Source d0 implements exact
+shared relative-path-hash cohorts, maximum-once/pin-exempt accounting, newest LRU/all-expired TTL,
+whole-cohort runtime/pin/CW protection, immutable stale/ABA checks, symmetric unknown-identity
+acquisition/deletion guards and successful whole-cohort range-baseline reset. No fuzzy identity,
+reserve/index/recovery/schema/progress/Eye/History change; broader suggestions remain separate future.
+Independent review found three valid gaps, fixed; final source/identity review CLEAN.
+Baseline2RED41s, initial32PASS43s, corrected35cache+51range PASS1m10s. Full queued18:35 run freshly
+passes Telegram324/playback249 in3m43s; provider87 reused UP-TO-DATE/Oct8 XML, not freshly run.
+Later test-only synthetic fixture change passes exact-current1/1 focus59s; production unchanged.
+Lint0errors/1oldwarning, twelve new core tests outside unchanged three-app3285 inventory.
+
+Exact d0 Android37979050132 FAILED unchanged provisioning SY5-F1 fixture154tests/1timeout,
+later assembly/upload SKIPPED/artifacts0. Job inactivity preceded shared process-lease release;
+four test predicates now wait for both, retaining5s bounds/assertions/production behavior.
+Class12/12 PASS38s/full154/154 PASS51s/no skips, independent review CLEAN. Corrected source
+`8cf5533731f54e8143f874efdc3dda5c8998a670` Android37981863220 SUCCESS20:03:51Z, all required
+tests/lint/signed assembly/package/TDLib/Gecko/checksum/upload passed. Keep the failed attempt.
+
+## Actual artifacts and installation boundary
+
+Source8cf canonical downloader82730 EXIT0 through heavy queue: phone47/`0.4.28-phone-test`, ARM64,
+Development signer2987a463…63ab0, JNI790c545f…c259f. APK267717774bytes / SHA256
+`f9472d87b52594e5c5a838f20342e690f1d97db74588ec094733c8e259bc61f3`.
+Both required general and Mobile Test Download copies independently regular/non-symlink/size/hash
+verified. No local fallback existed. No extra version or local Android build.
+Existing untraced Termux-host server and Samsung verified; keyguard showing => install DEFERRED.
+Zero new install/unlock/input/wake/launch/server lifecycle commands. Old source789/85f5028c…be559
+phone APK still installed after one17:36 update preserving original first-install. TV67/41681f63…
+afd0 remains older installed local artifact. Neither install/delivery/CI supplies physical PASS.
+Owner phone episode-end/Up Next, CW/F3 behavior, Sports and Shield acceptance remain OPEN/PENDING.
+
+Docs checkpointc20 automatically triggered Android37985668239: SUCCESS20:48:53Z, all required
+tests/lint/signed assembly/package/TDLib/Gecko/checksum/upload passed, sole28831 terminalEXIT0.
+Its canonical exact-head downloader21205 EXIT0 refreshed both required Download copies, each
+independently regular/size/hash verified. The APK is byte-identical to the already-verified source8cf
+f947 artifact above; no new version or installation. No Go CI was triggered by these nine docs;
+frozen source783 paired green evidence is reused, not rerun. Memory Git goes only through the helper.
+
+## Coordination, decisions and next actual work
+
+Canonical root `/root/work/_agent-coordination/private-media-tv/`; eight files/permanent lock,
+single Codex tracked writer, Claude read-only, both owned inboxes/semantic dedupe/READY→ACK consumption.
+REQ014 conditional latest-phone installation is registered; locked-device deferral is not D1 blocked.
+CL052 owner81a bounded/82a30days waiting cards canonically QUEUED, not in source/current APK.
+CL053 owner87a20:07 confirms native video chat in the marked channel itself; other-chat/link
+hypotheses withdrawn, exact diagnostics/refresh/ONE1/Hebrew-alias work remains separate OPEN.
+No repeated survey/questions, linked/unselected-chat authority or fabricated root cause.
+CL054/REQ-CLAUDE029 AceStream survey is FUTURE, gated by owner88–92/physical91 and existing
+after-T4/no-torrent/lawfulness contracts. No admission/integration/engine/VPS action or reorder;
+reuse the survey when reached, not a duplicate research pass now.
+Next: helper-only memory checkpoint; fresh idle
+install when owner unlocks, owner runtime retest; original scheduled D1 FIRST preempts at21:29.
+Only accepted FIRST plus build-check permits the remaining ordered immediate gates; named ON
+request only when required, OFF-safe afterward, then actual +1/+7 reviews before full finalization.
+Narrow read-only post-FIRST clarification reused existing code: attempt status becomes pending
+before work, pass/pass only after publication; same-target FIRST plus build-check therefore
+rejects retained old success. No extra pre-FIRST capture/new gate or observer change is needed.
+
+The previous entire finalized handoff is retained verbatim below.
+
+# Prior finalized checkpoint — retained verbatim
+
 # private-media-tv — guarded retries reconciled; original FIRST observer live for21:30Z (2026-10-09T17:17:45Z)
 
 Application main/origin/main/independent ls-remote equal normally pushed documentation checkpoint
