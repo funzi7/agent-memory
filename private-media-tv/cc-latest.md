@@ -1,3 +1,115 @@
+# private-media-tv — vendor restart accounted; private baseline retention/fresh comparison PASS (2026-10-09T12:20:28Z)
+
+Application main/origin/main/fetched remote/independent ls-remote equal normally pushed
+`6f262c31f57f7830f38230ed2cf5447f8b8b782d`, starting checkpoint
+`6ed7adf7a82db688354085b9b023d2c15d949c68`. Twelve Markdown files254add/29del, exact independently
+reviewed staged patch SHA256 `1c6553aeb85de598f5213b05ef394c46f558649078a6b6fea4305d05a031cb36`,
+review CLEAN/no P1/P2/diff-check PASS/normal fast-forward push. Original eight dirty D1 documents
+were completed, not replaced; README/server README/ADR0079/ARCHITECTURE stale current-state entries
+were reconciled without changing architecture. Earlier unknown-cause/current-looking sections are
+explicitly HISTORICAL, not deleted or silently superseded owner behavior. Tracked/index clean; five
+excluded JVM/accidental files remain untouched/untracked. Recovery backup unchanged.
+
+Full D1 goal is ACTIVE again. This is a preservation checkpoint, NOT D1 completion. STOP BEFORE D2.
+Data DOWN/sync UP; on-VPS bundle/image/source remains1d877622, not source9979 or docs6f.
+Source `9979ca3c93ae85b4a528010ad59abeb037268a29` is already reviewed/paired-Go-CI green, NOT
+bundled/deployed/retried/live-memory accepted. Exact TX063435 rollback, dotenv hold, retained
+volumes/O-D3/enrollment absence remain; no new live transaction, restart, policy, credential or
+server-data action in this investigation. Fixed192MiB previous resource FAIL remains45056bytes
+over201326592 with valid1791sample evidence/limit event/no OOM; no retroactive PASS. Later immediate
+and actual +1/+7 acceptance remain unrun; clocks0. No Android/version/APK/device action.
+
+## Restart cause and owner preservation intent — resolved, do not repeat
+
+Owner recognizes the DigitalOcean Monitoring Agent AND explicitly confirms preserving its normal
+running state. Actual cron/APT/dpkg/verified-code chronology accounts3.18.14→3.18.16: dailycron
+06:25:01.267873Z under real06:25UTC schedule, exact vendor-only APT command06:27:11Z, upgrade/
+configure06:27:12Z and installed06:27:15Z matching the clean service transition. Verified vendor
+updater's <=899second jitter and postinst restart explain this route. No historical parent-PID
+audit was retained; this is causal package/scheduler/code evidence, not captured process ancestry.
+Running binary SHA33054a7a…658ac and updater/postinst/unit/generated cron contents match pinned
+official3.18.16. Root-protected postinst/unit/cron remain; updater is vendor-account-owned0755,
+not group/world-writable and NOT root-protected. Exact installed dpkg1.22.6ubuntu6.6 named-owner
+resolution plus absent binary/updater statoverride explains ownership; no vendor hardening/mutation
+follows. Generic all-root-protected aggregate stays false, not a new unrelated-software D1 gate.
+Primary pinned references and full public proof/limitations are in docs/C45_DATA.md.
+
+Fresh keyed union comparison proves exactly that vendor service in both old snapshots changed.
+Every other service, serve configuration and object inventory is unchanged; data's exactly two
+container deltas are the prior required sync recreations, zero unrelated changes. All non-object
+fields and before/after key bytes/descriptor identities are also compared. Current sync healthy:
+API2.945MiB/96, sidecar21.74MiB/128, restart/OOM/24hOOM0; host available1233MiB/swap195/PSI60some+
+full0.00/load0.20/0.11/0.05/disk31%. Data seven retained-volume/config/secret-size metadata checks
+PASS; these do not prove secret/user-data content identity. No vendor restart/update was issued.
+
+## Original private baselines retained before normal fresh comparison
+
+Reviewed fixed-root local helper created TWO unique0700/no-clobber archives with0600 baseline/
+manifest, completion-last/fsync/reopen checks. Domain-separated HMAC binds role+private nonce+
+exact byte length+actual baseline bytes+original key context; no key copy/rotation or unkeyed
+digest is saved. Original sync1361/data1598byte snapshots CREATE/verify-current PASS with unchanged
+source bytes/keys. Eleven tiny fake-file tests PASS0.396s (final rerun0.438s), strict snapshot five
+light cases PASS, syntax and narrow independent reviews CLEAN. No sandbox-copy/C14stress campaign.
+An initial local classifier rejected16-vs-observed64hex serve digest width; corrected before PASS.
+Valid reviewer findings (all non-object comparison, key-stability check, historical headings and
+content-bound MAC) were fixed before fresh capture; none was ignored or claimed green early.
+
+After immediate archive/key/schema guards, canonical sync baseline saved28services/3containers;
+data complete atomic baseline saved28/5. Immediate sync, data and final sync existing each EXIT0
+with serve/services/containers all true; data baseline/current complete-schema validators PASS.
+Archived-old→fresh union contains ONLY the accounted vendor transition and prior required sync
+recreations, no other field/object/inventory delta. Original archives reopen/MAC-verify under
+unchanged original keys after replacement. Private evidence stays outside Git; no ignore filter
+or automatic restore of historical baselines. Only local evidence files changed; no VPS lifecycle/
+configuration/data/policy/secret mutation. Member positive remains blocked while owner OFF: NOT
+new full-isolation PASS. Earlier raw false comparisons remain historical evidence.
+
+## Exact checkpoint CI / no Android delivery
+
+Docs6f data Go CI37928465171 SUCCESSall3jobs: vet/unit/race/static/helpers/sampler and ordinary+
+race root deploycheck. C14 mutation/restoration/fuzz SKIPPED; artifacts0. Existing source9979 paired
+data37900659553/sync37900716182 SUCCESS remains reused; no gratuitous manual green reruns.
+Automatic Android37928465093 CANCELLEDduring mobile-used-core unit tests, wrapper/SDK/official
+TDLib/artifact harness/certificate checks PASS, feature/app tests/lint/assembly/verification/
+checksum/upload SKIPPED, signing cleanup PASS/artifacts0. Cancellation is NOT Android PASS.
+Sole observer14269 EXIT0/terminal; no live CI/sampler/build/SSH waiter remains. No new successful
+Android app build or APK/publication/install/launch is claimed. Phone/Shield acceptance remains open.
+
+## Required pre-start timing check — do not skip the first-build sampler
+
+At VPS12:11:25Z, reviewed O_NOATIME read-only public manifest/compressed hash+header check sees
+retained build2026-10-08T21:30:00Z, age52885seconds (>13h); data running containers0. Cache DB
+mtime23:57:43Z is metadata-only: DB contents/durable run marker were NOT read. Full pair semantic
+validation was NOT run and exact worker firstDue is NOT proved. No provider body, secret, private
+identifier or raw Docker output is published. Only its exact empty diagnostic client directory was
+created/removed; source/deploy/config/data untouched. Probe syntax/final narrow safety review CLEAN.
+
+Source scheduling can immediately catch up after13h unless a genuine recent unfinished marker
+defers it; default up/deploy-check offers no deterministic pre-first-attempt idle interlock. The
+existing sampler rejects first-observed ACTIVE. Do not race it against up, alter clocks/markers,
+run once, reset peaks/counters or silently substitute sampling the NEXT attempt: current runbook
+requires the catch-up/FIRST build's companion evidence. Resolve this before data startup through
+an applicable reviewed in-contract path/fix; any acceptance-contract change requires explicit owner
+decision. No new startup gate/mode/contract amendment is implemented or approved by this receipt.
+
+Next named operational input requested: owner Tailscale ON+connected for fresh member-positive/
+restored-sync isolation controls, keeping data DOWN. No generic D1 approval or secret input is
+needed. After those earlier approved controls, the pre-start timing guard still must be resolved
+before the standing guarded data retry. Keep Tailscale OFF except specifically named checks and
+tell owner explicitly when OFF is safe. No D2/LATER detour inferred from this D1 receipt.
+
+Canonical root /root/work/_agent-coordination/private-media-tv/, eight logical files/permanent lock/
+preimage+atomic publication; Codex sole tracked/integration/Git writer, Claude read-only/own inbox.
+Both-inbox semantic dedupe, READY_FOR_CODEX→ACK/consumption and existing surveys/brief reuse stand.
+REQ004/COORD006 owns D1; REQ013 dated shareable report remains DONE, historical0941 snapshot not
+current cause proof. Existing CW F1/F2/F3 foundation and Sports Programs are not rebuilt: F3
+acquisition/ranking/rendering, phone/Shield CW/Next/names/position/history and Sports Website
+physical acceptance remain OPEN/PENDING. Product order and owner choices unchanged. Memory Git
+finalization remains helper-only after this exact application/CI truth; historical handoff below
+is preserved byte-for-byte, not current unknown-cause/blocked authority.
+
+# Historical handoff below — pre-resolution blocked audit, preserved verbatim
+
 # private-media-tv — D1 BLOCKED after resumed private-preservation audit (2026-10-09T09:36:26Z)
 
 The timestamp-only owner reply resumed the existing goal, but did not account for the restart.
