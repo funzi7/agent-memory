@@ -1,3 +1,129 @@
+# private-media-tv — D1 source green / preservation UNKNOWN / no live retry (2026-10-09)
+
+Application `main`/tracking `origin/main`, fetched remote and independent `ls-remote` equal normally
+pushed documentation checkpoint `6ed7adf7a82db688354085b9b023d2c15d949c68`, parent/source
+`9979ca3c93ae85b4a528010ad59abeb037268a29`. Eleven Markdown files,175 additions/12 deletions,
+record paired source CI success, fresh unrelated-service preservation mismatch and bounded read-only
+diagnosis. Independently reproduced full-index/binary patch SHA256
+`15e8a63a25800d42d20dde7eaedb7b2bc9b21d5bfea3f6222146f5b87b0378f3`; final review CLEAN/no P1/P2,
+diff-check PASS, normal fast-forward push. Tracked/index clean; five excluded JVM/accidental files
+retain their checked bytes and remain untracked. No source, version, APK, device, policy, enrollment,
+secret, volume or VPS lifecycle action in this receipt checkpoint. D1 OPEN; STOP BEFORE D2.
+
+## Actual live state and required input
+
+Data remains DOWN and sync UP. On-VPS data source/image/bundle is still
+`1d87762261856d84c9537d3d60b7b42329b4921a`, not source9979 or documentation6ed. Source9979 has
+NOT been bundled, deployed, retried or live-memory accepted. The prior exact TX063435 mandatory
+rollback, data dotenv no-clobber hold, retained volumes/O-D3/config metadata and unchanged secrets
+remain. The previous resource receipt is complete/stable1791 samples but FAILS fixed192MiB:
+peak201371648 versus max201326592,45056 over, limit event true/OOMfalse. Parsing PASS is not acceptance.
+
+Owner-ON restoration controls subsequently conclusively PASS: full sync isolation/protected
+overlay/gateway/tailnet/member negatives blocked, required member positive reachable, exact two-rule
+firewall/UFW/hooks/stable probe, fresh deploy/API/restartOOMlistener checks and existing-service
+preservation. Data retained-volume metadata and member-positive checks PASS; its two changed
+baseline containers were privately proved exactly required sync recreation, unrelated changes0.
+Independent receipt review CLEAN. One preliminary local default-wrapper failure occurred before SSH;
+the established wrapper route passed. Owner explicitly told Tailscale OFF is safe. These are dated
+restoration facts, not proof that later unrelated-service state stayed unchanged.
+
+Fresh pre-retry sync review is healthy/restartOOM0/24hourOOM0; host available1204MiB/swap195/
+PSI60some-full0.00/load0.06-0.05-0.01/disk31%. Data volume metadata PASS. Canonical sync `existing`
+reports exactly one changed host-service lifecycle state while Remote Sources serve and other
+containers remain unchanged. Member control is currently blocked, so ON will be requested only for
+a named later live control after preservation is resolved. Original baseline is NOT replaced.
+
+The affected service is active/running/successful, clean stop/start06:27:15Z, NRestarts0. Owner made
+no VPS change and private helper outcome is UNKNOWN: service unrecognized, restart unaccounted.
+Requested better diagnosis was performed read-only with keyed private selection and fixed sanitized
+output. Root-safe regular/non-group-other-writable fragment mtime+ctime predate October4 baseline;
+no drop-ins/daemon-reload requirement/trigger/PartOf/BindsTo/runtime limit/watchdog. Restart=always
+does not explain its initiator. Bounded five unit/64 host journal records show no failure, automatic
+restart, explicit service-control command or package cause; six cron/six SSH records are not causal
+proof, audit log absent. Other-app public handoffs have no current dated receipt; weak negative
+role checks do not disprove undocumented association. Optional ExecStop/ExecReload properties are
+missing: two diagnostic iterations exited before correlation, corrected script completes while
+evidence_complete=false/cause_proven=false. No preservation PASS or baseline overwrite follows.
+
+Owner-only secure/local action: rerun the reviewed mode0700, TTY-only helper
+`/root/work/_agent-coordination/private-media-tv/results/d1-private-service-review.sh` in the owner's
+own Debian terminal. It now shows private description/app folder/status, no command arguments or
+secret contents; use that privately to identify the managing app and consult its deployment or
+maintenance record/maintainer for the06:27:15Z clean restart and intended current running state.
+Report only factual outcome, never names/paths/addresses/raw output. Recognition alone is insufficient;
+unknown/inconclusive keeps data down, baseline/deploy/retry blocked. No generic new D1 approval is
+needed or sought. Any clearance needs accounted causal evidence, checked application/executable
+preservation and intended current state; no authority to mutate an unrelated service follows.
+
+One earlier SSH-wrapper framing mistake printed host/connection metadata, not credentials or media;
+acknowledged and corrected to one quoted command. No identifiers/raw output were copied here/Git.
+Diagnostic keys/HMACs travel only through stdin, are validated/removed before fixed-environment
+children. Private helper Bash/generated Python syntax and independent safety review CLEAN.
+No new VPS configuration/data/lifecycle action occurred during this diagnosis.
+
+## Already-landed narrow source9979 correction — do not redo
+
+Twentyfour files966 additions/63 deletions, independently reviewed patch
+`e67ffd76a0747fb296847a8b22855d39df5c8f2c964bde769ed3d51d0b8d5a21`, normal pushed source9979.
+Only exact readable192MiB worker profile activates advisory own-cache relief at128MiB, not a new
+acceptance cap. Store operations/Close serialize; exact inherited CLOEXEC duplicate, bounded
+transaction-pinned read-only shared DB mapping and same-inode/page/integer/quota checks precede
+MADV_DONTNEED then FADV_DONTNEED. Atomic Stats/Purge scan checkpoints preserve rollback/durability;
+no unsafe Go slice/disk rewrite/cgroup write/reclaim/reset/peak exemption/schema change. Existing
+256MiB disk quota and data contracts stand. Already-pinned x/sys becomes direct, version unchanged.
+Readiness means supported build+exact memory.max+readable current only, not hint efficacy/live PASS.
+Required deploy/restart readiness enters immediate phase predicate so failure cleans up fail-closed.
+
+Focused residency initially failed bare-PRoot inaccessible memory.max/reopen; inactive bare-host
+handling corrected, focused PASS0.315s. Full store/cmd PASS1.935s/0.574s, selected operator first
+PASS78.778s and final cleanup regression PASS117.820s, scoped vet/Bash syntax/diff-check PASS.
+Real disposable DB advice/value/retention/rollback/reopen/fd/lifetime tests pass. Queued static
+CGO0/linuxamd64/readonly/trimpath/buildvcsfalse/s-w build yields verified static ELF SHA256
+`7f1ea72195152f8a5b91b2938200b39c5b9e39de05e39e588a87e72c0488f81a`.
+Independent final source/document reviews CLEAN; separate quota-limited safety reviewer is NOT a
+completed audit. Capture analysis proves file-dominant late pressure, not a causal phase/file.
+No local race/C14 mutation/fuzz/stress/copied sandbox was run or is authorized.
+
+## Exact CI and remaining acceptance
+
+Source9979 data37900659553 + manually dispatched sync37900716182 SUCCESSall3jobs each/artifacts0;
+mutation/restoration/fuzz SKIPPED. Source Android37900659441 CANCELLEDduringSDK/wrapperPASS,
+mobile tests/lint/assembly/verification/upload SKIPPED/artifacts0. Sole watcher42704 exited.
+Documentation6ed data37906598857 SUCCESSall3jobs: vet/unit/race/static/helpers/sampler, ordinary
+root deploycheck and race root deploycheck; C14stress SKIPPED/artifacts0. Android37906598837
+CANCELLEDduringmobile-used-core tests (not PASS); wrapper/cache/artifact harness/certificate checks
+passed, feature-catalog/app-mobile tests/lint/assembly/verification/checksum/upload SKIPPED,
+runner signing cleanup PASS/artifacts0. No new successful Android build, APK, install or launch.
+Initial CI observer78319 exited127 due missing local jq before watching/cancellation; corrected
+single observer43350 completed EXIT0, no duplicate watcher. Server source remained unchanged.
+
+The previously failed resource gate still blocks release. Fresh guarded live memory/retry and later
+public-OFF/restart-proof/publication gate-test/data isolation/final immediate gates remain unrun;
+actual +1/+7 clocks have NOT started. Goal ACTIVE; current safety/input condition is new, not the
+old resolved connectivity blocker. No D1 completion, physical PASS, D2 or TV-port closure is claimed.
+
+## Preserved product/coordination continuation
+
+F1/F2 at137ef6cf and F3 typed private-art provenance at789b8c9e are implemented/CI-green/artifact-
+published, not to redo; F3 acquisition/ranking/projection/rendering and phone/Shield CW/Next/name/
+position acceptance stay open. Latest signed phone47 bytes267701390/SHA256
+`85f5028cf0d8e1aed5a050f1e7012f6c67dbdb713adab380ab87f911f31be559` were published to both required
+Download paths, no install/launch. Sports Programs remains implementation/artifact/install checkpoint,
+physical OPEN; CL042 refreshPASS/artpartial/Websiteunobserved and owner choices remain future.
+
+Canonical live root `/root/work/_agent-coordination/private-media-tv/`, eight files/permanent
+exclusive flock/preimage checks/atomic publication, one Codex TRACKED_WRITER/integration/Git owner;
+Claude read-only. Own inbox intake, both-inbox semantic dedupe, READY_FOR_CODEX consumption/ACK
+and existing Claude surveys/brief reuse remain. Owner need not remember which agent received work.
+REQ-CODEX004/COORD006 owns current D1; REQ010 event-only/no duplicate observer, COORD004/REQ012
+product pending are separate. No fresh LATER/D2/VPS authority inferred from a coordination receipt.
+Next actual step: obtain private causal/preservation evidence, then continue already-approved
+guarded D1 sequence without fresh generic approval, requesting Tailscale only for its named control.
+Agent-memory Git finalization is helper-only after this actual application/CI truth.
+
+# Historical handoff below — preceding failure/rollback checkpoint, preserved verbatim
+
 # private-media-tv — D1 resource FAIL / guarded rollback / restored positive controls pending (2026-10-09)
 
 Application `main`/tracking `origin/main`, fetched remote and independent `ls-remote` equal pushed
