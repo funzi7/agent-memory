@@ -1,3 +1,105 @@
+# private-media-tv — FIRST-build sampler source reviewed/pushed/paired CI green (2026-10-09T14:55:58Z)
+
+Application main/origin/main/independent ls-remote equal normally pushed
+`78391b2679d3bd0a25bff31401d0e395e2f89338`, parent preservation checkpoint6f.
+Twenty-two task-only files1748add/45del, committed diff SHA256
+`b943a8bf526e675d6ba19b74bdbc0a71285a0fd02dba5c40dd05dd177e543bc9` equals reviewed staged tree;
+independent post-commit exact-head applicability/identity rereview CLEAN/no P1/P2/diff-check PASS.
+Tracked/index clean; five excluded JVM/accidental diagnostics and recovery backup untouched.
+
+This is a SOURCE checkpoint, NOT completed D1. Goal ACTIVE; STOP BEFORE D2. Data DOWN/sync UP.
+On-VPS bundle/image/source remains1d877622, not source9979 or783. Exact TX063435 confirmed rollback,
+dotenv hold, retained volumes/O-D3/ts-state/config and absent/revoked O-D2 remain. No new live
+transaction, bundle, image, startup, vendor/policy/credential/data mutation yet. Original stable1791
+sample192MiB FAIL remains peak201371648 vs201326592,45056 over/limit event/no OOM; no rounding,
+cap change/cgroup reset/retroactive PASS. Later immediate/public/restart/data-isolation/+1/+7
+acceptance UNRUN; review clocks0. No Android/version/APK/device/PMTV launch authority follows.
+
+## Narrow internal correction — implemented once, do not redo
+
+Read-only12:11 retained-manifest timestamp/hash/header evidence showed age>13h, NOT full semantic
+pair/RunState/exact firstDue. Default startup can immediately catch up before a post-up sampler
+attaches. The unchanged existing FIRST/catch-up companion gate cannot be replaced by sampling the
+next attempt. Independent applicability confirms the correction is internal engineering under
+standing D1 authority, no new owner product/security/architecture choice or approval required.
+
+Fixed hash-pinned non-enrolling Compose override adds only PUBLIC hold=true; base run/Compose,
+scheduler/firstDue/RunState/clock/endpoints/keys/volumes/networks/schema/exact192MiB cap unchanged.
+After healthy heartbeat/truthful runtime IDLE, existing private0700 uid65533 tmpfs holds one0600
+single-link identity-bound generated nonce record, deadline EXACT selected due+5minutes (<24h).
+No auto-release on expiry, no durable marker/clock/peak/counter modification. Missing challenge
+never authorizes; only a fully published matching marker releases the original resident worker.
+Atomic ephemeral-tmpfs rename is command commit point, with no fallible post-commit result.
+First sampler pins process/cgroup/tmp/record, validates first real IDLE/exact cap/absolute-zero
+events, flushes/account ordinary schema1 waiting baseline, rechecks, then calls fixed canonical
+wrapper/exec with nonce ONLY on stdin, minimal environment/closed inherited FDs/suppressed output.
+Host exec/timeout ambiguity immediately produces incomplete failure and mandates rollback, never
+next-attempt PASS. No nonce/PID/path/private identifier enters argv/log/status/receipt. Restart
+preserves strict valid enabled/absent pair; its existing down/base-up proves flag ABSENT afterward.
+Do not recreate before accepted first sampler+build-check. Actual first-start-state due must be read
+before attachment; immediate catch-up must arm promptly within its hold window. Prior pinned-image
+read-only Env/User compatibility passes, NOT actual newly built image/runtime proof.
+
+## Exact validation and review receipts
+
+Native focused first-hold PASS0.106 then0.260s; earlier8.064s/diagnostic.014s fixture failures arose
+from t.TempDir0755, fixed fixture700 only. Full command suite PASS.726s. Python first14 latest
+1.371s + ordinary12/.871s PASS; initial6errors in10tests/.690s were schema1 first-delta grammar,
+corrected while ANY nonzero absolute event still rejects before release. Wrapper/ordinary sampler
+54.006s PASS after stale fake command-anchor failure8.177s. Selected restart failure315.105s PASS,
+successful strict pair/base absence55.79s PASS. First operator run56.671s initially SKIPPED both
+new cases due PRoot ownership—not PASS. Fixture-only owner predicate adaptation then runs BOTH
+success/failure49.387s with no skips, exact argv/stdin/env/FD/privacy/instant incomplete failure
+assertions. Present false/invalid flag reject-before-restart/cleanup PASS17.725s. Scoped vet/bash/
+diff-check PASS. StaticCGO0linuxamd64 stripped ELF PASS, SHA
+ae11423c18bc18fc9c265a0f3c0a6f048407a9e3da79a4a6a04f61285dd26e76. No local race/stress/copied-module.
+
+Independent scoped Go/sampler/wrapper/operator/document reviews CLEAN. Valid atomic commitpoint,
+private-tmp identity, strict flag-pair, usage/report wording findings fixed. Initial reviewer SHA
+wildcard finding withdrawn after quote-boundary and actual passing wrapper proof. No fabricated
+completed quota-failed audit or new broad C14 review/mutation/fuzz campaign.
+
+Exact data37946680616 and sync37946685288 SUCCESS all3jobs each, module/vet/unit/race/static/helper/
+sampler and root ordinary/race deploycheck. C14 mutation/restoration/fuzz SKIPPED, artifacts0.
+Automatic Android37946680850 CANCELLED during SDK setup; wrapper PASS, TDLib/credentials/certificate/
+tests/lint/assembly/verification/upload SKIPPED, signing cleanup PASS/artifacts0. Cancellation is
+NOT Android PASS. Sole event-only3minute CI observer28119 EXIT0, no live CI/heavy/SSH/device waiter.
+
+## Preservation/current input/next actual work
+
+Vendor cause/owner normal-state decision/original baseline archives/fresh union comparison are
+already DONE in the prior handoff—reuse, do not repeat. Fresh owner-ON full sync isolation/deploy/
+sync+data existing controls PASS with reachable positive/all protected negatives blocked/exact
+two-rule hooks/unrelated state unchanged. Owner explicitly told OFFsafe. Latest read-only preflight
+sync3.172MiB/96+22.37MiB/128/restartOOM0/available1225MiB/swap195/PSI60zero/load.02,.06,.08/disk31;
+sync+data existing all serve/services/containers unchanged, retained volume/config/secret-size
+metadata PASS. Original archived1361/1598-byte snapshots/MACs/key contexts reverify PASS. These
+metadata receipts do not claim secret/user-data content identity. No new VPS lifecycle/config/data/
+baseline mutation. Current member-positive blocked; Tailscale ON+connected specifically requested
+for fresh required sync controls before guarded retry. Do not assume last chat ON proves reachability.
+No generic deployment approval or secret entry is needed for the retained-state branch.
+
+Next after member-positive/full restored-sync controls: existing exact-source guarded D1 sequence
+at783, preserve archives/key contexts; canonical exact bundle/check then checked no-clobber restore
+of ONLY TX063435 held dotenv and change ONLY nonsecret source tag; new reviewed transaction/deadman/
+fresh-SSH confirm; sync first/full gates, data network-preflight/exact image/volume/held non-enrolling
+up-first-build/strict deploy/original-singular-machine input; actual due and first-mode sampler+
+build proof, public TailscaleOFF/restart/gate-test/isolation/preservation/sibling checks. Any required
+gate false/inconclusive => immediate reviewed rollback. Tell owner before each required toggle/input.
+Real +1/+7 clocks start only after ALL immediate gates PASS. Then actual later reviews, final truth/
+both pushes and STOP BEFORE D2. No D2/LATER detour from this source checkpoint.
+
+Canonical root /root/work/_agent-coordination/private-media-tv/: eight logical files/permanent lock,
+preimage+atomic publication; Codex sole tracked/integration/Git owner, Claude read-only/own inbox.
+REQ004/COORD006 owns this existing D1 extension, both-inbox semantic dedupe and READY→ACK reuse.
+Future Claude surveys/decisions preserved, not new D1/product authority. Existing CW F3 acquisition/
+ranking/rendering/phone/Shield/names/Next/position/history and Sports physical acceptance stay OPEN.
+Updated public dated1417UTC state file independently CLEAN/no-clobber real phone copy byteequal
+5359bytes/SHA47dd59ef3c994c007f83eba28642bbddb20ace1b15e4e236299382560e97c1e5; old0941 retained.
+Agent-memory finalization only through the helper, after this actual application/CI truth.
+
+# Prior finalized preservation checkpoint — retained verbatim below
+
 # private-media-tv — vendor restart accounted; private baseline retention/fresh comparison PASS (2026-10-09T12:20:28Z)
 
 Application main/origin/main/fetched remote/independent ls-remote equal normally pushed
