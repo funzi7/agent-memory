@@ -69,8 +69,8 @@ No repeated survey/questions, linked/unselected-chat authority or fabricated roo
 CL054/REQ-CLAUDE029 AceStream survey is FUTURE, gated by owner88–92/physical91 and existing
 after-T4/no-torrent/lawfulness contracts. No admission/integration/engine/VPS action or reorder;
 reuse the survey when reached, not a duplicate research pass now.
-Next: helper-only memory checkpoint; fresh idle
-install when owner unlocks, owner runtime retest; original scheduled D1 FIRST preempts at21:29.
+Next actual work: original scheduled D1 FIRST at21:29/21:30, then its required ordered live gates.
+Phone install remains deferred until an owner-unlocked fresh idle guard; owner runtime retest follows.
 Only accepted FIRST plus build-check permits the remaining ordered immediate gates; named ON
 request only when required, OFF-safe afterward, then actual +1/+7 reviews before full finalization.
 Narrow read-only post-FIRST clarification reused existing code: attempt status becomes pending
