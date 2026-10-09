@@ -1,3 +1,115 @@
+# private-media-tv — guarded retries reconciled; original FIRST observer live for21:30Z (2026-10-09T17:17:45Z)
+
+Application main/origin/main/independent ls-remote equal normally pushed documentation checkpoint
+`cad5d70fd1308adab5091a02bcbcc8c0747ca7dd`, parent frozen runtime source78391b.
+NINE task-only Markdown files378add/17del; staged=committed diff SHA256
+`92e69a21096fc59f731df68289c304a53008a73d47a0971d0bbccd07ebb0a345`. Independent scoped review
+and exact-head identity/applicability rereview CLEAN; valid duplicate-observer/current-vs-history/
+stale-prerequisite/image-state findings corrected. Historical C45 anchor/history preserved; no
+owner UX/security behavior superseded. Diff-check PASS; tracked/index clean, known five excluded
+JVM/accidental files and recovery backup untouched. Runtime SOURCE/BUNDLE/IMAGE remains
+`78391b2679d3bd0a25bff31401d0e395e2f89338`; docs HEAD is NOT a recompile/rebundle/restart trigger.
+Validator/helper bytes unchanged and pinned, source783 paired CI/reviews remain reused.
+
+This is a truthful WAIT checkpoint, NOT completed D1. Full goal ACTIVE, STOP BEFORE D2. Current
+data+sync UP under confirmed TX `pmtv-data-20261009T163136Z`; first worker HELD/IDLE, selected due
+2026-10-09T21:30:00Z, hard hold deadline21:35Z. The branch cause is NOT inferred from status.
+Owner OFF confirmed BEFORE startup and fresh private original-only machine/no replacement input
+accepted. Keep OFF steady through long capture; no new secrets/enrollment/keys/policy/vendor/other
+tenant/Android/version/install/launch action. Original source1d fixed192MiB FAIL remains real;
+FIRST resource/full immediate/+1/+7 are still UNRUN/PENDING, review clocks0. Phone/Shield physical
+acceptance and future TV-port/LATER work remain separate, never supplied by these server checks.
+
+## Exact live chronology — preserve and reuse, no completed-work redo
+
+- Public source bundle783130/130 files/36dirs installed/verified, zero content/mode/missing/unexpected
+  mismatch; private runtime paths excluded. Retained volume/config/secret-size metadata/archives/
+  MAC/key contexts pass, not secret or user-data content-identity claims. Original TX063435 dotenv
+  inverse restored with root/mode/device/inode/no-clobber checks; ONLY public tag1d→783 atomically
+  changed, all other bytes preserved. Exact queued VPS image build32459 EXIT0, independent exact
+  tag/User65533/Entrypoint/CMD/base-hold-absence proof PASS. No later image rebuild was performed.
+- TX153013 select3/stage5/syntax/apply300s/freshSSH-confirm/status and sync-FIRST full five-rule
+  isolation/deploy/member-positive/preservation/data preflight passed. Exact keyed proof permits
+  ONLY two HMAC-identified required sync recreations, otherwise identical services/serve/inventory/
+  non-probe scalar fields and unchanged key bytes/FD identity; seven tiny fixtures/.042s/review
+  CLEAN. No rebaseline/ignore rule. Pretransaction available1229MiB/swap195/PSI60some+full0.00/
+  load.20/.09/.08/disk31, sync3.223/96 +22.52/128MiB/restartOOM0; not fresh worker resource proof.
+  Held non-enrolling strict startup passed, but original-only node input was received after the
+  observed15:54:39.1556686Z hold deadline, before any FIRST arming. Mandatory confirmed inverse/
+  status/firewall/checked153013new-env-hold/sync restore63913 PASS. No code/cap failure or resource
+  PASS inferred. Later owner ON restored the full member-positive/isolation/preservation proof.
+- TX160325 reused the same bundle/image, restored ONLY153013 held dotenv/already783/no retag.
+  All guarded/freshSSH/sync-FIRST/data preflight/preservation/volume/startup gates passed. Owner
+  node input was prompt; FIRST36432 armed16:09:28 before due16:08:12+5min deadline. A real private
+  waiting→ACTIVE20row observation/peak20099072/zero initial deltas was recorded ONLY as in-progress.
+  SSH software-connection-abort/broken-pipe then made capture-complete-passed false/EXIT1. Partial
+  temp cleanup removed incomplete receipt; tail observers failed on unavailable file. This is NOT
+  a complete peak/cap breach/worker-code finding. Prompt mandatory confirmed rollback90137/
+  status/firewall/checked160325new-env-hold/sync restore PASS, dataDOWN/syncUP. Source/image reusable.
+  Owner says OFF but timing UNKNOWN; VPN causation is not proved. No durable-collector redesign or
+  source/C14/CI/image redo was introduced. Narrow external partial-footer guard was corrected.
+- TX163136, after conclusive fresh ON restoration, restored ONLY160325 held dotenv/already783;
+  bundle130check/select3/stage5/apply300s/freshSSHconfirm-status70753/61120 PASS. Sync-FIRST full
+  five-rule isolation/deploy/member-positive/preservation/data preflight/keyed exact-two/volume
+  pipeline45474 PASS. Owner OFF confirmed BEFORE startup so the long capture connection begins
+  on an established unchanged route. Same image `up-first-build`/ordinary strict `deploy-check`
+  84466 PASS: all required mounts/networks/tmpfs/memory-readiness/health/auth+enrollment+leak absence,
+  zero restart/OOM/new listeners. Prompt fresh private original-only node input PASS. Actual due
+ 21:30Z/deadline21:35Z; no producer hours early, manual once, clock/marker/counter reset, or
+  next-attempt waiver. Current transaction is NOT rolled back; earlier DOWN states are history.
+
+## One reviewed scheduled original-target observer — live, do not duplicate
+
+Reuse was located in `/tmp/pmtv-d1-wait.rOcgU2vm/`, originals preserved byte-exact. Only TWO files
+copied into root0700 `/tmp/pmtv-d1-first-wait.oNbVrO44/`, scripts0600. Minimal held-first adaptation
+pins validator1851e15e…38e595e/helper16c8fb56…d2133e/source783, exact Cmd/health/restartOOM/process/
+cgroup/current<=peak<=192/events0, exact private hold+due and keyed nonce/inode binding. Fresh
+bootstrap78707 privately pins current target+hold in a no-follow/single-link/root0600/130-byte file,
+initial peak19791872/events0; not completed-build acceptance. No raw targets/nonce/PID/keys/URLs
+reach logs. Independent review found an unused legacy raw-target assignment in the copied script;
+removed via apply_patch, original evidence preserved. Final scoped rereview CLEAN/syntax/modes PASS;
+snapshot SHA58f034d8c71c3520a3d9b533b1b06753167206eb316873bc25c2c60b7a7099b3 and controller
+b3b93f885c1f448eb62bbb36c367d4886dcd068e40a006676f4711c41210e59b.
+
+ONE controller execsession63032 started16:53:51 and re-polled LIVE17:17:45, no terminal output.
+It performs silent bounded read-only five-minute snapshots of the SAME original keyed target+
+hold, then immediately rechecks/arms canonical `memory-sample-first783` near21:29 for exact21:30.
+It validates complete passed schema1/canonical receipt and exact target binding; after authenticated
+release it correctly does NOT require the intentionally removed hold. Actual `build-check` remains
+mandatory afterward. Use SAME63032 handle; an observation timeout is not terminal and never permits
+restarting a producer/observer. Prior19156/29751/36432 are terminal; no receipt-tail observer alongside
+this controller. No copied module/worktree/sandbox/stress/daemon/source-image-CI rewrite. Root sole
+writer/integration owner; current-source helper hash stays frozen despite documentation HEAD.
+
+Any required precheck/observer/capture/target/metric/event/peak/release ambiguity is fail-closed:
+stop both projects WITHOUT volumes, use ONLY TX163136's immutable staged helper
+`rollback --after-confirm` then status; checked SAME-TX root600/singlelink/device+inode/no-clobber
+dotenv hold for this sync-only predecessor, sync restore FIRST and all restoration controls. No
+physical/runtime PASS from unrun/inconclusive/failed evidence. Only after complete accepted FIRST+
+build-check run public-OFF, restart-proof/base-flag absence, gate-test, named owner ON data isolation/
+preservation/sibling checks; tell OFFsafe after required positives. Start +1/+7 clocks ONLY after
+every immediate gate passes; actually perform later reviews before final truth/two pushes/D2 stop.
+
+## Exact documentation-head CI and publication limits
+
+DocsCAD data37964245047 SUCCESS3/3: vet/unit/race/static/helpers/sampler +root ordinary/race
+deploycheck; C14 mutation/restoration/fuzz SKIPPED/artifacts0. No unnecessary manual sync rerun:
+frozen source783 paired data37946680616+sync37946685288 SUCCESS is preserved. Automatic Android
+37964245048 CANCELLED during SDK setup, wrapper PASS, TDLib/signing/tests/lint/assembly/verification/
+upload SKIPPED, cleanup PASS/artifacts0. Cancellation NOT Android PASS; no APK obligation/new build.
+Sole CI observer93263 EXIT0/terminal; only scheduled63032 remains live. Finalization of this memory
+checkpoint goes ONLY through the helper after actual application/CI truth; full D1 is NOT finalized.
+
+Canonical root /root/work/_agent-coordination/private-media-tv/, eight files/permanent lock/
+fresh-read+preimage+atomic publication; Codex single writer, Claude read-only sidecar. Both owned
+inboxes/semantic dedupe/READY_FOR_CODEX→ACK consumption and all prior surveys/owner choices remain.
+REQ004/COORD006 owns D1; no new request or generic approval for guarded retries. Current-state labels,
+old prerequisite boxes and source/runtime distinctions reconciled; old raw FAIL/history preserved.
+CW F3 acquisition/rendering, phone/Shield feature/position/history and Sports physical checks OPEN;
+no future survey/TV-port/D2 authority or fabricated physical pass follows from this checkpoint.
+
+# Prior finalized source checkpoint — retained verbatim below
+
 # private-media-tv — FIRST-build sampler source reviewed/pushed/paired CI green (2026-10-09T14:55:58Z)
 
 Application main/origin/main/independent ls-remote equal normally pushed
