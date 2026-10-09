@@ -278,3 +278,5 @@ date,portfolio_id,strategy,ticker,side,shares,fill_price,commission,cash_after,e
 2026-10-06,pullback_10k,pullback,NUE,BUY,8.0,252.9164,1.0,101.48,10706.47,משיכה #1 — חוזק יחסי 94% · מרחק מממוצע 50 -1.5%
 2026-10-07,pullback_10k,pullback,FFIV,SELL,1.0,468.3357,1.0,568.81,10593.43,"מימוש חלקי +17% — נמכרה מחצית, סטופ הועלה לכניסה"
 2026-10-07,twitter_track_100,twitter_track,ARDX,BUY,1.0,3.2616,0.0326,51.6,92.56,קנייה לפי @theaiportfolios
+2026-10-08,pullback_10k,pullback,NUE,SELL,8.0,245.0074,1.0,2527.87,10608.4,התמיכה נשברה — מתחת לממוצע 50
+2026-10-08,pullback_10k,pullback,IQV,BUY,9.0,256.138,1.0,221.63,10632.08,משיכה #1 — חוזק יחסי 95% · מרחק מממוצע 50 +0.7%
