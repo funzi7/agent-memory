@@ -1,3 +1,92 @@
+# private-media-tv — D1 resource FAIL / guarded rollback / restored positive controls pending (2026-10-09)
+
+Application `main`/tracking `origin/main`, fetched remote and independent `ls-remote` equal pushed
+documentation HEAD `72e50f2a741a32d8d1d3a213b8d05f0054298bae`, parent
+`789b8c9ed3704bcc60158650ac1974c62d21f246`. Eleven Markdown files,193 additions/14 deletions,
+record the actual failed resource gate, mandatory rollback, preservation evidence and remaining
+positive controls. Normal fast-forward push; tracked/index clean. The two JVM crash reports and
+three accidental diagnostics/research files remain untracked, untouched and excluded. No runtime
+source, deployment contract, version, APK, installation or product behavior changed in this receipt
+checkpoint. D1 is OPEN; STOP BEFORE D2. This is not D1 or TV-port completion.
+
+## Actual scheduled source1d failure and mandatory rollback
+
+Worker source remained `1d87762261856d84c9537d3d60b7b42329b4921a`. The preserved canonical
+mode0600 memory receipt independently parses successfully: complete capture,1,791 samples,
+targetstable true, reason `attempt_idle`, peak201371648bytes versus fixed max201326592bytes,
+45056 over, ceiling193MiB, limit event true and OOMfalse. `memory_sample_passed=false` is a real
+FAIL. Receipt parsing is not acceptance; no rounding exemption, cap increase or causal allocation/
+phase claim was applied. Worker completion/publication/manifest advancement/build-check are not
+inferred from these observations. Private keyed/process handles and raw samples remain outside Git.
+
+The exact reviewed confirmed transaction was rolled back immediately through canonical data then
+sync `down` without `-v`, `rollback --after-confirm`, verified inverse/status/firewall reload,
+checked exact no-clobber data dotenv hold, then canonical sync `up -d`. Transaction valid/applied/
+confirmed/rolled-back and `rollback_failed=false` passed; data is DOWN and sync UP. No volume
+deletion, secret rotation, re-enrollment, Tailscale-policy change or unrelated-tenant lifecycle action.
+Sync deploy-check/volume-check and data retained-volume/O-D3/config/serve-file metadata/secret-size
+checks pass without reading secret contents. Sync existing proves unrelated Remote Sources serve
+configuration, host services and other containers unchanged. Data existing's two changed containers
+were privately proved exactly the two required rollback-recreated sync containers, zero unrelated
+container changes; the raw set is not falsely reported unchanged.
+
+Fresh canonical sync existing still reports `member_to_member1_ping=blocked` with owner last-confirmed
+Tailscale OFF. Restored full isolation/member-positive preservation remains PENDING. Required owner
+action: turn Tailscale ON and confirm connected; run canonical restored isolation/existing positive
+controls, then explicitly say when OFF is safe. No generic fresh D1 approval is needed. Do not retry
+before restoration is conclusive. The sole scheduled observer is terminal/exited; do not recreate it
+for this failed attempt. No retry/source fix has begun. Public-OFF/restart-proof/publication gate-test/
+data-isolation/final immediate gates were NOT RUN after the resource failure; real +1/+7 clocks0.
+
+Post-rollback canonical sync review EXIT0: API1.508MiB/96MiB, sidecar19.72MiB/128MiB, zero restarts/
+OOM indicators/24-hour OOM events. Host available1221MiB, swap192MiB, both memory PSI60 values0.00,
+load0.17/0.24/0.21,disk30%. This is restored current headroom, not data peak acceptance. After
+restoration, use the captured evidence for a narrow supported diagnosis/fix under standing D1
+authority. Preserve the192MiB/security/data/rollback contract; no broad C14/fuzz/stress/sandbox.
+
+## Review, validation and CI for the documentation checkpoint
+
+Rules reread in full; actual two-repository/status/diff/state/coordination preflight and live remote
+checks performed. Canonical memory-receipt parser and existing/review commands above were actually
+run; diff-check and runtime-source-no-change checks pass. Independent review found one preservation
+wording P2, narrowed to the checked dotenv hold/named-volume metadata/no deletion-or-rotation;
+final review CLEAN/no unresolved P1/P2. Full-index/binary patch SHA-256
+`fb2aa99e04c6268b2b67abd2ec34f2bfde7424227520583421332d1cfb762f6a` matched staged bytes.
+Normal diff `7e0d83a778845a3149e0b084f2cbf4dabc491db66e3efcdd2dfc8aa81d40b869` is a different
+serialization of the same tree, not evidence that the tree changed after review.
+
+Exact HEAD data CI `37863695463` SUCCESS, all three jobs: vet/unit/race/static/helper/sampler,
+ordinary root deploycheck and race root deploycheck. C14 mutation/restoration/fuzz steps SKIPPED;
+artifact count0. Automatic Android `37863695662` was cancelled during SDK setup because D1 grants
+no new Android build: wrapper validation PASS, mobile job CANCELLED, tests/lint/assembly/package/
+checksum/upload SKIPPED,artifact count0. No new artifact or physical PASS. The sole CI watcher exited.
+
+## Preserved product checkpoint and coordination
+
+The previous source checkpoint `789b8c9e…` contains only F3 typed private-art provenance: old PMT1
+legacy minithumbnails remain readable; PMT2 real Telegram and PMT3 generated frames are bounded,
+backward compatible and preserve LAN index copying. Focused16/16/fullcore625PASS+1existing-skip,
+diff-check/two independent CLEAN reviews pass. Its exact Android CI `37844616933` SUCCESS and signed
+phone47 artifact267701390bytes/SHA256
+`85f5028cf0d8e1aed5a050f1e7012f6c67dbdb713adab380ab87f911f31be559` were verified/published to
+both required Download paths without install/launch/version change. F1/F2 at137ef6cf is also already
+landed/CI-green/artifact-published; do not repeat either slice. F3 acquisition/ranking/projection/
+rendering remains open, as do owner-run CW/Next/name/position/phone/Shield checks and later TheTVDB.
+Sports Programs remains an implementation/artifact/install checkpoint with physical acceptance OPEN;
+CL-042 retains refreshPASS/artpartial/Websiteplaybackunobserved and unresolved player/art-fill choices.
+
+Canonical live root remains `/root/work/_agent-coordination/private-media-tv/`, eight logical files
+under permanent exclusive lock/preimage checks/atomic publication. Codex sole TRACKED_WRITER/
+integration/Git owner; Claude released/read-only. Owned inbox intake, both-inbox semantic dedupe,
+READY_FOR_CODEX consumption/ACK apply; owner need not remember the receiving agent. Existing Claude
+surveys/briefs are reused. CL-042 ACKed as future inside the open Sports acceptance loop; it grants
+no silent player/budget/tracking change and is not a D1 blocker. REQ-CODEX-004/COORD-006 is current,
+REQ-CODEX-010 event-only/no duplicate observer and COORD-004/REQ-CODEX-012 product pending remain.
+D1 restoration takes priority; D2 stays outside authority. Physical FAIL/PENDING and future roadmap
+are preserved. Agent-memory Git finalization is ONLY through the required helper.
+
+# Historical handoff below — preceding Sports Programs checkpoint, preserved verbatim
+
 # private-media-tv — Sports Programs finalized / authoritative CW stills next / D1 scheduled (2026-10-08)
 
 Application `main`, fetched `origin/main` and independent `ls-remote` equal exact pushed HEAD
