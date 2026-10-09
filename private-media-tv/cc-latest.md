@@ -1,3 +1,90 @@
+# private-media-tv — D1 public-client source checkpoint; live retry pending (2026-10-09)
+
+This is a verified SOURCE checkpoint, NOT completed D1, redeployment or product acceptance.
+
+Application main/tracking/independent remote is normally pushed
+`375d23668b3c5a5cbae801cf01350713b0a7d5a5`, parent
+`c20f63ad5e38cc41daf6842aabcb3b487eef3847`. Ten intended D1-only source/test/receipt files,
+291 additions/42 deletions; reviewed unstaged=staged=committed patch SHA256
+`b706080e663eac098ae109625036c24cc9488bd81ef4726d57806bd3ca61e77e`.
+Independent source review CLEAN; two valid document findings corrected (old CURRENT/LIVE snapshots
+now explicitly historical; retained EDb status is not current availability), final exact-head
+independent review CLEAN. Tracked/index clean; known five untracked files and recovery preserved.
+
+## Actual FIRST/build and subsequent mandatory rollback
+
+Deployed source/bundle/image remains `78391b2679d3bd0a25bff31401d0e395e2f89338`, not this operator
+correction SHA. Original canonical FIRST completed:1297 samples, raw peak134635520bytes,
+ceil129MiB below unchanged192MiB; stable original target, capture/complete/passed true, no max/OOM
+event. Full protected receipt archived byte-exact without replacement. Completed build passed
+idle/gates/canaries/build_check,106minutes,245882880storebytes/54797entries/13namespaces.
+EDb reachable=false/4079overdue/day2 is retained limitation, not current reachability evidence.
+
+The required public-OFF probe FAILED: all HTTP000/missing captures/no ETag/304/facts verification,
+despite the old CLI erroneously exiting0. No public/DRM/DNS/Funnel availability conclusion follows.
+Immediate exact TX163136 mandatory rollback/inverse/status/firewall passed, both projects down
+without removing volumes, checked no-clobber same-filesystem dotenv hold preserved exact identity,
+sync restored UP. Current dataDOWN/syncUP. Restored sync deployment/volume and retained data
+volume/secret-size/config metadata checks passed; this is not every private byte's identity proof.
+Full member-positive/isolation/keyed unrelated-preservation restoration still needs owner
+Tailscale ON (requested, no confirmation received at this checkpoint). Fresh canonical sync
+existing99625 EXIT0 still reports member-positive blocked, while other host services/serve/
+containers unchanged; CLI0 is not full isolation PASS. No new secret or approval.
+
+## Minimal local public-client correction and validation
+
+Real installed curl rejects `location = false` config grammar before network with exit26.
+Use fixed `--no-location` argv; private URL/output/header/ETag remain stdin-only, environment
+stripping/redaction/cleanup unchanged. Strict public_gate requires200/public remote/validETag/
+304/200verifiedfacts/four404 routes; incomplete/failing probes exit nonzero, never apparent PASS.
+Only ops/validate.sh and internal/deploycheck/ops_test.go plus eight truthful D1 receipts changed;
+no worker/image/cap/data/security/product/Android/version contract change.
+
+New regressions against old production RED38.579s; corrected focused public tests PASS57.793s,
+including real production function parsing with real curl --version/no DNS/network, all curl
+failures/invalid status/missingETag/private remote/corrupt facts/privacy. Queued native
+go vet ./internal/deploycheck EXIT0; gofmt/Bash syntax/diff-check PASS. Existing native toolchain
+was reused; initial go PATH failure happened before tests, not a test failure. No local copied
+module/sandbox/race/C14 mutation/fuzz/stress or repeat broad review was run.
+
+Exact pmtv-data Go38006288953 SUCCESS at23:55:27Z: all3jobs pass (ordinary/race deployment
+validators and runtime vet/test/race/static build). C14 mutation/restoration/fuzz SKIPPED.
+Sole CI observer98869 terminal EXIT0; independent API metadata ties all evidence to exact375.
+Automatic Android38006290901 CANCELLED during SDK setup, wrapper validation passed, assembly/
+upload SKIPPED/artifacts0. No Android PASS or new APK claimed.
+Frozen783 paired Go CI remains prior deployed-image evidence; unrelated sync workflow is not
+repeated because this operator/test-only change does not alter its sources or runtime image.
+
+## Continuation and separate phone truth
+
+Standing D1 authority remains; goalACTIVE/clocks0/STOP BEFORE D2. First finish restored sync
+positive/isolation/preservation controls after named owner ON input. Reuse exact783 bundle/image,
+never retag/rebuild it as this local correction. The unchanged retained-state retry contract
+requires a new guarded transaction/held startup and new scheduler-selected FIRST/build companion;
+the archived previous PASS is history, not a waiver carried across mandatory rollback. No forced
+once, clock/marker/counter reset, substituted attempt, rebaseline, new enrollment/token/policy.
+After accepted companion, run real corrected public-OFF, restart-proof, gate-test, data isolation/
+existing/sync preservation, then actual +1-day/+7-day reviews before full finalization. None of
+those pending runtime gates is accepted by host tests/CI/source publication.
+
+No Android build/version/installation was produced by this D1 correction. Current verified
+phone47/0.4.28-phone-test APK from source8cf/C20 CI remains267717774bytes/SHA256
+`f9472d87b52594e5c5a838f20342e690f1d97db74588ec094733c8e259bc61f3`, delivered to both required
+Download paths. Renewed owner install-only015 duplicates012/014; fresh existing untraced Termux
+host/online Samsung/Termux foreground guard found keyguard=true, so installation DEFERRED,
+zero install/unlock/input/wake/launch/server lifecycle. Device resource RELEASED. Old85 phone
+installation and older TV67 remain last actual installations; feature/phone/Shield acceptance
+OPEN/PENDING. Retained LATER/cache/artwork/YouTube/Sports backlog is unchanged, not D1 PASS.
+
+Canonical coordination root `/root/work/_agent-coordination/private-media-tv/`, eight files/
+permanent lock, Codex sole writer, Claude read-only, owned inbox/semantic dedupe/READY→ACK reuse.
+Existing004/006 owns D1; no duplicate retry/research/product task. All prior finalized history
+must remain verbatim below the eventual current prefix. Agent-memory Git only through helper.
+
+The previous entire finalized handoff is retained verbatim below.
+
+# Prior finalized checkpoint — retained verbatim
+
 # private-media-tv — verified cache APK checkpoint; D1 FIRST pending (2026-10-09T20:54:27Z)
 
 Application `main` / tracking / independently observed remote:
