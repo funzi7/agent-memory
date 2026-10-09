@@ -1,3 +1,42 @@
+# private-media-tv — D1 BLOCKED after resumed private-preservation audit (2026-10-09T09:36:26Z)
+
+The timestamp-only owner reply resumed the existing goal, but did not account for the restart.
+Fresh audit was restarted rather than reusing the earlier blocked count. After three consecutive
+resumed turns on the same genuine preservation condition, update_goal now returns BLOCKED.
+Fresh canonical sync `existing` EXIT0 still reports serviceschanged1/serve+othercontainersunchanged/
+memberblocked; original October4 baseline remains intact. No causal/intended-state input arrived.
+No live CI/sampler/diagnostic wait remains. D1 is not complete; STOP BEFORE D2, clocks0.
+
+One remaining bounded read-only executable metadata gap was inspected, not a new VPS deployment.
+Two probes EXIT0 and process identity stable. Executable is regular, non-root-owned, not group/world
+writable, not deleted and not a recognized interpreter. Both mtime/ctime are newer than the baseline;
+mtime is outside the five-minute window around06:27:15Z, ctime is within that window. Cwd meets the
+root-safe directory check, but `.git` is unsupported and sampled marker count0. Observation
+completeness and application-preservation/restart-cause/deployment-clearance proofs remain false.
+These are one-sided metadata-age observations, NOT proof of new bytes, redeployment, initiator,
+maliciousness or an unsafe unrelated application. Do not change its ownership/configuration.
+
+The reviewed probe validates/removes private selectors before fixed-environment children, pins
+MainPID/ActiveEnterTimestampMonotonic/process-start ticks, and compares fresh executable/cwd/Git/
+marker descriptor identities; stale-target race defects were corrected before execution. No app
+contents, cmdline, application environment, secrets or code contents were read, and no lifecycle/
+configuration/data/baseline write occurred. Syntax and final narrow independent safety review pass.
+The owner-only mode0700 TTY helper now also displays actual private executable path, mtime/ctime
+and configured log destinations, never arguments/file contents. Process/executable identity is
+pinned before Unicode-escaped display; Bash/generated-Python syntax and independent review CLEAN.
+An agent must never execute that private-display helper or copy its output into public records.
+
+Required owner action: run the helper path below privately; say only whether the executable
+identifies a recognized app, then privately account for the06:27:15Z restart using that app's
+update/deployment/maintenance evidence and confirm intended running state. No names/paths/output
+or generic D1 approval. Keep Tailscale OFF. Once preservation is proven, resume the existing goal
+for the standing guarded sequence. Data DOWN/sync UP; source9979 CI-green remains NOT deployed.
+Application is still pushed `6ed7adf7a82db688354085b9b023d2c15d949c68`, no app/source/version/APK/
+device/CI change in these resumed audits. Existing tracked pending-preservation records remain
+accurate; this handoff and canonical external receipt retain the new diagnostic limitations.
+
+# Historical handoff below — preceding blocked audit, preserved verbatim
+
 # private-media-tv — D1 formally BLOCKED on private preservation input (2026-10-09T09:01:09Z)
 
 The existing full D1 goal is now BLOCKED after the same unaccounted-service preservation condition
