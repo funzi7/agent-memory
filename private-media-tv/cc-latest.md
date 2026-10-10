@@ -1,3 +1,68 @@
+# private-media-tv — D1 FIRST/public/restart/gate-test passed; member input pending (2026-10-10)
+
+This is a documentation/acceptance-evidence checkpoint, not completed D1, the TV port or physical
+feature acceptance. Application main/tracking/independently verified remote is normally pushed at
+`c5be35d275e9aa94d616dfc805a4ceb45de44aa3`, a nine-file documentation-only child of a073.
+Reviewed unstaged=staged=committed diff SHA256
+`8aaf344cbcbae546e8d98d05c2517f6b5b90183a6cb81664922a8b83aea64221`; diff-check passed.
+Independent review corrected one evidence-wording distinction (host-published ports versus host
+listeners), otherwise CLEAN. No source/version/server-contract change was committed.
+
+Current D1 is ONLY095200; source/bundle/image
+`78391b2679d3bd0a25bff31401d0e395e2f89338` and operator375 remain unchanged. Data+sync are UP.
+The sole reviewed observer attached canonical FIRST at21:29 and reached terminal23:18:38UTC.
+The selected attempt has complete/pass/capture-valid/stable receipt:1312samples, peak136036352bytes/
+130MiB ceiling, no cap/limit/OOM events, reason attempt_idle. The original-target binding was
+independently rechecked locally using the reviewed function. Its531839-byte root0600/single-link
+receipt is archived byte-exact; the older accepted receipt and failed attempts remain preserved.
+
+Ordered real post-FIRST gates passed:
+- build-check: idle/gates+canaries pass/107minutes/55642cached/store248496128bytes/130MiB peak,
+  TMDB15630requests/429zero/IMDb hit ratio0.900072. EDb unreachable/4255overdue is a limitation.
+- public with owner Tailscale OFF: manifest200/public remote/valid ETag/304/facts200+exacthash-size,
+  all four protected routes404/public_gate=true.
+- restart/down-up proof: same node/address/no duplicate, healthy web+worker, unchanged manifest,
+  tmpfs/cache readiness and retained full firewall; base-up proved temporary acceptance flags absent.
+- publication gate-test: invalid publication blocked and accepted manifest digest unchanged.
+
+The first aliasless build-check invocation exited2 before contacting the VPS. Corrected calls reused
+the same documented private wrapper/state as the observer; no credentials/configuration were created.
+Immediate read-only review captured all fields: sidecar18.3MiB/128/web2.043/32/worker5.887/192;
+restarts0/OOM-killed false/24hOOM0; host available1182MiB/swap195/PSI60both0/load0.09/0.15/0.16/
+disk31%; retained cache248.5MB/public1.673MB and expected security/mount/network shape.
+That snapshot is not the +1-day/+7-day review. No clocks have started.
+
+Owner ON input is pending for data isolation/member positives, then strict keyed preservation and
+sibling sync deployment. All immediate gates must pass before actual +1/+7 review clocks start.
+Any required failed/missing/inconclusive gate invokes ONLY095200's reviewed rollback and sync-first
+restoration. Goal remains ACTIVE; STOP BEFORE D2. No new token/policy/secret or generic D1 approval
+is requested. No observer/sampler remains live.
+
+Exact receipt HEAD pmtv-data Go CI38095505091 succeeded in all3jobs; C14 mutation/restoration/fuzz
+steps were SKIPPED. The sole canonical CI observer52507 terminated0. Automatic Android38095505089
+was cancelled before mobile tests/build and has artifacts0. No Android APK/version/delivery/TV/device
+action follows from this D1 receipt. Phone47 afba/de79 remains the latest verified installed artifact,
+as described in the preserved handoff; owner phone/generic-TV/Shield feature acceptance stays PENDING.
+
+The existing COORD057/CL063 implementation remains DIRTY/uncommitted/unreleased and was deliberately
+excluded from the receipt commit. During the owner-input wait, typed playback-only download gating,
+ban precedence, complete pin/access reasons and paused restore/recovery reasons were corrected;
+queued27550 passed72 focused tests/no skips. Then coalesced bounded remote-stop retries were added;
+queued70659 passed22 OfflineChannelAccess tests/no skips, including three total attempts for direct
+failures and no budget reset from duplicate snapshots. Independent narrow reviews found no further
+blocker in these corrections. These are not full release validation or physical acceptance.
+Durable removal/start ABA, stale/incomplete restore census/abort and settled-controller-to-UI
+observation gaps remain OPEN; full consumer/lint/CI/artifacts/runtime are pending. Preserve all
+working changes, the three task untracked files, five excluded diagnostic/research files and recovery
+backup. Do not install this unfinished candidate or reopen older completed milestones.
+
+Canonical coordination `/root/work/_agent-coordination/private-media-tv/`: one Codex tracked/Git
+writer, Claude read-only, eight files/permanent lock, owned inboxes/semantic dedupe/READY→ACK reuse.
+Next actual D1 step is owner ON followed by the remaining live gates; approved LATER may continue
+during that input wait, with D1 resumption priority. No D2 authority or physical PASS.
+
+# Previous c632 verified handoff — retained byte-for-byte (SHA256 368594a95bccf889978482ef5987e8de600b5d39d7aae9282f995546125879ea)
+
 # private-media-tv — all-source refresh delivered and guarded-installed; receipt closed (2026-10-10T17:00Z)
 
 This is the completed source/delivery/install/receipt checkpoint for root056, NOT completed D1,
