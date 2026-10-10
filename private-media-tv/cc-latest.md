@@ -1,3 +1,56 @@
+# private-media-tv — all-source refresh delivered and guarded-installed; receipt closed (2026-10-10T17:00Z)
+
+This is the completed source/delivery/install/receipt checkpoint for root056, NOT completed D1,
+TV port, Shield parity or physical feature acceptance. Application main/tracking/independently
+verified remote is normally pushed at receipt HEAD
+`a0734613bc35fbe8fb52ed189aceca5b12a1de36`; it is a documentation-only child of application-source
+`afba6de1103fd92efe6a9ee3cda9f09616b81679` and makes no source, runtime, product, version or UX
+change. Tracked/index state is clean; the five known excluded untracked diagnostics/research files
+remain untouched.
+
+Root056 consumed existing Claude CL062/settled63a and “every source”; it did not repeat the survey.
+The visible exact-identity manual refresh runs the existing eligible selected source families while
+retaining known rows and reporting truthful empty/partial results; generation/identity cancellation,
+page session, deep/eligibility, Back and existing navigation/provider boundaries are preserved. TV
+Sports remains deferred to T4. Final host evidence: focused 192 PASS/no skips and independent source
+review CLEAN; the first full run retained two test-fixture-only failures, then the minimum test-only
+corrections passed 115 focused cases. Final full validation was 4012 total / 4000 passed / 12 existing
+skips / zero failures-errors; lint was zero errors / 71 warnings / 2 hints. Exact application-source
+Android CI `38064923764` passed.
+
+The signed phone47 `0.4.28-phone-test` artifact is 267750542 bytes with SHA-256
+`de79bbdc151dd42d6e3bedded099a1cff3e90634de7bb1dc4f9a0053ed367628`, package
+`com.funzi7.privatemediatv.mobile`, Development signer
+`2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0`, and pinned official TDLib JNI
+`790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f`. The canonical downloader
+verified/refreshed both required paths:
+`Download/private-media-tv/private-media-tv-mobile-0.4.28-phone-test.apk` and
+`Download/private-media-tv/mobile-test/private-media-tv-mobile-test-0.4.28-phone-test.apk`.
+
+Using the existing untraced Termux-host ADB server, the afba/de79 artifact was guarded-installed in
+place without opening PMTV. Fresh pre/post unlocked-idle, window/activity, current-media,
+foreground-service, audio and known-preimage checks passed. Independent reads proved exact installed
+bytes, current user0, version47 and preservation of the original 2026-08-03 first-install time; no
+uninstall, Clear Data, unlock, app launch or ADB-server lifecycle action occurred. The device resource
+was released. Receipt HEAD a073 exact-head Android CI `38067897526` then passed in 25m26s; its
+canonical artifact was byte-identical to de79 and refreshed both paths, so no redundant second
+installation was performed. Sole CI watcher38551 terminated0; no local heavy/CI/device/VPS job is
+active.
+
+Owner phone/generic-TV runtime, Home refresh result, Back behavior and Shield parity remain genuinely
+PENDING; installation is not a physical PASS. CL063 Telegram channel-unavailability is the next
+approved LATER package during the D1 wait, using existing READY_FOR_CODEX research rather than a new
+survey. Canonical coordination remains `/root/work/_agent-coordination/private-media-tv/` with root
+as sole tracked writer.
+
+D1 remains open and unchanged: data+sync UP; source/image783, operator375 and transaction095200;
+owner Tailscale OFF. Old observer41914 was lost before sampling, not a workload/server failure;
+exactly one replacement observer34932 is LIVE from the reviewed bundle. Actual FIRST remains due
+21:30 UTC (attach21:29/deadline21:35), clocks0, +1/+7 pending, and STOP BEFORE D2. No D1 safety,
+runtime, deployment, preservation or owner-input gate is converted to PASS by this checkpoint.
+
+# Previous verified handoff — retained verbatim (SHA256 a247cdcca6d653e89f0d084d3946c590cc077b3361a82cdc4db408b99c990e16)
+
 # private-media-tv — Sports feedback CI/artifacts delivered; installation pending reconnect (2026-10-10T14:46Z)
 
 This is a source/delivery checkpoint, NOT completed D1, TV port or physical acceptance.
