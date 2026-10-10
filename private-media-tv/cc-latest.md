@@ -1,3 +1,19 @@
+# private-media-tv — D1 BLOCKED on preservation/input (2026-10-10T07:38Z)
+
+Formal goal was set BLOCKED after the same genuine preservation/input condition persisted
+through three consecutive goal turns. Previous turn made concrete progress: the twelve-doc
+receipt was normally pushed, exact Go CI passed and the factual memory checkpoint finalized.
+Now no live CI/worker/sampler/device/VPS process remains and no unused safe D1 step advances
+the required gate. Owner identified Firmware Update Daemon but has not confirmed its intended
+normal automatic operation; two earlier stop/start initiators remain unaccounted. Recognition,
+current health or repeated read-only checks cannot replace the approved preservation proof.
+DataDOWN/syncUP/ONLY060616 dotenv held/TailscaleOFF/clocks0/STOP BEFORE D2. No retry,
+baseline exception, new source/build/CI/device action or acceptance followed this block.
+Required owner input: confirm whether the daemon's normal automatic operation is intended
+unchanged. This is information, not a generic D1 approval or permission to change the daemon.
+The complete verified checkpoint below is retained verbatim; ACTIVE described its publication
+time, not the present formal BLOCKED status. Application HEAD/CI/artifact truth is unchanged.
+
 # private-media-tv — D1 preservation-held checkpoint (2026-10-10)
 
 This is a verified documentation/installation checkpoint, NOT completed D1 or accepted deployment.
