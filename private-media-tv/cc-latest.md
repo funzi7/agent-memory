@@ -1,3 +1,18 @@
+# private-media-tv — D1 blocked on required member connection (2026-10-10T00:06:50Z)
+
+Formal goal status is BLOCKED after the same connection gate persisted across the latest
+user-triggered turn and two automatic continuations. Fresh canonical sync existing14425 EXIT0
+still reports member-positive blocked; services/serve/containers unchanged. DataDOWN/syncUP.
+Independent narrow runbook audit confirms no unused safe D1 action advances the required gate;
+partial comparisons cannot replace the positive control. No service start, retry, rebaseline,
+new source/build/CI/device operation or acceptance clock followed. Source checkpoint375/CI and
+both pushes below remain verified; +1/+7/runtime/phone/Shield pending, STOP BEFORE D2.
+Exact next owner action: turn Tailscale ON and confirm connected for restored positive/isolation/
+keyed preservation checks. Standing D1 authority is unchanged; no new approval/secret required.
+
+The previous complete SOURCE checkpoint is retained verbatim below (its ACTIVE goal wording
+describes its earlier publication time, not the current formal BLOCKED status).
+
 # private-media-tv — D1 public-client source checkpoint; live retry pending (2026-10-09)
 
 This is a verified SOURCE checkpoint, NOT completed D1, redeployment or product acceptance.
