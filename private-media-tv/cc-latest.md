@@ -1,3 +1,70 @@
+# private-media-tv — Sports feedback CI/artifacts delivered; installation pending reconnect (2026-10-10T14:46Z)
+
+This is a source/delivery checkpoint, NOT completed D1, TV port or physical acceptance.
+Application main/tracking/independently verified remote is normally pushed
+`8101b0c12b7abfe75277c834f912dcc565b87cff`, parentd9. Task05513files322add9del;
+exact reviewed unstaged=staged=committed patch01f467c50ca74b07c18c740453437f7c39024f83a95ed22e63c704c12238a96a.
+Source22a914a47bb193967bfb7f88b27c8b54d75d7b26531e7299105e14e352099e31 and docs93ed74e6578dfcd4cdf0ff471471740b5f65c1ceb643667d9b12e0f037537f03
+independently reviewed CLEAN/P1P2zero and bound to exact810; diff-check PASS. Host focused54PASS/
+full94744 PASS1382cases1376passed6existing opt-in skips178classes/10m8, lint0errors59warnings2hints.
+CL057 immediate typed host feedback before work, generation-safe cancellation and new catalog/CW
+intent ownership are in this artifact. Source driver/search/native-first/FINISHED-unwatched/Back
+unchanged; no early Details/private VM generation API/new provider/TV Sports/version change.
+
+Exact810 Android38056489108 SUCCESS/bothjobs; sole31112 watcher TERMINAL0. Official TDLib/
+mobile-used tests/lint/signed assembly/package/native/license/private-payload checks/upload PASS.
+Two canonical downloads58358/31629 failed network abort BEFORE publication, not a code verdict.
+After a bounded public GitHubHTTPS200 check, thirdcanonical12780 EXIT0; no downloader redesign.
+Both required Download paths independently verified regular/non-symlink/267734158bytes/SHA256
+`460ee3f907254c3cc08d273d356be5228428c0659913e9a12669c6a6a0341ba3`:
+general private-media-tv-mobile-0.4.28-phone-test.apk and mobile-test/
+private-media-tv-mobile-test-0.4.28-phone-test.apk. Phone47/name unchanged, Development signer
+2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0, official CI JNI
+790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f verified. Same-version local
+cleanup absent, older versioned siblings untouched. New460 artifact contains055, NOT dirty056.
+
+Owner019 install-if-idle remains standing. Fresh Termux-host28662/executable/Tracer0 PASS and
+existing remote-socket clientEXIT0, but connected devices0 at this delivery gate. No package/
+install/open/unlock/clear/uninstall/server-lifecycle command. Resource RELEASED; owner normal
+Termux reconnect input pending, no minute retries. Last verified installed phone800666/source3e7
+is historical, not a current-device reading. TV67c295 still delivered/not newly Shield installed;
+41681 remains last verified Shield install. All current feature/phone and futureT4 Shield checks
+remain owner-run/PENDING. Old immutable handoff follows in full, with its earlier truths dated.
+
+Actual ongoing continuation: root056 reuses existing Claude037/CL062 and settled owner63a/
+“refresh every source”, not a repeated survey. Dirty source/test plus task docs are deliberately
+NOT staged/absorbed in810. Exact binding FORCE now continues existing bounded selected queries;
+known rows/exact YouTube binding retained. Generation/identity-bound captured general+official
+jobs plus Website completion, one VM-owned perceptible/manual result, Retry combined/Deep separate,
+generic TV catalog parity/no Sports beforeT4. Core94PASS/featureKnown22+presentation9PASS, zero
+skips. Intermediate fixture compile failures and valid TV lifecycle/helper review fixes retained;
+Focused21388 found one new fixture missing its normal index outcome; corrected on the SAME
+coordinator without weakening the assertion. Its phone40/41 and TV23/23 results are retained,
+not a final PASS. Review also found swallowed cancellation in existing fail-soft boundaries;
+the narrow cancellation-preserving helper/owned cleanup/regressions are in dirty056, not810.
+Interim24633 PASS190cases/no skips/1m41: core94 reused, feature31/mobile42/TV23 fresh.
+Independent review identified a lower index swallowing external cancellation; the additional
+targeted98904 regression is ACTIVE before a context-active defense. No final056 validation,
+CI/artifact/physical claim; this ongoing task remains deliberately separate from810 publication.
+Safe aggregate diagnostics exclude fingerprints/private IDs/raw errors. Root sole writer;
+internal reviewers READ_ONLY. CL063 remains next separate source-lifecycle work, not implemented:
+pinned1.8.66 Banned/nonblank restriction proves current no-access, NOT channel deletion/permanence.
+Preserve owner64b safe reason/stop remote retry/owner removal/recovery/verified pinned local playback;
+future65a auto-delete cannot activate without separate concrete deletion proof. No duplicate choice.
+
+Canonical eight-file root `/root/work/_agent-coordination/private-media-tv/`, permanent lock,
+one tracked writer/Claude read-only/owned inboxes/semantic dedupe/READY_FOR_CODEX→ACK consumption
+unchanged. CL058/060 standings and CL064 genuine choices remain separate; AceStream afterT4.
+D1 formal goalACTIVE/data+syncUP/ONLY095200 immutable rollback authority; frozenruntime783/operator375/
+validator818/helper16c unchanged. Original-machine-only owner input confirmed BEFORE ONE reviewed
+41914 scheduled observer began; repolledLIVE/no failure. KeepTailscaleOFFsteady through actual
+21:30 FIRST (attach21:29/deadline21:35). New sampler/build/resource/later gates UNRUN, clocks0,
+actual+1/+7 reviews PENDING/STOP BEFORE D2. No old FIRST carried across rollback, new C14/stress/
+sandbox/VPS/policy/image/token/version work. Due/resumed D1 preempts approved local LATER.
+Finalize memory only through helper; both-repo checkpoint never closes D1/TV/physical gates.
+
+# Previous verified handoff — retained verbatim (SHA256497af4a8e533ad66c36ba60e9280af20e0ddce5b1ad51659031a004b2aabafe3)
+
 # private-media-tv — Sports-card CI/artifacts delivered; phone transport deferred (2026-10-10T13:17Z)
 
 This is a source/delivery checkpoint, NOT completed D1, TV port or physical acceptance.
