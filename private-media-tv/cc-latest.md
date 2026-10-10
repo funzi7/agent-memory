@@ -1,3 +1,137 @@
+# private-media-tv — CW checkpoint delivered; D1 held for scheduled FIRST (2026-10-10T11:35Z)
+
+This is a source/delivery checkpoint, NOT completed D1, TV port or physical feature acceptance.
+The existing formal D1 goal is ACTIVE: all immediate live gates plus actual +1-day/+7-day reviews,
+then both-repository finalization and STOP BEFORE D2. Acceptance clocks remain zero. Owner permits
+approved local LATER during every genuine D1 wait/block; resumed/due D1 takes priority. No new D2,
+VPS contract, launch, stress/sandbox or version authority follows. Earlier BLOCKED/OFF/old-source/
+installation snapshots below are retained history, not current commands or missing owner inputs.
+
+## Exact project checkpoint and validation
+
+Application main/tracking/independently verified remote is normally pushed
+`3e7e9db65a9e43c72fa72b00940aea25c074c4d3`. It follows
+`c3882cc198deab882c20fe430675b0dfa3d74499`, which preserved the interrupted local CL052 work and
+added only its approved bounded waiting-CW behavior plus factual D1/owner documentation.
+Source c388:25 intended files/768 additions/61 deletions, exact reviewed unstaged=staged=commit
+patch `be2415b50edd0eb14842cd1b627d89d771ac0cf158d4a6cc8c5106ce9ea18cc3`.
+Follow-up3e7:10 intended files/92 additions/14 deletions, only2 TV-test-map lines plus receipts;
+exact reviewed/staged/committed patch
+`7a44d5874a6fec7c3ed067d0afea686c785d96af74fe1386d550f28a55745663`.
+Independent reviews CLEAN after valid documentation findings were corrected; diff-check PASS.
+Tracked/index clean, known five untracked diagnostics/research files and recovery backup preserved.
+No reset/restore/stash/clean/rebase/force or alternate worktree; no unrelated work absorbed.
+
+CL052 reuses owner81a/82a/Claude's existing brief: one same-season future waiting card, or known
+new-season E1 within inclusive30days, after playable cards/nearest known future dates first.
+Exact meaningful completed/explicit-Watched episode evidence enriches the existing observer;
+per-source bounds/numeric ties/independent reference clocks preserved, no new schema/collector/
+network. Tap is Series Details only/no Play/Telegram; no inherited filled partial progress (the
+existing empty0%-fill track remains). FUTURE is never clock-promoted to AIRED; proper progression
+classification owns release. One-series/progress/history/Eye/30s/source-art/Back/focus preserved.
+
+Focused66707:105PASS/59s/skips0, core36 reused/feature69 fresh. Full shared67774:core631cases
+(1skip)/feature1419(5skips), zero failures/errors/3m32s/fresh09:54–09:58. Consumer37881:phone13/
+TV43/no failures/errors/skips, both apps/test sources compile; core/feature lint each0errors/1warning.
+Full TV36768 initially FAILED560/1: prior9f802 already added the shared vault publication-fsync
+result, but the TV expected-map still left24 generic cases against its23 assertion. The only
+correction adds the existing exact safe Hebrew/code message to that map, retaining the23 assertion,
+exhaustive coverage/privacy checks and all production/crypto/UX behavior. Target42734:15PASS/37s;
+full corrected17358:560PASS/81classes/no skips/2m42s; TV lint0errors/10warnings. Failure retained.
+Postcommit26188 TV assembly PASS26s/incremental reuse; no version change or broad C14 work.
+
+Exact3e7 Android CI38046096146 SUCCESS/both jobs: official TDLib, mobile-used tests, lint, signed
+assembly, package/native/runtime/license verification and upload. Sole23405 watcher terminal0.
+Own oldc388 Android38044428721 CANCELLED while mobile tests ran, artifacts0; not a code failure.
+Go workflows were not path-triggered by these app/test/docs changes; frozen783 runtime/375 operator
+reviews/green exact Go evidence remain applicable, never relabelled as new-server deployment.
+
+## Actual artifacts and phone install-only
+
+Canonical38916 exact-head phone publication passed; BOTH required general/Mobile Test Download
+files independently read back regular/non-symlink,267717774bytes/SHA256
+`800666bf3fe31647a3943602fdaaa25c4fc454a56cb8762b40abe6ba5f65ea30`.
+Phone47/`0.4.28-phone-test`, signer
+`2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0`, ARM64 only;
+official CI JNI SHA790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f.
+Same-version local cleanup absent; no older versioned siblings removed or old APK called new.
+
+Owner019 renewed latest-phone install-only after Wi-Fi/ADB readiness. Reused validated guard with
+ONLY new artifact SHA/current untraced Termux-host PID28662/old f947 preimage pins changed.
+ONE36939 in-place install-r EXIT0 after current unlocked/idle/window/activity/media/audio/service
+guards; exact installed hash/version and before/after first-install preserved, no launch/unlock/
+uninstall/Clear Data/server lifecycle. Independent current-user0/original2026-08-03 05:46:55 and
+new installed SHA/version proof PASS. An initial independent assertion assumed one global
+firstInstallTime; Android reports a separate user entry too, so current-user-scoped parsing fixed
+that read-only verifier, not the app/device. Installation is NOT feature/runtime acceptance.
+
+Local TV67/`0.6.44-c45tv-later3` APK268864456bytes/SHA256
+`c295f1aee008802f05e4ce27bda6b1c623d6a9818668065dde2f16a89e8ab5ef` passes signer/package/
+ARM64 pinned JNI/native alignment/exact Gecko+FIDO+SnakeYAML/notices/private-material/credential
+checks. JNI21d59ebfeba4edc62ea74cefaa79b08650e796530f3d5e57804105cc44cb65dc is LOCAL, not CI.
+58549 publication/readback PASS at Download/private-media-tv/private-media-tv-0.6.44-c45tv-later3.apk;
+prior owned same-version41681 copy retained outside Git, no older sibling removed. No new Shield
+installation/opening or TV physical PASS;41681 is the last verified Shield installation, not a fresh
+current-device check. Owner-run waiting-CW/cache/player/phone/Shield acceptance remains PENDING.
+
+## Current D1 live truth and next actual gate
+
+Owner explicitly accepted ONE fwupd historical-gap fresh comparison point; unknown earlier
+06:05 cycle causes/failed68133/its lost second-service identity remain history, not retroactive PASS.
+Four protected baseline/diagnostic snapshots plus original archives/MAC/key contexts retained.
+Initial local delta false was exactly OFF blocked ping versus ON reachable, not new service drift;
+small connectivity-only correction9tests/review/real keyed proof PASS, ALL protected fields strict.
+Fresh full sync controls78982 and paired canonical baselines/immediate strict comparisons89349 PASS;
+only accepted historical fwupd/required sync delta, every future service/inventory comparison strict.
+No daemon/config/secret/policy/volume mutation or generic exception. Measured host headroom1224MiB,
+swap196/PSI60some+full0/load0.44/0.15/0.10/disk31%, sync API3MiB/96+sidecar18.68MiB/128, zeroOOM/restart.
+
+Runtime/bundle/image remains exact78391b2679d3bd0a25bff31401d0e395e2f89338; operator source375,
+validator818d20dbb401b9bd98d3e27b11f36b3b0d32db44770382ac9c1ad57687cfeae2/helper16c8fb5644b8b13e071a494e90424bd0f3a72df42e11be883cd9aa2089d2133e
+are frozen. Bundle130/130/image/checked060616held-env inverse passed; no rebuild/retag/private byte change.
+ONLY current `/var/lib/pmtv-host-isolation/pmtv-data-20261010T095200Z` immutable staged helper owns
+rollback. Both projects down WITHOUT volumes deletion/select3/stage5/apply65631/deadman300 and
+IMMEDIATE genuinely fresh-SSH confirm/status63677 PASS. Sync-FIRST27378 full five-rule isolation/
+member-positive/keyed exact-two-sync-only preservation/data network/retained-volume metadata PASS.
+Metadata is not every database/secret byte's proof. No O-D2/O-D3 entry repeated.
+
+Owner OFF was confirmed BEFORE held startup; fresh OFF preservation and same-image non-enrolling
+up-first-build/default strict deploy15089 PASS: healthy exact networks/mounts/tmpfs/cache readiness,
+auth/enrollment/leak/listener absence, zero restart/OOM. Owner confirmed one ORIGINAL tag:pmtv-data
+machine/no replacement. Data+syncUP, transaction confirmed, KEEP TAILSCALE OFF unchanged.
+Actual selected first due2026-10-10T21:30:00Z, hard hold deadline21:35; reason for branch not inferred.
+Exact read-only idle pin7466 PASS71598080current/83140608peak/192MiB maximum/absolute events0;
+not FIRST/resource acceptance. ONE reviewed reused observer41914 is LIVE under
+`/tmp/pmtv-d1-first-wait.uYkNLMSC/`, privately revalidating this original worker/hold and invoking
+canonical FIRST near21:29 for actual21:30. No duplicate waiter/sampler, old target substitution,
+forced once, marker/clock/counter reset or cap waiver. Sampler/new FIRST/build remain UNRUN.
+Required remaining public-OFF/restart-proof/gate-test/data-isolation/preservation and actual +1/+7
+reviews remain PENDING/clocks0. Any required false/inconclusive gate uses ONLY095200 rollback,
+then checked new dotenv hold/sync restoration. Prior original783 FIRST/build PASS is history,
+not carry-forward acceptance across rollback. Ask for Tailscale ON only at a named later check;
+standing D1 retry/fix authority needs no repeated generic approval, but owner-only inputs stay private.
+
+## Coordination and subsequent approved work
+
+Canonical eight-file root `/root/work/_agent-coordination/private-media-tv/`/permanent lock:
+Codex sole tracked/integration/Git writer, Claude read-only; owned inboxes/semantic dedupe/READY→ACK
+consumption, no second live root or lost owner requests. Phone019 action fulfilled, device resource
+released after receipt. D1 due gates preempt approved LATER; STOP BEFORE D2 remains absolute.
+Current valid Claude READY packages are queued, not re-surveyed: CL055/056/059 Sports icon-state/
+centering/full-bleed league-colour/channel; CL057/058/060 tap feedback/standings correctness/cache;
+CL062 all-source refresh feedback and CL063 source-loss/cached-media policy (consume exact current
+owner answers before editing); CL053 live/ONE1 diagnostics and F3 artwork acquisition remain OPEN.
+AceStream CL054/061 stays after T4 with genuine owner inputs/contract boundaries; no engine,
+VPS media relay, paywall/auth/DRM bypass or unlicensed copying follows this checkpoint.
+Existing provider surveys/37 exported briefs/T3/T4/D2/D3/D4 plans remain reused in documented order;
+physical failures/future features not marked done. No requirement from the current install/exception/
+waiting-CW round is only in chat. The tracked source receipts describe their pre-publication point;
+this post-push evidence closes CI/delivery/install ONLY, never physical acceptance or completed D1.
+agent-memory Git finalization ONLY through `/root/work/bin/agent-memory-finalize`; preserve unrelated
+remote project advancement. The entire previous handoff below is retained verbatim as history.
+
+# Prior finalized handoff — retained verbatim
+
 # private-media-tv — D1 BLOCKED on preservation/input (2026-10-10T07:38Z)
 
 Formal goal was set BLOCKED after the same genuine preservation/input condition persisted
