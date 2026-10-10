@@ -1,3 +1,70 @@
+# private-media-tv — Sports-card CI/artifacts delivered; phone transport deferred (2026-10-10T13:17Z)
+
+This is a source/delivery checkpoint, NOT completed D1, TV port or physical acceptance.
+App main/tracking/independently verified remote is normally pushed
+`d9f501b960b8933f6b8023646a3f99551b082c04`, parent3e7;14 intended files/600 additions/53 deletions.
+Exact reviewed unstaged=staged=committed patch
+`682fc1206a2f9c06e8fc8736c4db9ad33c43663338a79b246719d7651d66ad29`;
+source4-file patchdd61565cf24969d44bf50465ff302f1949f8f058b4225a2181d460356e14ec44,
+docs10-file patch52377d2a87338e17acbdab0c200e902824fc03efb08b09286fd5981cfae004e1.
+Both independent reviewers bound CLEAN/P1P2zero to exactD9 after commit; diff-check PASS.
+No history rewrite/reset/restore/clean/stash/rebase/force/alternate tree; five known untracked
+diagnostics/research files and recovery backup preserved/excluded. Previous handoff retained below.
+
+CL055/056/059 are fixed IN SOURCE: known pre-kickoff Seen controls absent/all three surfaces;
+LIVE/FINISHED/null semantics and existing FINISHED-unseen action stay. Centred real40/32dp groups,
+flush rounded poster container/actual cached edge colour extends personalized details, readable
+foreground and known exact non-spoiler channel facts only/no new Home network. Keep rich-poster
+identity-safe scale: colour fills bars, no clipped team names. Only artwork yields space; card
+maxima/action targets/history/spoilers/source/reminder/Back preserved. Off-main32pixel sample,
+bounded32 weak bitmap-generation memo/no second image cache; default Details transparent frame0.
+Baseline68333 realRED9/2/1m49 retained. Focused77474/78478 each31PASS/no skips. Full pre-guard
+60815 PASS1377cases/1371passed/6 existing opt-in skips/178classes/8m2s; final Details guard+test
+19955 PASS32/4classes/no skips/8m6s. Lint0errors/59warnings/2hints (one new optional UseKtx
+suggestion retained, not hidden). No post-guard full-local-suite claim; exact CI below covers it.
+
+ExactD9 Android38051733330 SUCCESS/both jobs, sole48089 terminal0: mobile-used/full feature/mobile
+tests/lint/official TDLib/signed assembly/package/native/license/private-payload checks/upload.
+Go workflows not path-triggered; no new server/image/worker validation claimed from Android.
+Canonical78925 EXIT0 publishes BOTH required general/Mobile Test Download paths, independent
+regular/non-symlink/size/hash proof PASS:267734158bytes/SHA256
+`062ca18d254b3e292520cbebfe3347c2a017221c0f232fa7bef5b7e66ec06e88`, phone47/name unchanged.
+Signer2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0/official JNI790c545f...
+259f verified; no older sibling removed, same-version local cleanup absent/no extra version.
+New artifact contains D9 card changes, NOT the current uncommitted CL057 feedback.
+Fresh Termux-host28662/executable/Tracer0 passed; reused guarded script changed ONLY expected
+artifact hash/size/old800 preimage pins. It exited75 TRANSPORT_UNKNOWN before device/package/
+idle/installation operations; a sanitized host-client read confirmed zero connected devices.
+No install/open/unlock/clear/uninstall/server lifecycle occurred. New062 installation PENDING
+owner phone-ADB reconnect; operational async request sent/keep Tailscale OFF. Last verified
+installed phone remains800666/source3e7/no launch (not a fresh current-device reading).
+TV67c295 remains delivered, not newly Shield installed;41681 is last verified Shield installation.
+All source visual/scroll/player/CW/cache/phone and futureT4 Shield acceptance remains PENDING.
+
+Actual continuation: root COORD055 consumes existing CL057/REQCLAUDE032, not another survey.
+Three owned next-source/test files plus TODO/state/handoff are dirty and deliberately NOT staged/
+absorbed/pushed over D9. Immediate existing host-owned typed progress before decode/driver,
+generation-safe completion/cancel/Back/disposal; generic Home catalog/CW intent clears older Sports
+ownership synchronously. Driver/nav/no-search/native-first/FINISHED-unwatched rules unchanged;
+no pre-open Details/private VM API/new provider. First23311 PASS53/2m42, stronger real resolver
+count29196 PASS53/1m50; cross-family correction96995 PASS54/no skips/2m15, source22a914a47b...
+99e31 review CLEAN. Full current phone unit/lint94744 running; no CL057 artifact/runtime PASS.
+Canonical eight-file root/permanent lock/single root writer/Claude read-only/owned inboxes/semantic
+dedupe/READY→ACK remains. CL058/060 standings, CL062 all-source refresh and CL063 source-loss
+policy remain separate OPEN work; use recorded owner choices63a/64b/65a, never ask duplicates.
+CL064 source-manager/opening choices66/67 remain genuinely open; do not invent playback from
+pageREADY/videoFound=false. AceStream stays afterT4/remaining recorded owner inputs preserved.
+
+D1 unchanged: formal goalACTIVE, data+syncUP/only095200 immutable rollback authority; runtime783/
+operator375/validator818/helper16c frozen. Owner original-machine-only input confirmed before
+ONE41914 reviewed scheduled observer started; repolled LIVE/no failure. KeepOFF steady through
+actual21:30 FIRST (attach21:29/deadline21:35); sampler/new build/resource and later gates UNRUN,
+clocks0/+1/+7 reviews PENDING/STOP BEFORE D2. No old FIRST PASS carried over rollback and no new
+C14/stress/sandbox/source/image/token/policy action. D1 due/resumption preempts approved LATER.
+agent-memory finalization ONLY through helper; this checkpoint never closes D1/TV/physical gates.
+
+# Prior verified handoff — retained verbatim
+
 # private-media-tv — CW checkpoint delivered; D1 held for scheduled FIRST (2026-10-10T11:35Z)
 
 This is a source/delivery checkpoint, NOT completed D1, TV port or physical feature acceptance.
