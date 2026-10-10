@@ -1,3 +1,84 @@
+# private-media-tv — D1 preservation-held checkpoint (2026-10-10)
+
+This is a verified documentation/installation checkpoint, NOT completed D1 or accepted deployment.
+Full goal remains ACTIVE and includes immediate live gates plus actual +1-day/+7-day reviews,
+both-repository finalization, then STOP BEFORE D2. No acceptance clock has started.
+
+Application main/tracking/independently verified remote is normally pushed
+`ef804666a6335871b9112235b5c113352874e776`, starting from
+`375d23668b3c5a5cbae801cf01350713b0a7d5a5`. Twelve intended receipt-only Markdown files,
+264 additions/1 deletion; reviewed unstaged=staged=committed patch SHA256
+`5f317474c51a739a6fcdec19492f6c659987a4012c02e64ad2219ba7d0ecda98`.
+Independent review found one valid P2 stale Release H1, corrected; final exact-diff review CLEAN.
+Diff-check PASS; tracked/index clean, known five untracked files/recovery preserved. No runtime,
+Android/version/security/product contract change. Previous source375 tests/CI are retained/reused.
+
+## Actual retry failed before data startup; mandatory rollback passed
+
+Owner ON and existing-goal resumption resolved the prior connectivity blocker. Full restored
+controls5594/exact783 bundle130files/image shape/volume/headroom passed. Runtime/bundle/image
+remains `78391b2679d3bd0a25bff31401d0e395e2f89338`, not this documentation HEAD.
+New TX060616 apply48407 and immediate separate fresh-SSH confirm8857 passed. Sync-first68133
+deploy/full isolation/member positive passed, but required preservation FAILED: changed services
+sync1/data2, expected recreated sync containers2, strict aggregate=false. Data network-preflight/
+volume/start were NOT run; data NEVER started in this attempt.
+Mandatory ONLY new immutable TX060616 inverse/status/firewall58251 passed; both projects down
+without volumes deletion. Checked no-clobber/root0600/single-link/same-filesystem dotenv hold
+preserved exact device/inode, syncUP80310. Restored91861 full isolation/positive/protected-negative/
+deployment/retained-volume metadata passed, but service preservation remained FAIL. Metadata is
+not every database/secret byte's proof. Current dataDOWN/syncUP; ONLY060616 dotenv held. Do not
+run transaction status after the hold or reuse an older rollback helper. Owner Tailscale OFF.
+
+## Firmware evidence and genuine remaining input
+
+Both current role comparisons exact-map the remaining same-service delta to Firmware Update
+Daemon, no additions/removals. Owner identifies it only; intended normal state is not confirmed.
+Later06:13:57 D-Bus requester fwupdmgr refresh privately PID-matches fwupd-refresh.service,
+accounting for06:13:58 start. Two earlier06:05:15/49 stop/start initiators remain UNKNOWN.
+06:05:50→06:10:50 clean exit is consistent with upstream2.0.20's default300second idle timeout,
+not proof of all causes. Bounded package/journal absence is not an initiator conclusion. Failed
+68133 rolling snapshots were overwritten by normal post-rollback captures; second data-service
+identity is no longer reconstructable there, failure counts retained. No baseline/ignore filter/
+firmware/config/service change or retry followed. Independent narrow contract review confirms
+exact-event accounting+intended-state+protected archives may precede an ordinary fresh baseline;
+generic PID/running-set exemption requires an explicit contract choice, never implicit authority.
+
+Next owner input: confirm whether normal firmware-daemon automatic operation is intended unchanged.
+Earlier event accounting still remains; recognition alone is not preservation proof. Keep Tailscale
+OFF until a named subsequent positive check. No generic D1 approval or secret is requested.
+Only after actual preservation clearance continue unchanged guarded783 retry/new held startup/
+scheduler-selected FIRST/build companion, then real public/restart/gate-test/data isolation/
+preservation and actual +1/+7 reviews. Prior original783 FIRST/build PASS is history, no carry-forward
+waiver across rollback; previous public FAIL/old resource FAIL remain. No resets/forced once/D2.
+
+## Exact checkpoint CI and separate phone installation
+
+Exact ef804666 Go38034415557 SUCCESS at2026-10-10T07:32:40Z/all3jobs: runtime vet/test/race/static
+binary and ordinary/race deployment validators. C14 mutation/restoration/fuzz SKIPPED; no local
+stress/copied-module/sandbox/heavy build or repeat source testing. Sole watcher14868 terminal0.
+Own automatic Android38034415601 CANCELLED, wrapper validation PASS, SDK/upload SKIPPED,
+artifacts0/no Android PASS. No new APK/version/deployment was produced by this receipt task.
+
+Separately owner016 renewed012/015 install-only: existing latest source8cf/C20 signed phone APK
+267717774bytes/SHA256 `f9472d87b52594e5c5a838f20342e690f1d97db74588ec094733c8e259bc61f3`.
+Both required general/Mobile Test Download copies verified. ONE99177 in-place install-r EXIT0
+after unlocked/idle/current-media/audio/service/untraced Termux-host guards; independent installed
+base/code47/name0.4.28-phone-test/original-first-install proof PASS. No launch/unlock/wake/input/
+uninstall/Clear Data/ADB lifecycle/Shield/new build. Initial78499 deferred before mutation on
+historical MediaSession events; exact observed delimiter/current-only parser reviewed CLEAN,
+unknown layout still defers. Phone resource RELEASED; cache/CW/player/phone/Shield feature
+acceptance remains owner-run PHYSICAL PENDING, not D1 proof. Older TV67 still last TV candidate.
+
+Canonical eight-file coordination `/root/work/_agent-coordination/private-media-tv/`/permanent
+lock remains: Codex sole writer, Claude read-only, owned inbox/semantic dedupe/READY→ACK reuse.
+Existing004/006 owns D1,016 duplicates012/015; no duplicated source survey/roadmap reorder.
+Other approved LATER/CW/YouTube/Sports/future physical backlog unchanged. All earlier finalized
+records below are retained verbatim as history, not current connectivity/startup/install instructions.
+Memory Git finalization ONLY `/root/work/bin/agent-memory-finalize`; unrelated remote project
+advancement must be preserved via its fast-forward/lock workflow, never direct Git mutation.
+
+# Prior finalized checkpoint — retained verbatim
+
 # private-media-tv — D1 blocked on required member connection (2026-10-10T00:06:50Z)
 
 Formal goal status is BLOCKED after the same connection gate persisted across the latest
