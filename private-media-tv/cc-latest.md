@@ -1,3 +1,64 @@
+# private-media-tv — NEW071300 held startup passed; FIRST scheduled (2026-10-11)
+
+Source/startup checkpoint only, NOT completed D1/TV port/release/physical acceptance. Application
+main/origin/main/independently verified live remote is normally pushed at
+`a3f68eb96c92915f05ea893257b929561fdab860`. Nine D1-only docs147add2del; independent review CLEAN,
+diff-check PASS, exact staged=committed diff226118647a4cfb3581a2525001e1c224a6a54a435cc4d8f1bb6bc6cbef5300bb.
+All unfinished CL063 source/progress docs were excluded. No source/runtime/version change here.
+
+Fresh ownerON resumed D1 before LATER edits.28941 fullsyncisolation/member-positive+strict ORIGINAL
+preservation PASS/no unrelateddelta/exact2named sync recreations.4932 unchanged783bundle130/130
+PASS; exact old held dotenv restored/no-clobber/inode-bytes-owner-mode/directorydurability. Reviewed
+already-root caller prechecks UID0/SSHcontext/unused path BEFORE both projectdowns; no extra sudo.
+
+NEW `/var/lib/pmtv-host-isolation/pmtv-data-20261011T071300Z` apply38028 PASS/select3/stage3+
+5firewall rules/syntax/deadman300. IMMEDIATE separate freshSSH44477 confirm/status PASS/disarmed/
+valid-selected-staged-applied-confirmed/livefiles+activefirewall/recreatepermitted; rolledback and
+rollbackfailed false. ONLY new071300 immutable staged helper owns required --after-confirm inverse.
+Old095200 is rolled-back history; planned062720 nevercreated. Never reuse either old inverse.
+
+66964syncUP and ordered52324 gates PASS at07:20:27: synchealth/deploy/fullfive-rulefirewall+
+lifecycle/isolation/memberpositive, pairedstrictoriginalpreservation, absent-data preflight/all5
+rangescollisionfree and retainedvolume/config/secretmetadata. No baseline/keywaiver/tenantchange.
+OwnerOFF actual BEFORE93789same783non-enrolling up-first-build/defaultstrictdeploy PASS: healthy
+3data/security/runtime/networks/firewall/authabsence/tmpfs/cache/no newhostlistener/zero restartOOM.
+Actualhelddue2026-10-11T21:30:00Z/harddeadline21:35. Owner confirmsoriginal-only/no replacement;
+automated historical node/address continuity still requires later restart-proof.
+
+Independent narrow observer/mechanical rebind/adapter review CLEAN.60064 two realprivate snapshots
+PASS/freshworker+holdbinding pinnedroot0600singlelink/no rawidentity/nonces. ONE observer28516 is
+LIVE/PID12142, `/tmp/pmtv-d1-first-wait.BUibCGoT/wait_and_sample.py` SHA07437883...a5798c;
+snapshot6c6e54...ab737. It privately revalidates5min/event-onlyoutput, attachescanonicalFIRST783
+near21:29 for actualOct11T21:30. KeepTailscaleOFF unchanged until namedlatercheck. SamplerNOTstarted.
+
+Prepared post-FIRST kernel/comparator deliberately rebound071300/checker9a5; driveractualoperator
+537/checker9a5/newkernel f7077340/comparatorff42ded4/driver2d69c241. Source783/synchelper/retention/
+delta/rolekeys/originalbaselines/strict3additions+2recreations unchanged. Kerneltest readsactualfile,
+oldpatchretained. Queued46096 kernel8PASS0.165s/driver20PASS3.506s/comparator10PASS0.007s, including
+old095200receipt+wrongoperator-helperpin rejection. CLEAN narrowreview; NOactualprivatecollector.
+
+Docs-onlya3 has no Go pathtrigger. Source44c0 exactGo38116035759all3SUCCESS retained/C14SKIP.
+OwnautomaticAndroid38122150035 CANCELLEDduringGradlesetup beforealltests/APK/artifacts0; sole
+93285CIobserverterminated0. No new successfulAndroidbuild/version/APK/delivery/install/launch.
+Latestphone47afba/de79 remainsalreadybyte-verified installation; phone/Shieldacceptance PENDING.
+
+CURRENT: data+syncUP/envLIVE/ONLYconfirmed071300/OFFsteady/sole28516observerLIVE/clocks0/goalACTIVE/
+STOP BEFORE D2. NewFIRST/resource/build/publicOFF/restart/gate-test/dataisolation/poststartstrict
+preservation/siblingsync/immediate review and actual+1/+7 PENDING. OldFIRST1312samples/130MiB/public/
+restart and oldidleheadroom81713 remainhistory, not freshretry/resource/+1/+7 PASS.
+
+Canonicalcoordination `/root/work/_agent-coordination/private-media-tv/`: eightfiles/permanentlock/
+oneCodextracked+Gitwriter/Clauderead-only/ownedinboxes/semanticdedupe/READY→ACKreuse. Same057
+approvedlocalLATER resumes during scheduledwait; due/resumedD1preempts, no unrelatednew060–062
+task before057checkpoint. CL06376dirty/7task+5excluded preserved/indexempty; Coordinator d8c68cd5
+snapshot/Pause bridge UNVALIDATED/native dd42unchanged/externalphase5313 draftNOTREADY. Readyfive
+regressionproposal2e8fe5fe NOTapplied; manual/automaticintentseam/BOTHautocallers/coldPAUSED/native
+removal uncertainty+PAUSEDcompensation blockers remain. No fullcandidate/lint/CI/APK/runtimePASS.
+Recoverybackup and diagnosticsuntouched; newdocs gate changed no product/D1contract. Next only
+existing057 tests/minimal corrections/review while one observer owns scheduledD1 acceptance.
+
+# Previous source/recovery handoff — retained byte-for-byte (SHA256 36c4c4b431b65076d07628bd4b35a0450c37570aaa9f431a2fc56cdee706d177)
+
 # private-media-tv — D1 operator fix CI-green; verified preselection recovery (2026-10-11)
 
 This is a source/recovery checkpoint, NOT completed D1, the TV port, Android release or physical
