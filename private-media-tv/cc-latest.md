@@ -1,3 +1,81 @@
+# private-media-tv — Source057 software checkpoint green; Match Details next (2026-10-11)
+
+Application main/origin/main/normal pushed checkpoint:
+`9cc38062e275ef8fbb11b28342a71d58800b8035`. This is NOT D1/TV-port completion, a release,
+or physical acceptance. Source057 is implemented; do not redo prior milestones or its fixes.
+
+Manual phone/TV refresh awaits exact general/official/Website jobs, retains known rows, reports
+honest empty/partial results and fences stale ownership. Deep/eligibility/page-session/Back
+preserved; no TV Sports before actual T4 surface. Typed Telegram no-access retains selections
+and known rows, stops futile remote work, exact recovery/localSupportRevisionCAS preserved.
+Process coordinator/current physical commit fences own downloads; authoritative Room/shared-native
+restore census gates shared-native cohorts, NOT independent managed-vault ownership
+(requireCompleteRestoreCensus=false). Aliases/pins/Pause/removal/stale presend cleanup follow
+current generation; manual vs both automatic callers distinct; cold PAUSED/FAILED retained,
+continuation notices and managed/legacy/live status precedence fenced. Room16→17 adds only
+local support revision; canonical/personal/sync-wire state preserved. Versions still phone47/TV67.
+
+Actual ordinary host7213 gate:4608cases4596PASS12existing skips0fail-errors/5lint0errors72warnings
+2hints/32m43/archive669880ec. Scoped source reviews CLEAN. Prior hosted failures remain history:
+89/381346 catalog fixture, c2df/381372 phone20min deadline with cause UNKNOWN; one local cohort
+31PASS had directory-cleanupERROR, not a clean harness. Fixture72495 qualified RED12764→GREEN98341/
+fullaffected1495PASS5existing skips/lint. Smoke diagnostic84076/b182 static review/three1PASS
+gates passed; no forced45s stall or guessed production/lifecycle fix. Source0a/381433SUCCESS.
+
+Receipt0ce/381487 failed provisioning F3. Unchanged43949targetRED proved lease386; ONLY wait7342
+adds lease-release AND job-inactive like existingF1, preserving real sockets/assertions/deadlines/
+production.63865GREEN1;31565 fullaffected154PASS0skip-fail-error/lint0errors1warning/1m14,
+archive44d3754f. Independent204957 code/5b512 finalindex CLEAN; exact220bcafa byte-attestation
+matches9file122/7 binary57d8b59c. Final exact Android38152175020 SUCCESS/all2jobs/55895terminal0,
+completed16:12:45Z: core6m55/catalog3m5/phone5m9/lint12m10/assembly3m1. ActualSmoke
+START15:55:58.771→PASS15:56:01.172. RetainedCIlog950a407cd8fdece48e0a10ba965739f306d4382ac6a605b17fab38525a1c1a16
+at /tmp/pmtv-source057-final-ci-381521.6y8QksTy/ci-full.log. No stalled-diagnostic/runtime PASS.
+
+Canonical exact-HEAD downloader10950 PASS: APK267979918bytes/
+SHA2569cc34bc3b4537feac9372a079d03cb236ff4bbb3840504bd8a451d6d3c7aa125, Development2987/ARM64/
+TDLibJNI790c verified. BOTH required regular/nonlink Download copies refreshed at16:17:18/16:17:50
+and independently size/hash matched. Same-version local cleanup ABSENT/no removal. Byte-identical
+to source0a installed by45632: fresh idle/unlocked guards, no launch, independent installedbase/
+version47/currentUser0/original2026-08-03 first-install proof PASS. Extra single-date predicate
+rejected multiple-user fields, resolved read-only/no data failure/reinstall. NO redundant final
+install/ADB/device command; PHONE resource RELEASED. Phone/Shield functional/Telegram/WorkManager/
+refresh/Back acceptance PENDING; owner opens/tests, never agent launch/wake/unlock/uninstall/ClearData.
+No new TV APK/Shield install or version bump. Existing owner-reported failures stay OPEN.
+
+Canonical LIVE coordination /root/work/_agent-coordination/private-media-tv/: permanent lock/eight
+files/one Codex tracked+Git writer/Claude read-only/owned inbox semantic dedupe/READY→ACK reuse.
+Owner020/CL074 expands all approved post-TV local work during genuine D1 waits, oldest-first.
+REQ021/COORD070 owner99a explicitly makes Match Details responsiveness NEXT after057, then
+ordinary oldest queue028Buffsports/029-032LiveTV/020time-criticalrow. Owner100a immediate known
+facts/stable reserved sections and101a per-family updates SETTLED; CL075/076 research consumed,
+fixes UNIMPLEMENTED/observed runtime failures OPEN. These later answers supersede preceding
+dated OPEN-choice wording; reconcile tracked UX/state with the cohesive070 implementation.
+Current-code applicability48c1a9 consumed, not another survey: cold-null venue helper suppresses
+existing fallback; frozen PRE alreadyInstantMAX/continuity alreadyobservable; preserve both,
+latest-state delta merges/exact structural discovery identity/actual viewport. No CL060 TTL rewrite.
+New CL077/CLAUDE051 consumed as future065 Programs player follow-up: two new cards/photos are
+bounded positive feedback, not fullCL071 acceptance; selected show PLAYER_NOT_REACHED stays
+FAILED/OPEN, blanking cause unproven/fallback choice102 OPEN. No repeated logs/provider survey,
+policy/capability change, media URL extraction, new provider admission or global playback PASS.
+
+D1 separate: data+syncUP/envLIVE/source-image78391b2679d3bd0a25bff31401d0e395e2f89338 /
+ONLY confirmed /var/lib/pmtv-host-isolation/pmtv-data-20261011T071300Z. Original strict controls/
+startup PASS; sole observer28516/PID12142 revalidates privately/attachesFIRST~21:29 for actual
+Oct11T21:30, deadline21:35. OwnerOFF steady until namedlatercheck; latest16:18 poll LIVE/no output.
+FIRST/newresource/build/publicOFF/restart/isolation/post-start preservation/immediate/+1/+7
+PENDING/clocks0/goalACTIVE/STOP BEFORE D2. Required failure/inconclusive uses ONLY071300 immutable
+after-confirm inverse; old095200 history/062720 nevercreated. Source783/checker9a5/operator537
+frozen; no new VPS action for Source057. Due/resumed D1 preempts070/all LATER.
+
+C45_DATA27-line unrelated post-FIRST preparation draft plus five excluded diagnostics preserved
+unstaged/uncommitted; recovery backup intact. Independent narrow memory-draft review89e160 CLEAN
+after correcting managed-vault/census wording; final memory/preservation/publication checks are
+separate. Use ONLY agent-memory-finalize for memory Git; no direct mutation there. Next: finish
+this handoff finalization, claim070 six existing phone production paths + relevant tests/docs,
+implement/test/review the settled corrective slice, honor D1 priority and actual runtime gates.
+
+# Historical NEW071300 handoff — entire preceding memory body preserved (SHA256 e2cac2e2b9eab3fbc5ca6235272ba1046d8e581012c56a4cd221e3baff262c99)
+
 # private-media-tv — NEW071300 held startup passed; FIRST scheduled (2026-10-11)
 
 Source/startup checkpoint only, NOT completed D1/TV port/release/physical acceptance. Application
