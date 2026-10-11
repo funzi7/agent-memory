@@ -1,3 +1,77 @@
+# private-media-tv — D1 operator fix CI-green; verified preselection recovery (2026-10-11)
+
+This is a source/recovery checkpoint, NOT completed D1, the TV port, Android release or physical
+acceptance. Application main/tracking/independently verified live remote is normally pushed at
+`527330a55c62388ddc671c59875f3fa86a1c36ff`. Its9docs109add0del recovery receipt matches reviewed/
+staged/committed diff37a71876c02242382132441067615f2c2cf140d2d0db71c21bcee23af5924a6c; independent
+review CLEAN/diff-check PASS. Prior85 receipt and this527 child change no source/runtime/README.
+
+D1's failed data isolation69263 required immediate095200 rollback44809; original files/firewall,
+exact dotenv hold, restored sync health/full isolation/member-positive and strict preservation
+were verified. Data image/source783 remains unchanged; no policy, credentials, enrollment, volumes,
+unrelated tenant configuration or Android version was replaced. Old FIRST1312samples/130MiB and
+public/restart/publication receipts are retained HISTORY, not a new attempt's acceptance.
+
+Smallest four-file operator fix captures actual container+network inspection and binds exact IDs,
+members, subnets and flags; an empty internal endpoint Gateway uses its observed IPAM gateway,
+never an inferred address. Checker9a5bfff4...769349/operator53782ffc...743f8. Probe7/fullPython19
+PASS; selected Go3814two operator tests PASS411.089s. Initial e774 CI38114849214 failed both root
+jobs on one stale rogue-attachment fixture needle; main vet/test/race/build passed. Qualified local
+RED2930, one testline fix, full network-preflight69943 PASS231.022s, independent narrow reviews
+CLEAN. Exact source44c0a89dd84c0eceda234e0ad041c411e66aeb42 Go38116035759 SUCCESSall3, including
+ordinary and race root deploycheck. C14 mutation/restoration/fuzz SKIPPED, not repeated.
+
+Docs-only527 has no Go workflow path trigger. Automatic Android38120096153 was cancelled before
+APK steps/artifact0; sole64023 observer terminated0. Prior44/85 automatic Android also cancelled,
+no new successful Android build/artifact/version/install. Latest phone47 afba/de79 remains the
+already-byte-verified installation with no launch; phone/Shield feature acceptance PENDING.
+
+Fresh controls37744, paired preservation20490/36560, bundle62309 all130files, retained image tag/base
+shape+heldenv71157 and volumes16471 passed. Immediate81713 headroom: API2.141/96MiB, sidecar18.05/
+128; restart/OOM0, hostavailable1229MiB/swap196/PSI60zero/load0.05/.09/.09/disk31%. Not FIRST/+1/+7.
+56258 restored only the exact old095200 dotenv, no-clobber/inode-bytes-owner-mode/durability.
+
+Planned062720 attempt18099 stopped after both managed projects down, BEFORE selection. Initial
+50399 inverse capture could not be verified; read-only2283/34961 proves no transaction directory,
+stage/helper/APPLIED existed, and original095200 files/firewall were intact. No migration or new
+inverse occurred; do not call it a failed executed rollback. Actual root transport is alreadyUID0
+with SSH_CONNECTION; redundant caller sudo stripped that required context. Reuse the proven root
+frame `/bin/bash -p -s` and precheck UID/context BEFORE down. No source/security/config change.
+
+80078 reversed only56258 restore: exact private095200 hold restored, live dotenv absent, syncUP.
+82171 restored sync deploy/full isolation/member-positive passed, but data preservation FAILED on
+one added running service. Failure privately archived byte-exact. Initial50565 diagnostic failed;
+bounded HMAC-bound journal58630 identifies PackageKit, nowinactive/success/0restart.38067 checked
+5journalentries and both package logs,0recorded modification events; initiatorUNKNOWN and bounded
+observation limitations retained. No firmware exception, ignored unit, baseline/key replacement.
+16983 fresh ORIGINAL nonoperational scalars/services/serve/inventories/keys match exactly, only2
+authorized sync recreations. Separate preservation-only evaluation passed; current member pings
+BLOCKED, so the unchanged full comparator still FAILS. This is not full readiness/data acceptance.
+
+CURRENT: dataDOWN/syncUP/exact095200hold/live dotenv absent/no new transaction or sampler. Owner
+OFFsafe told after completed ON restoration controls; actual toggle unconfirmed/last explicitON,
+currentpositiveblocked. Next namedON/fresh fullcontrols and a NEW guarded retry, same783/no rebuild/
+re-enrollment/secret/policy action; standing authorization, not new generic approval. Clocks0/new
+selectedFIRST/all data live gates/+1/+7 PENDING; goalACTIVE; STOP BEFORE D2.
+
+Canonical coordination `/root/work/_agent-coordination/private-media-tv/`: eight files/permanent
+lock/one Codex tracked+Git writer, Claude read-only, owned inboxes/semantic dedupe/READY→ACK reuse.
+Existing CL067/068/069 owner amendments read and queued060/061/062, no repeated surveys: index-first
+74a/no skip, in-PMTV normal mako Website77/no automatic VPN precondition/no extraction, stale-LIVE3h
+75a76a/no inferred FINISHED. Same057 must reach safe checkpoint before unrelated fresh LATER.
+
+CL063 remains DIRTY/unreleased and deliberately excluded from every D1 commit.76tracked dirty,
+7task untracked+5excluded files preserved/recovery backup untouched/indexempty. Coordinator d8c68cd5
+snapshot/Pause bridge is UNVALIDATED; earlier59388PASS63 predates it. Native dd42 unchanged; quota-
+interrupted external phase draft5313eace NOT READY (canceled Remove uncertainty, PAUSED compensation
+Add). New five-regression390line proposal2e8fe5fe outside repo READY/not applied, plus required real
+manual/automatic enqueue distinction at BOTH auto callers and durable cold-PAUSED protection.
+No full candidate/lint/CI/APK/runtime/physical PASS. Approved SAME057 local work may continue during
+D1 waits/blocks, D1 resumption/due checks preempt. No new D2 or launch authority. No live job at
+this source/recovery checkpoint; keep all earlier failures and old source checkpoints as history.
+
+# Previous c5 verified handoff — retained byte-for-byte (SHA256 cceadfd046d0d1dc116964d37e28cfc2d7bde52e2af9379e87ceb7467075c82d)
+
 # private-media-tv — D1 FIRST/public/restart/gate-test passed; member input pending (2026-10-10)
 
 This is a documentation/acceptance-evidence checkpoint, not completed D1, the TV port or physical
