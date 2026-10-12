@@ -1,3 +1,90 @@
+# private-media-tv — Match070 installed; D1 collector fix ready (2026-10-12 after00:32UTC)
+
+Application main/origin/main/independently verified live remote is normally pushed at
+`fe2bf7352967847bcb70cad5628546105ab30418`. Twelve receipt-only docs224add3del; reviewed/staged/
+committed binarydiff2dcdac3c37b97f5399a1f4b6345538dc248690cf04cd1d1ac315c3390f8ae0e1.
+Independent94723 fullreceipt review CLEAN then ac637 finalseven-small-delta review CLEAN/FULLread;
+path+blob+fileSHA manifest6f1a8b21834566b7252cf0d0db15ec42fb6c0c6236d362a06d10825c10e9859f.
+No app source/tests/server/script/workflow/Gradle/version/product contract changed in this commit.
+This is a software/install/recovery checkpoint, NOT D1/TV-port completion or physical release.
+
+Match Details owner99a/100a/101a IMPLEMENTED in source918: retained known facts immediately,
+reserved stable family sections/per-family arrival, latest exact owner/semantic generations,
+independent Website publication and ONE facts/source viewport writer/deferred exact Back; owner
+gestures win. Preserve frozenPRE/observable continuity/source-policy/spoiler/identity/personal
+contracts. CL075/076 consumed, no repeated research or later TTL/provider/player redesign.
+Qualified threefinalintegration findings corrected; focused108PASS/finalfull2930cases2919PASS/
+11oldskips/bothlint0errors62warnings/21m25 and independentapplied60030 static-hostCLEAN retained.
+Exact source918 Android38173985264 attempt1 realallocator134 FAILED/causeUNKNOWN; unchanged
+attempt2SUCCESS is not a causal fix. Exact receipt c8a9bce773b58aae427e66f36503369d33bb3ed5
+Android38178600009 attempt1SUCCESS/all2jobs/updatedOct11T22:43:09/main43m22; catalog1495PASS5old
+skips/phone1424PASS6oldskips/lint+assembly+signer/JNI/Gecko passed. Full-log SHA256
+d01cd8e5b0418d22fa23fa54b777f348ca0a59221f9c6173c621ec79a4a28011 retained.
+
+Canonical99052 refreshed BOTH required phone47 Download copies at23:58:46/23:59:33UTC:
+268094606bytes/SHA256cb5c305445489c58f6971e5429884be0a21b6e3ced9742fa651ee47efa1deca8.
+Development signer2987/ARM64/JNI790c/exactGecko verified. Freshindependent300f941d full-byte-only
+reportPASS for THIS publication/regularnonlinks. Earlier82240 safelydeferredLOCK_UNKNOWN is now
+history: ownerunlocked/closed input→trusted79076 guard terminal0/APPLIEDinstall-only, pre/post
+unlocked+PMTVidle+TermuxHostTracer0, installedexactCB5/version47/name0.4.28-phone-test/original
+first-install retained. No launch/wake/unlock/input/uninstall/ClearData/TVbuild/version change.
+Realphone/Shield perception/Back/provider/rejected-save diskdurability remain PENDING, owner
+opens/tests. TV67 unchanged/no TVSports beforeT4. Source070 software/delivery/install is closed,
+not physical acceptance. Own fe2 automaticAndroid38188240123 CANCELLEDduringJava setup before
+Gradle/tests/APK/artifact steps, terminalcancelled/artifacts0; NOT exact-headAndroidSUCCESS.
+This D1/recovery docs-only checkpoint adds no serverGo path; no new Go workflow triggered. C8
+source/CI/artifact evidence remains distinct, no manufactured Android build or delivery claim.
+
+D1 source/image78391b2679d3bd0a25bff31401d0e395e2f89338/operator537/checker9a5 remain frozen.
+Original28516 FIRST complete1703samples/138313728bytes(ceil132MiB), stableoriginaltarget/no
+limitOOM/terminal0; private original receipt retainedbyte-exact separately.17181 build140min/
+gatescanariesPASS/idle/56552entries/13namespaces/store252145664; EDbreachablefalse/invalid1/
+unencodable1/overflow185 limitations retained.5381publicOFF/67960restart-downup originalnode/
+address/tag/environment/cache/manifest/firewall continuity/60973gate-test PASS. Fresh88591 data
+fullisolationPASS, then actual2d69post-FIRST collectorFAIL1/0.163s/aggregatefirstpredicateUNKNOWN.
+IMMEDIATE20196ONLY071300immutableafter-confirm rollbackPASS/bothdownno-v/originalfirewallfiles;
+35303exactdotenv no-clobber inode-byte-owner-mode+directoryfsync hold/syncupPASS.81290syncdeploy/
+11280full2ruleisolation/43949+95331 ORIGINALpairedexact2syncproof/no unrelateddelta/18311retained
+volume-config-secretmetadata PASS.49928headroomAPI1.484/96+sidecar18.85/128/available1218/swap196/
+PSI60both0/load.34,.28,.20/disk31/zeroOOM-restarts. Not newdata/+1/+7 acceptance/clocks.
+
+071300 is ROLLED BACK/history, no reusablefreshapply/inverse. DataDOWN/envHELD/syncvalidatedUP/
+clocks0/goalACTIVE/STOP BEFORE D2. OwnerOFFafter restoration then explicitlyON for freshcontrols;
+latest ON input RECEIVED, keepON until namedOFF-safe.82808fresh fullsyncisolationPASS;78046+
+43315 fresh ORIGINALpaired strictexact2sync proofPASS.68922same783bundle-check130/130PASS.
+Freshtransaction/startup/newFIRST/privatecollector/immediate/
+actual+1/+7 remain PENDING; no oldFIRST substitution, clock/marker reset or automatic PASS.
+
+Finite local diagnosis9c6ded55 retainsUNKNOWN originalaggregatefirstpredicate. Harmless real
+69456/90590 fixed-marker controls prove minimalcollectorENV exits255, canonicalENV andadding
+ONLY trustedHOMEroot exit0/markeronly. Minimumexternal driver
+50ffef414266c4f93602584ccf23658266a993508776d0f2704d78e79a7e3910 grantsHOMEroot ONLYexactcanonicalvalidatedSSHwrapper path;
+otherlocalchildren/comparator and remoteDocker/kernel environments unchanged. Original2d69
+archivedbyteexact; newsyntheticPopen-environment regressionqualified1RED/0.142s→queued78001
+ordinary21GREEN/2.709s/no skips. Independentapplied a9e80895 narrowreviewCLEAN/FULLread;
+14988actualcorrectedbounded fixed-marker readinessPASS, NOT a fullcollector/newpreservationPASS.
+No stagecounterexpansion/broadC14campaign/imagebuild/secret/policy/baseline/key/tenantchange.
+Next continue exactguardedD1 flow from freshcontrols, newuniqueTX and deliberate mechanical
+helper/observer rebind; standingauthority coverssame retry/fix, owner-onlyinputs still stop.
+
+CanonicalLIVEcoordination /root/work/_agent-coordination/private-media-tv/: permanenteightfiles/
+lock/oneCodextracked+Gitwriter/Clauderead-only/actorownedinboxes/semanticdedupe/READY→ACK reuse.
+REQ004/COORD006 existingD1 primary; REQ021/COORD070 implementation+installclosed/runtimePENDING;
+REQ019 conditionalphoneinstall input consumed, no newduplicate task. Approvedwaiting work uses
+oldest028Buffsports→029/032LiveTV→020time-criticalrow wheneligible, due/resumedD1preempts;
+DO NOT proceedD2. Finiteanchor reports725cc05c/9a1bc7af consumeexistingbriefs/fresh evidence,
+bindings0/TLS-runtime prerequisites retained; no sourceadmission/survey/COORD007implementation.
+CL077future065playerFAIL/settled102a remainsfuture/unimplemented, not overwritten by070.
+
+Unrelated C45_DATA27-line preparation draft is preservedbyteexact ONLYunstaged; fiveuntracked
+diagnostic/research exclusions untouched/uncommitted, twohserr ROinspected earlier/notdeleted.
+Recovery backup intact/indexempty. Agent-memory Git finalization uses ONLYagent-memory-finalize;
+no directstatefulGit. OldSource057 body below is preservedBYTEEXACT SHA256
+88c5cf78a6c3e337d1f89437e516891b3e86180dd66459f84eed135c65a31183 and is datedhistory wherever
+this actual070/D1snapshot differs. No claimedfullproject finalization or physicalrelease.
+
+# Historical Source057 handoff — entire preceding memory body retained byte-for-byte
+
 # private-media-tv — Source057 software checkpoint green; Match Details next (2026-10-11)
 
 Application main/origin/main/normal pushed checkpoint:
