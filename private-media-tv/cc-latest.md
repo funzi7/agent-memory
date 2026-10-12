@@ -1,3 +1,104 @@
+# private-media-tv — C2 correction final CI/APK proven; install/retest pending (2026-10-12)
+
+Application main/origin/live normally pushed and verified:
+`87cf61154234a99b089d4aea019f0bb484ee1acd`, parent corrective source
+`b2de365e723a227e888457cbbbdae137e4fed96d`. Final9docs108add4del,
+reviewed=staged=committed taskdiff36758859a8f13c3ee20fb95521e1525ad6655fd3206ee496703bec20f966a027;
+independent final receipt review3ada9f83 FULLread/CLEAN/version typo corrected.
+Corrective16files310add12del exactdiff665096b187ee01eee524f7b8148571bebc9702b6c39eecaf7713ab2a1762c9b2;
+source0f099651/docab0e72f0 FULLread/CLEAN. No source/test/version/workflow changes
+for the final receipt and no redundant validation of unchanged source.
+
+Final87 exact Android38294262353 SUCCESS/all2/updated19:29:41UTC/workflow33m27/
+main33m12; independent62048110 receipt FULLread. Required tests/lint/signing/
+assembly/package-payload/artifact steps passed; expected conditional cache/PR
+signing skips only. Go not path-triggered, NOT a Go PASS; no C14/fuzz/stress dispatch.
+Corrective-source Android38287480682 also all2SUCCESS/18:30:41/workflow34m55.
+Canonical21548 ended0 and refreshed BOTH required phone47 Download copies:
+mobile-test19:34:21.244998685UTC/general19:35:05.568998668UTC,
+268144371bytes/fullSHA256d803488c67b752c533514ff7e1fe85c8e65f4c68bdbe7598f4d8d6bf37d7ec38.
+Packagecom.funzi7.privatemediatv.mobile/0.4.28-phone-test/47/ARM64only/
+signer2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0/
+TDLib790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f/
+exactGecko verified; same-version local cleanup ABSENT. Fresh independent complete
+hash BOTH/cmp/full unchanged pre-post stats PASS, final report69a9eafa FULLread:
+results/cl033-c2-d55a-apk-byte-proof-20261012.md. This is fresh final publication
+evidence, not reused older bytes or physical/runtime acceptance.
+
+IMPORTANT: new d803 APK is delivered, NOT installed. Actual corrective install78080
+deferred75/LOCK_UNKNOWN BEFORE mutation; mechanical guard2fe9f544/reviewee83abd2
+FULLread/CLEAN reuse existing proven guards. Owner unlock/PMTVclosed input asked
+once and still pending. No bypass/unlock/wake/launch/force-stop/uninstall/ClearData.
+Currently installed26db from actual80164/pre-post guards/first-install preserved.
+Owner subsequently reported no scrolling from Recommendations AND latest/account
+rows, account connected; EVERY tested Short copied watch?v=. This existing024
+evidence establishes false initial form flag/no finite-shelf lookup, NOT actual
+upstream wrapper, shelf membership or AndroidView gesture failure. Failure stays
+OPEN and corrected phone acceptance PENDING until actual installed retest.
+
+C2 original source d55a8d26c4b5d87d2dbb5427d3cfbb70414f4f42 implements owner choice3:
+ONLY finite authenticated subscriptions Shorts shelf, exact token+channel membership,
+strict complete bounded parsing, no anonymous fallback/new feed/account authority.
+Immutable finite context; one existing adaptive controller/generation-safe handoff;
+current loop/up-next/down-previous/no wrap; per-item real progress/history/Back
+preserved; exact handoff resets VIDEO/AUDIO/TEXT overrides only, retaining saved
+preferences. Ordinary video/source-switch/TV behavior unchanged; no TV pager/Copy.
+Original full14929:495classes4086cases4075PASS11existing skips/0fail-error,
+four lints0errors/warnings2-9-1-59/two hints. Earlier actual REDs and scoped fixes
+remain in tracked C45_LATER_SHORTS; do not rerun already-green broad qualification.
+
+Corrective b2de changes ONLY three production/test source files: generic account-feed
+parser retains strictly qualified direct TVHTML5_SHORTS shelf ancestry onto exact
+token+channel without reordering/guessing; aggregate500/census-before-shared800-walk
+bounds fail closed. F2b VM DEBUG reports only safe form/route/closed outcome/counts,
+never IDs/tokens/names/URLs/bodies. NO_RESULT is not falsely called TIMEOUT.
+Causal RED90737/34755/66069 retained, minimum fixes GREEN13432/70715/22553.
+Final74220: core38classes288 + finite VM3classes24 =312PASS0skip-fail-error;
+two lints0errors/warnings2+1/10m47/archive5BTxG8WC/digesteb238774. Reviews CLEAN.
+Actual fresh feed shape, admission, swipe, loop/PiP/Media3 and phone/Shield checks
+remain UNTESTED on corrected APK; software evidence is not physical PASS.
+
+Owner REQ-CODEX-023/COORD-086 adopted PROTOCOL§25 + tracked AGENTS/HANDOFF/
+AGENT_COORDINATION: after meaningful APK delivery publish READY_FOR_CLAUDE in
+CODEX_ACK/CURRENT with exact source/artifact, delivered-versus-installed, changes,
+preservation, limitations and concise owner checks; couple small updates may batch,
+failures prompt. Current d803 handoff READY/not installed; Claude consumption or
+owner-facing response not yet observed. AFTER confirmed installation: owner opens,
+refreshes Home once to replace old form cache, tests latest subscriptions Short,
+Copy family, finite swipe/end/current loop/progress/Back and ordinary-video parity.
+Recommendations only admit exact fresh subscriptions-shelf membership. Root never
+writes Claude's inbox/findings; canonical root remains ONLY
+`/root/work/_agent-coordination/private-media-tv/`, eight permanent-lock files,
+one root tracked/integration writer/Claude read-only, owned owner inboxes/semantic
+dedupe, READY_FOR_CODEX -> Codex ACK/consumption. New evidence extends024/022,
+not duplicate task/research. No new Android version/TV APK/install/VPS mutation.
+
+D1 unchanged: frozen78391b2679d3bd0a25bff31401d0e395e2f89338/operator537/checker9a5;
+ONLY064500 immutable transaction, data+sync UP/env LIVE/worker HOLD/clocks0.
+Fresh strict original baselines/isolation/headroom/deploy/sync-owner check passed;
+ONE90940/PID8708 event-only observer active. Tailscale OFF. Attach21:29UTC for
+actual FIRST2026-10-12T21:30:00Z/hard21:35/private5min/canonical155min/192MiB.
+FIRST/resource/build/collector/immediate/+1/+7 PENDING, STOP BEFORE D2. Any required
+failure/inconclusive -> ONLY064500 mandated inverse; no preservation waiver. Never
+use old003800/071300/095200 as current. Post-FIRST prepared helpers/tests/review are
+NOT live PASS; old45389 failure/unknown cause/003800 restored history retained below.
+
+Future owner111–117/CL081–084 TRACKED, NOT implemented: meaningful floor10s;
+external-row refresh controls; default auto-Hebrew ON/safe one-time adoption/name
+helper with opt-out preserved; ended-with-no-next Details return. CL085 informational
+existing sync/TV public playback, CL086 measured oldTV jank cause unknown. CL087
+SY5 cold-runtime cause INFERRED/old logs unavailable; existing118 choice/retest open,
+no duplicate research/question/QR protocol change. Next oldest eligible CL034A
+tracks-only source-panel subtitle probe reuses existing applicability4d7765d5 and
+settled34yes35a36a37a, not yet implemented. ONEAPP/ADR0093 needs genuine D1 FIRST+
+IMMEDIATE PASS before packaging then before D2/new client work; not yet eligible.
+Continue approved chronological LATER during genuine D1 wait, due D1 preempts.
+No whole D1/TV-port/release PASS. Inherited C45_DATA27/five untracked/recovery backup
+untouched/excluded. Previous handoff entire body retained byte-for-byte, SHA256
+b50c6d09ae315d859f431bbeaa5362534fe84780eab712af25df611ee3f68946.
+
+# Historical preceding handoff — entire prior body retained byte-for-byte
+
 # private-media-tv — C1 final CI/publication/install proven; D1 held for21:30 (2026-10-12)
 
 Application main/origin/live normally pushed and independently verified:
