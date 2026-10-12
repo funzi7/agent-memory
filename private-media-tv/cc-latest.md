@@ -1,3 +1,89 @@
+# private-media-tv — C1 final CI/publication/install proven; D1 held for21:30 (2026-10-12)
+
+Application main/origin/live normally pushed and independently verified:
+`ddbe1af76a0fbd3a4e276516911e087c94b84254`. Receipt-only13docs105add21del,
+reviewed=staged=committed taskdiffbbd064d334d9a221a3033ca746c035ee4195a5fe0bc00cd5cc063cb8a17ec98e;
+independent d9d270 receipt review FULLread/CLEAN. Frozen C1 source is
+`d59ee952c55160570fca8d33afe005cd25ed625d`; source/tests/versions/workflows unchanged.
+
+Exact FINAL ddbe Android38232770695 SUCCESS/all2jobs/updated10:27:34UTC/main34m5;
+Go38232770676 SUCCESS/all3jobs/updated09:59:50UTC. Actual ordinary/root/race gates
+passed; C14 mutation-manifest/source-restoration/fuzz stages SKIPPED, not PASS.
+Independent one-shot exact-head CI evidence review consumed; no repeated host source tests.
+Canonical63474 terminal0 refreshed BOTH required phone47 Download copies:
+mobile-test11:33:04.140960065UTC/general11:33:48.252960048UTC,
+268111603bytes/SHA2563ec6aa76f655808428552a55a2c611a91b5d83128e98c4c595d62f3ebdbeda2a.
+Packagecom.funzi7.privatemediatv.mobile/version0.4.28-phone-test/47/ARM64only/
+signer2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0/
+pinnedTDLib790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f/
+exactGecko verified; same-version local cleanup ABSENT. Fresh independent current-
+publication full-byte/stat/cmp evidence is recorded in the external final-evidence report.
+SAME bytes as actual installed10958/fresh5d9cf7; no redundant second install.
+
+Initial6be129 guard deferred75/TRANSPORT_UNKNOWN/no mutation. Owner51d6 confirmed
+ADBready/PMTVclosed/phoneunlocked. Fresh Termux-host30005/parent1/Tracer0/exactbinary/
+server-argv and zero traced ADB servers passed. Narrow three-PID-only guard9018/
+closuref0e FULLread/CLEAN; actual10958 ended0 installed exact3ec with pre/post idle-
+unlocked-untraced guards/original first-install retained. No launch/wake/unlock/
+uninstall/ClearData. Optional673a12 RO diagnostic failed an inverted single-serial
+predicate before pm-path/no mutation; minimum predicate-only correction5d9cf7
+proved fresh installed bytes. Preserve that failure, not an install failure or PASS.
+
+C1 source consumes existing CL033 settledS1/S4: clean explicit phone card/player Copy
+for accepted standalone PublicVideo session/token only. No TVCopy/ShareSheet/raw-
+source/canonicaltitle/trailer/live inference, account write, guessed Short kind or
+progress reset. Current-session source-switch/Back cleanup remain. Core4/card1/shared10
+focused PASS; initial actual stale-popup RED6ffc retained, SAMEphone2 GREEN132a after
+minimum key(session) correction/finalb3d1 review CLEAN. Full58185 passed14m27:
+455classes3792cases3781PASS11existing skips/zero failure-error; three lint targets
+zeroerrors/70warnings/2hints/archive0bb6fdf8. No source validation rerun for receipt.
+Actual phone clipboard paste/geometry/Back and Shield runtime acceptance PENDING;
+owner opens PMTV. Phone47/TV67 unchanged; no new TV APK/install or physical PASS.
+
+D1 frozen source/image78391b2679d3bd0a25bff31401d0e395e2f89338/operator537/checker9a5.
+ONLY current immutable transaction is064500 (`pmtv-data-20261012T064500Z`); old
+003800/071300/095200 are rolled-back history, NEVER current status/inverse.
+Fresh strict controls/ORIGINAL pair/bundle/headroom, exact held-env restore80367,
+guarded64239 apply+fresh confirm, recreated-sync11248/full5rule isolation and57443
+strict ORIGINAL preservation/collision-free5/retained metadata passed. Owner normal
+phone PMTV Sync AFTER recreation succeeded then OFF;68085 same783 non-enrolling
+held startup/default strict deployment passed. No source/image/key/secret/policy/
+baseline/tenant change. Owner original-only machine confirmed/no replacement.
+38050 target/two fresh private admission snapshots passed, not FIRST acceptance.
+ONE90940 event-only observer (PID8708) active; attach21:29UTC for actual FIRST
+2026-10-12T21:30:00Z/hard21:35/private5min/canonical155min/192MiB. Tailscale OFF.
+Data+sync UP/env LIVE/worker HOLD/clocks0/STOP BEFORE D2. FIRST/resource/build/
+collector/immediate/+1/+7 all PENDING. Required failure -> ONLY064500 mandated inverse.
+Post-FIRST15dc/2889/ba91 mechanical rebind/d3e4 review CLEAN and8+10+21+4 pure PASS
+are preparation only, not live collector proof. Preserve original45389 aggregate
+failure/UNKNOWN cause and003800 rollback/restoration history below; no causal fix claim.
+
+CL080/107a108a109a and ADR0093 are now TRACKED, not packaging implemented: retained
+phone-id ONEAPK/both launchers/device autoshell+Settings override/oneversion-CI-delivery/
+NEWshareddevice-aware screens/incremental existing TV. Require genuine D1 FIRST+
+IMMEDIATE acceptance PASS before ONE-APP packaging, then before D2/newclientwork.
+D1 real+1/+7 and separateD2 authorization remain. No re-ask or big-bang rewrite.
+
+Canonical coordination ONLY `/root/work/_agent-coordination/private-media-tv/`:
+eight locked files/one root tracked-Git writer/Claude read-only/owned request inboxes/
+semantic dedupe/READY_FOR_CODEX -> Codex ACK and consumption. C1 software checkpoint
+closed, physical PENDING. RelatedC2 bounded9d2f local gate found no OWNShortsfeed/
+family continuation proof or retained providerShortfact. Next pinned primary-reference
+call-chain lookup is already approved S2 research-first, not generic fresh approval;
+no unlicensed copying/linking, guessed classification, account operation or source grant.
+CL079105a/106a and CL078103a/104a settled FUTURE; missing special-character channel
+was already selected, not discovery defect. Existing source007 binding/TLS gates
+remain open/no admission; consume existing Claude briefs, never redo full surveys.
+
+Next: final helper-only memory push/verify both remotes; continue oldest eligible
+approved LATER during the real D1 wait. Due/failing D1 preempts; actual FIRST+IMMEDIATE
+green triggers ONEAPP priority, not D2 authority. No whole D1/TV-port/release PASS.
+Inherited C45_DATA27/five untracked/external recovery backup untouched/excluded.
+Entire previous cc-latest body retained byte-for-byte, SHA256
+ffccb2cda0049aa89ca18530176ee03bb2579e98e435670e4778d478a6fa549a.
+
+# Historical preceding handoff — entire prior body retained byte-for-byte
+
 # private-media-tv — 073 publication/install proof; D1 restored after003800 failure (2026-10-12)
 
 Application main/origin/live normally pushed and independently verified:
