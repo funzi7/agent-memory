@@ -1,3 +1,94 @@
+# private-media-tv — 073 publication/install proof; D1 restored after003800 failure (2026-10-12)
+
+Application main/origin/live normally pushed and independently verified:
+`f5320d6e2d235267dd32b093cf3a130d517593ef`.16receipt-onlydocs240add52del, exact
+reviewed=staged=committed diff6f6675bfd2c69792aecaa650cb4439cf7c4a7b42487b87981e41be7d68992b6f.
+Independent648251b9 receipt review FULLread/CLEAN; stagedmanifest9ae0da60. Source073 at5d is
+unchanged: existingCL023/Q17 exactcanonical movie/series trailer Want in both nativeoverlays/
+acceptedparent-session-token/forward-only lifecycle/no title progress reset/quality+failure
+parentretention; CL024/Q18 sharedDISPLAY-only Talk exclusion/Reality+Documentary separate/
+providerlabels/rawtaxonomy-cardlines-mixedmemberships preserved/legacyTalkwaitsrealgenres.
+Finalfocusedshared98 plusphone21/TV44PASS; full77789 3504PASS/11existing skips/zero failures/
+three lint0errors70warnings2hints/23m4. Scopedf002/final333a staticreviewsCLEAN. Do not redo.
+
+Own exactf532 Android38207247680 SUCCESS/all2jobs/updated2026-10-12T05:40:51Z/main23m49;
+dataGo38207247709SUCCESS/all3jobs/updated05:23:10Z; mutation/fuzz stages explicitlySKIPPED.
+ONE58776 CIwatch ended0. No manualstressdispatch/localAndroidbuild/TVartifact/version bump.
+Canonical16489 terminal0 refreshed BOTH requiredphone47 Downloadcopies at05:59:19/06:00:05UTC:
+268094606bytes/SHA256b5222be5f7cc7776d35ea2a3637cc213d2d18554dd6aa5dccd083560d836468e.
+Packagecom.funzi7.privatemediatv.mobile/name0.4.28-phone-test/ARM64/signer2987a463/pinnedTDLib
+790c545f/exactGecko gates verified/localcleanupABSENT. FreshTHIS-publication6b9931b0 byteproof
+FULLreadPASS/regularnonlinks/singlelink/stablefullhash/byteidentical. SAMEbytesasinstalled5d.
+PhoneinstalledB522 provenactual9dca95+71553idempotentguard0/alreadycurrent/no secondinstall/
+prepostidle-unlocked-untracedHost; f7e70f originalUser0Aug3firstInstall preserved/no launch.
+Initialguard invocation's terminalhandle/output unretained: doNOTinventits terminalPASS.
+EarlierONEreadonlydevices querybeforeforeigntracerreview ispreserved safetydeviation; allADB
+stoppeduntilownerclosedonlyidleClaude4286/4291/reconnectedactualTermux29764/Tracer0. Fresh
+post-f532 publicationreadonlyphonecheck2db1ae FAILED/no connectedtransport; no mutation/new
+currentinstalledproof/reconnect-or-reinstall needed justforidenticalAPK. Lastinstalledproof
+remains71553; phone/Shield Want/Back/Dpad/heldOK/quality/genre/perception/provider/disk acceptance
+PENDING/owneropens. TV67 unchanged/no newShieldinstall/TVSports orphone-onlyTVPASS.
+
+D1 source/image78391b2679d3bd0a25bff31401d0e395e2f89338/operator537/checker9a5 retained.
+Current003800 FIRST72400 completed297samples/peak140787712bytes/135MiB/no cap-limit-OOM/
+stable originaltarget; protectedoriginalreceipt9e2f byteexact.21864build23min/gates-canaries/
+56597entries/13namespaces/store253296640; EDbreachablefalse/overdue4299/unencodable1/overflow185
+remainlimitations.39399publicOFF/33074restart+downup/59661gate-test/12326fullisolation PASS.
+Actualcurrentc2ed collector45389FAILED1/firstpredicateUNKNOWN. IMMEDIATE97031ONLY003800
+immutableafter-confirminverse/statusPASS: bothprojectsdownNO-v/originalfiles-firewall restored/
+validcompletedrollback/no rollbackfailure.003800 NOWROLLED_BACK history, NEVERfreshapply/
+futureinverse.71291exactdotenv no-clobber hold/bytes-inode-owner-mode/directorydurability/
+syncupPASS;40038fullsyncdeploy-health-two-ruleisolation/memberpositivePASS.
+Fresh6761ORIGINALstrictpairedpreservationPASS/services-serve-inventory-visibility-keycontexts/
+exact2sync recreations/zero unrelateddelta.21862retaineddatavolume-config-secretmetadataPASS;
+restoredsyncAPI1.5/96MiB/sidecar17.95/128/restarterOOM0/24hOOM0/hostavailable1230/swap196/
+PSI60both0/load.29,.28,.27/disk31%. OwnerAFTERrestorationnormalphonePMTV
+`סנכרון בין מכשירים` successful andTailscaleOFFconfirmed, notRemoteSources/Shield/packettrace.
+DataDOWN/envHELD/no currentworker-sampler-observer-selectedhold/clocks0/goalACTIVE/STOP BEFORE D2.
+
+Bothfailed.now byte-preserved. FiniteLOCALbe67a4 pins+retainedsnapshotshape valid/NO current
+componentreceipt: originalpredicateunreconstructible/no causalfix claimed. MinimumNEXT-attempt
+LOCALcoarseclosedfailureenum e89fba815bea7a74557b56c756fb2f23c3b61bca396b59092dbd4ddc9fc520b4
+only; kernel/comparator/BOOTSTRAP/guards/timeouts/receipt/acceptance unchanged. New4puretests
+qualifiedbaseline13subcaseRED, thenreview2P2qualifiedRED2/minimumcorrected. Final71703 new4PASS
+.001s+unchangedordinary21PASS4.087s/narrowclosure7a338913FULLreadCLEAN. Currentreadonlywrapper
+metadata93b774/fullbootstrap-library38985fixedmarker(noDocker)/image93949 tag-user-entrypoint-
+command booleancontrols PASS, notoriginalcause oractualcollectorPASS. No broadC14/redesign/
+fuzz/stress/sandbox/policy-secrets-keys-baseline-tenant-sourceimage change.
+
+LatestFULLClaudeCL079+REQ053: owner105a/106a settled; futuremembershipLEFT afterCOMPLETE
+bothMain+Archive/nontruncatedrefresh only, pins/index/access preserved/rejoinclears. Owner
+confirmedmissing specialcharacterchannelwasALREADYSELECTED03:40, notdiscovery/title defect;
+don'trepeatADB/DBdiagnosis/questions. Futuresearchmatchalreadyaddedhint106a; separatechronological
+implementation stillpending, no inventory/store rewritein073. CL078103a104a settledFUTURE too.
+FULLCL080+REQ054+CL074 latestamendment:107a108a109a allSETTLED. Current073gate finishesFIRST;
+aftergenuineD1 FIRST+IMMEDIATE acceptancePASS→ONE-APP PACKAGING BEFORE D2/anyfreshclientwork.
+Current003800failure/rollbackdoesNOTclosegate; actualfreshretryrequired. ONEAPK keepsphoneid/
+data/bothlaunchers/deviceautoshell+Settingsoverride/oneversion-CI-delivery/newshareddevice-aware
+screensonetoolkit/incrementalexistingTVscreens; D1/data/sync/landedworknotdiscarded, real+1/+7/
+separateD2authority unchanged. COORD076QUEUED/no packagingcode. ADR0093+7canonicalprefixes
+LOCALUNCOMMITTEDfuturedecisiondraft/independentcb805FULLreadCLEAN, foldNEXTsubstantivecheckpoint
+withoutstandalonebuild/version/commit. Those8ownedpaths areintentionaldirtywork, notdisposable.
+
+Canonicalonlycoordroot `/root/work/_agent-coordination/private-media-tv/`,8lockedfiles/oneRoot
+tracked-Gitwriter/ClaudeRO/ownedinboxes-semanticdedupe/READY→ACK consumption; Protocol23 now
+records109a. Source007metadata/printedidentity/TLS-input gates remainblocked/noadmission.
+FiniteSport6CL025currentf53226d8ed51FULLread: optionalreviewedpagebinding/empty-sourceguards/
+exactguideID1 reuseonefetch needed; no guessedid/URL/asset/stream. TVfilter isreviewerproposal
+NOTowner-approvedcard suppression; recheckTV=phone/T2/T4 atimplementation. No new survey/code.
+
+Next: completehelper-onlymemoryfinalization/verifybothpushes; namedownerON whenneeded forfresh
+D1 sync/member-positive/strictORIGINALpair/guardedNEWtransaction (never003800/071300/095200),
+mechanicallybindnewkernel/comparator/driver/observer andtargetedtests/review, same783 non-enrolling
+startup/freshFIRST+allimmediategates. Failure→ONLYnewtransactionmandatedrollback. Duringactual
+waits consumeoldesteligibleexistingbriefs; whenimmediategategreen ONEAPPpreempts/D2stop remains.
+Allactualnewcollector/immediate/+1/+7/phoneShieldacceptance PENDING; no D1/TVport/releasefinalresponse.
+OriginalC45_DATA27draft/fiveuntracked/recoverybackup preserved/excluded. CurrentHEADf532/source
+unchanged/indexempty; localfuture0093+7docprefixes notpublished. Onlyagent-memory-finalize may
+Git-finalizethismemory. Entireprecedinghandoffbody retainedBYTEEXACT SHAa7a613fab51cec6b59beab4ae50a806e968033a171269dac483909e127c8e121.
+
+# Historical NEW003800 startup and preceding handoffs — entire prior body retained byte-for-byte
+
 # private-media-tv — NEW003800 startup passed; FIRST04:00 scheduled (2026-10-12 after01:05UTC)
 
 Application main/origin/live normally pushed and independently verified at
