@@ -1,3 +1,59 @@
+# private-media-tv — NEW003800 startup passed; FIRST04:00 scheduled (2026-10-12 after01:05UTC)
+
+Application main/origin/live normally pushed and independently verified at
+`9f519406eeb1baa588eea2561e6542842dd20518`. Nine D1-only docs124add0del, exact reviewed/staged/
+committed diff7ad006b7da4669678032792d8e8e16abc3da41c3f380d60be1f612c94583eb19. Independent
+33376c5e startup-doc reviewCLEAN/FULLread; path+blob+fileSHA manifest
+10d2d31678237eaed16a4d3a7a5c2320323dbc5d43ed2373ac1c755e952c5853. No app/server/test/workflow/Gradle/version/source changes.
+Own automaticAndroid38190407161 CANCELLEDduringSDKsetup (Java+Gradlesetup passed; all tests/
+lint/assembly/artifact stepsSKIPPED), terminalcancelled/artifacts0. NOTexact9fAndroidSUCCESS.
+No Go paths/workflowtrigger; sourceC8 exactCI/artifact/install evidence below remains distinct.
+
+StandingD1 resumed automatically after narrowfix qualified/reviewed/readinessgreen, no new
+genericapproval. Fresh82808fullsyncisolation/78046+43315 ORIGINALstrictpair/68922bundle130/
+74143headroom PASS (available1229/swap196/PSI60both0/load.11,.11,.13/restartsOOM0).48605exactold
+071300helddotenv restored no-clobber/inode-byte-owner-mode/directoryfsync.86449 rootUID0/SSH/
+unusedpath BEFOREbothdowns/no-v, same reviewedselect3/stage3+5rules/syntax/apply300deadman PASS;
+IMMEDIATE96390separatefreshSSHconfirm/status PASS/disarmed/validappliedconfirmed/expectedlive
+files-firewall/recreatepermitted/no rollbackfailure. ONLYcurrent
+`/var/lib/pmtv-host-isolation/pmtv-data-20261012T003800Z` immutable stage/rollback_helper.py
+owns required --after-confirm inverse/status. Old071300/095200 ROLLED_BACKhistory, neverreuse.
+76283syncup/17149deploy/36664full5ruleisolation-memberpositive/78996+21024 ORIGINALstrict
+exact2sync proof/36059data-absentcollisionfree5networkpreflight/89527retainedmetadata passed.
+OwnerreportsnormalphonePMTV “סנכרון בין מכשירים”successful, notRemoteSources/Shield/packettrace.
+
+OwnerOFF BEFORE37425same783 non-enrollingheldstartup/default82520strictdeployPASS: healthy3data/
+exactenv-security-mount-network-fullfirewall/tmpfs/cache/noauthkey-enrollment-newlisteners/
+restartsOOM.10861actualdue2026-10-12T04:00:00Z/hard04:05, NOTearlierplanned21:30; no scheduler,
+marker/counter reset. Owner privatelyconfirmsoneoriginaltaggedmachine/no replacement; automated
+restartcontinuity remainslatergate. Post-FIRSTkernel78d664/comparatore3e8/driverc2ed mechanically
+boundactual003800, retainingexactwrapper-onlyHOMEfix/allothercontracts. Independentce289CLEAN/
+FULLread; queued26504 ordinary8+21+10PASS/.134+3.282+.007s/no skips. Originalassetsbytepreserved;
+NOrealpost-FIRSTcollector/privatepreservationPASS. Actualdueobserverdelta dca322CLEAN/FULLread;
+onlytemp paths/dates/actualtime/hash differ from originalreviewedtemplates.26687two realprivate
+snapshots/freshroot0600singlelink target+holdbinding PASS/no identityprinted.
+
+ONEobserver72400LIVE/Python at /tmp/pmtv-d1-first-wait-003800.f4LvQleD/wait_and_sample.py,
+SHAea83e0ddd95ca2928071e282f5b2f057ed1c165bed4f77e183fa0b295173efad; snapshot3196e9/pin17c1c8.
+Started00:54UTC, private5min/eventonly, attaches03:59 for actual04:00/hard04:05. SamplerNOTstarted.
+KeepTailscaleOFFsteadilyuntilnamedlaterON; data+syncUP/envLIVE/only003800inverse/clocks0/goalACTIVE/
+STOP BEFORE D2. NewFIRST/resource/build/publicOFF/restart/gate-test/isolation/post-FIRSTpaired
+collector/siblingsync/immediate/actual+1/+7 PENDING. Old1703FIRST ishistoryonly, nevernewretryPASS.
+
+070software/delivery/79076install/checkpointfe2+memory7d closed; latestphone47 CB5 remains
+installedwithoutlaunch/bothrequiredcopiesverified. Phone/Shield perception/Back/provider/disk
+durability PENDING; TV67 unchanged/no T4Sports/TVbuild/version. Canonicaleight-filelockedroot
+`/root/work/_agent-coordination/private-media-tv/`/oneCodextracked-Gitwriter/Clauderead-only/
+ownedinboxes-semanticdedupe/READY→ACK reuse unchanged. After this startupnormalcheckpoint,
+oldesteligible028→029/032→020 during genuinewait; attach03:59/FIRST04:00/requiredfailure preemptsallLATER.
+No newsourceadmission/survey/playerwork/secret/policy/image/baseline/key/tenantchange. Original
+C45_DATA27-line draft remainsBYTEEXACT ONLYunstaged/fiveuntrackedexcluded/recoverybackupintact.
+Onlyhelperagent-memory-finalize may Git-finalizethishandoff. Entireprevious070/recoverybody
+below retainedbyteexact SHA2aa16773c070fa621087586d938d2b845de4f64ba8818201b0c2443365f3bdce.
+This is a startupcheckpoint, NOTcompleted D1/TVport/physicalrelease; olderdatedstatuses arehistory.
+
+# Historical Match070 and071300 recovery handoff — entire preceding body retained byte-for-byte
+
 # private-media-tv — Match070 installed; D1 collector fix ready (2026-10-12 after00:32UTC)
 
 Application main/origin/main/independently verified live remote is normally pushed at
