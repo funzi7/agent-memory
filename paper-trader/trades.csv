@@ -283,3 +283,4 @@ date,portfolio_id,strategy,ticker,side,shares,fill_price,commission,cash_after,e
 2026-10-09,swing_10k,swing,MO,BUY,3.0,71.4657,1.0,5.84,8530.2,"פריצה #2 +1.9% מעל הרף, RSI 66"
 2026-10-09,pullback_10k,pullback,HUM,SELL,4.0,450.2647,1.0,2021.69,10925.32,סטופ זמן — 30 ימים
 2026-10-09,pullback_10k,pullback,WST,BUY,4.0,363.4917,1.0,566.72,10934.35,משיכה #1 — חוזק יחסי 94% · מרחק מממוצע 50 +2.4%
+2026-10-12,swing_100,swing,SMCI,SELL,1.0,41.2694,0.4127,80.31,80.31,המהלך נגמר — מתחת לממוצע 10
