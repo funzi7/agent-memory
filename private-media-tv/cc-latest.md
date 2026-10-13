@@ -1,3 +1,88 @@
+# private-media-tv — ef6 software checkpoint verified; D1 OPEN (2026-10-13)
+
+Application main/local/fetched origin/live normally pushed and independently verified:
+`ef6c7f1c2e0d581df57afc9c2dfd3c117222d6cc`, parent
+`0b82c096c3df42105a8c2e2b632bd30a25ffd6f0`. Exact16paths707add48del;
+reviewed=staged=committed binary `b950a3f355e439b57c19402f5833d48cb259e283dfc535e34ec5b878aa6b2531`.
+FULLb78e finalcomposition/truth-doc correction +836a committedbinding CLEAN.
+Only unrelated pre-existing Data27 and five diagnostic/research files remain dirty;
+index clean, recovery untouched, no history rewrite or unrelated absorption.
+
+Fixed authenticated USER facade6905/transport1a8/TEST7280 and owner-expiry helper51de/
+TEST3b200 are committed. Retained missing-API/fixture/causal failures are in the RD
+ledger; same4 and same2 corrected tests passed. Final60751 full98PASS12classes,
+zero skips/failures/errors, lint0errors1 unchanged compileSdk advisory,1m9;
+6Zmto8Rs ownerXMLdd26bac2/USERXML7ac083c8/linta574. Scoped43535/a271/cb039/b240
+reviews CLEAN; source unchanged after qualification. No stress/fuzz/old193 rerun.
+Full Real-Debrid remains IN_PROGRESS/UNWIRED: synthetic contracts only, no real
+account/API request, Keystore exercise, provider adapter/UI/files/player/application
+dependency or runtime PASS. Poll adapter still lacks exact primary pending-response
+evidence; do not guess status/client-ID/policy or manufacture a working login.
+
+Own exact Android CI38481920189/observer96280 TERMINAL0: run+bothjobs completed/
+SUCCESS, main11558637171623:04:32–23:37:31UTC=32m59, updated23:37:32. All ordinary
+and cleanup/post steps completed-success; Robolectric cache-save and PR-signing
+conditionals SKIPPED, not PASS. FULL42line8daaae34 independent fresh metadata receipt
+confirms exact head and artifact11859425833. Archive268243751/digest69ffb689 is
+ZIP metadata, not APK bytes; no stale-post discrepancy or log/rerun needed here.
+
+Canonical heavy-queue publication23678 TERMINAL0 delivered BOTH mandatory copies:
+`Download/private-media-tv/private-media-tv-mobile-0.4.28-phone-test.apk` and
+`Download/private-media-tv/mobile-test/private-media-tv-mobile-test-0.4.28-phone-test.apk`.
+Both268242675bytes/SHA256 `4fad3109fbf686d07539c652ead445cbba42fd6b1450edfa147f258f3d4980db`.
+Generalmtime23:43:14.408960029UTC/mobile-test23:42:29.872960046UTC. FULL36line6066c004
+independent whole-byte hashes/cmp0/stable before-after stat PASS. Canonical package47/
+0.4.28-phone-test/ARM64/signer2987a463/JNI790c545f/exactGecko verified; cleanupabsent,
+no version/TV artifact. Same prior4fad bytes, not a new usable RD feature. Installed
+phone lastproved9f5;42494 deferredLOCK_UNKNOWN/ownerfreshunlock+PMTVclosed input
+pending. No install, launch, unlock, clear/uninstall or phone/Shield physical PASS.
+
+D1 NEW073000 standing authority/immutable inverse and frozen783 image/source remain.
+FIRST346samples/129MiB/192MiB/zero events, protected original receipt,28min build,
+public-OFF/restart-recreation/publication gate-test already passed; DO NOT repeat.
+Latest owner original-only machine confirmation matches that completed startup.
+Fresh named Tailscale ON/Connected input remains pending; last confirmed OFF.
+Next exact order: data isolation→fresh paired data+sync existing→pinned post-FIRST
+collector→sync deploy-check→actual IMMEDIATE review. Any required FAIL/inconclusive
+invokes only073000 mandated rollback, preserving volumes/secrets/unrelated tenants.
+
+NEW28905 canonical OFF-side read-only review TERMINAL0 at23:39UTC/FULL35line6f9443f2:
+all stats/inspection/topology captures true; data sidecar18.22/128MiB,web3.25/32,
+worker8.527/192; all restarts0/OOMfalse/24hOOM0. Hostavailable1172MiB/swap195,
+PSI60both0/load0.14,0.09,0.09/disk31/cache258MB/public1.673MB. This is current
+headroom only, NOT new lifetime-peak/FIRST/isolation/preservation/acceptance proof.
+Data observed UP; sync LAST OBSERVED UP/envLIVE. IMMEDIATE/+1/+7 PENDING,
+clocks unstarted/STOP D2; this data review does not refresh sync preservation proof.
+No scheduled FIRST replay, source/image/baseline/key/policy or tenant change occurred.
+
+Canonical eight-file `/root/work/_agent-coordination/private-media-tv/` remains the
+only live root, permanent exclusive lock/one ROOT tracked writer, actor-owned inboxes,
+semantic dedupe, READY_FOR_CODEX→ACK; prior useful-feature READY_FOR_CLAUDE consumption
+unobserved. No need to announce an unwired RD foundation as a new app feature.
+COORD092 consumes existingCL038/REQCLAUDE014: original-caption automatic fallback
+with honest notice is ALREADYSETTLED44.a/REQCLAUDE015. Root's missed amendment/duplicate
+S1 question was corrected and withdrawn, not owner-approved supersession. MAINFULL
+32ba100+c2d23079 consumed; only NEW total-caption-request budget reconciliation
+is now awaiting a numbered answer. No caption code/default/accepted RTL changed.
+
+COORD093 consumes FULLCL039/041+owner51a52selection/per-open53phone-only, historical
+205-line survey,102ed82 applicability and65a5f1f0101 primary-wire receipt. Rejected
+Trakt is not revived. First-party corec4806e86 pins exact link/datastore envelopes,
+timestamp/tombstone and Base64-zlib/LSB watched-field with ordered Video list/anchor.
+Unpublished link pending/TTL/replay/cadence and exact Video/crosswalk remain unproved;
+initially unticked titles' later-activity enrollment is the only new product question
+awaiting an answer. No account/enrollment/API call, code copy, placeholder module or
+Stremio implementation. Reuse these receipts; do not restart either survey.
+
+FutureCL088119a120a,STARTfloor110b and ONEAPP AFTER actual D1 FIRST+IMMEDIATE remain
+queued/separate. Phone/Shield/Shorts/source-repair/native/TV-port acceptance remains
+PENDING with old failures retained. D1 resumed/due work preempts eligible local wait
+work; no D2 authority or fullD1/release completion follows this software checkpoint.
+
+# Historical — previous finalized 0b82 checkpoint
+
+The prior body below is preserved verbatim; the prefix above records current truth.
+
 # private-media-tv — 0b82 auth/parser software checkpoint verified; D1 OPEN (2026-10-13)
 
 Application main/origin/live normally pushed:
