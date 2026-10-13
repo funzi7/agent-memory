@@ -67,7 +67,12 @@ and ONEAPP AFTER actualFIRST+IMMEDIATE/beforeD2/newclientwork remain separate.
 Nexteligible afterRD primitive checkpoint: existingCL038 caption repair thenCL039/041,
 not another survey. CL038 existing S1 fallback choice remains open: original captions
 automatically vs notice/off; root asked numbered tradeoffs once, no behavior changed.
-OwnerON/unlock/S1 inputs stillpending. D1 resumed/due gates preempt; no D1/release PASS.
+CORRECTION: S1 is ALREADYSETTLED owner44.a/REQ-CLAUDE-015/CL038 appended decision,
+2026-10-08T19:55: original captions automatically with honest notice. Root's preceding
+OPEN/S1question statements came from missing that amendment; duplicate question is
+withdrawn, not an owner-approved supersession. No caption behavior changed. Preserve
+that approval; only a newly identified loader/request-budget conflict needs recheck.
+OwnerON/unlock inputs stillpending. D1 resumed/due gates preempt; no D1/release PASS.
 
 # Historical — 8160 storage software checkpoint
 
