@@ -1,3 +1,107 @@
+# private-media-tv — CL035 software checkpoint verified; RD foundation in progress (2026-10-13)
+
+Application main/origin/live normally pushed and independently verified:
+`46a889aa9e740dce71cd404b2fc6a6f19c111b20`, parent/source
+`5ff4af6b5716bd20029dd2d845fdeb62875dab66`. Source parent1000e68 is preserved.
+Source50files5918add215del reviewed=staged=committed12c8c306/sourcefafc; independent
+ab0be73a source/test and1497ddb6 docs CLEAN/16eff208 exact source binding PASS.
+Receipt10docs109add25del reviewed=staged=committed7e9073ed; acce0d2f factual review
++b8abe7f3 exact46 binding CLEAN, all FULLread. No history rewrite or repeated green
+CL035/C14/stress campaign. Worktree is NOT CLEAN: owned next090 work remains below,
+separate oldData27/five excluded files/recovery remain preserved outside both commits.
+
+Source Android38398564382/all2SUCCESS/update13:11:07Z/197d66a7 independentmetadata;
+final46 Android38406625956/all2SUCCESS/update14:11:50Z/main28m52/7189ec6e independent
+metadata FULLread. Core/feature/phone units, lint, TDLib, Development signing/assembly,
+package/version/signer/JNI/exactGecko and upload/cleanup passed. Expected cache-hit
+save and main-push PR-signing steps SKIPPED, not PASS. One MOBILE artifact each,
+no TV APK/server deployment or physical PASS. ONE15382 then ONE8090 observers terminal0.
+
+Canonicalsource79727 completed0/globalqueue: BOTHphone47 NEW9f5/268242675 delivered;
+5c5ab923 independent whole-byte/cmp/pre-post-stat PASS. Final46 canonical5845 completed0
+under same installedglobalqueue and freshly republished BOTH SAME bytes:
+`9f5f286b5c9724428e1163251890098b6087b6cde326571485159915356c6ac4`.
+Testmtime14:18:52.576972947Z/general14:19:30.212972932Z; independent1b48fe1c full-byte/
+cmp/pre-post type-link-size-inode-mtime PASS, not reusedsource proof. Package47/
+0.4.28-phone-test/ARM64/signer2987a463/JNI790c545f/exactGecko verified; cleanup absent.
+GitHub ZIP268243751 is not APK268242675. No version transition or duplicate reinstall.
+
+Actualfirst guard23bdd/69021598 safely deferred75/TRANSPORT_UNKNOWN/online0 before
+mutation. Owner then confirmed phoneADB online/PMTVclosed/unlocked. Owner-host server
+32614 PPid1/Tracer0/exactTermuxbinary/online1 verified; root did not start/kill ADB.
+PID-only mechanical b3dbcf2a/cd1cec07 CLEAN; actual41331 guarded install completed0:
+pre/post unlocked/PMTVidle/hostuntraced, install-r success, exact9f5/version47,
+first-install preserved/no launch/clear/uninstall. Independenta0d80b1b fresh device-
+side installedbase size/hash/version PASS. Final46 delivery has identical bytes,
+so no reinstall/device repetition needed. Phone47 installed; TV67 unchanged.
+
+CL035 consumes existingCL035/owner38a39a, not another survey: opaque one-shot original-
+attachment repair with service/account/row/binding/owner fences; lower-revision same-
+file preservation/flag-only deletion and safe enums; no durable stale/changed demotion;
+all ranked/Sources/switch/CW/Next paths guarded. Both hosts observe actualdefaultnetwork
+without startingVPN/requestingnetwork and share five-minute immutable occurrence wait,
+capturedVOD/liveposition, Pause/STOP/Back and newer notice protection. ExistingRetry,
+literal/Deep, canonical/history/Eye/30s and source-switch context/position preserved.
+Original incident cause remainsUNKNOWN/withdrawn network interpretation stayswithdrawn.
+
+Host268classes2592cases2586PASS6existing opt-in skips/0fail-error/three lints0errors
+(1/9/1dependency advisories). Preserve causal REDs/old14880 goldenFAIL; minimum Golden
+instrumentation/approved wording +R9 oldscope fixes88166SAME9GREEN/e2e00823 qualified.
+Unchanged green core14880 parts retained, remaining38807 hostgate completed18m51.
+Phone/Shield networkreturn/timeout/Pause/Back/Next/locator repair remain PHYSICAL PENDING.
+Earlier corrected Shorts and embedded-track metadata are in9f5, not physically accepted:
+old26db no-swipe report OPEN until owner retest; real ten-file/native/phoneShield pending.
+No external-subtitle download or automatic-Hebrew adoption follows. Owner opens PMTV.
+
+Canonical LIVE coordination only `/root/work/_agent-coordination/private-media-tv/`:
+eight permanent-lock files, root sole tracked/integration/Git writer, Claude read-only,
+owned inboxes/semantic dedupe/READY_FOR_CODEX consumption. READY_FOR_CLAUDE088 exact
+source/artifact/installed/features/limitations/checksteps is published perREQ023;
+actual Claude consumption UNOBSERVED. No networktoggles during D1capture/control.
+
+Current owned090 is existing CL036+040 Real-Debrid, settled49A50, after qualified088 safe
+commit checkpoint during genuine D1wait. HQ4543e122 and93c4/72df/d7b/9c32 bounded
+applicability reused; no resurvey, account call, credential issuance or new UX choice.
+Current dirty ownership: settings.gradle.kts includes newcore-debrid; its build/main/
+test sources plus docs/C45_LATER_REAL_DEBRID.md, TODO/state/handoff/architecture.
+Library is UNWIRED/not an app dependency and NOT in46 CI/installedAPK. Account-only
+files/per-media filename presentation and explicit title attachment are approved;
+no magnet/torrent-site search, fuzzy merge, background availability sweep or VPS client.
+Multi-file exactlink mapping remains primary-evidence gated, never zip/infer by order.
+
+090 actualfoundation:94965 expectedmissingAPI compileRED51s/no cases;48455 8/7PASS1
+fragmentFAIL27s →minimumfragmentfix32443 SAME8GREEN+lint0errors1compileSdk advisory.
+Newzero/basename8206 TWO RED41s/XML852b →minimum factualfix57241/full10GREEN46s.
+Only downloads zero meansunknown; torrentbytes0 retains suppliedfact. Applied997156
+snapshot/dependencyP2:84063 TWOcausalRED46s/XML270e →minimum immutable boundedDTO/
+implementationdependency fix8624/full12GREEN/lint0errors1advisory1m15. ArchiveOC63j602/
+XML0a34cc0a/linta574; sourcefb9ff3f8/test305c7360/buildcb5457cd. FULL4573000b closure
+CLEAN; logicalreference is NOT byte/cache/native/DNS/canonical proof. Producer lists
+must be owned/unshared while publishing. Metaspace384MiB expiry warning observed,
+no failure/settings change. External OwnedOAuthBody ffb0789f/3bd7148b FULLread but
+UNQUALIFIED/NOTAPPLIED; next bounded payload/parser/auth/vault/source/UI work remains.
+NextchronologicalCL038 Hebrewcaption correction, thenCL039/041 directStremio; owner
+choices already appended/settled. ExistingCL037 F1/F2/provenance landed, F3 stays004.
+
+D1 unchanged: dataDOWN/envHELD/syncverifiedUP/064500ROLLED_BACK/clocks0/STOP BEFORE D2.
+14678 actualcollector FAIL1/transport/causeUNKNOWN, mandatory44368 inverse/status,
+77252 hold+restore,48174deploy/36790isolation/10929ORIGINAL strictpaired preservation/
+30031 retained metadata-headroom PASS; owner fresh normalPMTVSync succeeded thenOFF.
+No new VPS call/TX/stage/apply/image/source/key/policy/baseline/tenant change here.
+Last measured restored API1.512/96MiB/sidecar18.09/128MiB/hostavailable1223MiB/swap196/
+PSI60both0; historical measured receipt, not new startup admission. Candidate073000
+localpreparedONLY/frozenserver783/diagnostic1f5c readiness; notcausalfix/livecollectorPASS.
+Named fresh TailscaleON/Connected input askedonce remainspending; goalactuallyACTIVE.
+Standing narrowretry authority unchanged; no generic reapproval. Fresh controls and
+NEWunused guardedTX/actualFIRST/IMMEDIATE/+1/+7 stillrequired; oldpasses not replayed.
+Due/resumedD1 preempts localLATER; no D2 authority. No active CI/heavy/ADB/VPS handles
+at this prefix observation; source foundation and memory checkpoint are separate.
+
+Entire preceding handoff retained byte-for-byte, SHA256
+`bd51902109551414c263b1b0e898d2693527c8a7a13b60e12541135c0ddc956c`.
+
+# Historical preceding handoff — complete prior body retained
+
 # private-media-tv — D1 rollback checkpoint verified; fresh ON input pending (2026-10-13)
 
 Application main/origin/live normally pushed and verified:
