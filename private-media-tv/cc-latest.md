@@ -52,7 +52,8 @@ Fresh namedownerON/Connected STILLpending (operational prompt renewed once), own
 confirmedOFF. Next isolation→fresh pairedexisting→pinned collector→syncdeploy→actual
 IMMEDIATE. Clocks0/+1/+7PENDING/STOP BEFORE D2; ONLY073000 immutable inverse. Any
 required live failure/inconclusive demands mandatory rollback; no new source/image/
-secrets/policy/baseline/tenant change. No D1 command or second sampler ran this turn.
+secrets/policy/baseline/tenant change. No D1 command or second sampler ran during
+this storage-checkpoint window; the earlier live gates above retain their real evidence.
 
 Next SAME090 auth tests remain entirely EXTERNAL/UNAPPLIED. Main FULLdfbV1/V2/V3
 read: V1header421 vsactual467 silentlyignored46tail; validselfcontainedV3cede now
