@@ -1,3 +1,116 @@
+# private-media-tv — CL034A software checkpoint verified; D1 ON input pending (2026-10-13)
+
+Application main/origin/live normally pushed and verified:
+`71f5c4988327b00f1e97a351620bddbd60805a2b`, parent/source implementation
+`c134b59459b7b280919da5cee90a30e2191e8606`. Receipt-only nine docs166add45del,
+reviewed=staged=committed diff
+`9b0085bc59cc8dd9ebaf56ec428338a07610a093bbfe2dc7c28e8cdc7fd0d7f6`;
+exact-head review667cde6b FULLread/CLEAN. Eight-doc9031154d + ONLY new C45_DATA
+top receipt943e2844(normalized)/b467 qualify. The pre-existing Data27 hunk remains
+uncommitted/excluded; its entire original preimage7e7249c0 was reproduced exactly.
+Five old untracked files/recovery backup untouched. No history rewrite/new version.
+
+Final71 Android38324906738 SUCCESS/all2/updated2026-10-13T00:31:15Z/mobile32m24s;
+independent a716aa07 exact metadata receipt FULLread. Core/feature/phone tests,
+lint, signing/assembly, exact package/signer/TDLib/Gecko and artifact upload passed.
+Only expected cache-save/PR-signing conditional skips, not counted PASS. Go not
+path-triggered; no C14 mutation/fuzz/stress. Sourcec134 Android38321178493 also
+all2SUCCESS at23:41:56UTC/mobile26m9s; no repeated host/source qualification.
+
+Canonical4035 terminal0 refreshed BOTH required phone47 Download copies:
+mobile-test2026-10-13T00:37:15.304991752Z/general00:38:02.668991734Z,
+268193523bytes/fullSHA256
+`cace7c3adcd143b0d79a187a520c351499dd97a94de26720b0093da92057c619`.
+Packagecom.funzi7.privatemediatv.mobile/0.4.28-phone-test/47/ARM64only,
+signer2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0,
+TDLib790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f,
+exact Gecko verified/local cleanup absent. Fresh independent3bb6481b final
+publication whole-byte/cmp/fullpre-poststat proof FULLread/PASS; this is a new
+publication receipt, not reused source96686/1a1 evidence. Final bytes equal c134.
+
+DELIVERED, NOT INSTALLED: mechanical guard396aba88/reviewcebd7893 FULLread/CLEAN
+changes only comment/digest/size, preserving every prior guard. Fresh host ADB30005
+PPid1/Tracer0/exactTermuxbinary passed. Actual53309 deferred75/LOCK_UNKNOWN BEFORE
+mutation. Existing owner unlock/PMTV-closed input remains pending, not re-asked.
+Installed26db owner no-swipe stays OPEN; neither corrected d803 nor current cace
+has physical acceptance. No launch/unlock/wake/force-stop/ClearData/uninstall.
+Phone47/TV67 unchanged; no TV APK/install. Use SAME reviewed cace guard only after
+fresh host/idle/unlocked proof, then owner opens PMTV and refreshes Home once.
+
+CL034A/COORD080 consumes existing CL034/CL031 and settled34yes35a36a37a, no survey
+redo. Pushed source implements bounded tracks-only MKV/MP4 metadata(1MiBhead plus
+at most1MiBnonoverlap tail/8s+boundedcleanup/64tracks/4096elements), exact account/
+file-version immutable private cache/Room17->18 nondestructive empty table, real
+Telegram range hook and known-source projection without Home/provider-per-card work.
+Shared checking/HE/complete-empty/unknown plus explicitly weaker filename-only hint;
+provedHE before filename evidence within existing identity/availability tiers then
+quality. One generation-owned probe batch, Play/reset/Back fences, exact-file fact
+revalidation and accepted-row bind guard; stable order retained unless HE rank changes.
+No decoder/hash/download/external-provider key, automatic-Hebrew default, Home row
+placement, identity/progress/history/Eye/admission or playback-eligibility change.
+
+Host18866 passed20m50:228classes2232cases2226PASS6oldskips/0fail-error, both lints
+0errors1existingwarning each, phone/TVone shared semantic rendering case each PASS.
+Causal failures1070/21574/29508/25558 and minimum corrections are retained in
+docs/C45_LATER_EMBEDDED_SUBTITLES; reviews267caad0/source,667cde6b/receipt CLEAN.
+Do not redo completed source, deterministic regressions, reviews or host matrix.
+Ten-real-file/native TDLib transport, phone/Shield wording/focus/Back/Play and secure
+window runtime evidence remain PHYSICAL/RUNTIME PENDING; host/CI is not acceptance.
+
+Candidate also includes the existing C2 exact-account-feed Short ancestry correction
+fromb2de/final87. Finite authenticated subscriptions shelf only; no anonymous feed,
+endless fallback, guessed duration/aspect classification/new account or TV pager.
+Owner's all-tested watch?v= report024 extends022/COORD081 stays OPEN on old26db.
+Actual fresh wrapper/membership/swipe/loop/PiP/Media3/Back remains unproved until
+guarded install + owner retest. Preserve existing C2 source312 tests/reviews, do not
+recreate it because the new candidate is not yet installed.
+
+D1 is INPUT-BLOCKED on the named owner Tailscale ON/Connected confirmation, not a
+new deployment approval. Standing authorization remains; STOP BEFORE D2. ONLY
+current transaction064500 (`pmtv-data-20261012T064500Z`) owns inverse/status;
+frozen78391b2679d3bd0a25bff31401d0e395e2f89338/operator537/checker9a5 unchanged.
+SAME90940 finished0: target-bound complete FIRST1308samples,peak135733248bytes/
+130MiBceiling under192MiB, zero limit/OOM events, stable original target. FIRST
+started21:30:04Z. Protected original receipt saved no-clobber/cmp/root0600/nlink1/
+file+directoryfsync as memory-sample-first-20261012T064500Z before later samplers.
+The23:19 partial-reader inconclusive cause was not classified; complete canonical
+receipt resolves acceptance status, not that local cause. Do not restart observer.
+94759 build PASS107min/gates-canaries/57100entries13namespaces/store254488576;
+edb_reachable=false/overdue4155/series_unencodable2/overflow185 remain limitations.
+99457 public-OFF PASS public200manifest/facts/exacthash/304/fournegative404;
+23046 restart/recreation PASS same node/address/health/manifest/full firewall/no
+duplicate/enrollment;80075 gate-test PASS blocked publication/unchanged digest.
+Last proved data+syncUP/envLIVE; Tailscale stillOFF until named confirmation.
+Post-ON isolation/member-positive, fresh ORIGINAL paired preservation/collector,
+sibling sync deployment, IMMEDIATE and real+1/+7 remain PENDING/clocks0. Never
+call these complete or advance clocks from FIRST alone. Any required failed or
+inconclusive gate -> ONLY064500 mandatory inverse/restoration, no waiver.
+
+Next D1 after ON: canonical data isolation, back-to-back data/sync `existing.now`,
+then immediate reviewed post-FIRST driver15dc/2889/ba91 with <=300s snapshots,
+sibling check/remaining immediate runtime/headroom/metadata evidence; actual
+acceptance starts+1/+7 clocks. Existing runtime map0ddc63c5 is preparation, not
+passed collector. No new image/source/key/policy/baseline/tenant changes or broad
+C14 repeat; original45389 UNKNOWN failure/rollback/restoration history retained.
+ONE-APP/ADR0093 remains QUEUED until genuine FIRST+IMMEDIATE acceptance, before
+D2/new client work. D2 still requires separate owner authority; not granted here.
+
+Canonical coordination ONLY `/root/work/_agent-coordination/private-media-tv/`:
+eight permanent-lock files, one root tracked/integration/Git writer, Claude read-only,
+owned inboxes/semantic dedupe/READY_FOR_CODEX -> ACK and consumption. REQ023/PROTOCOL25
+READY_FOR_CLAUDE candidate c134/cace exact features/install distinction/limitations/
+owner tests is recorded; refresh pointer to final71/current identical artifact in
+canonical ACK/CURRENT. Claude consumption/owner reply not observed. No ninth ledger.
+Software checkpoint closed; runtime/input gates are not. Existing settled111–117/
+future F2D, CL087 choice118, and older lawful-source audits retain chronological
+approved order; consume briefs, not repeat surveys. Approved local LATER may continue
+during genuine D1 waits/blocks; due/resumed D1 preempts. No TV-port/release/D1 PASS.
+
+The entire preceding handoff body below is retained byte-for-byte, SHA256
+`0f5fdeededf97cd63113b876a147d3cd4662ea34fd773c5dafbdb3f481666d66`.
+
+# Historical preceding handoff — complete prior body retained
+
 # private-media-tv — C2 correction final CI/APK proven; install/retest pending (2026-10-12)
 
 Application main/origin/live normally pushed and verified:
