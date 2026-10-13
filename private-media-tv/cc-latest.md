@@ -1,3 +1,78 @@
+# private-media-tv — 0b82 auth/parser software checkpoint verified; D1 OPEN (2026-10-13)
+
+Application main/origin/live normally pushed:
+`0b82c096c3df42105a8c2e2b632bd30a25ffd6f0`, parent8160/treefdb2599e02bbe4566a1efb7f0ffa3c7885c9eb2c.
+Exact19paths2262add15del; FULL251d stagedcomposition and49ed committedbinding CLEAN.
+Reviewed=staged=committed binary5391bdda92b481ef46822a5081b9645c7a45a77c6974c39cd564c7fde4f4bf4d;
+path2530fe/numstatd329d0/content30a14a manifests match. No history rewrite or unrelated
+Data27/five diagnostics/research/recovery absorption. All previous progress retained.
+
+Committed local injected authownerf915/vault8835 and accountparser11a576/cursor0e5e/
+admission75624/authTEST3c306/userTESTf77: final56894 full92PASS11classes/zero skips-
+failures-errors/lint0errors1 unchanged compileSdk advisory1m7. Esso6bP6 archive:
+authXMLe646a2a9/parser1349ad42/linta574. Scoped2523/3c309/75a4/a2a20 closures CLEAN.
+Retain expected missingAPI and fixture compile failures, minimum fourP1/barrier/self-
+reentry and causal assertion closures; no repeated193 security/codec algorithm review.
+These are local contracts, not real auth/Ready; no app depends on core-debrid.
+
+Own exactAndroid38476573683/15691TERMINAL0/run+bothjobsSUCCESS/main33m/update22:49:02Z.
+FULLaf0eed CI receipt preserves initial stale post-cache/checkout step projections;
+fresh REST51/54/55 completedSUCCESS and direct log04af38a8 ordered cleanup/returns
+resolve that inconsistency. All ordinary steps SUCCESS; cache-save and PR-signing
+SKIPPED, not PASS. Exactly1 MOBILE artifact11856698318/ZIP268243751, not APK bytes.
+
+Canonical60343 terminal0/globalqueue delivered BOTH SAME4fad3109fbf686d07539c652ead445cbba42fd6b1450edfa147f258f3d4980db,
+268242675bytes/phone47/0.4.28-phone-test. Generalmtime22:59:30.772961030Z/mobiletest
+22:58:46.708961047Z. FULL88bb independent full-byte/cmp0/stable-before-afterstat PASS.
+Canonical package/ARM64/signer2987a463/JNI790c545f/exactGecko validation PASS;
+same-version cleanup absent/no version change/no TV artifact. This equals8160's4fad,
+NOT the installedprior9f5. Previous42494 safely deferred75/LOCK_UNKNOWN; owner fresh
+unlock/PMTVclosed input stillpending. No install/launch/unlock/uninstall/ClearData.
+
+Next SAME090 local source is qualified but UNCOMMITTED/STAGED separately: fixed
+REST USER facade6905/transport1a8/USERTEST7280 plus expiry-owner51de/TEST3b200.
+87426 expectedmissingAPIRED46s/no cases→minimalV2 ownership guard→55719 SAME4PASS39s;
+9667full96/lint1m8. FULLa271/cb039/b240 semantic/byte/harness closures CLEAN.
+33245 expirycausal2RED58s/1PASS1FAIL→minimum3ordinarycatch helper→78146 SAME2PASS35s;
+FULL43535 exactsmallhelper/test review CLEAN. Final60751 full98PASS12classes/0skip-
+fail-error/lint0errors1advisory1m9/6Zmto8Rs (ownerdd26bac2/USER7ac083c8/linta574).
+No interface widening or OOM/stress tests. Newstaged16pathsb950a3f3/source unchanged;
+composition truth-doc P2 corrections applied/review closure pending. Its OWN next
+commit/exactCI/artifact gates are distinct from completed0b82 software evidence.
+
+FullRD remains IN_PROGRESS/UNWIRED. Fixed USER is synthetic tested, no real account
+request/Keystore/provider adapter/UI/files/player or physical PASS. MAIN FULLfda103,
+99b71835 and3ee60 reuse/applicability plus narrow canonical officialdoc check: exact
+credentials-pending HTTP/error discriminator not documented. Polladapter BLOCKED;
+never guess403/503/general error, choose public client ID/policy or manufacture login.
+The minimal clock helper solves expiry alone, not this provider-evidence gap.
+
+D1 NEW073000 standing authority unchanged/LAST real observation data+syncUP/envLIVE.
+Actual73933 FIRST PASS346samples/129MiB/unchanged192MiB/zero cap-OOM/stable;
+40108 original protected byte-exact/durable and buildPASS28min/cache57765/gates-canaries.
+64918 publicOFF/restart-recreation/gate-testPASS/same originalnode/no replacement/
+manifest unchanged. Retain EDbfalse/3402overdue/unencodable1/overflow188 limitations.
+Owner lastOFF; fresh namedON/Connected input requested for isolation→fresh pairedexisting
+→pinnedcollector→syncdeploy→actualIMMEDIATE. No FIRST replay, clock reset or newVPS
+operation during this software window. IMMEDIATE/+1/+7PENDING/clocks0/ONLY073000 inverse/
+STOP BEFORE D2. Any required live FAIL/inconclusive invokes mandated rollback. No
+new source/image/policy/baseline/secret/tenant change or generic fresh approval required.
+
+Canonical eight-file `/root/work/_agent-coordination/private-media-tv/`, permanent
+exclusive lock/one-root writer/actor-owned inboxes/semantic dedupe/READY_FOR_CODEX→ACK
+unchanged. Existing088 useful-feature READY_FOR_CLAUDE consumption unobserved; unused
+RD foundations do not supply a new app feature. Phone/Shield/Shorts/source-repair/native
+physical acceptance PENDING/old failures retained. FutureCL088119a120a/STARTfloor110b
+and ONEAPP AFTER actualFIRST+IMMEDIATE/beforeD2/newclientwork remain separate.
+Nexteligible afterRD primitive checkpoint: existingCL038 caption repair thenCL039/041,
+not another survey. CL038 existing S1 fallback choice remains open: original captions
+automatically vs notice/off; root asked numbered tradeoffs once, no behavior changed.
+OwnerON/unlock/S1 inputs stillpending. D1 resumed/due gates preempt; no D1/release PASS.
+
+# Historical — 8160 storage software checkpoint
+
+The dated body below is preserved verbatim; newer prefix above is current truth.
+
 # private-media-tv — 8160 storage software checkpoint verified; D1 OPEN (2026-10-13)
 
 Application main/origin/live normally pushed:
