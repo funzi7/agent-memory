@@ -1,3 +1,64 @@
+# private-media-tv — b35 OAuth/HTTP software checkpoint verified; D1 OPEN (2026-10-13)
+
+Application main/origin/live normally pushed:
+`b35dc44b4f26c5cea4d577e01f23cbcaeae5e33d`, parent
+`53cff865fb38c281d8b2c256a3e87c835ff07e09`. Task-only22paths2078add231del;
+FULL397027 composition/550104 index/4a0036 committed-binding CLEAN. Actual reviewed=
+staged=committed binary diff6d56614146f58e7479c3b7f0e0062de3b16df0c02900caa87775496c0dccea74.
+Owned Data66 top lines committed separately; pre-existing Data27/five excluded files
+and recovery preserved. No history rewrite, broad C14/stress or repeated green review.
+
+1018 full49PASS/zero skips-failures-errors/lint0errors1compileSdk advisory1m12;
+archive `.090-oauth-transport-full49.1g7rkuAE`, FULL97e708+ea20 scoped review CLEAN.
+Fixed OkHttp transport includes one private nonlogging503 policy to prevent automatic
+Retry-After0 repetition; pinned actual-library GET+POST decision and ownership/cancel
+tests pass. Provider GET immutable URL Strings cannot be erased; no HTTP-object logs.
+Full Real-Debrid remains IN_PROGRESS/UNWIRED, no app dependency/account/auth/UI/runtimePASS.
+
+Own exact-head Android38450447273/all2SUCCESS/update19:28:54Z/main34m51. FULLbd2cdd
+metadata receipt consumed; core incl debrid/feature/phone units/lint/TDLib/signing/
+signed ARM64 assembly/package-signer-JNI-exactGecko/upload/cleanup SUCCESS. Expected
+cache-save/main-push PR-signing SKIPPED, not PASS. One MOBILE artifact/no TV artifact;
+ZIP268243751 not APK size. Canonical68654 terminal0/globalqueue delivered BOTHphone47
+mandatory APK copies268242675/SHA9f5f286b5c9724428e1163251890098b6087b6cde326571485159915356c6ac4.
+Generalmtime19:40:14.764965591Z/testmtime19:39:26.448965610Z; FULL0362d6e6 independent
+wholebyte/cmp0/stable-stat proof PASS. Package47/0.4.28-phone-test/ARM64/signer2987a463/
+JNI790c545f/exactGecko canonical verification PASS. SAME prior41331-installed9f5;
+no redundant reinstall/launch/version or phone/Shield physical acceptance claimed.
+
+D1 NEW073000 remains APPLIED/CONFIRMED/data+syncUP/envLIVE. Actual native73933 FIRST
+PASS346samples/peak134688768bytes(129MiB ceiling)/unchanged192MiB/no limit-OOM/stable;
+40108 original protected byte-exact/durable and actual build-checkPASS28min/cache57765/
+gates-canaries.64918 public-OFF/restart-recreation/publication gate-testPASS/same original
+node/address/no duplicate/manifest unchanged. EDbfalse/3402overdue/unencodable1/overflow188
+remain limitations. Owner currently OFF, fresh namedON post-restart input still pending:
+isolation→fresh paired original-baseline proof→pinned collector→actual IMMEDIATE.
+Clocks0/+1/+7 pending/STOP BEFORE D2. ONLY073000 immutable staged inverse; any required
+failure/inconclusive invokes mandatory rollback. No new secrets/policy/tenant/source/image.
+
+Separate current dirty090: corrected499 codec tests18f66/V3e553 frozen,67393 expected
+missingAPIcompileRED47/no cases; FULL508a856 corrected-test review CLEAN. FULL external
+0f28/c55a678 production draft applied with minimum pre-try secret-copy rollback fixes.
+ONE67769 first applied focused codec gate ACTIVE/input frozen; no codec GREEN/compiled/
+auth/vault/Keystore/API/runtime claim yet. Data27 remains unrelated/uncommitted.
+Next resumes this SAME090 scope during genuine D1 waits; D1namedON preempts. Oldest
+CL038 thenCL039/041 follow wholeRD. ONEAPP only after actual FIRST+IMMEDIATE, before
+D2/newclientwork. Current meaningful088 READY_FOR_CLAUDE handoff exists; consumption
+unobserved, unwired RD is not a new usable delivered feature.
+
+Canonical single eight-file `/root/work/_agent-coordination/private-media-tv/` root,
+permanent exclusive-lock/one root TRACKED_WRITER, actor-owned inboxes/semantic dedupe
+and Claude READY_FOR_CODEX→CodexACK consumption remain. CL088/REQCLAUDE062 settled
+119a120a future90% completion/one-time journal-sync/latest-finished nexttarget QUEUED;
+manualUnwatched/history/Eye/one-series/Back preserved; STARTfloor110b separate. No
+owner decision only in chat; canonical TODO/UX record it. Physical phone/Shield/Shorts/
+native media/source-repair acceptance PENDING, old failures retained. This is a software
+checkpoint, NOT D1 finalization or release/physical PASS.
+
+# Historical — source53 software checkpoint
+
+The dated body below is preserved verbatim; newer prefix above is current truth.
+
 # private-media-tv — source53 RD foundation software checkpoint verified; D1 OPEN (2026-10-13)
 
 Application main/origin/live normally pushed:
