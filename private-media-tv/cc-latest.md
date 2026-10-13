@@ -1,3 +1,66 @@
+# private-media-tv — source53 RD foundation software checkpoint verified; D1 OPEN (2026-10-13)
+
+Application main/origin/live normally pushed:
+`53cff865fb38c281d8b2c256a3e87c835ff07e09`, parent
+`46a889aa9e740dce71cd404b2fc6a6f19c111b20`. Source23 intendedpaths2155add10del;
+independent ae6cce04 composition/c7bd052f stage/e29497d6 committed-binding CLEAN,
+reviewed=staged=committed binary diff
+`bcea9a08b2f19902da64e837350af64544a3bc8778a4d2dbfcb8251bf7d80795`.
+Final47026 full34PASS/zero skips-failures-errors/lint0errors1compileSdk advisory30s.
+Local-only admission/ownedbody/fixedrequest/device-code foundation; whole Real-Debrid
+integration remains IN_PROGRESS/UNWIRED. No account/API/UI/appdependency/runtimePASS.
+
+Own Android38432045840/all2SUCCESS completed17:07:33Z/main29m40; independent corrected
+caefdf0c metadata FULLread. Explicit core-debrid task+core/feature/phone units/lint,
+TDLib/signing/assembly/package-signer-JNI-exactGecko/checksum-upload-cleanup passed.
+Expected cache-hit save/main-push PR-signing SKIPPED, not PASS; one MOBILE artifact,
+no TV artifact. ZIP268243751 is not APK268242675. Canonical globalqueue72279 terminal0
+republished BOTH mandatory phone47 copies:268242675bytes/SHA
+`9f5f286b5c9724428e1163251890098b6087b6cde326571485159915356c6ac4`.
+Generalmtime17:48:26.848968150Z/testmtime17:47:43.488968167Z; FULL3f160dc3 independent
+wholebyte/cmp/stable type-link-size-inode-mtime proof PASS. Package47/0.4.28-phone-test/
+ARM64/signer2987a463/JNI790c545f/exactGecko canonical verification passed. SAME already-
+installed9f5 from41331/a0d80b1b below; no redundant reinstall or launch. TV67 unchanged;
+phone/Shield/playback/runtime physical acceptance remains PENDING, old failures retained.
+
+D1 NEW073000 actually APPLIED/CONFIRMED (60062/33990), immutable staged helper ONLY
+inverse; old064500 restoration exactdotenv9794 retained. Fresh3914/24247 sync isolation,
+91730/88931/40790 ORIGINAL paired preservation exact2sync/0unrelated, bundle130/130,
+network-volume-secret metadata PASS. Owner fresh normal PMTV Sync succeeded then OFF;
+37178 retained held startup/defaultstrictdeploy passed and original-only machine confirmed.
+Native actual due17:03:54.990387253Z, not old21:30.73933 FIRST terminal0/346samples/
+peak134688768bytes(129MiB ceiling)/unchanged192MiB limit/no limit-OOM/stable/attempt_idle.
+40108 original receipt exactdurable/root0600/singlelink protected then actual build-check
+PASS28min/cache57765/13namespaces/store256925696/gates-canariesPASS. EDbfalse/3402overdue/
+unencodable1/overflow188 remain limitations.64918 ordered public-OFF/restart-recreation/
+publication gate-test PASS: same node/address/no duplicate/manifest unchanged/full firewall.
+Data+syncUP/envLIVE/ownerOFF pending namedON post-isolation/freshpairedcapture/IMMEDIATE;
+clocks0/+1/+7PENDING/STOP BEFORE D2. No waiver/newsecret/sourceimage/policy/tenant change.
+
+Separate dirty090 follow-up:4productionfiles+2tests, static49071060 CLEAN FULLread,
+not compile qualification.93682 attemptedfocusedgate FAILcompile48s/missingcursorfault
+helper/no executedcases; root minimum2line private Nothing-return fault helper added.
+ONE23290 SAMEfocused gate running; inputs frozen/no dynamicPASS yet. Prior committed34
+remain untouched. No account credentials/transport/auth/UI/playback/appdependency.
+Data27 pre-existing hunk/five excludedfiles/recovery remain outside commits and preserved;
+owned current D1 prefixes and090 additions remain local. Never absorb unrelatedData27.
+
+Canonical live coordination `/root/work/_agent-coordination/private-media-tv/` is the
+single eight-file root/permanent exclusive-lock/single-root TRACKED_WRITER model.
+Both owned inboxes/semantic dedupe/Claude READY_FOR_CODEX→CodexACK consumption remain.
+FULLCL088/REQCLAUDE062 settled119a120a accepted/QUEUED chronological: future90% reliable
+completion+one-time journal/sync retainedpass/latestfinished nexttarget, manual-Unwatched
+gaps/history/Eye/one-series/Back preserved. SUPERSEDED — owner approved (futurepartial):
+old tail-only/implicit earliestgap behavior; no current implementation. STARTfloor110b
+separate queueditem. OlderRO-before-intake provenance retained, no duplicate survey.
+Next actual: namedownerON D1post-restart gates preempt; during genuinewait SAME090
+focused/module lint and minimal nextapproved scope, then oldestCL038/CL039/041. ONEAPP
+packaging only AFTER actual FIRST+IMMEDIATE, BEFORE D2/newclientwork; no D2 authority.
+
+# Historical — CL035 checkpoint / earlier090 foundation observations
+
+The dated body below is preserved verbatim; newer prefix above is current truth.
+
 # private-media-tv — CL035 software checkpoint verified; RD foundation in progress (2026-10-13)
 
 Application main/origin/live normally pushed and independently verified:
