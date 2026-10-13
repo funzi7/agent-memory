@@ -1,3 +1,81 @@
+# private-media-tv — 8160 storage software checkpoint verified; D1 OPEN (2026-10-13)
+
+Application main/origin/live normally pushed:
+`8160ecd54fa68f27d2102ebb363f934639e9847a`, parent
+`b35dc44b4f26c5cea4d577e01f23cbcaeae5e33d`. Exact22paths2255add9del;
+FULLcff1 composition/ab5854 finalindex/46d5dd committedbinding CLEAN. Actual reviewed=
+staged=committed binary3eab8000bb887bf571edae1c64f384e8cfc0fa3760a9a13debe50d2208527e6e;
+treea9d3045f/pathd47d/contentb92a/source0d86. No history rewrite or closed algorithm
+re-audit. Pre-existing Data27/five diagnostics/research files/recovery remain excluded.
+
+80506 terminal0/2m10:22classes193PASS(debrid68/security125)/zero skips-failures-errors;
+two lints0errors/one unchanged compileSdk advisory each. Metaspace warning did not
+fail the job; no memory-setting change/stress. Archive`.090-storage-full193.7GPPckRR`
+holds vaultXML9f454b5a/codec9f73b51d/identity6e1883da/linta574+54bb. Sourcebc69 codec/
+3be79 typedvault/factories6fc76 +test3d67/b1caca/5fd24/build3f7 are review-bound.
+FULLd940/6d9cee/6e6b/e563/810 scoped closures CLEAN. Retained causal compile/test/
+filter failures and minimal ownership/provenance corrections are in the project ledger.
+
+Provider-local codec and typed wrappers plus two separate Android RD factory identities
+are implemented locally; existing crypto/CAS unchanged.32KiBplaintext/64KiBenvelope,
+decode-before-Restorable, create vs caller-authorized replacement, both-slot reset
+with primary/secondary failure provenance. Alias definitions are not key creation or
+actual Keystore use. No app depends on core-debrid; no auth owner/account validator/
+login/files UI/native playback/live account API exists. Full RD IN_PROGRESS/UNWIRED.
+Ciphertext CAS is not account/generation CAS; future sole auth-owner fences still required.
+
+Own exact Android38462594266/80934terminal0/run+all2SUCCESS/update20:48:55Z/main23m55.
+FULLcd462 metadata receipt retains contradictory details: lintinprogress/laterpending.
+FULLf83 fixed-job-log closure resolves pipeline evidence: lint and assembly explicitly
+BUILD SUCCESSFUL, verification/checksum/upload/signing cleanup/post stages return through
+ordered runner boundaries with zero error/nonzero-exit markers. Raw metadata was not
+rewritten into terminal fields; no rerun or raw log/signing material exposed. Aggregate
+unit step success is not a new enumeration of193 cases. One MOBILE artifact/no TV artifact.
+
+Canonical26549 terminal0/globalqueue delivered BOTH NEWphone47 APK copies268242675/SHA
+4fad3109fbf686d07539c652ead445cbba42fd6b1450edfa147f258f3d4980db.
+Generalmtime20:55:33.240963867Z/testmtime20:54:46.836963885Z; FULLbbf275 independent
+wholebyte/cmp0/stable-stat proof PASS. ZIP268243751 is not APK size. Package47/
+0.4.28-phone-test/ARM64/signer2987a463/JNI790c545f/exactGecko canonical verification
+PASS; same-version cleanup absent/no version change. FULL0b606 three-binding guarded
+install rebind cffb CLEAN. Freshhost32614 PPid1/Tracer0/exactTermuxexe/serverrole proved;
+42494 safely DEFERRED75/LOCK_UNKNOWN before installation. Subsequent readonly whole
+installed-base hash confirms prior9f5 remains; no install/launch/unlock/clear/uninstall.
+Owner unlock/PMTVclosed input pending. Delivery is not installation or physical acceptance.
+
+D1 NEW073000 remains applied/confirmed; LAST real live observation data+syncUP/envLIVE.
+Actual73933 FIRST PASS346samples/129MiB peak/unchanged192MiB/no limit-OOM/stable;
+40108 original protected exactdurable and buildPASS28min/cache57765/gates-canaries.
+64918 public-OFF/restart-recreation/publication gate-testPASS/same originalnode/address/
+no replacement/manifest unchanged. Retain EDbfalse/3402overdue/unencodable1/overflow188.
+Fresh namedownerON/Connected STILLpending (operational prompt renewed once), ownerlast
+confirmedOFF. Next isolation→fresh pairedexisting→pinned collector→syncdeploy→actual
+IMMEDIATE. Clocks0/+1/+7PENDING/STOP BEFORE D2; ONLY073000 immutable inverse. Any
+required live failure/inconclusive demands mandatory rollback; no new source/image/
+secrets/policy/baseline/tenant change. No D1 command or second sampler ran this turn.
+
+Next SAME090 auth tests remain entirely EXTERNAL/UNAPPLIED. Main FULLdfbV1/V2/V3
+read: V1header421 vsactual467 silentlyignored46tail; validselfcontainedV3cede now
+497test+2deps=499, preserving all originals. FULL1695 independent review accepted
+root NonCancellable gate-hang P1 +four bounded fixture/causality groups; require
+minimal V4 closure BEFORE execution. No dynamic/auth source qualification claimed.
+FULL009605 official user-validation applicability consumed: fixed Bearer user call,
+bounded numeric-ID/hash, discard other private fields; no live response/identity-
+immutability/entitlement claim. Auth orchestration remains injected until adapter qualifies.
+
+Canonical eight-file `/root/work/_agent-coordination/private-media-tv/` remains live,
+exclusive permanent-lock/single-root TRACKED_WRITER, actor-owned inboxes/semantic dedupe,
+Claude READY_FOR_CODEX→CodexACK. Existing meaningful088 feature handoff READY_FOR_CLAUDE
+consumption unobserved; unused RD foundation is not a usable new feature. Whole physical
+phone/Shield/Shorts/source repair/native checks remain PENDING/old failures retained.
+CL088119a120a completion90%/journal-sync/latest-finished target remains futurequeued,
+STARTfloor110b separate. D1 resumed/due gates preempt; oldestCL038 thenCL039/041 afterRD;
+ONEAPP only after actualFIRST+IMMEDIATE/beforeD2/newclientwork. No final D1/release PASS.
+
+# Historical — b35 software checkpoint
+
+The dated body below is preserved verbatim; newer prefix above is current truth.
+
 # private-media-tv — b35 OAuth/HTTP software checkpoint verified; D1 OPEN (2026-10-13)
 
 Application main/origin/live normally pushed:
