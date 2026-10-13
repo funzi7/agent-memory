@@ -1,3 +1,89 @@
+# private-media-tv — D1 rollback checkpoint verified; fresh ON input pending (2026-10-13)
+
+Application main/origin/live normally pushed and verified:
+`1000e68f93d2c0dc62efdb330ddf06806c621671`, parent71f5c4988327b00f1e97a351620bddbd60805a2b.
+Nine D1 checkpoint documents198add6del; reviewed=staged=committed binarydiff
+`ec1493161be126a2342847f0de90156dbf55be4ae0037bb5cb40486c5884e016`.
+Independentdd86 CLEAN +9fb11356 exact committed-head binding FULLread/PASS.
+Only pre-existing Data27/five old untracked/recovery remain excluded/unchanged;
+no source/version/history rewrite. Fullrules525 reread and both-repo real preflight.
+
+Exact-head Go38361747063 SUCCESS/all3/updated07:24:00Z; independenta3444e8f FULLread.
+Ordinary module/vet/helper/sampler/test/race/build +ordinary/race deploycheck passed;
+C14 mutation/source-restoration/fuzz opt-ins SKIPPED, not PASS. Artifacts0/no deployment.
+Android38361747064 SUCCESS/all2/updated07:42:38Z/mobile24m46; independent4bda019b
+FULLread. Tests/lint/signing/assembly/package/TDLib/Gecko/artifact/cleanup passed,
+only expected cache-save/PR-signing skips. ONE67362 observer completed0; no rerun.
+
+Canonical80167 under global queue completed0: exact1000e68 artifact refreshed BOTH
+required phone47 copies,268193523bytes/SHA256
+`cace7c3adcd143b0d79a187a520c351499dd97a94de26720b0093da92057c619`.
+Testmtime08:14:54.408981277Z/general08:15:25.572981265Z. Package/ARM64/signer2987a463/
+TDLib790c545f/exactGecko verified; localcleanupabsent. Fresh root9472 whole-byte
+hash/cmp/pre-post type-link-size-inode-mtime proof passed. This is a new publication
+receipt, not reused3bb/source96686 evidence. Bytes equal priorcace; no new feature/version.
+DELIVERED NOT INSTALLED. Existing53309 LOCK_UNKNOWN75/installed26dbNoSwipeOPEN;
+ownerunlock-closed/native10-file/phoneShield acceptance PENDING. No ADB/install/launch
+or device action in this D1 checkpoint. Existing reviewed396aba88 guard only after
+fresh host/idle/unlocked proof; do not repeat already-green CL034A/C2 source work.
+
+D1 actual required14678 reviewed collector FAIL1/coarse transport/causeUNKNOWN after
+72689 full data isolation PASS. Transport does not prove SSH/parser/kernel failure.
+Mandatory44368 ONLY064500 staged immutable after-confirm rollback/status PASS;
+both projects stopped WITHOUT-v, original firewall/files restored/rollback_failedfalse.
+77252 exact no-clobber dotenvhold+sync restore PASS; no status rerun after hold.
+Failed paired snapshots archived private/byte-exact/fsynced.48174 restoreddeploy/
+36790 full isolation/memberpositive/10929 fresh ORIGINAL strict paired proof PASS,
+exact2authorized sync recreations/0unrelated/services-serve-inventory-key unchanged.
+30031 retained-volume/config/secret metadata PASS; API1.512/96MiB/sidecar18.09/128MiB,
+zero restarts/OOM/hostavailable1223MiB/swap196/PSI60both0/load.02,.10,.11/disk31%.
+Owner fresh normal PMTV Sync AFTER restoration succeeded and confirmed TailscaleOFF.
+DataDOWN/envHELD/syncverifiedUP/064500ROLLED_BACK history/clocks0/STOP BEFORE D2.
+Historical064500 FIRST1308/130MiB/build/OFF/restart/gate passes remain history only.
+
+Next-retry diagnostic-only1f5cc7c2 qualified8focused0.522s/ordinary21 3.491s/cfa976
+review CLEAN.54088 exact-env access +7872 deliberate data-absent capture_one rejection
+are readiness, NOT historical cause/causal fix/live collector PASS. ba91 exact copy
+retained; no broader green kernel/comparator/C14 campaign or rebuild. Mechanical
+new candidate073000 is prepared ONLY, not reserved/created/staged/applied remotely:
+kernel7e922b28/comparatora6609c2e/driverb81f32c5/testd4548060/caller8d8d9cf7;
+restore9106bf0f points ONLY failed064500. Four preimages exact; bash-n2PASS/two
+targeted transaction+old-receipt cases0.509sPASS/FULL7d74a822 applied review CLEAN.
+Fresh45307 readonly access/exact130bundle/retained metadata PASS. Initial absent
+default data-wrapper local guard made no VPS call; explicit existing sync-wrapper
+override is the proven operator path. Frozen server783/source/image/O-D1/keys/
+original baselines/unrelated tenants remain unchanged. No re-enrollment/new secret.
+
+Named fresh TailscaleON/Connected input was asked once and remains pending. Keep
+OFF until that input; then fresh sync isolation/member-positive +ORIGINAL proof,
+headroom/retained-image/unused-path gates, exact failed064500 dotenv restore and NEW
+guarded transaction/deadman/fresh confirm/sync-first/held-startup/actual-FIRST sequence.
+Any required failed/inconclusive result uses ONLY that new transaction's mandatory
+inverse; failed rollback/unproved preservation is an owner stop. Standing retries/
+narrow fixes need no repeated approval. Genuine new FIRST+allIMMEDIATE/+1/+7 pending,
+clocks0/ONE-APP stillgated/STOPD2. Goal tool ACTIVE after owner's existing-goal resume;
+no redundant resume request. Never replay old FIRST/collector receipts for eligibility.
+
+Canonical LIVE root ONLY `/root/work/_agent-coordination/private-media-tv/`, eight
+permanent-lock files/root sole tracked-integration-Git writer/Claude read-only,
+owned inboxes/semantic dedupe/READY_FOR_CODEX consumption. Owner decisions unchanged.
+REQ023 existing READY_FOR_CLAUDE c134/cace feature notes remain delivery-only; this
+docs APK adds no feature, Claude consumption unobserved. D1 named/due gates preempt.
+COORD088 wait-side READ_ONLY CL035 applicabilityac9d15c8 FULLread: cached-first,
+additive/retained sources and CL051 alias fix ALREADYLANDED. Settled38a39a remaining
+locator one-repair/nonpersistent-transient/same-identity-newer-row/targeted-before-broad/
+truthful wording/actualOFFLINE five-minute recovery/safe diagnostics are not complete.
+External core/feature proposals preparing; no tracked product mutation/test/build yet.
+Do not infer the original incident cause; withdrawn network interpretation remains
+withdrawn. Existing authorized oldest-first localLATER during genuine D1 waits stands;
+no D2/VPS/TV/launch/version authority or permanent reorder follows. F2D choices4–6/
+ONEAPP actual acceptance gate/CL087 choice118 and real physical paths remain pending.
+
+The entire preceding handoff is retained byte-for-byte, SHA256
+`7cc0a77cc16aa579002d6dc32325a6e34614ae031ab62845b610ab22eb6711a2`.
+
+# Historical preceding handoff — complete prior body retained
+
 # private-media-tv — CL034A software checkpoint verified; D1 ON input pending (2026-10-13)
 
 Application main/origin/live normally pushed and verified:
