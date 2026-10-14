@@ -1,3 +1,98 @@
+# private-media-tv — 3c90 Sports refresh checkpoint verified; D1 OPEN (2026-10-14)
+
+Application main/local/origin/live normally pushed and verified:
+`3c90b3ea66303f2da813f150a1eeeda7643fc5ab`, parent
+`ef6c7f1c2e0d581df57afc9c2dfd3c117222d6cc`. Exact14taskpaths626add11del;
+reviewed=staged=committed binary
+`f7dbb31b397f33fb84f4e431ed00bb7241951ec8e82236e78f7eebcd122cb0ef`.
+Independent final composition5fa0dc7 CLEAN; no history rewrite or unrelated absorption.
+Only pre-existing Data27 and five excluded diagnostics/research remain dirty; index clean,
+recovery untouched. All earlier project work remains preserved, not recreated.
+
+COORD094 consumes existingCL042/CL071 applicable art evidence. Discoveryee296/c7ac coordinator/
+test1b417 use already-retained exact edition context to enrich genuinely new/reused listing heads
+under the SAME saved cap; ordinary progress gets a reserved slot and output/fold preserves ordinal
+order. No schema/identity/manual-budget/clock/player/history/Back/default/network-authority change.
+SourceV1 concrete review defects were corrected minimally, not applied unqualified. Initial causal
+RED→SAMEGREEN1, blind fixture failure NONCAUSAL, corrected edge2RED/1PASS→affected76GREEN,
+final rejecting-head causalRED1/XML7b5ab01c→minimum one-line reservation→final77GREEN.
+Archive `.094-final77.RaY3Ns0n` binds final26pagination/16discovery/19auto/16launch cases,
+zero skips/failures/errors. Combined68835 command FAILED during lint: Gradle self-stopped amid
+GC thrashing/metaspace exhaustion, old01:08 lint never promoted. Fresh lint-only77897 PASS10m03s,
+0errors42warnings2hints/new01:34:06 report652408, unchanged768heap384meta/maxworker1.
+Earlier62568 broad1450cases/1444PASS6existing opt-in skips+lint is PRE-FINAL, not rerun afterP2.
+No stress/fuzz/new sandbox/broad campaign. Bounded public smoke57090 PASS1/0skip1m27s/log2
+metadata-only editions/XMLc375; defaults empty retained context/cursor, so NOT head-art/player/
+rendered-pixel/device proof. MAIN FULLad920 sourceclosure + finalf7dbb composition CLEAN.
+
+Own Android CI38496900344/observer10992 TERMINAL0: exact3c90/run+bothjobsSUCCESS,
+main11563469425601:39:44–02:00:45UTC=21m01/all ordinary+cleanup/post stepscompleted-success.
+Only Robolectric cache-save and PR-signing conditionals SKIPPED, notPASS. FULL54lineb767bffd
+independent fresh metadata confirms one artifact11864971689/exactrun-head binding.
+Its268260135bytes are ZIP metadata, not APK payload. No rerun/log fetch needed.
+
+Canonical49788 publication TERMINAL0 delivered BOTH standard required Download paths:
+`Download/private-media-tv/private-media-tv-mobile-0.4.28-phone-test.apk` and
+`Download/private-media-tv/mobile-test/private-media-tv-mobile-test-0.4.28-phone-test.apk`.
+Both268259059bytes/SHA256
+`635499e1576bc3dd4aaead6150eff6123900b46ef7a820fe1db27deb518e1fe8`.
+Generalmtime02:05:04.264956783UTC/mobiletest02:04:17.220956801UTC; FULL44linea725a5c6
+independent whole hashes/cmp0/stable before-afterstat PASS. Package47/0.4.28-phone-test/
+ARM64/signer2987a463/JNI790c545f/exactGecko verified; cleanupabsent/no version orTV artifact.
+New useful refresh correction delivered, NOT newly installed by the agent: freshhost32614
+Nameadb/PPid1Tracer0/exactTermuxexe verified; one readonlycapture explicitly showed keyguardtrue.
+Guard8308 independentCLEAN/syntaxPASS/four mechanical rebinds;31805 TERMINAL75
+phone_install_deferred=LOCK_UNKNOWN beforeinstall. No fail-open/launch/unlock/clear/uninstall/
+interruption; fresh ownerunlock+PMTVclosed INPUT requested. Lastprovedinstalled9f5 is historical;
+the deferral does not print/prove a current installed hash. No minute retry loop without state change.
+
+Owner manual refresh button PASS; first-card/later-two-card photos remain sample/partial only.
+Owner55 manual-visible-playing positive remains alongside its wrong/unobserved diagnostic.
+Full applicable-row art/native+Website frames/audio/fullscreen/Back/layout/exact named selection/
+visible-playback diagnostic and phone/Shield acceptance remain OPEN/PENDING; C45-8 FAIL retained.
+Current bounded public DOM1f69 has one unlabeled article iframe/no exact named controls; no guessed
+ordinal/first-player/substrings/fuzzy selector/extraction, no invented runtime cause. Owner54 exact
+provider-program title then edition title remains settled/unimplemented. Future80 revised08London,
+81 grouped/sorted/filter Programs,82 exactFINISHED replay,102a bounded in-app manual fallback
+remain queued; actual current06London cadence unchanged and TV Sports waitsT4.
+
+Canonical eight-file `/root/work/_agent-coordination/private-media-tv/`/permanent lock/oneROOT
+writer, actor-owned inboxes, semantic dedupe, READY_FOR_CODEX→ACK remain mandatory. Under
+REQ-CODEX023, READY_FOR_CLAUDE/handoff_to_claude=READY is published in ownedACK/CURRENT with
+`results/coord094-3c90-feature-handoff-20261014.md`; delivered-vs-installed/limitations/proposed
+owner checks are explicit. Actual Claude consumption/message to owner UNOBSERVED, not claimed.
+
+Next eligible wait-side work reuses FULLf4cc91line CL043/044 applicability and FULL51ebb137line
+LIVE-role seam map, plus entire latestCL053/064 including all withdrawn hypotheses/71b66b67a.
+57–61/66b67a71b settled, never reask or repeat old surveys. Portals require confirmed slugs and
+real approved trials; Telegram TS playback requires an active native broadcast/probe. Reusable
+role/picker/Room/gateway machinery exists, but adding LIVE enum alone is not ready: first prove
+durable account-scoped initialized-empty and sync-preservation semantics so pruning never reseeds,
+later catalog additions stay unchecked, and mixed-version same-chat edits do not lose LIVE.
+Union-bound behavior is an internal boundedness gap, no silent truncation/default chosen. Preserve
+64 observation cap/passiveHome zero requests/media-only flow/TVSports-beforeT4. No LIVE role,
+portal admission/playback or secondary cache redesign implemented by this checkpoint.
+
+D1 unchanged: frozen783 image/source/operator537/checker9a5/new073000 immutable inverse.
+FIRST346samples/129MiB/192limit/protected original/build28m/publicOFF/restart/gate-test already
+passed; DO NOT repeat startup/FIRST/machine input from the latest duplicate confirmation.
+Data observedUP/sync LASTOBSERVEDUP/envLIVE; namedfreshTailscaleON/Connected INPUT stillpending,
+lastconfirmedOFF. Next isolation→fresh pairedexisting→pinnedpostFIRSTcollector→syncdeploy→actual
+IMMEDIATE. FAIL/inconclusive invokes ONLY073000 mandated rollback; no baseline/secret/key/policy/
+tenant waiver/change. IMMEDIATE/+1/+7 PENDING/clocks0/STOP BEFORE D2. Last OFF-side headroom
+snapshot23:39 remains read-only, not new acceptance. No VPS/sampler operation this correction.
+
+Other older work remains as prior prefix records: RD realaccount/provider wiring UNWIRED and
+exact pending discriminator blocked; caption original automaticfallback44a alreadysettled, only
+NEW total-request-budget choice awaits answer; Stremio OWNaccount choices51a52/53settled, only
+initiallyunticked later-activity enrollment choice awaits answer/remainingprimarywire gaps.
+FutureCW119a120a/STARTfloor110b and ONEAPP afteractualD1FIRST+IMMEDIATE remain separate.
+No wholeCL042/LATER/TV-port/D1/release completion; due/resumedD1 preempts safe localwait work.
+
+# Historical — previous finalized ef6 checkpoint
+
+The prior body below is preserved verbatim; the prefix above records current truth.
+
 # private-media-tv — ef6 software checkpoint verified; D1 OPEN (2026-10-13)
 
 Application main/local/fetched origin/live normally pushed and independently verified:
