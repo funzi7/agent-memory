@@ -1,3 +1,66 @@
+# private-media-tv — Claude acting integration owner: one-app CI APK delivered to the phone; D1 reviews OPEN (2026-10-14)
+
+Sequential Codex→Claude takeover is ACTIVE (owner REQ-CODEX-027 / COORD-105; Codex paused at its
+usage limit, its writer claim RELEASED; Claude's single TRACKED_WRITER claim acquired 14:28Z after
+the full rules/AGENTS/preflight/eight-ledger read order; recorded with actor=CLAUDE in the live
+coordination root). THIS IS NOT release/D1/TV-port completion. Historical Codex defaults preserved.
+
+APP main/origin/independent live: `f9bb467397e42946a9a2e6789e2d1253b4876588` (docs-only receipt,
+10 files/138+4-, pushed 14:43Z), parent `bec9822dabd2c7052b53591c5ffe9a82b57b0054` (the APK's
+source). Index EMPTY; only pre-existing docs/C45_DATA.md 27-line draft and six untracked diagnostics
+remain, untouched. No reset/clean/stash/history rewrite. `scripts/lib/common.sh` bd0faa32 byte-exact.
+Receipt-head Android CI 38583056629: completed SUCCESS at 15:21:44Z (wrapper 14:43:28–39Z, main job 14:43:42–15:21:43Z; artifact 11905404444 present, NOT downloaded by decision — the delivered phone APK stays the exact source-head bec9822d build 1811ccdc…, a docs-only receipt changes no source; no second same-version file was put under the owner).
+
+## COORD076 — authoritative exact-head CI publication DONE; install/physical PENDING
+
+Exact bec9822d own Android CI 38574049188 SUCCESS (wrapper 13:42:31–39Z; main job 13:42:42–14:12:43Z;
+two by-design skipped steps). Canonical `download-latest-ci-mobile-apk-to-phone.sh` TERMINAL 0
+(14:29:20→14:35:00Z): package com.funzi7.privatemediatv.mobile, 0.7.0 (48), arm64-v8a only, CI-pinned
+TDLib JNI 790c545f, Development signer 2987a463, APK SHA256
+`1811ccdced5e80484975a3c045e8cbb1621bc78424970347dad5322e16f39858`, 270180439 bytes.
+BOTH copies: `Download/private-media-tv/private-media-tv-mobile-0.7.0.apk` (REPLACED the local fe694
+bytes, 14:34:48Z) and `Download/private-media-tv/mobile-test/private-media-tv-mobile-test-0.7.0.apk`
+(CREATED 14:33:55Z); the same-version `-local` file removed by the script's cleanup. Independent
+sha256sum/stat/cmp proof PASS. Offline `verify-upgrade-apks.sh` phone47(4655ad)→48 PASS.
+NOT installed anywhere: phone 47/4655ad (installed 09:10:59Z), Shield legacy TV67/c295. Phone was
+OFF ADB at 14:20Z. Owner notes (what changed / how to install / checks / limits) = CL-098 in the live
+root; phone install only on the owner's explicit go (ADB) or the owner's own tap-install from the
+Download folder; Shield one-app install DEFERRED (CL096 bounded-footprint gate; NEW package beside
+the legacy TV app, never uninstall/clear). No physical PASS of build 48 exists.
+
+## OPEN playback safety — CL096 (unchanged)
+
+Legacy c295 native TDLib SIGABRT at critically low storage; exact fatal site UNPROVED. Owner 13:02
+requires a PMTV-managed bounded streaming footprint (recorded 128 a and stronger); NOT implemented.
+No cleanup/ClearData/uninstall/launch/stress. Shield install stays DEFERRED.
+
+## D1 — ONLY 073000; STOP BEFORE D2 (unchanged)
+
+Transaction pmtv-data-20261013T073000Z, source/image 78391b2679d3bd0a25bff31401d0e395e2f89338,
+LAST OBSERVED data+sync UP/env LIVE; FIRST 73933 + IMMEDIATE 68718/63052/7179/97682 PASS; clock
+2026-10-14T05:20:44Z; +1 review due 2026-10-15T05:20:44Z, +7 due 2026-10-21T05:20:44Z (canonical
+`validate.sh review`, exit 0 alone ≠ PASS). Today's ordinary 21:30Z slot: ONE `validate.sh
+memory-sample 78391b26…` armed while the worker is idle just before the slot (NOT FIRST, no --once),
+then `build-check`; PENDING at the time of writing (15:2xZ; a local timer re-invokes the session at 21:24Z; no sampler is running and none will be started early). Any required FAIL/inconclusive → ONLY the 073000 inverse
+(no -v). Owner Tailscale OFF; no ON request without a named required check.
+
+## REQ-CODEX-026 / COORD103 — APK study continues read-only
+
+First AM Vision IPTV bounded inventory (results 8a9ac266) consumed, not repeated; next narrow pass
+inside the recorded bounds (API annotations/data shapes, MainActivity→Compose references; no
+install/launch/backend/credential/media-URL extraction/code reuse). Second APK/app still pending
+from the owner. Owner rule: learn mechanisms, implement in PMTV's own code, no copying.
+
+## Open owner choices and next steps
+
+Choice 129 (CL-097 in-app updater: a phone+LAN / b hosted URL / c both; Claude's pick a) OPEN; 128
+recorded as "128 a and stronger". Next: owner's phone install + checks of build 48 (CL-098); D1
+21:30Z sample + build-check and the +1 review; COORD103 narrow pass; FUTURE items CL-089…CL-097 are
+accepted backlog for the next source work (oldest first, D1 due gates preempt). Memory finalized
+only via `/root/work/bin/agent-memory-finalize` from the app cwd.
+
+# Historical — prior Codex takeover prefix and the finalized095 checkpoint retained byte-exact below
+
 # private-media-tv — owner-requested Claude takeover; CI and D1 reviews OPEN (2026-10-14)
 
 Owner requests sequential Codex→Claude handoff because Codex usage is nearly exhausted.
