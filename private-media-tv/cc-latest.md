@@ -1,3 +1,101 @@
+# private-media-tv — owner-requested Claude takeover; CI and D1 reviews OPEN (2026-10-14)
+
+Owner requests sequential Codex→Claude handoff because Codex usage is nearly exhausted.
+THIS IS NOT release/D1 completion. Canonical takeover file:
+`/root/work/_agent-coordination/private-media-tv/results/CODEX_TO_CLAUDE_HANDOFF_20261014.md`.
+Read full DEVELOPMENT_RULES_FULL/actualrepo preflight/eightlockedfiles first; acquire only after
+Codex claim RELEASED in current CLAIMS. No parallel tracked writers, historical Codex default is
+preserved; temporary explicit owner takeover applies until another explicit handoff.
+
+APPmain/origin/independentlive normalpushed:
+`bec9822dabd2c7052b53591c5ffe9a82b57b0054`, parent4adc72255aa5d1b5b881cd0cb67071cbb414341b.
+Ten taskfiles245+4-/committedbinarydd03d0a460a299fa66926c2f620c4561b1f13216e2819c3e38241d54c7ea259e
+equalsreviewedindex. Final10a235/TOPOintakeP2closure0c0e and committedHEADattestationfe5d CLEAN;
+V8a85b inventory79/79 matches; product/version/common unchanged. Only pre-existingData27 and
+six untracked diagnostics remain, indexEMPTY; no cleanup/reset/stash/history rewrite/recovery use.
+
+## COORD076 — finished source/host correction, not publication or physical acceptance
+
+Reuse CL080/ADR0093/owner107a108a109a+CL04663a–66a+737a. Sole signed phone-ID application,
+TVshelllibrary, central0.7.0/code48, selectedoneprocessshell; SAVE+offerconfirmedfreshprocess
+restart deferred active/unknown playback-downloads. PhonecatalogHome/setup-proof/Settings/
+MySourcesLocalLibrary ordering and sharedresetunion applied. No agentlaunch/reset/hotswap.
+T3/T4/TVSports remain incomplete. No additionalversion/build justforhandoff.
+
+Own28156CI385635FAILED threeobsolete identityfixtures, locally SAME3/full154 corrected4adc.
+Own4adcCI385677FAILED phone1487/one unsetMain authorization-case exception/six oldskips,
+core+featurepassed/no TV-lint-assembly-artifact. Exactauth51983 passed1, NOT causal replay.
+HeldDefault regression42697 causallyFAIL1/1m27 → privatefixturecancelAndJoin f8af → SAME18556
+PASS1/54s → affected59978 full36PASS1m14/zero skips-failures-errors, XMLarchived. Independent
+15733/author5b9b boundedCLEAN; production/authassertions/deadlines unchanged. DO NOT redo.
+
+Latest exactbec ownAndroid38574049188 push/main/created2026-10-14T13:42:27Z is IN_PROGRESS
+at13:52Z: wrapper8sSUCCESS/corepassed/featureunitsactive, no APK.
+Latest14:07Z watcher: ALLfourunitsteps PASS, lintactive/assembly-verify-uploadpending;
+overall IN_PROGRESS/noCIAPK or wholePASS yet. The earlier13:52 snapshot is historical.
+Soleobserver tool37302/PID17634 uses120s `gh run watch`; inherit actualprocess orreplace onlyifactuallygone, never
+duplicate. No localheavy/device/VPS/sampler or APK-analysisprocess now. No CI success inferred.
+On actualSUCCESS canonicalEXPECTED_COMMIT_SHA=bec... downloader, bothrequiredcopies,
+signer/package/ARM64/JNI/Gecko/metadata and independentwholebyteproof stillrequired.
+On NEWfailure onlyminimumtargetedfix/review/newexactCI, no C14stress/fuzz/greenmatrix redo.
+
+Local48fe694/270180439BOTHcopies remainLOCAL, NOTCI/installed. Pre-final-commit localexport
+timingDEVIATIONretained/notwaived. Actual priorphone47/4655 installed75869/no launch/firstInstall
+preserved; actuallegacyShieldTV67c295 installed72509/fresh6164byte-user0-version-firstInstall
+proofPASS/no launch. REQ025DONE/no repeat. Candidate48 notinstalledanywhere; freshADB unknown.
+No newartifact/install/phone-onlyTVPASS. APK featurehandoffREQ023 afteractualdelivery stillpending.
+
+## OPEN playback safety — CL096
+
+ExistingClaude102 actuallegacyc295 nativeTDLib SIGABRT/low-storage timeline consumed; exact
+fatal site/ENOSPC causal mechanism UNPROVED (tombstone lost). Currentcache/range/native pin
+unchanged. Owner13:02 requires bounded PMTV-managed streaming footprint, not manual cleanup.
+NOTimplementedby076; choice128/deletiondetails/activeDeleteFile-resume continuity unresolved.
+No blanket pinned/managed/unknown-file deletion, raw fatal logs, native repin or process redesign.
+Newone-app Shieldinstall/physicalacceptance DEFERRED against lastobservedFULL/unresolvedrisk.
+No repeatedlogs/storage-fill/stress/ClearData/uninstall/launch. PhoneevidencecannotcloseShieldgate.
+
+## D1 full objective — only073000; STOP BEFORE D2
+
+ONLY pmtv-data-20261013T073000Z/frozensourceIMAGE78391b2679d3bd0a25bff31401d0e395e2f89338,
+confirmed/disarmed, LASTOBSERVEDdata+syncUP/envLIVE. FIRST73933/346samples/129MiBpeak/192cap/
+zeroevents and protected40108 receipt reused, neverreplay. IMMEDIATE68718/paired63052/sync7179/
+headroom97682 passed; no baselinewaiver beyondexactplannedtwo sync replacements.
+Clock2026-10-14T05:20:44Z; actual+1due2026-10-15T05:20:44Z and+7due2026-10-21T05:20:44Z
+BOTH PENDING. D1goalACTIVE/notcomplete. OwnerTailscaleOFF; ONonlynamedrequiredcheck.
+Today's21:30ordinaryworker sampler+thenbuildcheck pending/no observercurrently; frozencontract
+and staticreadiness7ac03 reviewed, notnewlivePASS. No newVPSoperation inthishandoff.
+ANYlaterrequiredFAIL/inconclusive→ONLY073000mandatoryinverse/no-v/checkedenvhold/syncfull
+restoration/originalpreservation/freshownerPMTVSync/OFF. Old095200Data27draft is NOTauthority.
+EDboff/unreachable/3402overdue/series_unencodable1/overflow188 limits remain. StandingnarrowD1
+authority transfers withcontinuation; secretINPUTsecurelocalonly; D2stillrequiresownerdecision.
+DueD1preempts; approvedlocalLATER duringgenuinewaits remainseligible/oldestbriefsfirst.
+
+## REQ026 / COORD103 — first AM Vision APK study PARTIAL, continue not repeat
+
+Owner LEARNmechanisms/ownPMTVcode, notcopy. FirstAPK Download/Telegram/AM-Vision-IPTV-0.29.0.apk,
+regular12374699bytes/SHAa147878ec17de05df70abb3181598fa7315e15b24b4cb13f6d3df553ccce7153.
+TargetsVODconnection/sharedphone-TV/channelmanagement/mini-player/EPG/progressbar; desiredlive
+Israel+USA/UK/Russiansports ONLY. Reported2000channels/30000RussianVOD unverified/NOTaccessgrant.
+SecondAPK/app pending. Firstboundedstaticinventory8a9ac266 MAIN FULLconsumed, helperSTOPPED:
+packagecom.amvision.iptv/code29/name0.29beta/dualLauncherMainActivity; ComposeTV/Room/Retrofit/
+OkHttp/Gson/Media3(HLS,DASH,UI)+FFmpeg/fourABIs. API/data symbolanchors VOD/Live/EPG/progress
+identified. RemoteJSON→Room/failover INFERRED; routes/auth/server/content/rights/UI/focus/versions
+remainunknown; UI materiallyobfuscated. No codebody/full decompile/backend/install/launch/
+credential/mediaURL extraction/code reuse. Continueexistingnarrowpass/PMTVmappingunderbounds,
+notanotherinventory. Resultpath andfullhash in takeoverfile/canonicalCURRENT.
+Claudealreadycompleted104/REQCLAUDE072 READ_ONLY in-app-updaterresearch: newCL097 READY
+at13:53Z/choice129OPEN, not semanticallyintegrated byCodex. Consumeexistingbrief afterhandoff,
+no duplicate research or implementation beforeactualownerdecisions.
+
+Prior memoryHEAD7dab373713e6acaae7d7f91198b3b8ecb4e48dfe was clean. Handoffprefixpreserves
+the old4248-line ccbody byte-exact SHAaf0bad609115fc069a4c71fe5aa817b5616372c4ec911015c904b46c4b4bdaae.
+MemoryGitONLY agent-memory-finalize fromAPPcwd; handoffhelper has NOTyetcompleted. Record
+actualhelperpush result in liveCURRENT/ACK onlyafter completion; no pendingpush is claimed.
+This partialhandoffmustnotbe advertisedas076publication/D1/TVportcompletion.
+
+# Historical — prior finalized095 checkpoint retained byte-exact below
+
 # private-media-tv — 095 LIVE-picker software checkpoint; D1 IMMEDIATE passed, reviews OPEN (2026-10-14)
 
 Application main/local/origin/live normal push verified:
