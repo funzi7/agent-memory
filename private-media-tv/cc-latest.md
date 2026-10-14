@@ -1,4 +1,4 @@
-# private-media-tv — Claude build lane (owner mandate): CL-089/090/092p1/078 landed; VOD sites surveyed, mission designed (choice 138); D1 reviews OPEN (2026-10-14 ≈18:00Z)
+# private-media-tv — Claude build lane (owner mandate): the safe-first round COMPLETE (CL-089/090/092p1+p2/078/091/137a); VOD sites surveyed, mission designed (choice 138); D1 reviews OPEN (2026-10-14 ≈19:05Z)
 
 Owner (≈16:10Z): "build from where codex left … until codex regain usage"; "just continue to build like codex did … with
 all the updates … only one build at a time" → REQ-CLAUDE-075 / COORD-107: Claude implements the accepted owner-decided
@@ -9,10 +9,10 @@ targeted/module tests + CHANGELOG/TODO/HANDOFF/PROJECT_STATE per item, one commi
 explicit owner hand-off: CURRENT.md "CODEX RESUME POINT" (actor=CLAUDE), docs/HANDOFF.md "Claude build lane — resume
 log", CLAIMS `## CLAUDE` (claim v120), TASKS COORD-107 progress.
 
-APP main/origin live: `4f83cd824badaf8632ab05b2dfd413df99ccab38` (CL-078 part 2) ← c375be08 (CL-078 part 1) ← 46e94f7c
+APP main/origin live: `f0a3387fcb128d1771410e84d9ae8219400eec41` (CL-092 part 2: the Hebrew-subtitles chip + Home's bounded probe, ADR 0031 amended) ← f61e207b (owner 137a: the ✕ on the waiting CW card) ← a762dd5f (CL-091: the Sports Programs card's owner strip + text cut, ADR 0092 amended) ← 4f83cd82 (CL-078 part 2) ← c375be08 (CL-078 part 1) ← 46e94f7c
 (CL-092 part 1) ← eae2569d (CL-090) ← 9c97a0e5 (CL-089; CI run 38602065528 SUCCESS) ← f795ac57 (ADR 0096 + build-48
 install receipt) ← f9bb4673 ← bec9822d. Index EMPTY; only docs/C45_DATA.md (Data27) and six untracked diagnostics
-remain, untouched. CI for 4f83cd82: watched, result pending at this checkpoint.
+remain, untouched. Own CI: 4f83cd82 re-run 38610532659 SUCCESS (its first attempt and a762dd5f's run 38616175545 died on native JVM crashes of the test executors in unrelated tests — flakes; re-runs requested), f61e207b 38617145100 and f0a3387f's run watched.
 
 Landed: CL-089 (121a) `F2B_CONTINUE_WATCHING_LIMIT` 20→60; CL-090 (122a/123a) YouTube rows "לתחילה" header control
 (phone); CL-092 part 1 CW day words היום/אתמול/מחר + TV CW cards keep their text; CL-078 (103a/104a, ADR 0097) Want /
@@ -21,8 +21,9 @@ strip cells = empty slots; the TV drops a Wanted movie's title-actions row) + th
 write (no migration); full core-catalog suite PASS. INSTALLED: phone build 48 (1811ccdc…9858, 15:48:54Z, not launched;
 owner checks CL-098 pending); Shield legacy TV67/c295.
 
-Next (HANDOFF order): CL-091 (124a/125a Sports Programs card strip + less text), the waiting-card X (137a: the existing
-suppress(target), both apps), CL-092 part 2 (126b); then delicate CL-081 (110b: the 10-s floor = the constant + the SQL
+Landed since: CL-091 (the Sports Programs card's owner strip on the edition/programme registers + texts cut, 320 dp), 137a (the ✕ on the
+waiting CW card, phone; TV keeps its Menu-sheet removal), CL-092 part 2 (the Hebrew-subtitles chip on both apps' next-episode cards + Home's
+bounded one-file-at-a-time probe of the shown cards' known sources). Next (HANDOFF order): delicate CL-081 (110b: the 10-s floor = the constant + the SQL
 literals, completion tail untouched), CL-083, CL-084, CL-088, CL-079; deep-deferred CL-087/095/096; design 130a/131a/133a
 on PMTV's own channels.
 
