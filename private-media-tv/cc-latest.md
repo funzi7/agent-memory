@@ -1,3 +1,46 @@
+# private-media-tv — Claude build lane (owner mandate): CL-089/090/092p1/078 landed; VOD sites surveyed, mission designed (choice 138); D1 reviews OPEN (2026-10-14 ≈18:00Z)
+
+Owner (≈16:10Z): "build from where codex left … until codex regain usage"; "just continue to build like codex did … with
+all the updates … only one build at a time" → REQ-CLAUDE-075 / COORD-107: Claude implements the accepted owner-decided
+backlog (oldest/safe-first), one heavy build at a time (`/root/work/bin/heavy-run -- ./gradlew …`), a behavior test +
+targeted/module tests + CHANGELOG/TODO/HANDOFF/PROJECT_STATE per item, one commit + push per item/step, own CI watched
+(one waiter), version still 0.7.0/48 (bump once per installable batch), no D2/VPS, D1 preempts, Shield install DEFERRED
+(CL096), never launch/interrupt. The Codex-monitor cron is paused by the owner. Codex resumes from the pushed HEAD on an
+explicit owner hand-off: CURRENT.md "CODEX RESUME POINT" (actor=CLAUDE), docs/HANDOFF.md "Claude build lane — resume
+log", CLAIMS `## CLAUDE` (claim v120), TASKS COORD-107 progress.
+
+APP main/origin live: `4f83cd824badaf8632ab05b2dfd413df99ccab38` (CL-078 part 2) ← c375be08 (CL-078 part 1) ← 46e94f7c
+(CL-092 part 1) ← eae2569d (CL-090) ← 9c97a0e5 (CL-089; CI run 38602065528 SUCCESS) ← f795ac57 (ADR 0096 + build-48
+install receipt) ← f9bb4673 ← bec9822d. Index EMPTY; only docs/C45_DATA.md (Data27) and six untracked diagnostics
+remain, untouched. CI for 4f83cd82: watched, result pending at this checkpoint.
+
+Landed: CL-089 (121a) `F2B_CONTINUE_WATCHING_LIMIT` 20→60; CL-090 (122a/123a) YouTube rows "לתחילה" header control
+(phone); CL-092 part 1 CW day words היום/אתמול/מחר + TV CW cards keep their text; CL-078 (103a/104a, ADR 0097) Want /
+Not-interested never shown together on any owner surface of both apps (one derivation `f2bOwnerIntentVisibility`; hidden
+strip cells = empty slots; the TV drops a Wanted movie's title-actions row) + the store clears the opposite intent on
+write (no migration); full core-catalog suite PASS. INSTALLED: phone build 48 (1811ccdc…9858, 15:48:54Z, not launched;
+owner checks CL-098 pending); Shield legacy TV67/c295.
+
+Next (HANDOFF order): CL-091 (124a/125a Sports Programs card strip + less text), the waiting-card X (137a: the existing
+suppress(target), both apps), CL-092 part 2 (126b); then delicate CL-081 (110b: the 10-s floor = the constant + the SQL
+literals, completion tail untouched), CL-083, CL-084, CL-088, CL-079; deep-deferred CL-087/095/096; design 130a/131a/133a
+on PMTV's own channels.
+
+VOD (REQ-CLAUDE-077/078, COORD-109, CL-103/104, results cl103-owner-named-vod-websites-survey-46e94f7c-20261014T1745Z.md):
+the owner-named sites — msdb.tv (a Hebrew guide), filmus.me (a Hebrew link-blog, burned-in subs, outside file hosts),
+watchseries.at / seriesonline.one / ramoflix.net (TMDB-style front-ends over public embed hosts; ramoflix names
+Vidsrc / 111movies / Videasy / Cinesrc), yarrlist.net / fmhy.net (directories) — none is itself a source; no Israeli
+titles. Mission "check them, highest quality, heb subs, use in pmtv": step 1 a Website-source trial inside PMTV ranked
+from the website-playback logs (quality/subs are player facts, a real-device gate), step 2 the ADR 0096 first-party
+resolver (135 a) for the host families that ranked; choice 138 OPEN (a trial-then-resolver recommended / b resolver first
+/ c web player only). Nothing implemented; the records stay non-operational (no stream/extraction details).
+
+Open owner choices: 129 (in-app updater, pick a), 138. D1: ONLY 073000 / source 78391b26…; today's 21:30Z memory-sample
++ build-check armed (timer 21:24Z); +1 review 2026-10-15T05:20:44Z, +7 2026-10-21T05:20:44Z; failure → ONLY the 073000
+inverse; STOP BEFORE D2.
+
+# Historical — the earlier 2026-10-14 takeover/delivery prefix retained below
+
 # private-media-tv — Claude acting integration owner: one-app CI APK delivered to the phone; D1 reviews OPEN (2026-10-14)
 
 Sequential Codex→Claude takeover is ACTIVE (owner REQ-CODEX-027 / COORD-105; Codex paused at its
