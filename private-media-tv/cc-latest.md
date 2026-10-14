@@ -1,3 +1,101 @@
+# private-media-tv — 095 LIVE-picker software checkpoint; D1 IMMEDIATE passed, reviews OPEN (2026-10-14)
+
+Application main/local/origin/live normal push verified:
+`7d496e2d1d44e69a17c8492bb504b133c13aab90`, parent
+`68658889a6fdcbc690ca1f26a590de94ae2cf76b`, prior
+`3c90b3ea66303f2da813f150a1eeeda7643fc5ab`.
+Exactly two intended commits: D1 evidence3paths111adds/binaryf91666098b41333d4a117c5f264c670da0e45ad726f4eab75bc348bc3b4ce32f;
+095source71paths8174adds233del/binaryc5eec1e699de736f1ca9e36ae6a8096d3bf7f73c86a36d14d5a7ab7071f52340.
+Reviewed=staged=committed bytes; exact-HEAD attestatione3bf203 CLEAN/71HEADblobs exact.
+Only original27-line Data preparation and five diagnostics remain dirty/excluded; index empty,
+recovery untouched. New D1 prefix was selectively staged, never absorbing that draft.
+
+## D1 actual live gate — SAME073000, no FIRST replay
+
+Frozen source/image78391b2679d3bd0a25bff31401d0e395e2f89338/transaction073000 unchanged.
+Fresh ownerON1ddb enabled68718 full isolation PASS;63052 back-to-back original keyed data/sync
+preservation plus supervised component collector PASS;7179 sync deploy_gate=true;
+97682 canonical review captures passed. Data's ordinary two changed container records were
+disclosed and resolved ONLY by exact planned sync replacements, not a baseline rewrite/waiver.
+Host services/Remote Sources config/original keys/volumes retained; no new live mutation/rollback.
+Earlier SAME73933 FIRST346samples/129MiB peak/192cap/zeroevents, protected40108 receipt,
+build28m/publicOFF/restart/gate64918 were reused, not repeated. Static receipt9ad00 CLEAN.
+Current idle sidecar18.49/128,web3.258/32,worker9.863/192MiB; allrestarts0/OOMfalse/24h0;
+host available1171MiB/swap197/PSI60both0/load.24,.18,.14/disk31/cache258MB/public1.687MB.
+EDboff/unreachable/3402overdue/series_unencodable1/overflow188 remain actual limitations.
+
+Acceptance clock STARTS2026-10-14T05:20:44Z; actual+1review due2026-10-15T05:20:44Z,
++7due2026-10-21T05:20:44Z BOTH PENDING. Owner was told OFF-safe and confirmedOFFe68e.
+Data+syncUP/envLIVE/ONLY073000mandatoryinverse/D1goalACTIVE/STOP BEFORE D2.
+No due review is silently waived; later required failed/inconclusive gates retain rollback.
+Full authoritative new receipt `docs/D1_IMMEDIATE_20261014.md` and current C45_DATA prefix.
+Older21:30/FIRST/failedtransaction/clocks0 entries below retain historical provenance.
+
+## COORD095 — consume existing role decisions, not another survey
+
+Owner71b/66b/CL043/044/053/064: dedicated phone `מקורות שידור חי Telegram`, initialized
+once from full durable catalog/media union, then owner prunes/clears; later additions unchecked.
+SPORTS_LIVE controls ONLY selected-channel call observation/probe. SPORTS_MEDIA still indexes
+exact LIVE+POST_MATCH media messages. No TV Sports beforeT4, passive Home/provider/history request,
+Telegram deeplink substitute, or native LIVE player claim. Actual active-broadcast probe/transport
+and real phone/Shield/Back/performance acceptance remain PENDING.
+
+Room19 adds account-cascading config presence/initialized-empty marker, full400 storage cap vs
+unchanged64 observation cap; atomic union/marker-last, no migration defaults/truncation/reseed.
+Disjoint LIVE wire state/chat records preserve frozen legacy3 roles/mixed clients/unknown HELD.
+Current-pull afteradopt/reconcile bootstrap respects any protocol opinion; explicitlocal firstuse
+requires proven empty vault/setup admission. Cancellation preserved; SOURCE effect/automatic
+follow-up publishes real defaults. Backend reads/attach/refresh do not initialize; current locked
+runtime-only projection cannot overwrite owner intent. Third picker/count uses cached inventory,
+nullable restoration, revision/job/route guards, language/Back preservation and monotonic empty.
+
+Separate host gates: core31,marker1,sync21,census7,forwarding143,bootstrap68,backend26,
+affectedphone176. Do not sum them into a whole-app total or repeat green gates. Causal failures
+and minimum fixes retained in `docs/C45_LATER_TELEGRAM_LIVE_ROLE.md`; only KDocs afterward.
+81789 relevant5modulelint/sharedTVcompile PASS25m05/zeroErrorFatal; fresh warnings catalog1/
+Telegram1/feature1/phone42+2hints/TV10, archived5ifpTmwf. No stress/copied sandbox/cap change.
+Final71preseal831fe9/statusdelta4376bd1/exactHEADbindinge3bf203 bounded CLEAN.
+
+Own exactHEAD Android38517189478/all2jobsSUCCESS/main33m07; mandatory units/lint/assembly/
+signer/JNI/exactGecko/metadata/upload/cleanup and all poststages SUCCESS. Go38517189482/all3
+SUCCESS; optionalC14mutation/restoration/fuzz SKIPPED, no new broad campaign.
+Observer13003 TERMINAL0, no activeCI/heavy/VPS/sampler process.
+Canonical51408 TERMINAL0 publishes BOTH general/mobile-test phone47/0.4.28-phone-test:
+APK268291827bytes/SHA4655ad003e50f80684aa31ee76bff2fc06fef51a0bf634a3725ae54e7b755d06,
+signer2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0,
+ARM64/JNI790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f.
+Unique artifact11873537417 ZIP268292903bytes is NOT APKsize. Independent7fd66d36 whole-byte
+proof PASS for both regular nonlink copies/cmp0/stableprepostidentity, MAINFULLconsumed.
+
+Prior3c90/635499 APK installed21356 after freshownerunlocked/closed input: exactinstalledbytes/
+firstInstallTime preserved/prepostidle/unlocked/no launch. New095/4655 is DELIVERED NOT INSTALLED:
+freshreadonlyphone matchingtransport0, owner89ed says `later ill update`; NOnewinstallattempt.
+Extra post3c90 readonly identity attempts returnedno proof/no user0claim; guard's actual bytecheck
+remains valid. No phone-only TV PASS, no version bump/TV APK or agent-controlled launch.
+Owner-passed regular Hebrew punctuation/Copylink/HomeBack remain preserved, not repeated.
+
+## Next owner-approved task — COORD076 ONE-APP, not another LATER item
+
+D1 genuine FIRST+IMMEDIATE prerequisite is now MET. After this software checkpoint's memory
+seal, ONE-APP packaging preempts D2/further NEW client work; realD1+1/+7 continue separately.
+MAINFULLCL080/ADR0093/107a108a109a and currentapplicabilitya17a6a consumed, not re-surveyed.
+Retain phoneid/signer/data, appmobile soleapp +appTVlibrary/twolegacyActivities, resolverbefore
+firstcaller owners; never hotswap/Activityrecreate two independent runtimeowners in one process.
+NEWowner737a choice1 SETTLED: save mode+offerconfirmedfreshprocessrestart, DEFERduring
+activeplayback/downloads. No agentlaunch permission. Persist this in076trackedcontract BEFOREcode.
+MAINFULLCL04663a64a65a66a alreadysettled: Homefirst/setup-on-need; technicalprivacy diagnostics,
+Telegram account/redreset Settings; locallibraryMySources; debug/samecert/drop-phone-test suffix.
+Do not ask those again. No076source/version/CI/delivery change yet; TVlegacydata/package muststay
+recoverable/sidebyside until realtransitionproof/laterretirementauthority. T3/T4 still pending.
+
+Canonical coordination ONLY `/root/work/_agent-coordination/private-media-tv/`, eightfiles/
+permanent.lock/rootsoleTRACKED_WRITER/Gitowner. Bothinboxes semanticdedupe; Claude sidecar
+READY_FOR_CODEX→Codexconsumption, owner neednotremember whichagent received a request.
+ExistingREQCODEX023release-notehandoff updatedafter095delivery/READY_FOR_CLAUDE, consumption
+not observed. CurrentCOREoldbriefsreused; no duplicate owner-request/backlog reconstruction.
+This newprefix supersedes ONLY operational snapshots below, never approvedproductbehavior.
+Memory Git finalization ONLY `/root/work/bin/agent-memory-finalize` fromapplicationcwd.
+
 # private-media-tv — 3c90 Sports refresh checkpoint verified; D1 OPEN (2026-10-14)
 
 Application main/local/origin/live normally pushed and verified:
