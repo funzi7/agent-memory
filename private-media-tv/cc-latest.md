@@ -1,3 +1,256 @@
+# private-media-tv — COORD119/build53 CI-delivered; native/device/D1+7/C15 OPEN (2026-10-15)
+
+This is a software publication checkpoint, NOT full COORD119, D1, TV-port or release completion.
+Do not redo sealed52 installation, existing Claude research, qualified host gates or the completed CI.
+The ENTIRE previous memory body below is preserved byte-exact (preimage SHA256
+`c27064ede4310825a00c04f0cbc4f5fe6bbb4e1b936f9f5068d0628055d576cf`, 397911 bytes).
+Its older current/next/pending statements remain dated provenance, not instructions to repeat work.
+
+## Exact software publication and remaining gates
+
+- App source/main normally pushed: `7d33c93937eb383b1c094c4d2376cc128a44a621`.
+- Own Android CI `38798894106` COMPLETED SUCCESS at2026-10-15T20:44:02Z; watcher82879 TERMINAL0.
+- One nonexpired artifact12004654835; canonical downloader62269 and independent copy/upgrade71189 TERMINAL0.
+- Authoritative APK0.7.5/code53, 270360663bytes, SHA256 `8b808a83f0ba8b838a6536c6722a58dd9167ce13d4a1dc28e4d0b2ae911e4c76`.
+- BOTH required Download copies are delivered/byte-identical; this is NOT installation or runtime acceptance.
+- Phone52 remains installed/no launch; fresh53 install input requested, not assumed. Shield remains HELD.
+- Native rolling, natural-pressure playback and phone/Shield physical acceptance remain OPEN, not supplied by CI.
+- D1+7 not before2026-10-21T05:20:44Z THENC15/bothrepo closure; ONLY073000/last-confirmedOFF/STOP BEFORE D2 unchanged.
+- Final CI/artifact/delivery receipt: `results/coord119-ci53-final-publication-20261015.md`, SHA256
+  `bbeeb239ef4e341f3b384729496cfbe70a5285b0c235a3d9ad2535851275d951`.
+
+Memory's resulting commit/push is verified only AFTER the helper finalizes it, in external coordination receipts;
+this prefix does not invent a self-referential memory SHA or claim its own future push.
+
+## Exact source and identity
+
+COORD119 source began from sealed52 source `00bd5ee7c0d4f7d2436422edb6569f9a4ebcc851`; the cohesive 39-path implementation commit is `881e35ac82565c369ecb2c610ca158cc3ab661f5`.
+Its parent is exact `00bd5ee7c0d4f7d2436422edb6569f9a4ebcc851`; its reviewed 39-path diff SHA-256 is `9eb44ca08369e3d28aa72e5de3b68a0b6021a0d6c5cf8e6f92f2d70b554f022d`.
+The exact follow-up is `7d33c93937eb383b1c094c4d2376cc128a44a621`, with parent `881e35ac82565c369ecb2c610ca158cc3ab661f5`.
+Its eight-path diff SHA-256 is `148cf18688f36a8669be983a222ad861b2825d3af841bc123a42e3546ca36431`; the cumulative 40-unique-path diff SHA-256 is `2eadb31de22cdfe53dd993f60f770f858bebd91430dc0ae519338a9b4fcd35a7`.
+The cumulative set is 26 source/test/identity paths plus 14 documentation paths.
+The exact-HEAD binding review `0ab71822ef60569b57b2b4db2ab8e4107807d7b9773995a9148643969ca4abb1` is CLEAN and binds the intended follow-up to exact `7d33c93937eb383b1c094c4d2376cc128a44a621`.
+No later source change is represented by this checkpoint.
+
+The normal app identity is now `0.7.5` / versionCode `53`; the retained application id, signer contract, arm64 ABI contract, and one-producer packaging contract are unchanged.
+Only the central identity and its two exact fixture literals moved from 52 to 53.
+The manifest/static identity gate passed 11 tests with zero failures, errors, or skips.
+The locally assembled candidate53 APK is not a CI artifact.
+
+## Why the first exact-source CI was not accepted
+
+The first own CI for exact `881e35ac82565c369ecb2c610ca158cc3ab661f5` was run `38796883596`; it failed during compilation before application tests and before artifact upload.
+The cause was an exhaustive diagnostics fixture missing the new `STORAGE_BUDGET` branch; artifact count for that failed run was zero.
+No product cache, playback, native, policy, version, or manifest behavior changed in the correction.
+The causal local replay handle 16898 reproduced the same compile failure before tests; the minimum correction was one diagnostics-fixture branch.
+The full provider follow-up handle 88539 passed 13 classes and 116 tests; those counts overlap other scoped runs and must not be arithmetically summed.
+The correction and its bounded review are recorded by receipts with hashes
+`12d2da29747ddf3bf7f0a69676bea76a69bf39bdb128798ed225c97c1e074db6` and
+`0e4e7b608637f6ac850fc713bb3a44d03c068703b6654065eb539ebae9272a1f`.
+The replacement exact CI `38798894106` completed SUCCESS at20:44:02Z; its exact artifact and delivery are proven below.
+
+## Settled storage requirement
+
+Owner128a+ is settled: PMTV owns a bounded rolling playback footprint and pressure eviction while the owner watches; this is not an owner free-space choice.
+It does not require generic manual cleanup or authorize deletion of pinned, managed, unknown, or unrelated user data.
+It does not authorize a broad storage redesign, native repinning, or raw fatal logging; the one-app code path selects MOBILE through `TdLibMediaCacheProfile.forPackage(context.packageName)` for the retained package, including its intended Shield use.
+That is static package-selection evidence; physical Shield confirmation remains pending.
+No legacy-TV profile assumption is carried into the one-app runtime.
+Existing public clear semantics remain strict and separate from the internal rolling path.
+
+## Implemented pressure and accounting contract
+
+Ordinary disposable cache is considered before known-CW/inactive-warm data; CW/warm reclaim is used only for actual required pressure.
+Optional headroom never deletes CW/warm data when the required reservation already fits.
+Pinned, managed, current, active, unknown, and alias-conflicting entries retain their protections.
+Deletion accounting is confirmed-delete accounting; failed deletion retains its ledger allocation.
+Pressure reason is propagated through projection, deletion, and terminal recheck; the maintenance cadence was not shortened and the unknown-data guard was not removed.
+
+Foreground admission uses fresh filesystem capacity and the existing 1 GiB startup-burst floor; it does not silently replace K3 with the stricter 2 GiB speculative read-ahead reserve.
+The existing 64 MiB startup acceptance at 1.9 GiB free remains preserved when at least 1 GiB remains.
+A conservative 1 MiB TDLib allocation-boundary margin is reserved; partial grants remain bounded by real available headroom.
+Reservations stay accounted until authoritative reconciliation; exact-instance residual release removes only the materialized reservation instance.
+Concurrent explicit release and repeated cleanup remain idempotent.
+The proven residual regression was exactly 48 MiB of phantom reservation before the correction.
+
+## Implemented same-session controlled-roll contract
+
+Active acquisition returns an opaque typed lease tied to one file and unique token; the existing same-file mutex remains owned by that lease until idempotent close.
+The internal rollover operation recognizes only that exact owning lease; it does not make the public clear path permissive.
+It rechecks the expected published path using the existing safe relative-path hash.
+It also preserves exact file, identity, census, alias, pin, current, and active-reader guards.
+Only the lease's own current/sole-active exemption is available.
+Other active or current aliases, pins, managed entries, unknown entries, and conflicting readers remain BUSY.
+
+The Session preserves Media3 position and buffer ownership.
+It unwinds `sessionMutex` before cancelling and joining read-ahead and submission work.
+Those joins are bounded; an unproved quiescence becomes a typed storage stop rather than an infinite wait.
+The captured local handle is closed before the exact native snapshot/deletion sequence.
+The source synchronously touches an authoritative snapshot before trusting foreground admission.
+Retired old paths are filtered for the full Session lifetime.
+The same-path successor is conservatively unsupported because a path hash cannot prove a new allocation generation.
+A valid successor must publish a distinct path and pass manager accounting.
+
+Gateway rollover success is a prepared state, not an early release of ownership.
+The gateway keeps claims fenced after native deletion until manager persistence and Session retirement state are armed.
+The Source calls the non-suspending finish acknowledgement in `finally`.
+Positive acknowledgement occurs only after successful manager commit and non-cancellable Session metadata arming.
+Cancellation is propagated; it is not converted into a successful admission.
+A negative, missing, mismatched, cancelled, or unproved acknowledgement retains a terminal Gateway-lifetime fence.
+That terminal case wakes waiters into truthful typed storage failure.
+It does not auto-recover, admit a same-path successor, or fabricate a successful cache commit.
+
+`STORAGE_BUDGET` is a typed provider range failure.
+It maps to the local-storage source kind and a truthful shared storage-stop notice.
+It is not normal end-of-stream.
+It is not a retryable provider reset.
+It does not advance the candidate ladder.
+It does not teach source health that the provider is bad.
+It does not fabricate title progress or completion history.
+Ordinary tail completion and genuine playback progress retain their prior behavior.
+Notices contain no raw paths, hostnames, tokens, credentials, private URLs, or cache identities.
+
+## Host evidence already qualified
+
+The pressure causal pair was 2 RED then 2 PASS.
+The direct coordinator closure reached 64 PASS across its bounded classes.
+Typed lease coverage passed 3 focused cases.
+Stale-current, unknown-entry, and pathless-accounting regressions each failed causally before their minimum correction.
+The foreground admission seam passed its 3 focused cases.
+Gateway rollover work exposed 5 causal failures before the reviewed minimum integration.
+The pending-stop regression failed causally before terminal-fence correction.
+The Source boundary produced two strengthened RED cases and two additional edge RED cases.
+The integrated Source/Gateway gate then passed 78 tests: Source65 plus affected Gateway13.
+Typed playback storage behavior passed 40 focused tests.
+Catalog session/storage notice behavior passed 46 focused tests.
+The residual-reservation regression failed by exact 48 MiB before correction.
+Its closure passed Manager48 plus Source65, 113 tests total, with zero failures, errors, or skips.
+The changed Telegram lint then reported zero errors/fatals and one retained warning.
+The diagnostics-fixture follow-up passed 13 classes and 116 tests.
+These runs deliberately overlap; they are not a new aggregate test total.
+No host result is presented as native or physical acceptance.
+
+Scoped reviews covered pressure semantics, manager/coordinator behavior, typed lease/rollover,
+Gateway fencing and acknowledgement, Source integration, typed storage propagation,
+residual accounting, final Source tests, identity, exact path coverage, and the 14 documentation paths.
+The exact7d33 binding review found no unreviewed delta in the cumulative allowlist.
+This is bounded review closure, not a claim of whole-repository review.
+
+## Build53 artifact and authoritative delivery
+
+Normal candidate53 assembly completed locally.
+The local APK is version `0.7.5` / code `53`.
+Its SHA-256 is `e2685282d16c116134ab2ebe034d5408a99a6158485f586161d46d656cd09a22`.
+Its size is 270360663 bytes.
+The local static gate is recorded by receipt SHA-256 `a3f4ee99e3966990ec1697b3537ab3fe3d83d830fe9f77216dd7d557587d6b91`.
+The first BOTH export and independent local byte proof completed under handles 73822 and 68334.
+Re-export 43686 completed naturally with the same e268 bytes and no rebuild.
+The refreshed mobile copy timestamp was 20:05:56.213Z.
+The refreshed general copy timestamp was 20:06:44.993Z.
+These are retained local-candidate facts, not the authoritative CI artifact. Equal size does not mean equal bytes.
+
+Exact CI38798894106/main/push passed both jobs and all declared unit/lint/assembly/package/signer/TDLib/Gecko/
+metadata/upload/cleanup phases. Independent API5764 verified exact7d33 and completed20:44:02Z.
+Only conditional Robolectric-cache-save/PR-signing steps skipped; exact-SHA inventory contains only Android/no Go run.
+Artifact12004654835 is unique/nonexpired, created20:43:40Z, archive270361727bytes/API digest
+`81432dea719f6a1137725d22dfac190cf654dea7299d5424a1aa38e696e22681`.
+That is archive API metadata, not a locally hashed archive or the APK digest.
+
+Queued canonical downloader62269 TERMINAL0 validated current remote/exact run/three-file artifact/checksum/
+non-sensitive metadata/source/version/package/signer/ARM64/native/Gecko and published BOTH:
+
+- `Download/private-media-tv/private-media-tv-mobile-0.7.5.apk`, replaced20:49:38.361972369Z.
+- `Download/private-media-tv/mobile-test/private-media-tv-mobile-test-0.7.5.apk`, created20:48:36.625972393Z.
+
+Each270360663bytes/SHA256 `8b808a83f0ba8b838a6536c6722a58dd9167ce13d4a1dc28e4d0b2ae911e4c76`.
+Same Development signer2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0;
+CI JNI790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f, unchanged official-source pin022d602.
+Canonical cleanup removed ONLY same-version0.7.5-local sibling; local e268 build output remains recoverable.
+Older APKs/diagnostics/recovery and user data were not deleted.
+
+Independent queued71189 TERMINAL0 verified both full hashes, byte-for-byte cmp, regular/nonlink status, exact size
+and unchanged before/after inode/size/mode/mtime/ctime tuples. Retained52 still hashes604b64d3.
+Offline52→CI53 upgrade gate passed unchanged package/signer/ARM64/native-library-presence and higher version.
+It installs nothing and does not prove runtime upgrade/migration. No active local heavy build or CI watcher remains.
+
+Phone52 remains the installed checkpoint.
+Its guarded installation preserved first-install state and did not launch the app.
+Phone53 is not installed; explicit fresh install input has been requested, not assumed.
+Shield remains held; no candidate53 Shield installation is claimed.
+
+## Native and physical boundaries still OPEN
+
+The earlier ART abort cause and exact failing native array remain unproved.
+Host tests do not prove a real TDLib partial-delete/reopen cycle.
+No procfs/inode observation has proved the real native descriptor-release boundary.
+No real nonzero successor allocation has been admitted on a device.
+No same-player controlled roll has passed on phone or Shield.
+No low-storage playback session has physically proved the storage-stop notice.
+No physical check has proved progress/history remains untouched through the real failure.
+Same-path native reuse remains unsupported by design in this checkpoint.
+The terminal fence is an explicit availability tradeoff for uncertain commit, not a hidden success path.
+No native crash-cause claim, device PASS, or full COORD119 completion claim is permitted here.
+
+## D1 and C15 remain independent and unchanged
+
+D1 remains bound to ONLY `073000` and source image `783`.
+The last owner-confirmed Tailscale state remains OFF; this client checkpoint made no toggle or fresh server-health observation.
+The actual FIRST, immediate, +1, and ordinary review evidence already accepted is not replayed here.
+The +1 and ordinary reviews are PASSED.
+The +7 review is not before `2026-10-21T05:20:44Z`.
+After +7, C15 post-phase-D records, inventory, and acceptance reconciliation remain required.
+Both repository closures remain required before D1/goal closure.
+STOP BEFORE D2 remains mandatory.
+Any due D1 or new actual D1 failure still preempts ordinary work.
+
+For the original accepted C15 FIRST tuple, only elapsed time of 28 minutes is proven from retained evidence.
+`facts.lines` is UNPROVEN, not zero.
+`facts.bytes` is UNPROVEN, not zero.
+`counts.series` is UNPROVEN, not zero.
+`counts.ilYes` is UNPROVEN, not zero.
+No later value may be substituted for that original tuple.
+No rebuild, replay, waiver, or new query is authorized to fill those unknowns.
+
+## Coordination and future scope
+
+The sole canonical LIVE root is `/root/work/_agent-coordination/private-media-tv/`; its set remains eight files:
+`CLAIMS.md`, `CLAUDE_FINDINGS.md`, `CODEX_ACK.md`, `CURRENT.md`,
+`OWNER_REQUESTS_CLAUDE.md`, `OWNER_REQUESTS_CODEX.md`, `PROTOCOL.md`, and `TASKS.md`.
+Root remains the sole tracked writer.
+The current handoff may be READY only when its protocol facts are actually published.
+READY does not mean Claude consumed it, integrated it, or retransmitted it.
+Research readiness never grants integration or public retransmission authority.
+
+Owner129 hosted work remains FUTURE.
+Owner140a is bounded static-study authority, not implemented hosted behavior.
+Next eligible local queue after this software boundary: CL053/073 Telegram highlights → bounded CL054/061/072
+AceStream hand-off/M3U/passive-ranking → CL068 mako/12+. Main FULLread corrected queue reportb7de0f41:
+CL074's explicit item9-before10/R4 controls; later96d/97c/98 answers unblock AceStream without reordering it.
+Original report818f/derived reversal was corrected; no new owner supersession or implementation is claimed.
+Actual119 native/device inputs preempt. Search-Source hosting remains deferred97c; embedded-engine G1–G5
+remain excluded. These remaining slices are not claimed implemented by this checkpoint. No provider survey was repeated.
+Per-origin native-source headers are approved FUTURE behavior and are not in candidate53.
+No new header policy, hosting path, cache UX, manual cleanup flow, native pinning, or process redesign is implied.
+CL096 physical Shield/native closure remains separate from this host checkpoint.
+
+## Publication, review and preservation contract
+
+Independent draft reviewcc351674 found a circular publication condition and two bounded factual wording issues.
+Main accepted/corrected them: software evidence is separate from truthful OPEN physical gates; the repair receipt
+uses actual12d2 digest; MOBILE selection is static package evidence, not a physical Shield observation.
+Publication requires a bounded independent final evidence/privacy review before prepend; its exact binding/result is recorded externally.
+No full source-review campaign, green-test repetition, native sandbox or stress run is implied.
+
+Immediately before prepend, recheck cc-latest against the full c27064 preimage SHA above; stop on mismatch.
+Preserve that entire397911-byte preimage body byte-for-byte. Finalize agent-memory ONLY through
+`/root/work/bin/agent-memory-finalize "<commit message>"` from the application repository.
+No direct state-changing Git operation in agent-memory is permitted.
+Verify the resulting memory commit/push and unchanged application publication afterward in external coordination receipts.
+READY_FOR_CLAUDE is published with exact artifact/version/new behavior/preservation/limits and proposed owner checks;
+READY is not proof that Claude consumed it or that the owner performed any physical test.
+
+---
+
 # private-media-tv — CL067/build52 published and phone installed; physical/D1+7/C15 OPEN (2026-10-15)
 
 This is a software publication/install checkpoint, NOT D1, TV-port or release completion.
