@@ -1,3 +1,153 @@
+# private-media-tv — build51 CI/delivery/phone install qualified; native acceptance and D1+7/C15 OPEN (2026-10-15)
+
+This is a software publication/install checkpoint, NOT D1, TV-port or release completion. Do not
+redo Claude49/50, CL082, the CL106 candidate, the green host/CI checks or the existing surveys.
+The historical handoffs below are preserved byte-exact; their older "not built/not installed/next"
+statements are dated provenance, not the current queue. Read current local rules/docs and the
+canonical coordination ledgers before acting. No reset/clean/restore/stash/rewrite/extra worktree.
+
+## Exact application state and scope
+
+APP main/origin verified normally pushed: 1a51c798a05564d39269367ab94cd3564e236d67,
+parent58e21a6ddd6957c232b9ce6fe8a5598e76076fae, tree5bfb1f518abd157c84bba631fe2d59ef5414cc41.
+Source58 (parent6a52ac3c4cf2940bd47c79e917198eea88c4ce12) contains the cohesive CL082/COORD110
+Home-row refresh and required CL106/COORD112 cancellation-code-shape candidate:33 source/test/
+config paths and15 task documents. One version transition0.7.2/50→0.7.3/51, retained mobile ID,
+one APK with both shells. No separate TV build, native repin, data/schema or VPS change.
+
+58 own Android38729741866 FAILED the stale shell fixture0.7.2/50 assertion before app gates;
+later units/lint/assembly/upload SKIPPED/artifact0. Causal local SAME script FAILED, then passed
+after ONLY two expected-version literals matched the already-set0.7.3/51. Failed-step normal
+offline/mock harness bundle65789 TERMINAL0; existing ResourceWarnings retained, not stress/C14.
+Normal1a51 follow-up exactly12 paths/155 additions6 deletions: two literals and11 current-state
+documents. No APK rebuild, version bump or repeated green unit matrix for this fixture repair.
+Future version transitions must reconcile all THREE pins: central application identity,
+MobileManifestContractTest, and the one-app delivery shell contract.
+
+Source integrationf1d5f9ae, staged71d97b6a, doc251e779c, exact58head8beaa4b9 reviews CLEAN;
+repair8b6ba25f,11-doc9e952248 and exact1a51c3a7bacd reviews CLEAN/main fully read. Exact follow-up
+binary diff4e21101aeb497ac6593b08e99325d636b4c747e1dd51adfa8528e755395ba34b; all33 source
+hashes remain unchanged at1a51. Common helperbd0faa32 and frozen D1 operator/checker unchanged.
+Index empty; original docs/C45_DATA.md27 additions/diffSHA42ce07be and six diagnostic/research
+untracked files remain untouched/excluded. Recovery backup untouched; no unrelated absorption.
+
+## Host validation and preserved failures
+
+Queued86736 exact-owner regression1PASS;87481 Search97 + continuation11 =108PASS/zero skips/
+failures/errors.32557 qualified522 classes/4539 cases/12existing opt-in skips/4527 unskipped
+passes across core-catalog/design/catalog/phone/TV, then FAILED JVM Metaspace384MiB/GCthrash;
+not a test assertion, Termux/native crash or overall aggregate PASS. Core/design lint qualified.
+ONLY remaining three lints29746 TERMINAL0 at512MiB metadata/same768MiB heap/one worker:
+all5 fresh lint reports zero Error/Fatal,46 warnings retained. No source change/unit-suite rerun.
+First packageDebug47368 FAILED without proven specific cause; unchanged-flags83308 assembly
+passed. Local51 APK9e3f3ecb/270295127bytes verification57601/offline50→local51 upgrade98515/
+Java static gate02004c83 passed. Same local APK exported after58 and final1a51, not rebuilt.
+Do not retry the unsupported native DEX tool; only the established Java SDK analyzer was used
+for the qualified static gates. Local JNI21d59ebf is NOT the CI-native790c545f binary.
+
+## Exact CI, canonical artifact and actual phone installation
+
+Own Android38731868517 at exact1a51 SUCCESS/both jobs; main completed2026-10-15T12:44:54Z,
+run updated12:44:55Z. Core/catalog/phone/TV-shell unit stages, both-shell lint, signed assembly,
+identity/signer/pinned-native/exact-Gecko checks, metadata/checksum/upload all passed. Only normal
+cache-save/PR-signing conditional steps skipped. Watch50557 terminal0; no active CI watcher.
+Go workflows' path filters do not match this client/documentation correction; no server workflow
+was dispatched in this batch.
+
+One nonexpired artifact11974392019, private-media-tv-mobile-apk-<full1a51SHA>;
+archive270296191bytes/SHA76c833aa0bdcd1300572562f9ed9f2f6b3b990e7e25a39d2b5d57021d52259be.
+Canonical downloader69179 TERMINAL0/strict exact-run/source/three-file/checksum/metadata/
+package/version/signature/native verification. BOTH real regular/non-symlink copies0.7.3/code51:
+
+- Download/private-media-tv/private-media-tv-mobile-0.7.3.apk, replaced local fallback12:52:00Z.
+- Download/private-media-tv/mobile-test/private-media-tv-mobile-test-0.7.3.apk, created12:51:04Z.
+
+Each270295127bytes/SHA44d7e81e9b8b8c290fd7ae76d73731ae5f28ead12e203e4b5a70544112138ff8;
+Development signer2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0,
+ARM64-only/CI TDLibJNI790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f/
+exact Gecko. Root independent34678 whole-file hashes/cmp/regular-not-link/stable stat PASS.
+Approved script removed only same-version0.7.3-local; older versions/legacy-TV files preserved;
+local9e3 build output remains recoverable, not the authoritative CI copy.
+
+Exact CI APK Java static report28be735f fully read/PASS: outer86registers/4states/1636CU/
+19ranges/4cancel+4adapter+19catchall, inner229/42/27666CU/zero ranges/catches; old500/500/515
+handler replication absent. Critical CL082 compiled chain/two-await/terminal fallback present.
+Queued43461 offline50→CI51 upgrade PASS: same package/signer/ARM64, higher code51. These static/
+host/artifact results DO NOT establish ART root cause or native runtime effectiveness.
+
+Owner REQ-CODEX029 explicitly requested BOTH installs when51 ready, then acknowledged the
+Shield's separate low-storage issue and asked readiness updates. PHONE install51672 TERMINAL0:
+reviewed guard1b0e4a21/independent500277c7 CLEAN/main read; exact known50/bbc preimage admitted,
+pre/post unlocked+idle+untraced-host proof, update-preserving install-r applied, installed base
+SHA exactly44d7e81e/code51/name0.7.3, original firstInstallTime preserved. PMTV was NOT opened;
+no uninstall/Clear Data/unlock/input/force-stop/VPN toggle. This is installation, not acceptance.
+Shield unchanged at last observed legacy67/c295; no Shield operation/installation in this batch.
+
+Full delivery/install receipt: results/coord110-build51-ci-delivery-20261015.md,
+SHA59652186eafc3e354bd9b6b057e277961967b760a8b63c987f3afe7eb88d1303 in canonical root.
+Owner023 READY_FOR_CLAUDE feature/acceptance NOTES published in CODEX_ACK/CURRENT; NOT a writer
+handoff. New51 actual Claude consumption not yet observed; old50 notes relay08:47Z was observed.
+
+## Actual behavior, owner decisions and remaining physical gates
+
+CL082/111a112a: targeted phone Home-row icons for each YouTube feed, channels guide/live marks,
+one Sports section and Programs common icon; existing TV channel-row end tile only. Completion-
+owned singleflight/cooldown survives row disposal; bounded visibility/rate/failure policies and
+known rows remain. Manual channel-live check joins an existing tunnel only; automatic lease
+policy/global Home refresh unchanged. Preserve130a groups/stars,131a guide bars,CL090 Back-to-
+Start, shared order and Back/focus. No TV Sports/YouTube rows admitted before T4/T3.
+
+CL106 is shared-code candidate in the SAME APK on both shells: large non-inline flow body
+separated from outer cancellation/error/finally, same Job/ownership/queries/budgets/results/
+15s deadline. Four50 ART aborts, including two during ordinary playback, remain observed history;
+exact failing DEX PC/array/cause and effectiveness remain UNPROVEN. Owner-operated phone refresh
+supersession, applicable existing15s one-tap timeout and normal native playback/background lookups
+are OPEN, as are row/Back acceptance. No rapid-cancel, generated1.8M fixture or storage-fill stress.
+Separate download-counter/buffer-drain observation did not capture post-exhaustion failure;
+cause/fix not established. CL107/108 Website trial/ranking consumed; native/quality still unproved.
+
+ShieldCL096 is a DIFFERENT TDLib/critically-low-storage failure, not fixed on EITHER device by51.
+One-app Shield installation remains DEFERRED; owner acknowledges the distinction. Existing owner
+bounded-footprint outcome stands; manual cleanup is not the product fix. Applicable cache/pinned/
+managed/unknown-partial deletion choices and active-file DeleteFile/resume proof remain open;
+Claude's128a interpretation is not a blanket waiver. No raw fatal logging/repin/process redesign.
+
+138a SETTLED; do not re-ask. NEW139c SETTLED11:44Z/clarified11:46Z after58 source checkpoint:
+sync known sources for EVERY searched title across phone/TV; only CW with already searched/synced
+sources skips the long automatic search, non-CW displays them then always searches more; manual
+refresh stays. Recorded future partial supersession in UX/TODO/HANDOFF, NOT implemented in51.
+Consume CL109's existing design in its queue after crash/CL067; verify technical merge proposals
+against identity/selected-scope/conflict/preservation rules, do not repeat the full research.
+
+## Coordination, D1 and actual next work
+
+LIVE root remains /root/work/_agent-coordination/private-media-tv/, sole live eight-file system.
+Codex is primary/integration/Git/TRACKED_WRITER; Claude READ_ONLY sidecar. Read BOTH owner
+inboxes/tasks/claims/findings/ACK, register receiving-agent intake, deduplicate semantically;
+owner need not remember which agent received it. Consume READY_FOR_CODEX without re-survey;
+feature READY_FOR_CLAUDE is distinct from a sequential ownership handoff. Phone029 fulfilled,
+Shield029 blocked; no current builder/CI watcher/device job/VPS operation. Memory Git ONLY via
+/root/work/bin/agent-memory-finalize from the application repository; this file is not its push proof.
+
+D1 remains ACTIVE/ONLY pmtv-data-20261013T073000Z/source-image78391b2679d3bd0a25bff31401d0e395e2f89338,
+clock2026-10-14T05:20:44Z. FIRST/IMMEDIATE/actualordinaryOct14 21:30 and actual+1Oct15 assessed
+PASS; no replay/new VPS operation/current-health or timer claim. Last observed data+syncUP/envLIVE,
+Tailscale OFF. +7 actual review NOT BEFORE2026-10-21T05:20:44Z, THEN C15 post-phase-D records/
+inventory/acceptance and both-repository finalization before goal closure; STOP BEFORE D2.
+Required FAIL/inconclusive invokes ONLY073000 mandated inverse/fullrestoration/preservation/
+fresh owner PMTV Sync/OFF, never old transactions, -v, re-enrollment, baseline waiver or secrets.
+
+After this software/memory checkpoint, next eligible wait-side item is CL067/settled74a/F1–F4
+ONLY if no runnable required CL106/native/D1 gate is displaced. Main fully consumed existing brief
+and code/queue map9baaa964; do not survey again. Keep local index first/no fresh-title skip,
+remove repeated full COUNT/linear scans, progressive per-form results, honest plan diagnostics,
+unchanged identity/selection/OptionB/live-fallback/15s budgets and CL106 boundary. F5 real-device
+warm3s/cold8s/one-tap+idle/scroll evidence remains required, not inferred from host fixtures.
+Older blocked caption-budget/Source007/Real-Debrid inputs remain visible under CL074 ask/skip;
+44a/S1 already settled. Open128/129 and all phone/Shield acceptance stay truthful. D1 due preempts.
+
+# Historical — prior D1/build50 and earlier checkpoints preserved byte-exact below
+
 # private-media-tv — D1 ordinary/+1 evidence sealed; +7 and C15 OPEN; build50 delivered, NOT installed (2026-10-15)
 
 This is a records/publication checkpoint, NOT D1/TV-port/release completion. The explicit owner079
