@@ -1,3 +1,98 @@
+# private-media-tv — D1 ordinary/+1 evidence sealed; +7 and C15 OPEN; build50 delivered, NOT installed (2026-10-15)
+
+This is a records/publication checkpoint, NOT D1/TV-port/release completion. The explicit owner079
+Claude-to-Codex handback is consumed. Codex reacquired its sole TRACKED_WRITER/integration/Git claim
+after fresh full rules/AGENTS/preflight and eight-ledger reads; Claude is READ_ONLY_RESEARCH again.
+Canonical coordination remains /root/work/_agent-coordination/private-media-tv/; PROTOCOL documents
+the closed temporary takeover and resumed defaults. Both owner inboxes/semantic dedupe and
+READY_FOR_CODEX/READY_FOR_CLAUDE consumption contracts remain active; no second live root/writer.
+
+## Actual application checkpoint and validation
+
+APP main/origin/independent live: 6a52ac3c4cf2940bd47c79e917198eea88c4ce12, parent
+5f7488fb69a55c6117c5fdad06dcc020fa56da04. Exactly13 documentation paths/260 additions11deletions;
+reviewed staged binary e4c46baabeed8c0c5c1d182ce08a63971cff472c77d313c46a4a838cb7154dc8
+equals committed parent diff. Two valid documentationP2s corrected (C15 omission/current README-
+security staleness), final13-path independent review and exact staged-byte recheck CLEAN.
+git diff --check passed; all production/tests/scripts/versions unchanged. Operator53782ffc,
+checker9a5bfff4, commonbd0faa32 hashes match frozen anchors. Index EMPTY; only original
+docs/C45_DATA.md Data27 and six diagnostic/research files remain untouched/excluded.
+No reset/clean/restore/stash/rewrite/alternate worktree, volume deletion or recovery-backup use.
+
+Exact-head pmtv-data Go38706874016 SUCCESS2026-10-15T08:42:57Z/all3jobs: vet/unit/race/static
+binary2m18, root ordinarydeploycheck6m14, root racedeploycheck6m26. All3 C14 mutation/restoration/
+fuzz steps SKIPPED; not dispatched/repeated. Artifact count0; no new sync workflow triggered.
+Automatic Android38706873978 CANCELLED under existing D1-only/no-APK policy before app tests/
+lint/assembly/upload (allSKIPPED), wrapperSUCCESS/artifacts0. Not AndroidPASS; no new APK/build/
+version or localheavy test run belongs to this D1 records checkpoint.
+
+## D1 — retained raw evidence independently assessed, not rerun
+
+ONLY transaction pmtv-data-20261013T073000Z/source-image
+78391b2679d3bd0a25bff31401d0e395e2f89338. FIRST and IMMEDIATE remain passed, protected original
+FIRST receipt untouched. Acceptance clock2026-10-14T05:20:44Z unchanged. Data+syncUP/envLIVE
+LAST OBSERVED, not a new health observation. Owner Tailscale last OFF.
+
+Claude's actual ordinaryOct14 21:30UTC sampler ran21:25:24Z–23:11:43Z/exit0:
+capture-complete-passed true,1276samples,peak138518528bytes/133MiB within192MiB, stabletarget,
+zero cap-limit-OOM, attempt_idle. Original14line397B log SHA
+991cb97caf451c54b8d03879d0f921593de927493a418256cf16ef5c4ede2059 independently FULL read.
+Subsequent buildcheck23:12:16Z–18Z/exit0 actual toolresult captured23:13:00.584Z also FULL read:
+idle/gates-canariespass/133MiB/withinlimit/build_checktrue. EDb on/unreachable/4191overdue/
+9requests/1early/1invalid; series_overflow184/unencodable0, limitations retained.
+
+Actual +1reviewOct15 05:20:46Z–05:20:57Z/exit0 ALL required fields present/valid: three stats,
+inspection/security/mount booleans true, restarts0/0/0/OOMfalse/24h0; host1187MiB available/
+swap204MiB/PSI60both0/load0.38,0.21,0.15/disk31/cache262.6MB/public1.64MB. Original46line1187B
+log SHA6341726d2ed696a784b1542338c69e32a3156b6abdb9194d3464c7f6ed855b0a FULL read bymain
+and independent audit. No new VPS command/sampler/review/deploy/config/secret/toggle action.
+Public receipt docs/D1_TIMED_REVIEWS_20261015.md95lines/SHA
+00d73bc96acfb2a5a587c75df443f21276ad796d893ed9921a9247427f46994d reconciles current records.
+
+Remaining: +7 actualreview NOT BEFORE2026-10-21T05:20:44Z, assess every fixedcapture, exit0alone
+notPASS. No active +7timer/observer is claimed; goal remainsACTIVE. Then C15 post-phase-D records/
+inventory/acceptance reconciliation + normal bothrepo finalization beforeD1/goal closure.
+No FIRST/ordinary/+1 replay, extra reviewcadence or new numeric threshold. Required FAIL/
+inconclusive invokes ONLY073000 mandatoryinverse/fullrestoration/preservation/freshownerPMTVSync/
+OFF; never old095200/064500, -v, reenrollment, newbaselinewaiver or secretrotation. STOP BEFORE D2.
+
+## Existing build50 — delivered before the D1-only push, not installed
+
+Exact application source5f7488fb69a55c6117c5fdad06dcc020fa56da04/Android38695905682 independently
+verifiedSUCCESS07:41:44Z/bothjobs. Canonical downloader27758 TERMINAL0 published BOTH mandatory
+0.7.2/code50 copies: general private-media-tv-mobile-0.7.2.apk and mobile-test/
+private-media-tv-mobile-test-0.7.2.apk. Each270295127bytes/SHA
+bbc169997a1ee8394e015a01d35f96ca101e9c6deb5007ada20d8be6b759bba5; Development signer2987a463/
+ARM64-only/TDLibJNI790c545f/exactGecko verified. Both CREATED08:16Z, same-version localcleanup
+ABSENT/nothing deleted. Independent wholefile hash/cmp/stable regular/nonlink proofPASS; older49
+copiesbed7af00/270245975 retained. Queuedoffline canonical49->50 verifier26526 PASS.
+Evidence results/coord076-build50-ci-delivery-20261015.md SHA66a5714fd9c6fe072c3465979e09f5908755d19b4bdf41274c428d2806ee3a83.
+
+NO install/open/ADB action in this resumed Codex sequence. Phone last proven49/bed7af00;
+fresh owner installgo pending, idle/unlocked/no-in-use/no-launch guards stand. Shield legacy67/c295
+unchanged, one-app install DEFERREDCL096/owner128 bounded-footprint choice. Phone49/50 and Shield
+physical/runtime/state-preservation checks remain PENDING; offline compatibility is not acceptance.
+READY_FOR_CLAUDE feature/check notes published in ACK/CURRENT; consumption not yet observed.
+Reuse existing MOBILE_ACCEPTANCE49/50 checklists and all settled Claude implementations.
+
+## Next safe local work during genuine D1 wait
+
+CL082/owner111a112a remains the oldest unbuilt settled lane item. Existing brief consumed and
+bounded current applicability checked, not resurveyed: 131a already supplies shared guide/card bars,
+130a groups/favourites and CL090 Back-to-Start already exist. Add only the missing per-row manual
+actions, per-kind YouTube flight, guide force/live marks (manual joins existing tunnel, never raises
+one), TV currentguide endtile, Sports/Programs sharedcontrol/cooldown/realcompletion diagnostic.
+Exclude local and TMDBrows, absent TV Sports/YouTube slots; no reordering/polling/rate-gate bypass.
+No implementation started. Other older eligible work remains oldest-first; dueD1preempts.
+Open owner128/129/138 and physicalchecks remain; no D2 authority. COORD006/076 own current status,
+COORD107 handback and completed batches preserved, not redone.
+
+Memory Git finalization is ONLY /root/work/bin/agent-memory-finalize from the app repository.
+This file is not itself proof of its push; the actual helper result is recorded in liveCURRENT/ACK
+only after completion. Historical body below is preserved byte-exact, not deleted or reinterpreted.
+
+# Historical — Claude handback and prior checkpoints retained below
+
 # private-media-tv — OWNER HAND-OFF BACK TO CODEX 2026-10-15 ≈06:19Z: the Claude build lane CLOSED at `5f7488fb` (VERSION 0.7.2 / 50 + closure docs; batch 1 = 0.7.1/49 INSTALLED on the phone 03:27:53Z, batch 2 = 0.7.2/50 awaiting Codex's delivery after its CI); Claude's TRACKED_WRITER claim RELEASED, Codex sole writer again (own fresh claim); Claude READ_ONLY_RESEARCH; full hand-off = coordination root results/CLAUDE_TO_CODEX_HANDOFF_20261015.md + CURRENT "CODEX RESUME POINT"; CL-082 (111 a / 112 a) NOT built = the oldest remaining decided item; open choices 128 / 129 / 138; D1 +7 review due 2026-10-21T05:20:44Z
 
 HAND-OFF 2026-10-15 ≈07:00Z (owner: "codex resume usage give all the handoff for him continuing the work you did and you continue to be the research", REQ-CLAUDE-079): commit `5f7488fb69a55c6117c5fdad06dcc020fa56da04` pushed (the canonical 0.7.2/50 APK build; CI watched). The ledger transaction published right after this memory finalize: CLAIMS `## CLAUDE` RELEASED → READ_ONLY_RESEARCH; COORD-006 / 076 / 103 owner lines returned to CODEX; COORD-107 HANDED_TO_CODEX; REQ-CLAUDE-075, COORD-106, COORD-108 closed DONE; REQ-CLAUDE-079 registered; CURRENT "CODEX RESUME POINT" rewritten + a top notice marking the acting-owner snapshot historical; CODEX_ACK paragraph (handoff_to_codex=READY). Codex's first step: `EXPECTED_COMMIT_SHA=5f7488fb69a55c6117c5fdad06dcc020fa56da04 scripts/download-latest-ci-mobile-apk-to-phone.sh` once the Android CI run of 5f7488fb is SUCCESS (before any newer push), then the owner's install go (phone only, never while PMTV is in use; Shield deferred while CL-096 is open). Honest CI record of the lane: the batch heads c55d042f, 17f02392 (one flake re-run), 89c5b235, 09f0852d, 471ba944 green; four batch-1 heads failed their own runs and were fixed forward (a762dd5f + f0a3387f → 186ac604; 97cee2e0 → fa3092aa; f61e207b once at the feature-catalog step, no code fix); TV-lint heads 04d78ab5 / 02f99bde superseded by 09f0852d. NOT built on the lane: CL-082 (111 a / 112 a; item 4 of the lane's list; no reason recorded). The phone's wireless-ADB endpoint drifted (LAN IP 192.168.1.41; the port is on the owner's Wireless-debugging screen). Previous title (kept for the record): private-media-tv — Claude build lane (owner mandate): build 49 INSTALLED on the phone (03:28Z); EVERY owner-decided no-choice item BUILT — CL-087 17f02392, CL-095 D/B/C 89c5b235, 131 a 04d78ab5 (+ lint fix 09f0852d), 130 a 02f99bde, 133 a 471ba944 (05:57Z, ADR 0100 — TV channel list + mini-player); next: a version bump 0.7.2/50 + CI APK to the phone's Download (install only on the owner's go); choices 129/138/128 open; D1 +1 review PASS, +7 due 2026-10-21
