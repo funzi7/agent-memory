@@ -1,3 +1,185 @@
+# private-media-tv — CL067/build52 published and phone installed; physical/D1+7/C15 OPEN (2026-10-15)
+
+This is a software publication/install checkpoint, NOT D1, TV-port or release completion.
+Do not redo sealed49/50/51, CL082/CL106, the existing Claude research, or green CL067 gates.
+The ENTIRE previous handoff body below is preserved byte-exact (preimage SHA256
+4cb06da86ea4a67f1ba26705c75ed66f1732d97dd562b92b3bdc1ae0323d1613). Its older current/next/
+pending statements are dated provenance, not a reason to reinstall51 or restart D1.
+
+## Exact application/source and preservation
+
+APP main/origin normally pushed and independently verified:
+00bd5ee7c0d4f7d2436422edb6569f9a4ebcc851; parent1a51c798a05564d39269367ab94cd3564e236d67,
+treecb3ee11fd967fdd56a519d741382e484603a0592, parent binary-diff SHA256
+1b9fb10e139f8e01f4b72bd24a32043416479504b9523a8e1004d21a29cbf5c7.
+Exactly28 task paths/1234additions280deletions:12source/test/identity/contract +16docs.
+Normalcommit44237/push16504 TERMINAL0. ONE0.7.3/51→0.7.4/52 transition, all three identity
+pins reconciled; same retained mobile package and ONE APK containing both shells.
+
+Existing CL067/REQ-CLAUDE041/settled74a/COORD060 brief and applicability9baaa964 reused,
+not re-surveyed. F1–F4: exact quoted-token FTS/raw literal boundary BEFORE LIMIT, prefix
+FTS with literal-tier ranking BEFORE LIMIT, then only if underfilled a selected/active
+4096+1sentinel narrow fallback with deterministic indexed order and at most100full-row
+fetches/revalidation. Unicode/literal correctness remains before the cap. Coverage is
+NOT_REQUIRED/COMPLETE/BOUNDED_PARTIAL, observed counts are honest lower bounds; no repeated
+hot-path COUNT/EXISTS or unsafe stale-zero cache. Shared matcher/parser/exact projection
+emits changed validated matches after each alias/form while later queries continue.
+Per-query timing excludes downstream collection; fixed safe plan diagnostics run once.
+
+Preserve CL106 small outer flow/same Job/exact cancellation ownership, local-index-first
+even for new titles, selected/incomplete index rules, exact/cache/OptionBknown-first,
+ranking/live fallthrough/deep search/CW15s, progress/Eye/30s and Back/focus/Home order.
+No schema/native repin/VPN/Home policy/YouTube/newTVSports/server behavior change.
+Source4b434358 and identity621766a9 reviews CLEAN; staged3docP2s closed by927816b2;
+exactHEADbf229a02 binding FULLread/PASS. All12 source hashes rechecked after delivery.
+
+Original docs/C45_DATA.md27additions/rawdiffSHA42ce07be63a24f546690c41141f171c2ffb7673f130a26597c9ac9f63bc95ae3
+and the six unrelated diagnostic/research untracked files remain untouched/excluded.
+Index empty; recovery backup untouched. No reset/clean/restore/stash/rewrite/extra worktree.
+
+## Host validation — qualified phases and failures retained
+
+Count32356 and progressive57658 causal REDs each failed once against old production.
+70356 exposed the real pre-LIMIT temp-sort defect; narrow unique-rowid correction passed
+strictplan83100.60652 exposed literal cafe displaced by folded café at the cap; raw filter/
+tier ranking correction passed.17805 fourdirectcoreclasses143PASS/zero skips/fail-errors;
+68280 phone diagnostics1PASS. These overlap broader tests, not additional unique totals.
+
+93261 qualified764unitcases/1existing opt-in skip/763unskipped passes/zero failures-errors:
+core722cases71classes and phone42cases2classes. Core lint0ErrorFatal/1warning qualified,
+then aggregate93261 FAILED Gradle GCthrashing at phone lint—not overallPASS, not a PMTV
+native/Termux crash or proven specific memory-pool cause. ONLY remainingphoneLint75471
+same flags completed NATURALLY/TERMINAL0: fresh37issues/0ErrorFatal/35warnings/2info,
+XML eaa2ee6a. Earlier single-line parser's zero-issue output was wrong, not evidence.
+Stop request became MOOT before owner approval; no process was signalled. No repeated
+green units, third lint retry, memory experiment, native decoder, fuzz/stress or broad C14.
+
+45318 normal52 assembly PASS;4082 local package/Gecko/BOTH export/offline51→52 and10295
+newlocalJava-static/independentcopies PASS. LocalAPK4f7c7a52 differs from authoritative CI.
+Same local bytes re-exported11395 AFTER sourceHEAD, no rebuild or second version bump.
+Full receipts: cl067-host-validation-20261015.md and cl067-local52-artifact-gate-20261015.md.
+
+## Exact CI and authoritative APK delivery
+
+Own Android38759062409 exact00bd/main/push COMPLETED SUCCESS/bothjobs; main116505262607
+completed2026-10-15T15:58:19Z, runupdated15:58:20Z. All core/catalog/phone/TV-shell units,
+declared both-shell/shared lint, signed assembly, package/signer/TDLib/Gecko verification,
+metadata/checksum/upload/cleanup PASS. Only normal conditional cache-save/PR-signing skips;
+hosted-runner/Node deprecation annotations are not test failures. Watch14827 TERMINAL0.
+Go workflow path filters did not match this client/documentation change; none dispatched.
+
+Single nonexpired artifact11988680450, private-media-tv-mobile-apk-<full00bdSHA>;
+archive270296191bytes/API digestf054edb34e0fbeba0b58c56e4c17e369345d5492d958e540eac6d3d0fb6fb95a.
+That is archive API metadata, not a separate local archive-hash assertion.
+Canonical downloader7242 TERMINAL0/strict exact-run-source/three-file/checksum/metadata/
+package-version/signature/native/Gecko gates; authoritative BOTH copies:
+
+- Download/private-media-tv/private-media-tv-mobile-0.7.4.apk, replaced16:04:33Z.
+- Download/private-media-tv/mobile-test/private-media-tv-mobile-test-0.7.4.apk, created16:03:52Z.
+
+Each270295127bytes/SHA256604b64d3dfbe8a9ba13027748a13a305bc07f73752d2129e0a11d6cc336cd4fc,
+0.7.4/code52/com.funzi7.privatemediatv.mobile/ARM64only. Development signer
+2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0; CI TDLibJNI
+790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f, exactGecko154.
+Canonical cleanup removed ONLY same-version0.7.4-local fallback; local buildoutput4f7c7a52
+remains recoverable, older APKs preserved.33858 independentwholehash/cmp/regular-nonlink/
+exactsize/stablestat PASS and offline51→CI52 samepackage/signer/ARM64/highercode PASS.
+
+Exact NEW CI52 JavaSDK static33858 PASS: outer85regs/4states/1636CU/19ranges/
+4cancel+4adapter+19catchall; inner192/42/25686CU/zero ranges-catches/2projectioncalls.
+Both final packed payloads proven methodtails; newcoverageenum, exactFTSrawliteral SQL,
+boundedfallback indexed SQL/order and private+syntheticprojection compiledpresent. No old
+50/51 decoder rerun. This is structural correspondence, NOT ARTcause/effectiveness or F5
+actual-device performance proof. No unsupported native DEX tool was run.
+
+## Actual PHONE52 installation and remaining physical truth
+
+Owner030 explicitly chose52 phone install whenidle/unlocked, registered16:07:39Z;
+extends029 (51phone DONE/Shield BLOCKED). Guard084928c3/independentreviewef8f909d FULLread/
+CLEAN, bash-nPASS; only candidate/preimage/version literals changed, all safetyguards kept.
+Queued97671 TERMINAL0: actual host12223 Termuxexe/Tracer0, exactphone/currentuser0/exact51
+preimage and fresh unlocked/window/resume/currentmedia/service/audio-idle checks passed;
+ONE update-preserving install-r applied. Postchecks prove52/0.7.4/installedbase exactly604b,
+originalfirstInstallTime preserved, fullidle/unlocked/untraced guard PASS again.
+PMTV was NOT opened. No unlock/input/force-stop/uninstall/ClearData/VPN toggle/VPS action.
+
+Phone52 installation DONE, not runtime acceptance. Shield remains lastproven legacy67/c295,
+CL096 bounded-storage/native new-package install hold BLOCKED, not fixed/waived by51/52.
+Newly re-confirmed owner128a+ was ALREADY SETTLED Oct14T13:02Z: PMTV must manage a bounded
+rolling footprint for media larger than device storage, with safe pressure eviction while
+watching. Old "128open/owner must free Shield space" statements were wrong, not a current
+input gate; do not re-ask128 or request manual cleanup. Exact fatal site/ENOSPC cause and
+DeleteFile/resume continuity remain unproved. Reuse the existing CL096 evidence, preserve
+managed/pinned/unknown-file safety, sessions/progress/history/redaction; no guessed deletion,
+raw fatal logging, native repin or process redesign is automatically authorized.
+Owner51same-CW-path playback PASS and later ordinary55slookup/noabort observation retained;
+no observed cancellation event inferred. Actual52F5warm/cold/previousslowlookup, refresh/
+cancel whileloading, CW15s trigger, row/Back/focus and Shield checks remain OPEN/PENDING.
+Never claim TVphysical PASS from phone/CI. Full publication/install receipt:
+results/cl067-publication-20261015.md in the canonical coordination root.
+
+## Coordination and next actual local work
+
+ONLYcanonicalroot /root/work/_agent-coordination/private-media-tv/. Read its eight logical
+files under permanent.lock; Codex primary/integration/sole trackedwriter, Claude READ_ONLY.
+Both agent-owned request inboxes and semanticdedupe mandatory; owner need not remember
+recipient. Claude READY_FOR_CODEX is consumed, not re-surveyed or treated as new authority.
+Owner023 meaningful52notes READY_FOR_CLAUDE in ACK/CURRENT; consumption UNOBSERVED at this
+checkpoint, no writerhandoff. No heavy build/CIwatch/device/VPS operation remains active.
+
+After060 software/memory boundary, approved CL096 Shield safety/rolling-footprint correction
+preempts as the unresolved TV-install blocker, per corrected CL074/REQ08716:15Z; not a fresh
+128 decision or roadmap reorder. Next three: CL096, then existing061/CL068, then CL069 slice,
+subject to actual D1/release gates. No CL096 implementation is present in52.
+Reuse bedd6f5e applicability and bee0f375 qualification note; direct-first in-PMTV Website,
+normal provider walls/no extraction preserved. GenericPAGE currently progress-inert, but
+existing session/duration guards do NOT identify the selected in-page video: a short clip
+could complete an episode IF a future bridge wrongly labels it. Not current corruption
+or observed mako-ad failure. Before edits, qualify exact-content/episode-only attribution;
+if this needs a genuinely new owner-facing choice, STOP/ask numbered options. Never silently
+disable settled exactepisode progress or treat duration alone as identity evidence.
+
+CL109/139c known-source sync, CL110 compact/center hidden icons remain separate future items,
+not52. CL111/113 APK study informational/no backend/key/code copying;140OPEN withClaude.
+New CL115/REQ087 explicitly approves owner-entered native streams with optional per-source
+request headers: FUTURE Oct15 item after older work, not52 or a priority override. Reuse the
+existing exact-HTTPS-origin header/interceptor/vault/redaction rules; no backend copying or
+auth/access-control bypass. Current open choices129/140/96–98;128 settled,138a/139c settled.
+CL112 multipart question answered, design FUTURE/CANDIDATE—not automatic grouping/playlist/
+migration/completion authority from a status question or READYlabel. CL114 reconfirms old
+CL044 only: nivsportip tips-front, app-upstream unverified. Its COORD095 overlap is stale
+(095 is TelegramSPORTS_LIVE). Original CL074 classified044 as record; later16:07 inventory
+calls it unbuilt, but missing fixedslugs/trial inputs still prevent current admission and
+do not displace the preemptingCL096 safety blocker. Bounded22e51e76/b88b684b maps consumed;
+the latter predates this interior queue amendment, not final current-queue authority.
+No survey redo/new source admission follows. Other prior
+owner choices/requirements remain as recorded, not silently superseded by packaging.
+
+## D1 remains ACTIVE — +7 then C15, STOP BEFORE D2
+
+ONLY transactionpmtv-data-20261013T073000Z/frozen source-image78391b2679d3bd0a25bff31401d0e395e2f89338.
+Acceptanceclock2026-10-14T05:20:44Z. FIRST/IMMEDIATE, actual ordinaryOct14T21:30 sampler+
+buildcheck, actual+1Oct15 PASS retained/independently assessed; NOT rerun in this batch.
+Required+7 NOT BEFORE2026-10-21T05:20:44Z, THENC15records/inventory/acceptance/bothrepos.
+No new daily cadence, worker, sampler, timer proof or currenthealth assertion is invented.
+TailscaleOFF/owner-controlled; no VPS or toggle operation in this client continuation.
+Future canonicalreview uses the existing PMTV_DATA_VPS wrapper/validate.sh review; exit0
+alone is notPASS. Every fixed capture must qualify; FAIL/inconclusive mandates ONLY073000
+inverse/bothprojectsdownwithout-v/immutabletransactionrollback/envhold/syncFIRST+original
+pairedpreservation/isolation/memberpositive/freshownerPMTVSync/OFF. No new baseline waiver,
+reenrollment/secrets/tenant change or broad C14 repeat; frozenoperator/common unchanged.
+
+Main FULLread reused C15maps399422c6/29cd24b7/89779769, not a new plan or live gate. Bounded
+retained-evidence lookup proved original346sampleFIRSTarchive/resourceproof, not manifest
+counts. Only first-buildelapsed28min is proven; facts.lines/facts.bytes/counts.series/
+counts.ilYes remain UNPROVEN, NOTzero or substitutedcache/store/errorcount values. This is
+a futureC15recordsevidencegap, not a new liveisolationFAIL/rollbacktrigger or waived contract.
+Inventory3285=3274PASS+11SKIP remains held; oldcurrent3248 reconciles at actualC15. Missing
+required evidence cannot be called complete; genuine unresolved contract choice stops there.
+Goal staysACTIVE; wholeD1/TVport/release notcomplete. STOP BEFORE D2 without separateauthority.
+
+---
+
 # private-media-tv — build51 CI/delivery/phone install qualified; native acceptance and D1+7/C15 OPEN (2026-10-15)
 
 This is a software publication/install checkpoint, NOT D1, TV-port or release completion. Do not
