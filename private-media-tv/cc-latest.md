@@ -1,3 +1,75 @@
+# private-media-tv — build56 CI-delivered; Shield56 installed; phone56 pending unlock (2026-10-16)
+
+This is a software-publication/installation-evidence checkpoint written by Claude as the acting
+sequential integration owner (owner hand-off REQ-CODEX-041 / COORD-126; Claude claim in the
+coordination CLAIMS). It is NOT physical acceptance, TV-port, D1 or release completion. Do not
+redo the e74b CI, the BOTH delivery, the offline 54→56 proof or the Shield installation. The ENTIRE
+previous memory body is retained byte-exact below: 436436 bytes / SHA256
+`a21f21172a1f47c3d2d535dd59507887d9ef08d489023afe8c95b9b4b22b5fc8`. Its older current/next/pending
+blocks are dated history, not new work instructions.
+
+## Final exact application, CI and authoritative delivery truth
+
+- App main normally pushed by Codex: `e74b3f82604719d7aaed5b3913ab0bea464cd915` (parent
+  `fc9ba410159411461897e6ba8b76ba46fd2856db` carries all build-56 product work; e74b adds only a
+  bounded startup-test diagnostic + 15 factual docs). No app commit after it (no cosmetic post-CI commit).
+- Own exact Android CI 38943828034 for e74b: completed SUCCESS (run updated 2026-10-16T18:40:12Z);
+  wrapper validation and "Official TDLib, both shells, lint, and one signed APK" both success; only the
+  expected cache-save / PR-signing steps skipped. The previous fc9b attempt-2 phone startup-smoke failure
+  did not recur; the diagnostic is noncausal evidence, not a claimed repair.
+- Canonical queued downloader (EXPECTED_COMMIT_SHA=e74b…) exit 0 (18:42→18:47Z): one artifact,
+  0.7.8 / code 56, arm64-v8a only, TDLib JNI SHA256 `790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f`,
+  signer `2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0`, 270607015 bytes, APK SHA256
+  `abd6230cc4900cf76197850fb52a3c880746fe37a09feca676d4bcd1a535cdbb`, published to BOTH
+  `Download/private-media-tv/private-media-tv-mobile-0.7.8.apk` and
+  `Download/private-media-tv/mobile-test/private-media-tv-mobile-test-0.7.8.apk` (regular files,
+  identical by cmp, that SHA); the same-version LOCAL copies (9907b66d local56) were removed by the downloader.
+- Content check: the CI56 DEX contains identifiers introduced by fc9b's cache correction (captureStoppedPhysicalInventory,
+  retireStartupPhysicalBytes, sameRootAliasRelativePath, …); the CI54 APK (control) contains none. (CI56's size equals an
+  older pre-correction local build's size by coincidence; the SHA and content differ.)
+- ONE queued offline upgrade proof PASS: CI54 0.7.6 (54) → CI56 0.7.8 (56), same package/signer, arm64-v8a TDLib payload.
+
+## Installation truth
+
+- Shield (owner040 go "when ready, idle, no interruption, no launch"): host ADB server in normal Termux,
+  TracerPid 0; before: 54 / 0.7.6, firstInstallTime 2026-10-16 13:42:45 (device), Asleep, TV launcher in front.
+  `deploy-shield.sh --apk <CI 0.7.8> --no-launch` exit 0: "installed; not launched: the Shield is Asleep",
+  legacy TV package not present. Independent read-only after-check: 56 / 0.7.8, installed base SHA256 = abd6230c…,
+  firstInstallTime unchanged (update, data kept), lastUpdateTime 2026-10-17 01:49:44 (device), still Asleep with the
+  launcher in front; the only PMTV process start was a system broadcast for its own sports-alarm receiver, no activity.
+- Phone (owner "also phone go", REQ-CLAUDE-097): PENDING. The phone was locked at 18:50Z. Codex's reviewed build-54
+  phone guard was rebound to 56 with literal-only changes (independent read-only review CLEAN, 0 P1 / 0 P2) and filled
+  with the CI SHA/size: `results/phone-install-e74b-abd623-host1673-20261016.sh` (SHA256 892eebe6…). One bounded
+  background loop runs it only after the phone is unlocked with PMTV not in front on two checks 60 s apart; the guard
+  itself defers (75) unless PMTV is not focused/visible/resumed/in a media session/foreground service/playing audio.
+  Never unlock, wake, launch, uninstall or clear data. The phone stays 54 until that run succeeds.
+
+## What build 56 contains (software-qualified; physical acceptance OPEN)
+
+Telegram cache accounting correction (same files under two Android path forms counted once; first-process
+physical reconciliation; no cache/history/progress/account reset); Keshet/mako built-in website action (direct first,
+explicit Retry only for the Israel route, one-time episode confirmation before saving progress; Shield Menu opens the
+native controls, Back restores the page); Next Episode prefers the exact previously played channels before ordinary FAST,
+never automatic DEEP or uncertain autoplay; index copy no longer reports 0-row completion, partial counts shown, held synced
+sources re-applied after a complete refresh; TV My Sources filter keeps focus while typing. The Shield cache refusals,
+Next Episode, Mako, focus and phone behaviour stay OPEN until the owner tests on the installed builds.
+
+## Still open / next
+
+- Owner checks on the Shield: the title/resume that refused with the cache error, then another title; Next Episode from
+  a source that just played (button and automatic end separately). No full index copy until the compact search core and
+  its storage guard exist (owner 141 a).
+- QUEUED, not built: owner036 (complete channel list once after a new login; small waiting/absent status above My Sources);
+  CL-120 compact search core then bulk TV copy (141 a), CL-121 new-movies runtime filter, CL-122 TV known sources
+  (with CL-109), CL-123 stop search when playback starts.
+- D1: owner answered the historical-FIRST reporting choice "d1 1" = option 1 (REQ-CLAUDE-095): eventual C15 closure with
+  the four original FIRST figures permanently disclosed as historical UNPROVEN. +7 review NOT BEFORE
+  2026-10-21T05:20:44Z, C15 only after an actual +7 PASS, ONLY 073000 / OFF / STOP BEFORE D2.
+- Owner REQ-CLAUDE-098: after the 56 lane Claude continues the accepted backlog oldest → newest (CL-074 R1–R5); the
+  next items are named in the coordination CURRENT.
+- The resulting memory SHA/push is recorded only after the canonical helper succeeds and both remotes are verified, in
+  the coordination ledger; this prefix invents no future self SHA.
+
 # private-media-tv — Shield54 installed; Sports55 exact-CI delivered; D1+7 OPEN (2026-10-16)
 
 This is a software-publication/installation-evidence checkpoint, NOT full062, TV-port,
