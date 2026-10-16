@@ -1,3 +1,128 @@
+# private-media-tv — COORD066/build54 CI-delivered; handler/device/D1+7/C15 OPEN (2026-10-16)
+
+This is a software publication checkpoint, NOT full COORD066, D1, TV-port or release completion.
+Do not redo sealed52 installation,53 publication, consumed Claude research, passed scoped gates
+or successful54CI. The ENTIRE previous memory body remains byte-exact below (416742bytes,
+SHA256 `9254f65a868e563d5797031dfe694bdcaf11603cff00a74b3445c7735557a10c`). Its older current/
+next/publication-pending statements are dated provenance, not new work instructions.
+
+## Exact publication truth
+
+- App main normally pushed: `f42aca9ce301be76fbc348611e29c0c8cb30d105`, parent3634.
+- Own exact Android38844870150/main/push SUCCESS2026-10-16T03:56:02Z;65319watch TERMINAL0,
+  monitor9074 completed. Independent33487API confirms exact source/status/artifact.
+- All declared unit phases, both-shell lint, sole signed ARM64 assembly, package/signer/
+  pinned-TDLib/exact-Gecko and metadata/upload/cleanup phases PASS. Normal cache-save/PR
+  identity skips only; no invented unique-test total or zero-opt-in-skip claim.
+- Unique nonexpired artifact12024211823; archive270509223bytes/API digest
+  `59a2cf3882991abd7537b551c9bdb911746564f168205373d1d06270c78b344b`.
+  That is API archive evidence, NOT a delivered APK hash.
+- Authoritative APK0.7.6/code54,270508159bytes, SHA256
+  `2421171e1d9ad3d669c7a52c2d9f67dc72c8d1012618034d974e500f51645fcc`.
+- Canonical14805 downloader TERMINAL0 delivered BOTH required Download copies. Independent
+  70831 TERMINAL0 checked complete hashes, cmp equality and stable inode/size/mode/mtime/
+  ctime tuples, plus direct last-verified-phone52→CI54 offline upgrade eligibility PASS.
+- General `Download/private-media-tv/private-media-tv-mobile-0.7.6.apk` and mobile-test
+  `Download/private-media-tv/mobile-test/private-media-tv-mobile-test-0.7.6.apk` are delivered,
+  NOT installed. Same-version mobile-test-local fallback alone removed; localea28 output
+  recoverable/olderAPKs untouched. Localea28 is different from authoritative2421 despite equal size.
+- Retainedcom.funzi7.privatemediatv.mobile, Development signer2987a463, ARM64-only/ONEAPK/
+  both-shell contract unchanged. CI JNI790c545f/source pin022d6020 unchanged; do not substitute
+  local JNI21d59ebf for CI provenance.
+- Full publication receipt `results/coord066-ci54-final-publication-20261016.md`, SHA256
+  `14849d04f724801a2c07d52b1f9fbdf5725236dc806052fee18964fabfd5872c`.
+
+Resulting memory commit/push is recorded only after the canonical helper succeeds in external
+coordination; this prefix does not invent its own future SHA, install or physical acceptance.
+Source-document failed-first-CI/publication-next snapshots describe their source-commit time;
+the later exact evidence above closes those software gates, not the retained real device gates.
+
+## Exact implementation and review composition
+
+Source commit `36340294515e5327d062cc701c640515a1094051`, parent7d33,46taskpaths, preserves
+the approved AceStream external handoff/owner-ID/explicit-M3U slice. Reviewbc9d3aec CLEAN.
+Follow-up `f42aca9ce301be76fbc348611e29c0c8cb30d105` is exactly11 paths (eight factual docs,
+three test-only fixtures), diff SHA256
+`b33f0db083c0b1bf3b0a1b50ded8e2817fe6cff1d6d82a993aa85a0678b343c3`, manifest0844fe02/
+orderedcontentdb42f90d. Cumulative49uniquepaths versus7d33, diff SHA256
+`6199af8a0fb5f985a73cba89af3e3c945832a88a2da53558c1ffb61fc817f5d5`.
+Main fully read accepted scoped source/document chain, final11review6b3d26a1 CLEAN and exact
+f42a binding8f56062e CLEAN, zero unresolvedP1/P2 within those scopes. No new broad review campaign.
+Version0.7.6/code54 changed ONCE for the cohesive feature; the fixture repair changed no version,
+production/SQLite driver/policy/runtime or local APK and did not trigger another local assembly.
+
+## Failed first CI and minimum safe repair — retained, not erased
+
+Own3634 CI38841973471 FAILED host bundled SQLite JNI SIGSEGV/sqlite3VdbeExec, executor134,
+artifacts0; downstream app/lint/APK skipped. Last-started Bootstrap test later loggedPASS;
+neither identifies native root cause. No hs_err was read or native crash/stress experiment run.
+Two independent static diagnoses found real test-fixture cancellation-without-join before
+Room close, plus FirstSync owning-base-before-shared-borrower teardown. Production SyncOwner
+already joins its cycle; no product fix is evidenced or applied.
+
+Pure marker51954 causalRED1 preserved old cancel-only helper: held cleanup/callback expected0,
+actual1. XML7f844653 archivedWvufII46. Only after terminal1: actual fixture delegates to test-only
+root cancelAndJoin before existing owning callback; FirstSync reverses borrower teardown.
+New test touches no Android/Room/SQLite and uses no sleep or negative timing inference.
+Affected57168 TERMINAL0 PASS24 (pure1/Bootstrap11/FirstSync12), zero fail-error-skip; fresh
+XMLb57d43a5/5f786b44/b520f58c archived9nJPzrsN. Implemented3b14c68f STATIC CLEAN; main fully read.
+This causally proves cleanup ordering, NOT the native SIGSEGV cause or a PMTV Android crash fix.
+Fixture qualification receipt071fae42; actual first failure and new fullCI success both retained.
+Prior scoped host/lint gates overlap and are neither repeated nor added into a whole-project total.
+
+## What54 adds, preservation and actual open gates
+
+Consumed existing CL054/061/072 and settled93a/84a/96d/97c/98, not another survey. Phone Sports
+Settings manages strict canonical saved IDs for the existing exact channel set; exact eligible
+LIVE Match Details offers explicit Android acestream-handler handoff. No package pin, automatic
+app installation/store fallback, guessed identity or fabricated dispatch success. IDs/labels/
+weak observations remain bounded encrypted app-private/no-backup, outside sync/catalog identity.
+Actual accepted departure/proved return of at least120000ms may offer a one-shot GOOD/STALLED
+verdict; absence is NOT watch time or playback proof. Try Next uses only another same-match/
+same-channel saved ID. Settings uses actual CreateDocument for selected IDs-only M3U; cancellation
+neutral, success after real writer close. Opt-in diagnostics fixed enums/aggregate counts only.
+Back/keyed viewport/reset ownership and lazy Home behavior retained. No embedded engine, hosting,
+SearchSource endpoint, named-site discovery, future132a own-M3U/EPG or TV Sports product.
+Embedded87b/G1–G5 remains approved FUTURE, not silently completed/refused by this external slice.
+
+Last verified phone52 installed without agent launch (REQ-CODEX030/97671 DONE). Do not reinstall52.
+Code53 was not installed by this work;54 is delivered but fresh install input/idle-unlocked-hostADB
+guards remain required. No agent launch/unlock/uninstall/ClearData or state-clearing permitted.
+Shield legacy67/c295 stays HELD underCL096; phone software evidence is not TV physical acceptance.
+Actual handler/no-handler/Back/verdict/TryNext and real SAF provider output PHYSICAL PENDING.
+Inherited native rolling/fstat/procfs/distinct successor/natural-pressure/same-player progress-
+history checks remain OPEN, not supplied by hostCI. Do not stress/fill storage or ask the owner to
+free generic Shield space. Owner-confirmed regular-Hebrew punctuation PASS stays closed.
+
+## Coordination, D1 and next actual work
+
+ONLY canonical root `/root/work/_agent-coordination/private-media-tv/`, eight live logical files
+under permanent.lock. Codex sole tracked/Git/integration writer; Claude read-only sidecar. Both
+owner inboxes read/deduplicated semantically; owner need not remember which agent got a request.
+Claude READY_FOR_CODEX research is consumed, not redone; Codex ACKs and publishes READY_FOR_CLAUDE
+feature/acceptance notes after this final truthful software boundary. READY is not actual Claude
+consumption or an owner physical PASS. Final build54 packet remains not-ready until that boundary.
+
+D1 goal ACTIVE; ONLY transactionpmtv-data-20261013T073000Z/source-image78391b2679d3bd0a25bff31401d0e395e2f89338.
+Acceptance2026-10-14T05:20:44Z; FIRST/immediate, actualOct14scheduled21:30 and actual+1Oct15
+PASS retained/no reruns. +7 NOT BEFORE2026-10-21T05:20:44Z THEN C15/bothrepo closure/STOP BEFORE D2.
+Last owner TailscaleOFF; +7 timed review needs no toggle. No new daily observer/VPS action,
+preservation waiver, rollback owner change or clock advancement. Required FAIL/inconclusive
+still invokes ONLY073000 inverse/restoration/original baselines/owner PMTV Sync-OFF controls.
+C15 original FIRST28min elapsed only PROVEN; facts.lines/bytes/counts.series/counts.ilYes remain
+UNPROVEN, not zero/reconstructed. Historical3285=3274PASS+11SKIP, separate parity1 retained;
+C45_SYNC3248 correction future C15. Operator53782ffc/checker9a5bfff4/commonbd0faa32 unchanged.
+
+Original C45_DATA27 raw42ce07be63a24f546690c41141f171c2ffb7673f130a26597c9ac9f63bc95ae3,
+six inherited diagnostic files/recovery and empty index preserved/excluded. No Android build,
+install, new server source/image/deploy/token/policy or D2 authority follows this memory update.
+NEXT same066: final memory review/helper-only finalization/both pushes check, READY54Claude
+notes/separate install input. Then existing oldest-eligible local queue during D1 waiting:
+067 CL053/073 held for unanswered6h policy; next061/CL068 mako/12+, thenCL069 slice, subject to
+existing prerequisites/choices. Reuse briefs; do not start D2. No completed TV port/release/D1 claim.
+
+---
+
 # private-media-tv — COORD119/build53 CI-delivered; native/device/D1+7/C15 OPEN (2026-10-15)
 
 This is a software publication checkpoint, NOT full COORD119, D1, TV-port or release completion.
