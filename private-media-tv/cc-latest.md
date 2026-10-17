@@ -1,3 +1,37 @@
+# private-media-tv — build 58 (0.7.10) downloaded + upgrade-verified, install waits for the owner's go; CL-124 / CL-131 pushed; CL-130, CL-133 rest, CL-136, CL-139 + a CI-verifier fix local (2026-10-17T13:10Z)
+
+Software / delivery checkpoint written by Claude as the acting sequential integration owner (owner hand-off REQ-CODEX-041 /
+COORD-126). It is NOT physical acceptance. The ENTIRE previous memory body is retained byte-exact below: 449453 bytes /
+SHA256 `bdaab84f32fc38e6d372038f7bc1aed9a0d573e2b888a722576a44075bb12b05`. Its older current/next/pending blocks are dated history.
+
+## App main
+
+- `f79f7938` 0.7.10 / 58 (channel 14 out, CL-053, CL-125 + v4 + league fonts, CL-058 + review, REQ-CLAUDE-108 / 109,
+  CL-133 / 134) — CI 39029155044 green — DOWNLOADED by the canonical queued downloader to both Download paths (APK
+  SHA-256 58bb54774075cd5e41ac9ef26c0d61b2819863d37f163567d07ba60c72dbca3e, 271,058,347 B, signer 2987a463…); the offline
+  upgrade proof 0.7.9 (57) → 0.7.10 (58) PASS. NOT installed: the owner's go first (Shield deploy-shield.sh --no-launch;
+  phone the reviewed guard rebound literal-only to 58), never while PMTV is in use.
+- `63c00e6c` CL-124 (official broadcaster families + Telegram heading, ADR 0102) and `c068a046` CL-131 (the Telegram sports
+  binder refuses basketball / handball / women's / youth captions) — pushed; CI 39032092566 attempt 1 failed on a delivery-
+  harness pipe flake (`readelf | grep -q` under pipefail; no script in those commits), attempt 2 running.
+- Local, not pushed (pushing would cancel-race attempt 2): `d16bef33` CL-130 (one Israel: the cache moves a provider team
+  identity the catalog crosswalks to the catalog identity on read, all or nothing, stored match ids kept — the owner's phone
+  held `team:thesportsdb-135931` ×13), `6cf6debd` the verifier captures tool output before grep (the flake's fix),
+  `0b584bd6` CL-133 F2 / V3 (related-row ring room, fixed 220 dp episode action slot), `9577c9ee` CL-136 (series rows read
+  their facts through derived state, the Back handler's focus read derived, hardware bitmaps — one copy per image).
+- Working tree: CL-139 (owner 151 / 152 a) — the 👎 `לא אהבתי` replaces 🚫 from the moment a title starts, on the SAME
+  not-interested mark; heart ⟂ 👎 on movies / series in core-catalog's store; phone strip glyph, TV Menu line, Details on
+  both apps. Full core-catalog / feature-catalog / app-tv / app-mobile suites + both lints running.
+
+## Owner state
+
+- Open questions (in the final message): the install go for 58; 153 (CL-126 FreeTV: start with a no-code test; it opens
+  DIRECTLY only — its terms are Israel-only and PMTV never routes around a region or entitlement limit); 154–157 (CL-127
+  card labels; 155 recommends Thailand because of the Pattaya-cinema request CL-132); 158–159 (CL-128 "available now"
+  mark); 160–162 (CL-129 row; is ZOVEX the same group as ADR 0070's ZOVE8?); mockup choices 146–150 (CL-135).
+- CL-132 (Pattaya cinemas) research agent running; CL-134 P3 folded into CL-135.
+- D1 +7 review not before 2026-10-21T05:20:44Z — ONLY 073000; STOP BEFORE D2.
+
 # private-media-tv — build 57 INSTALLED on both devices; the build-58 batch on main (channel 14, CL-053, CL-125 + v4, CL-058 + review, REQ-CLAUDE-108/109), CL-133/134 in test (2026-10-17T11:10Z)
 
 Software / installation-evidence checkpoint written by Claude as the acting sequential integration owner (owner
