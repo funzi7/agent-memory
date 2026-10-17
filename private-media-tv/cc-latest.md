@@ -1,3 +1,40 @@
+# private-media-tv — build 60 (0.7.12) PUSHED, exact CI 39053415197 running; build-61 work in test: REQ-116 kickoff correction + Match Details, REQ-115 AceStream site ids, CL-127 labels (2026-10-17T18:01Z)
+
+Software / delivery checkpoint written by Claude as the acting sequential integration owner (owner hand-off REQ-CODEX-041 /
+COORD-126). It is NOT physical acceptance. The ENTIRE previous memory body is retained byte-exact below: 452601 bytes /
+SHA256 `5fe45464c7c10ff702149e7e5635cae2f35e101154a0d88540a260d888dfbf07`. Its older current/next/pending blocks are dated history.
+
+## App main
+
+- **Build 59** (`53f2d85e`, 0.7.11) is INSTALLED on both devices (Shield 15:41Z, phone 15:55Z). The owner reports that
+  the phone's cache error is gone.
+- **Build 60** pushed, origin = `97d4cea5`. Its commits:
+  - `6dd1a7c2` CL-060;
+  - `6bbcc5ba` REQ-111 part 2 + CL-141 + both reviews' fixes. The reclaim is TV-only, and pathless marks are kept
+    under their own key;
+  - `fc7eaec8` CL-126 FreeTV tile + REQ-114 a/b (Kan 11 routed first; no YouTube failure line over a playing source);
+  - `97d4cea5` bump 0.7.12 / 60.
+
+  Local suites were green before the push (core-telegram 490, feature-catalog 1884, app-mobile 1613, app-tv 650), and
+  local TV lint had 0 errors. The exact CI is running; then download, the 0.7.11 → 0.7.12 upgrade proof, and the
+  owner's install go.
+- **Working tree, for 61:**
+  - REQ-116: F2c746 binding by round + ordered pair, F2c116KickoffCorrections, an F3 schedule check, Match Details
+    streams-first with pull-to-refresh (ADR 0104).
+  - REQ-115: AceStreamSiteDiscovery over search-ace.stream, discovered hand-off, ledger v2 (ADR 0105).
+  - CL-127 poster labels (review pending).
+  - Tests running.
+
+## Owner state
+
+- **Owner-direct, answered today:**
+  - REQ-114 (Kan: the site must PLAY like YouTube/Telegram, through the Israel route; part c is in read-only
+    research);
+  - REQ-115 A a;
+  - REQ-116 ground truth: Beitar–MTA is on 19.10 at 20:30 IDT;
+  - REQ-117 future: torrent playing, survey first.
+- D1 +7 review not before 2026-10-21T05:20:44Z — ONLY 073000; STOP BEFORE D2.
+
 # private-media-tv — build 58 (0.7.10) downloaded + upgrade-verified, install waits for the owner's go; CL-124 / CL-131 pushed; CL-130, CL-133 rest, CL-136, CL-139 + a CI-verifier fix local (2026-10-17T13:10Z)
 
 Software / delivery checkpoint written by Claude as the acting sequential integration owner (owner hand-off REQ-CODEX-041 /
