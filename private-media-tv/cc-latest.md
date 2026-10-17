@@ -1,3 +1,51 @@
+# private-media-tv — build 63 (0.7.15) PUSHED, exact CI 39068498428 running; build 62 downloaded + upgrade-verified (install waits); CL-129 "חדש בטלגרם" in test for 64 (2026-10-17T21:21Z)
+
+Software / delivery checkpoint written by Claude as the acting sequential integration owner (owner hand-off REQ-CODEX-041 /
+COORD-126). It is NOT physical acceptance. The ENTIRE previous memory body is retained byte-exact below: 454730 bytes /
+SHA256 `893a913c714b7a52137ec64ebbcf60985000d5313d2e335200e7ba826674b17a`. Its older current/next/pending blocks are dated history.
+
+## App main
+
+- origin main = `d23cda83` (0.7.15 / 63):
+  - `a892523a` REQ-CLAUDE-122 … 125, 127 Match Details (ADR 0108): a 365scores miss is no failure (only an unreadable
+    list / document is, printed once, asked again); LiveBall's redesigned dated list (`/uz?date=`, today = `/uz`,
+    Tashkent calendar, `lb-fixture`), a redirect named as one; one search window (nothing before kickoff − 30 min,
+    FINISHED = highlights / full match, live leftovers dropped); the league's YouTube only from kickoff + 175 min
+    (choice (a) / (b) open).
+  - `840844d0` CL-127 card labels (review fixes) + CL-128 ▶ "זמין לצפייה עכשיו" (ADR 0109: two bounded index reads —
+    validated matches and exact bindings to live posts in SELECTED usable chats only, `matchedMediaKey > ''` index range;
+    series = the one-tap episode; read when Home shows its rows, ≥ 30 s apart).
+  - `d23cda83` bump 0.7.15 / 63.
+- Local, whole tree before the push: :core-catalog (CL-128 classes) 107/0, :feature-catalog 1906/0, :app-mobile 1635/0,
+  :app-tv 650/0. The first run had 9 app-mobile failures, all old-behaviour test expectations (LiveBall's URL shape, a
+  test clock 40 min before kickoff, a search 6 h before kickoff, a repeated first-table wave, a friendlies competition
+  365scores does serve) — tests fixed, no production change.
+- **Build 62** (`3c2c7817`): exact CI 39063291433 green; canonical download 0.7.14 (62), 271,190,138 B, APK SHA-256
+  `960f59bd491fc573d2f4752c35e58e4ec3e8535a0d29d0a78786acaa15ccef75`; upgrade proof 0.7.13 → 0.7.14 PASS. Not installed.
+- **Build 61**: on the Shield (19:18:53Z); the phone's reviewed waiter (guard `f18fc697…`) installs it on the first idle
+  unlock (10 h window from 19:45Z).
+- **Working tree, for 64:** CL-129 "חדש בטלגרם" (ADR 0110): roles NEW_UPLOADS / NEW_UPLOADS_HEBREW (schema-free, own
+  sync key family), the phone picker in Settings over the owner's own sources, the row from the local index (14 days,
+  exact ids or one exact year-limited TMDB title match, background lookups ≤ 20 a run / 1 s / 200 a day, posts bound
+  when the matcher agrees), right after "חדש בישראל", "כתוביות בעברית". Tests running.
+
+## Owner state
+
+- Asleep since ≈19:40Z: "continue all the work and all the list, in the morning you will give me the summary and all the
+  questions". No notification overnight.
+- Morning questions: install go for 63 (contains 62); Kan step 0 (a 30 s play of one Kan 11 episode, phone then Shield);
+  Telegram live G0 (one Play tap on a live Telegram row); the YouTube choice (a) league channel an hour after the match
+  [recommended] / (b) friendlies only.
+
+## Next
+
+1. Build 63's CI → canonical download → upgrade proof 0.7.14 → 0.7.15 → the phone guard (pre-image 60 / 61 / 63) +
+   independent review → install on the owner's go.
+2. CL-129 tests → commit (build 64).
+3. CL-140 (the TDLib media cache's persistent per-file key) — design by a read-only agent running.
+
+---
+
 # private-media-tv — build 60 (0.7.12) PUSHED, exact CI 39053415197 running; build-61 work in test: REQ-116 kickoff correction + Match Details, REQ-115 AceStream site ids, CL-127 labels (2026-10-17T18:01Z)
 
 Software / delivery checkpoint written by Claude as the acting sequential integration owner (owner hand-off REQ-CODEX-041 /
