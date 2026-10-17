@@ -1,3 +1,52 @@
+# private-media-tv — build 57 INSTALLED on both devices; the build-58 batch on main (channel 14, CL-053, CL-125 + v4, CL-058 + review, REQ-CLAUDE-108/109), CL-133/134 in test (2026-10-17T11:10Z)
+
+Software / installation-evidence checkpoint written by Claude as the acting sequential integration owner (owner
+hand-off REQ-CODEX-041 / COORD-126). It is NOT physical acceptance. The ENTIRE previous memory body is retained
+byte-exact below: 445392 bytes / SHA256 `46ba667d57518eae1c7ad930d693df539f9beddc3e5bbef3d19d7be4c3ee58fb`. Its older current/next/pending blocks are dated history.
+
+## App main (pushed; each commit's own Android CI)
+
+- `6e701d3c` 0.7.9 / 57 — CI 39015042252 green — INSTALLED: Shield 2026-10-17 08:54Z (deploy-shield --no-launch while
+  Asleep), phone 09:05Z (the reviewed literal-only guard results/phone-install-6e70-fdd593-host30667-20261017.sh);
+  base SHA-256 fdd593fb… exact on both; firstInstallTime kept; nothing launched.
+- `320746f6` + `c3f2b5ea` REQ-CLAUDE-101 channel 14 out of the live channels (both apps) — CI 39020574446 green.
+- `ef0f0064` CL-053 exact Hebrew names for followed foreign clubs / national teams (159 ids, 172 names) — CI 39023568151 green.
+- `ad0fd914` CL-125 Sports card look (details + icon strip on the dark panel, league colour only as a frame) — CI 39023706540 green.
+- `1ff0ceac` CL-058 standings bind 9 never-matching clubs by exact TheSportsDB → 365scores id pairs — CI 39024310933 green.
+- `7b22f7ed` CL-125 mockup v4 (details 10 dp lower, league logo from the 365scores image CDN by the exact competition
+  crosswalk, bundled channel logos by the written channel table, live dot after the minutes) + the read-only review of
+  ad0fd914/1ff0ceac (P2: the game-facts day list now binds paired clubs by id; P3: no squeezed icon strip, quieter tone,
+  light-grey margin rule) — CI 39026656138 (running at writing).
+- `2825b6cb` REQ-CLAUDE-109 (Details loading: the full tmdb-metadata-cache.db — 2,587 rows / 48.2 MB of 48 MiB — trimmed
+  one row per round with COUNT + SUM + ordered scan each round, ~75 ms a round on the phone, and wrote an access stamp per
+  read, all on one writer behind Home's enrichment; now running totals + one ordered pass + hourly access stamp, no schema
+  change) + REQ-CLAUDE-108 (no "רוצה לראות" on a started title: the card rule reads CW / continuation / latest-meaningful
+  evidence) — CI 39027470635 (running at writing).
+- Working tree, in test: CL-133 / part of CL-134 — FocusableTvCard focus styles (MEDIA ≤ 6 dp a side + zIndex while
+  placing; ROW / CONTROL never grow; 25 call sites), the TV theme's LocalContentColor, the episode-title bidi isolate;
+  plus the 0.7.10 / 58 CHANGELOG / README drafts.
+
+## Owner items this session (ledger REQ-CLAUDE-103 … 109)
+
+- 103 CL-125 mockup (https://claude.ai/artifact/Mq5iuvWus4Tf9kzrexymJE, v4); per-league Hebrew fonts: owner pick PENDING.
+- 104 design audit (both devices) → CL-133..138 (results/claude-surveys-20261007/design-audit-both-devices-20261017.md);
+  B3+ wait for the owner's mockup choices 146–150.
+- 105 → CL-126..129 (FreeTV subscription source, "in theaters now", "available now", ZOVEX row); 106 → CL-132 (Pattaya cinemas).
+- 107 → CL-139: 👍/👎 after watching instead of 🚫, counted by CL-021; choices 151 (👍 = the heart vs a separate rating) and
+  152 (swap at started vs fully watched) ASKED. "מומלץ לצפות עכשיו" = CL-020 (after T4) + CL-021 (after RANK-1 / D2).
+- 108, 109 — fixed in 2825b6cb (above).
+
+## Next
+
+- CL-133/134 tests → commit → CI; then the 0.7.10 / 58 bump (identity file, delivery-contract literals,
+  MobileManifestContractTest pins, CHANGELOG / README) → CI → canonical delivery → ASK the owner's install go (never while
+  PMTV is in use).
+- Backlog in order: CL-124 (Kan / Keshet / Reshet official source groups; 144 a / 145 b), CL-126..129, CL-130/131,
+  CL-132 research, CL-060, CL-135..138 after 146–150.
+- D1 +7 review NOT BEFORE 2026-10-21T05:20:44Z (ONLY 073000; STOP BEFORE D2).
+
+---
+
 # private-media-tv — build-57 backlog lane: CL-045/047/048/049 BUILT on main; nothing installed (2026-10-17)
 
 This is a software checkpoint written by Claude as the acting sequential integration owner (owner hand-off
