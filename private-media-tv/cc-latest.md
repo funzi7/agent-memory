@@ -1,3 +1,39 @@
+# private-media-tv — build-57 backlog lane: CL-045/047/048/049 BUILT on main; nothing installed (2026-10-17)
+
+This is a software checkpoint written by Claude as the acting sequential integration owner (owner hand-off
+REQ-CODEX-041 / COORD-126; owner REQ-CLAUDE-098 "after 56 you keep going with the list", oldest → newest).
+It is NOT physical acceptance, not a build-57 delivery, and not D1/TV-port completion. The ENTIRE previous
+memory body is retained byte-exact below: 442586 bytes / SHA256 `ca65cf4e4713e3a6d92eb3648711385a1f8edcd6e17db19bc6fe1a8a1cc29972`. Its older
+current/next/pending blocks are dated history, not new work instructions.
+
+## App main (normally pushed; ls-remote verified at each push)
+
+- `9830c183` CL-045 Home side menu (owner 62 a) — Android CI green on attempt 2 (attempt 1 = the native
+  librobolectric SIGSEGV flake; rerun once per the flake rule).
+- `0312bacf` CL-047 Stremio-style Home rows (owner 67 b–73 a) — Android CI 38978237725 green on attempt 2 (attempt 1 =
+  the SyncPairingToTvTest `isBusy` race, not CL-047); pmtv-data Go CI green (server input file only; nothing deployed).
+- `97a70d97` CL-048 display-only most-seeded pair (owner 71 a / 74 a / 75 a / 76 a) — Android CI 38985760500 green.
+- `9a3cb71c` test-only fix of that SyncPairingToTvTest race.
+- `9b9b1ac0` CL-049 allowed original languages `שפות מקור בקטלוג` (owner 77 a / 78 a / 79 a) — Android CI 39000481311
+  running at this checkpoint. Three independent review rounds (claude_code_fallback, codex_quota_unavailable); every
+  finding fixed except one documented sync limit (a device that re-joins after its owner chose keeps the choice unsent
+  until changed). Lesson: a "re-curate" after a filter change is a cache re-read with EXPLICIT replacement
+  (`openCatalog(silent, replaceRows)`), never a forced network refresh; filter at commit AND render time.
+- Version is still 0.7.8 / 56 in source: build 57 = 0.7.9 / code 57 after CL-050; delivery/install need the owner's go.
+
+## Install state (unchanged by this lane)
+
+- Shield: 56 / 0.7.8 installed and verified (see the body below). Phone: still 54 — the guarded 56 waiter (results/
+  phone-install-e74b-abd623-host1673-20261016.sh, SHA256 892eebe6…) keeps waiting until about 2026-10-17T07:52Z for an
+  unlocked phone with PMTV not in front; never unlock/wake/launch.
+
+## Next
+
+- CL-050 Home row paging (owner 80 a: silent bounded retries, then a small `ניסיון נוסף` card; paging resumes by
+  itself), then the 0.7.9 / 57 version bump → CI → delivery (install only with the owner's go).
+- D1 +7 review NOT BEFORE 2026-10-21T05:20:44Z pre-empts the backlog; ONLY 073000 / OFF / STOP BEFORE D2.
+- Still waiting on the owner: 142 (CL-038), 143 (CL-041), the CL-044 phone trial; CL-097 needs a VPS go.
+
 # private-media-tv — build56 CI-delivered; Shield56 installed; phone56 pending unlock (2026-10-16)
 
 This is a software-publication/installation-evidence checkpoint written by Claude as the acting
