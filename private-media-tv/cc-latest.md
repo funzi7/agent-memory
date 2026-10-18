@@ -1,3 +1,43 @@
+# private-media-tv — build 64 (0.7.16) INSTALLED on both devices; build 65 CI failed on a live-network Sports test (fix in source); CL-140 F2 built in source, under review (2026-10-18T04:10Z)
+
+Software / delivery checkpoint written by Claude as the acting sequential integration owner (owner hand-off REQ-CODEX-041 /
+COORD-126). It is NOT physical acceptance. The ENTIRE previous memory body is retained byte-exact below: 461221 bytes /
+SHA256 `9dfa7f972bca5b82d966ed8e2db8f149716b428f1da436da20e913df722cf12a`. Its older current/next/pending blocks are dated history.
+
+## App main
+
+- origin main = `f1ee366f` (0.7.17 / 65 batch: CL-132 Pattaya + the Pattaya host-test guard). CI 39093553603 FAILED:
+  F2c76TheSportsDbTest "normal fixture refresh schedules bounded pre match standings capture before kickoff" (line 402,
+  TheSportsDB's table never requested) — same test as 64's first attempt. Real cause (high confidence): the test helper
+  built F2c76TheSportsDbRepository with the PRODUCTION defaults for the 365scores full-table/game-facts readers and
+  sport1's schedule reader → host tests read live sites; CI has network. Fix in source (uncommitted): no constructor
+  defaults; `production()` wires them. Also pending: the same Robolectric guard for `MostSeededListReader.production()`
+  in F2bCatalogProductionWiring (as Pattaya's).
+- CL-140 F2 built in source (uncommitted): core-telegram `inspectFileIdentity` raw GetFile probe → adapter
+  `restoreOfflineDownloadBinding` (Bound/Unbound/null) → core-catalog CAS `refreshOfflineDownloadFileOperation` →
+  feature-catalog `UnboundOfflineDownloadController` (GONE / CHANNEL / RECHECK statuses), Retry → redownload, RECHECK
+  cleared once proved; phone Downloads "המקור השתנה או נמחק". Diff: scratchpad cl140f2/f2.diff. Independent read-only review
+  running → scratchpad cl140f2/review.md. Local run of all five modules' tests + lint running (scratchpad f2full.log).
+- Plan: Sports fix (+ MostSeeded guard) commit → push → CI → download 65 → upgrade proof 0.7.16→0.7.17 →
+  make_guard65.py → guard review → ask the owner's go for 65. F2 (after review fixes) + bump 0.7.18/66 after 65 is
+  downloaded (the download script reads the working-tree identity). Step 3 design brief ready: scratchpad cl140s3/brief.md
+  (launch after the F2 review; one read-only agent at a time).
+
+## Devices
+
+- Phone: 0.7.16 (64) since 03:35:24Z (waiter61 installed 61 at 03:24:55Z first; then the reviewed 64 guard, GUARD_EXIT 0).
+- Shield: 0.7.16 (64) via deploy-shield.sh --no-launch (identity file swapped to e9610fe8's copy for the one command,
+  restored byte-exact). Baseline 04:00Z: tdlib-files 2,039,944 KB (temp 1,535,800 KB in 6 files, videos 504,140 KB),
+  /data free 2.0 GB; PMTV process since the install (no TDLib start yet: ledger 10-17 12:31Z, binlog 13:06Z) → F1's
+  reclaim not run yet; re-read the sizes after the owner's first Shield use.
+
+## Owner state
+
+- Awake. Answers ≈03:30Z: "install. 5: a. 4: a." → install done (64 both); 5 a = CL-140 step 3 approved; 4 a = keep
+  the IPFL YouTube channel for finished Israeli league matches only (built in 63). All recorded in the ledger.
+- Open owner actions (no re-ask): Kan step 0 (30 s play from the site row), Telegram live G0 (one Play tap on a live
+  match), the build checks in MOBILE_ACCEPTANCE (62–65), D1 review not before 2026-10-21T05:20:44Z (STOP BEFORE D2).
+
 # private-media-tv — build 64 (0.7.16) READY (CI green on re-run, downloaded, upgrade-verified, phone guard PASS); build 65 (0.7.17, CL-132 Pattaya cinemas) PUSHED, CI 39090322365 running (2026-10-18T02:35Z)
 
 Software / delivery checkpoint written by Claude as the acting sequential integration owner (owner hand-off REQ-CODEX-041 /
