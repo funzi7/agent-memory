@@ -1,3 +1,45 @@
+# private-media-tv — Claude HANDED BACK to Codex after build 65 (2026-10-18T06:46Z); Claude READ_ONLY_RESEARCH again
+
+Checkpoint written by Claude at the end of the second sequential takeover (REQ-CODEX-041 / COORD-126). It is NOT physical
+acceptance. The ENTIRE previous memory body is retained byte-exact below: 464650 bytes / SHA256 `5c50b132c171aaa1a7f5724773c6fd665fbd2d3c17c2945a14f4169f362ac415`.
+Its older current/next/pending blocks are dated history.
+
+## App main
+
+- origin main = `26e53b8f` (0.7.17 / 65): 8e4092b6 host tests never read live sites (CI 39097266766 success — the real
+  cause of build 64/65's CI-only Sports failure), then Codex COORD-127's fixes + CL-140 F2 as their own commits
+  (f55e9894 F2 + P1-1 / P1-2 / P2s, 3a606664 👍/👎, 9a4ae89d Pattaya, 6a022f92 parser, 1d3722e8 AceStream, 3dc12614 SVG, ccdfc93c licences, 26e53b8f docs). The build-65 fix-set review (approve with changes, no P1) found two P2s, both fixed in 65: Pattaya's
+  empty day only on the cinema's own "no showtimes" answer (any other filmless page = MALFORMED), and the untrusted-
+  ledger reclaim hold bounded to 7 days from the first process that read it. Local: the whole tree green (core-security
+  126, core-telegram 519 → 520, core-metadata 428, core-catalog 738, feature-catalog 1943 + census 24, app-mobile 1636,
+  app-tv 651, lint ×7). Exact-head CI 39102331389 success (05:57:37Z … 06:32Z).
+- Build 65 delivery: download 570b08be… (271,386,682 B, signer 2987a463…), upgrade 0.7.16 → 0.7.17 PASS, phone guard phone-install-26e5-570b08-host24574-20261018.sh review PASS 0/0/0; INSTALLED on BOTH on the owner's go ("install" ≈06:38Z) — Shield 06:39:14Z (deploy-shield.sh --no-launch), phone 06:45:31Z (GUARD_EXIT 0); not launched.
+- Hand-off: results/CLAUDE_TO_CODEX_HANDOFF_20261018.md (SHA d21121db909bb1ec156876850d7578a71cbf255a33cf2be7976562c2b99f442d); CLAIMS ## CLAUDE RELEASED; TASKS
+  COORD-126 HANDED_TO_CODEX (owner line flipped back); CURRENT + CODEX_ACK hand-back paragraphs (actor=CLAUDE).
+
+## Devices
+
+- Phone 192.168.1.133:38971 (moved ≈05:0xZ); Termux adb server PID 24574 (restarted). Phone 0.7.17 (65) since 06:45:31Z; Shield
+  0.7.17 (65) since 06:39:14Z; after 64 its tdlib-files fell to 1,062,540 KB (F1's reclaim, ≈ 977 MB freed; /data 2.9 GB free) (192.168.1.106:5555). Shield F1 baseline 04:00Z: tdlib-files 2,039,944 KB.
+
+## Owner state
+
+- REQ-CLAUDE-129 / 130: finish Codex's fixes + 65, then hand back — done. REQ-CLAUDE-131 (05:39Z): from now on every
+  owner message to Claude is for the research role. New research items (after the hand-off, READY_FOR_CODEX):
+  REQ-131 the Shield's CW row faster + every attachment (known sources etc.); REQ-132 "חדש בטלגרם" from ONE ZOVE8
+  topic, series too (160 a amended), only 3 titles today and not the latest (the topic's name asked); REQ-133 remove
+  Home's back icon + an icon / logo beside every Home section title; REQ-134 the Shield cuts "בקולנוע עכשיו" with
+  "..."; REQ-136 "כותרים דומים" shows titles from the 1950s (a recency rule); REQ-137 the Telegram sources' thumbnails on
+  Details are poor quality (always the best one); REQ-138 a "תרגום גוגל" source ranks lower; REQ-139 the new-series /
+  new-movies rows carry irrelevant titles; REQ-135 FUTURE profiles with different preferences.
+- Pending owner actions: Kan step 0 (30 s), Telegram live G0 tap, physical checks 57–65, D1 +7 review
+  not before 2026-10-21T05:20:44Z (STOP BEFORE D2).
+
+## Next (Claude, read-only research only)
+
+- REQ-131 → REQ-132 → REQ-133 → REQ-134 → REQ-136 → REQ-137 → REQ-138 → REQ-139 research for Codex as READY; the CL-140 step 3 and REQ-115 part 2 briefs are in
+  results/.
+
 # private-media-tv — build 64 (0.7.16) INSTALLED on both devices; build 65 CI failed on a live-network Sports test (fix in source); CL-140 F2 built in source, under review (2026-10-18T04:10Z)
 
 Software / delivery checkpoint written by Claude as the acting sequential integration owner (owner hand-off REQ-CODEX-041 /
