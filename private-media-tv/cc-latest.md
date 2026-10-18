@@ -1,3 +1,40 @@
+# private-media-tv — build 64 (0.7.16) READY (CI green on re-run, downloaded, upgrade-verified, phone guard PASS); build 65 (0.7.17, CL-132 Pattaya cinemas) PUSHED, CI 39090322365 running (2026-10-18T02:35Z)
+
+Software / delivery checkpoint written by Claude as the acting sequential integration owner (owner hand-off REQ-CODEX-041 /
+COORD-126). It is NOT physical acceptance. The ENTIRE previous memory body is retained byte-exact below: 458313 bytes /
+SHA256 `ee5006e9ed3b5df22c06a34a54f0b223489240228bcecbd85602d0dfdd79dc72`. Its older current/next/pending blocks are dated history.
+
+## App main
+
+- origin main = `7023f0ab` (0.7.17 / 65): `2502a0e5` the Sports tests clear REQ-116's process-wide kickoff corrections
+  (build 64's one CI flake); `1a91069b` CL-132 Pattaya cinemas (ADR 0111: "בקולנוע עכשיו" = a Major Cineplex Pattaya
+  screening today by exact IMDb id → TMDB /find, TMDB's Thai list until the first Pattaya answer; Details "בקולנוע
+  בפטאיה" both apps; the phone's "הקרנות ב-SF ↗"; two independent reviews fixed); `7023f0ab` bump. Local whole tree green.
+- Build 64 = `e9610fe8` (0.7.16): bc84354b + d282f836 CL-140 F1 (Shield reclaim) + step 2 (persistent per-file key) with
+  review fixes; bb4902f5 CL-129 "חדש בטלגרם" (review fixes); ef303fec re-review follow-ups (refuted marks never stop the
+  Shield's clean-up, …); bdf7dd5f CL-142 (the parser read "DD5.1.x264" as an episode and "2160p" as a year — movie
+  sources were rejected app-wide). Exact CI 39082945785 green on its second attempt (first: F2c76TheSportsDbTest flake,
+  leaked process-wide state). Canonical download 0.7.16 (64), 271,304,826 B, APK SHA-256
+  `c4dc3d041515a37d7c372927ea430b16a6566eb2ef0d62bcdd98f5cca3e5f972`; upgrade proof 0.7.15 → 0.7.16 PASS; phone guard
+  results/claude-surveys-20261007/phone-install-e961-c4dc3d-host30667-20261018.sh (SHA-256 1d848e70…) review PASS 0/0/0.
+- Builds 62 / 63: green, downloaded, not installed. Build 61: on the Shield; the phone's waiter61 (PID 24911) installs it
+  on the first idle unlock until ≈05:45Z — STOP it before any 64/65 phone install.
+
+## Owner state
+
+- Asleep since ≈19:40Z ("continue all the work and all the list, in the morning … summary and all the questions"). No
+  notification overnight. Morning summary draft: scratchpad morning-summary.md.
+- Questions: install go (64, or 65 if ready — contains 62/63); Kan step 0; Telegram live G0; YouTube (a)/(b); CL-140
+  step 3 (drop unmatched old pathless marks: (a) recommended).
+
+## Next
+
+1. Build 65's CI → canonical download → upgrade proof 0.7.16 → 0.7.17 → guard65 (make_guard65.py ready) + review.
+2. CL-140 F2 (a restored download re-checks its Telegram file number) — plan by a read-only agent; build + review.
+3. Then REQ-115 livetv.sx adapter, CL-136 (needs Shield measurement), CL-133 rest; REQ-117 surveyed (future).
+
+---
+
 # private-media-tv — build 63 (0.7.15) PUSHED, exact CI 39068498428 running; build 62 downloaded + upgrade-verified (install waits); CL-129 "חדש בטלגרם" in test for 64 (2026-10-17T21:21Z)
 
 Software / delivery checkpoint written by Claude as the acting sequential integration owner (owner hand-off REQ-CODEX-041 /
