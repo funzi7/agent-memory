@@ -1,3 +1,114 @@
+# private-media-tv — Codex writer; build66 installed BOTH; exact records75 CI/inventory/publication qualified (2026-10-19)
+
+Software/publication and install checkpoint, NOT full T3/T4 completion or physical feature acceptance.
+The complete previous memory body is retained byte-exact below: 468384 bytes / SHA256
+`b4d60bd046fa53f212daadfe931efa337f40a6eadc49171bb206578c7914cbde`.
+Its older current/next/pending statements are dated history, not instructions to repeat completed work.
+
+## Actual project and publication truth
+
+- Project main/local/tracking/live remote independently verified at
+  `75fd051938b3aaf06642c8111ac3289dc5d92584`. Normal source/fixture history and all prior local commits
+  were preserved; no reset, stash, clean, restore, rebase, force-push or worktree bypass.
+- T3 S0/S1/S2 implementation is `6daf8d74135c1b8f71f8aeeaf9933f2f20852e57`; four narrow TEST-ONLY
+  CI-fixture repairs ended at `c00ea5ae79b5ad714e590b899ef57288c8ddbebb`. Records75 has exactly the
+  13 reviewed documentation/inventory paths, sole parentc00; no production, script, identity or APK-version change.
+- Own candidate Android39226163901 SUCCESS; own records Android39235750952 SUCCESS, push/main/exact75fd,
+  updated2026-10-19T10:51:26Z, both jobs successful. All normal unit/lint/assembly/APK-verification phases passed.
+  Sole observer42238 ended naturally0. No active heavy build, CI observer, device lane or VPS operation.
+- Records inventory artifact12180762355, exact two retained files at canonical results/
+  `coord129-records75-ci-inventory.eYGw5z`. Strict consumer ee79342193d335dd5447afec400977afbbfe77a4cf6e71d6656892de6562d4d8
+  passed expected75fd. Raw inventory
+  `786d9eb8df6276f45e67edda0638f118b380c13b3598282fdc974d631d1b1159`
+  is byte-identical to the candidatec00 artifact AND tracked `docs/C45_SYNC_INVENTORY.txt`.
+  Parsed properties are identical except required sourceSha; records metadata SHA256
+  `69bf67a05a5a6c8fe34f8efc2f9bc968aa6433a53f994c1b843dbb4b2f49b173`.
+- Actual app-facing inventory:4335 cases =4324 PASS+11 existing SKIP+0 FAIL /502 XML.
+  Phone1640/1634P6S/201XML; TV655P/94XML; catalog2021/2016P5S/201XML; sharedUI19P/6XML.
+  This is four app-facing modules, not a whole-core or physical/runtime total.
+  Immutable T2 `docs/TV_PORT_T2_INVENTORY.txt` remains d4f59616925ff61d2c2369e8d291a5a341ebe6593c868db4a707ce11303038f9.
+- Full historical identity reconciliation is closed by exact source lineage and normal CI, not count arithmetic:
+  supplemental16 old class/package moves, combined57 old identities, corrected T3 delta58 destinations minus6
+  sources (52 true new methods,5 QR moves,1 wiring rename), residual996 classified/proven against actual source.
+  Old build65 per-method artifact remains unavailable; historical range-only evidence was NOT invented as old
+  per-method PASS. Reuse sealed fa15e894 joined closure and 1bd329a4 records75 independent inventory review.
+- Exact final APK artifact12180548342 was canonically downloaded/published by sole heavy95735, natural0:
+  one `/storage/emulated/0/Download/private-media-tv/private-media-tv-mobile-0.7.18.apk`, refreshed;
+  removals0/all four skipped counters0. Owner160's one-installer contract applies, not the older dual-copy rule.
+  Packagecom.funzi7.privatemediatv.mobile /0.7.18/code66 /271648830 bytes /arm64 only.
+  APK SHA256 `483caf4e075f67884e339fdd37bca594803bf04d8a111830fc3689355bec8f82`;
+  Development signer `2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0`;
+  CI JNI `790c545fc7f059ec10063c2f72f58ef36cd1a362c949026dcf31c413d21c259f`.
+  Final APK bytes equal the candidatec00 bytes already installed on both; no extra installation is necessary.
+  The LOCAL3a6c APK is not authoritative and was never installed. No extra version/build was invented.
+- Independent final13 records review2453ae8b/manifest67e70a42 and exact committed-blob binding5454ca71 CLEAN;
+  root read every task diff and verified all13 hashes. `git diff --check` passes. Dated tracked records saying
+  final-CI/publication pending are closed by these later observed receipts, not a new endless records-only CI loop.
+
+## Owner049: BOTH actual installations, no launch
+
+- Latest owner asks whether ready, then install both. REQ-CODEX-049 registered before work and fulfilled.
+  Shield canonical98716 `deploy-shield.sh --no-launch` natural0/Asleep/not woken; phone reviewed84-line
+  336dd7ec guard19458 natural0/idle-unlocked-untraced before+after/install-r.
+  Independent actual user0/base.apk/version readbacks passed on both; original first-install history preserved.
+  BOTH now exact0.7.18/code66/483caf4e, equal final75fd published bytes. Neither app opened; no wake/unlock,
+  uninstall, Clear Data, reset, cache cleanup or playback/history alteration. No future install go implied.
+- Termux host ADB was17124/TracerPid0; each client explicitly remote sockettcp:127.0.0.1:5037.
+  No ADB start/restart from PRoot. Old device addresses/PIDs below are historical; re-prove current transport,
+  host ownership and idle/unlocked guards before any later authorized device action.
+- Receipts in canonical results: `COORD129_OWNER049_SHIELD66_INSTALL_RECEIPT_20261019.md` (7a09c58f),
+  `COORD129_OWNER049_PHONE66_INSTALL_RECEIPT_20261019.md` (e23d6417).
+  `READY_FOR_CLAUDE_BUILD66_INSTALLED_BOTH_20261019.md` (cfb97cac) published to owned ACK/CURRENT;
+  ledger readiness is not proof Claude already told the owner. Installation is not feature/native acceptance.
+
+## Qualified implementation, honest open evidence
+
+- Shared `:feature-client-ui` account/theme/QR/About, thin phone binder, TV-owned account/cold IO/secure Back/
+  Settings focus and local full-reset closure are host-qualified. Preserve phone behavior, no provider-remote
+  sign-out during local reset, root joins/fences and vault-failure retry identity. No reset/sign-in was run on devices.
+- CL176 LIVE diagnostic remains one access-rechecked GetGroupCallStreams observation only: no JOIN/Leave/Segment;
+  explicit Play join/Stop leave is future T4 under owner159, not hidden in diagnostic code.
+- Four CI repairs are tests only. Last startup fixture causally failed92283 then SAME4 passed82778 and ordinary
+  full-phone42480 passed1640/1634P6S, followed by candidate+records exact CI success. Actual older SQLite callback
+  producer remains UNPROVEN; warnings and partial-factory/independent-owner evidence limits are retained. No
+  production/native workaround, stress, heap increase, assertion/deadline relaxation or exception suppression.
+- Owner-operated phone/Shield account/QR/Keystore/provider/native/player/Back acceptance, real startup/idle/scroll
+  measurements and applicable older feature checks remain OPEN/PENDING: owner postponed checks and retains launch
+  control. No phone evidence is substituted for TV evidence, no physical PASS fabricated. Full TV port is NOT done.
+- CL180 latent ledger-startup P2 remains open before a future format bump; current66 format1 stays safe. CL140
+  landed cache/download work and owner choices are preserved. The settled30-day retirement of unverifiable CW
+  cache protection remains future after TV, not permission to remove CW/progress/history or guess-delete files.
+
+## Current coordination and exact next work
+
+- One canonical root `/root/work/_agent-coordination/private-media-tv/`, full eight logical files/PROTOCOL §22
+  permanent exclusive flock/atomic publication. Codex primary/integration/Git/sole tracked writer; Claude research
+  only. Read both owner inboxes/TASKS/CLAIMS/FINDINGS/ACK before new work; register intake first, semantic duplicate
+  detection across agents. Owner need not remember which agent received a request. Consume valid Claude
+  READY_FOR_CODEX rather than re-survey; record ACK/disposition and exact HEAD applicability.
+- COORD129 S0/S1/S2 software publication/inventory is qualified; final helper-only memory transaction follows this
+  factual update. Owner049 DONE. Next product work is settled REQ149 before S3a, then remaining T3→T4. DATA/SYNC/TV
+  tracks remain independent under REQ-CLAUDE147/CL165. Do not repeat completed packaging/cache/account work or
+  switch into unrelated LATER, Step4 or D2.
+- Reuse full REQ149v4 brief05e9c235 and prepared-but-UNAPPLIED/UNRUN A1 test-firstV3 3776617f, productionV1
+  9a6a7d9b and report-only scannerV3 3225ad37. Add actual tests first, prove an actual defect, apply only evidenced
+  minimum change; no static review/geometry guess is runtime fit PASS. Preserve legal font1.0/1.3 fixtures and old
+  Ophir1.3/2.0/side-panel baselines. Stop only for an actual evidenced owner UX conflict, not retracted math guesses.
+- Existing CL172 S3a brief86e908cd still applies. Bounded post-S0/S1/S2 applicability receipt eec39a2e updates
+  anchors/completed premises only: account/QR/About/module/Settings/cold-start/reset already done; existing
+  openAccount action already wired. Remaining TV play/refresh/HostSlot rows are S3a, after REQ149. Reuse T4 refresh,
+  not new planning. Future source/subtitle briefs CL186–188 and owner q24 no Ktuvit login remain in canonical
+  inbox/findings, not this build's behavior or a reason to preempt TV. Do not read owner private files unless asked.
+- D1 existing goal/authority unchanged: +7 review NOT BEFORE2026-10-21T05:20:44Z, ONLY073000 then C15 and proper
+  both-repository closure. Owner last OFF; no VPS/Tailscale toggle/observer in this checkpoint. STOP BEFORE D2.
+- Unrelated preserved dirty `docs/C45_DATA.md` +27 diff SHA42ce07be63a24f546690c41141f171c2ffb7673f130a26597c9ac9f63bc95ae3.
+  Six excluded untracked files remain untouched by this publication/install phase. Prior disclosed GNU-patch
+  incident changed `-.rej`; original remains unrecovered. Current1003B/d059b46882c48f3766f6fbce3013e53f2e388a8a7109ccf05679cbfc7beae96c
+  is preserved; never claim all six unchanged since original. No cleanup authority, backup untouched.
+  Use apply_patch only; no GNU patch, stress or custom sandbox. All heavy work uses global queue, one at a time.
+
+---
+
 # private-media-tv — Claude HANDED BACK to Codex after build 65 (2026-10-18T06:46Z); Claude READ_ONLY_RESEARCH again
 
 Checkpoint written by Claude at the end of the second sequential takeover (REQ-CODEX-041 / COORD-126). It is NOT physical
