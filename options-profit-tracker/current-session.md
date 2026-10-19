@@ -405,3 +405,6 @@ resolved, and Review18/all3checks are clean on that exact HEAD. The later operat
 candidate was pushed at `9a24944301bbe851190e7e0f41b786c9125e30da`; Review19 found the exporter
 identity omission above. Its fix is pushed at `ab168766ec636d072832057cc1237e511d58e7aa`; replacement
 validation/artifact pass. Review20 is clean and Build/Codex/scripts exact-head checks all passed.
+
+### 2026-10-19 urgent Flex option-parse repair — OPT 6879976
+Cause, fix, validation and live result: project `docs/S2_8_ACCEPTANCE.md` / `S2_8_VALIDATION.md` §2026-10-19 and cc-latest.md. Exact-head gates: normal Codex (trusted connector) review on exact `6879976c` CLEAN — "Didn't find any major issues" (2026-10-19T14:28:01Z); check-codex-status pass ("Reviewed — clear"); codex-gate-evaluator pass after re-running the push-time evaluation run 39269011089 ("outdated_findings_and_current_head_signal on head 6879976"); PR Build Gate pass (4m16s); Workflow Scripts Tests pass; 84 review threads, 0 unresolved active; PR #19 OPEN, not merged.

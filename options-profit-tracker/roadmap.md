@@ -1303,3 +1303,10 @@ Full-PR Review20 request5939035896 was posted at2026-10-01T19:32:27Z. Trusted co
 
 Normal Codex Review20 trusted-connector comment5939081513 reviewed exact ab168766ec636d072832057cc1237e511d58e7aa CLEAN at2026-10-01T19:35:25Z: “Didn’t find any major issues.” Build110546709904/run36915008018 passed at2026-10-01T19:39:37Z in7m21s; scripts110546710243 and Codex Gate110548127638 passed. GraphQL retrieved all79 threads(hasNextPage=false) with zero active unresolved non-outdated trusted Codex P1/P2. PR19 remains OPEN/unmerged on exact final HEAD.
 No unrelated backlog item closed; no broker/API quota consumed.
+
+### 2026-10-19 owner decisions pending from the urgent Flex repair (OPT 6879976)
+1. Stacked non-unique FlexSyncWorker one-shot retry chains + single-flight `syncNow`: leave / cancel stale chains + single-flight / single-flight only.
+2. RESOLVED by correction (Codex P1/P2 on 90771cf): `OPEN` accepted in stock paths/brief/report; Opendoor's realized enters its sale months' totals at the next sync — owner to note the changed figures.
+3. Owner's own Import of the newly accepted OPEN/one-letter option cycles (moves realized totals and Sep/YTD parity references; re-audit afterwards).
+4. Pace non-terminal GetStatement `Fail` retries (documented 1 request/second).
+5. Non-standard option multipliers are refused at import; supporting them requires authorizing `contractMultiplier` in protected ProfitCalculator paths.

@@ -671,3 +671,7 @@ Full-PR Review20 request5939035896 was posted at2026-10-01T19:32:27Z. Trusted co
 
 Normal Codex Review20 trusted-connector comment5939081513 reviewed exact ab168766ec636d072832057cc1237e511d58e7aa CLEAN at2026-10-01T19:35:25Z: “Didn’t find any major issues.” Build110546709904/run36915008018 passed at2026-10-01T19:39:37Z in7m21s; scripts110546710243 and Codex Gate110548127638 passed. GraphQL retrieved all79 threads(hasNextPage=false) with zero active unresolved non-outdated trusted Codex P1/P2. PR19 remains OPEN/unmerged on exact final HEAD.
 Physical QA actually performed remains readonly DB/WAL/reconciliation copies with matching hashes/integrity, signer read, host ADB isolation, in-place install and delivery. NOT performed: app launch, broker/Flex/import/resync, price/IV/chain/PUT/watchlist/news/provider refresh, manual DB/settings write, uninstall or clear. Manual BTC/PUT/0DTE/brief visual paths remain OWNER-DEFERRED. Room/prefs process-death identity gaps and permanent projection-store failure remain documented fail-closed limits, not live PASS.
+
+### 2026-10-19 urgent Flex repair (OPT 6879976)
+- DONE physically: one controlled manual `סנכרן מ-IBKR` on the fixed build — 1588 rows, 498 opens / 474 closes / 0 errors; data survived; final build installed in place without launch.
+- PENDING (owner): Import of the newly parsed cycles; note Opendoor's realized entering the stock ledger at the next sync; re-audit Sep/YTD after it; any further live sync only with owner authorization.

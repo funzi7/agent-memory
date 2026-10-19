@@ -1138,3 +1138,10 @@ Full-PR Review20 request5939035896 was posted at2026-10-01T19:32:27Z. Trusted co
 
 Normal Codex Review20 trusted-connector comment5939081513 reviewed exact ab168766ec636d072832057cc1237e511d58e7aa CLEAN at2026-10-01T19:35:25Z: “Didn’t find any major issues.” Build110546709904/run36915008018 passed at2026-10-01T19:39:37Z in7m21s; scripts110546710243 and Codex Gate110548127638 passed. GraphQL retrieved all79 threads(hasNextPage=false) with zero active unresolved non-outdated trusted Codex P1/P2. PR19 remains OPEN/unmerged on exact final HEAD.
 Do not claim a clean exact-head review/gate until that placeholder is replaced with trusted evidence.
+
+### 2026-10-19 — `OPEN` is a ticker, and WorkManager retry chains stack
+- `OPEN` is Opendoor Technologies (NASDAQ); `O`, `F`, `T`, `C` are real underlyings. Never filter broker symbols by spelling or length; the March-2026 "phantom ticker" filter silently dropped real option rows until S2.8 made refusals fatal (sync failed `requiredField=8`). The same exclusion in the STOCK paths, market-brief universe and report validator was removed after exact-head Codex P1/P2 on 90771cf — Opendoor's IBKR realized now enters the stock ledger at the next sync.
+- Validate the whole option payload BEFORE persisting anything from it (NAV, basis anchors, stock ledger, cash).
+- `FlexSyncWorker.syncNow` is NON-unique and every failure used to `Result.retry()` (one-shot default backoff, capped 5 h): an expired token stacked 42 full-sync chains (19–55 attempts each) on the device, all due together. Launch on a weekday 09–18 ET with last sync not today also enqueues one, and the overdue hourly job can fire in the same 5 ms → IBKR 1018 (1 request/second, 10/minute per token). Terminal codes 1010–1012/1014–1016 now end the run; single-flight/cleanup is an owner decision.
+- Import screen shows the Flex token/query id as plain field text: never screenshot it; read UI via stdin-only dump filtered to exact labels.
+- The documented `adb-device-release` helper / `adb-device.lock` did not exist on this host (2026-10-19); per-command flock on that path was used.
