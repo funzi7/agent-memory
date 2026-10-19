@@ -1,3 +1,55 @@
+# private-media-tv — D1 owner095 reporting decision persisted; exact74de Go CI PASS; +7 still pending (2026-10-19)
+
+Records-only checkpoint, NOT a +7 review, C15 execution, live deployment or D1 completion.
+Complete previous memory retained byte-exact below:478391 bytes / SHA256
+`da365672f75b7acd0ae619aa954b0b42750971c25dcc768eea3e9cf55addbbd4`.
+
+- Application main/local/tracking/live remote is normally pushed
+  `74de11789e3a1fd6ece48e63f4092c4fcd5c7eac`, sole parent75fd0519. Exactly7 documentation
+  paths/93 insertions, no source/script/workflow/version change. Root and independent staged4ed83a6a,
+  seven-blob manifest53e980d1 and exact-commit202ad1d9 reviews CLEAN; all seven committed hashes match.
+- Existing owner reply REQ-CLAUDE-095, October16 approximately18:10Z, verbatim “d1 1”, is now consumed
+  in authoritative ADR0079/D1_TIMED/C45_DATA/TODO/state/handoff/CHANGELOG. Do NOT re-ask this choice.
+  **SUPERSEDED — owner approved:** requiring recovery of original FIRST `facts.lines`, `facts.bytes`,
+  `counts.series`, `counts.ilYes` before eventual C15 closure. Those four remain permanently historical
+  **UNPROVEN**, never zero/later substitutes; elapsed28minutes remains proven. No query/rebuild/replay
+  fills the gap. This is a reporting exception only, not any safety or preservation waiver.
+- Own exact-head ordinary data-Go39243055431, workflow_dispatch/main/exact74de, SUCCESS
+  updated2026-10-19T11:20:03Z/all3 jobs: ordinary/vet/race/static plus isolated root ordinary/race
+  deploycheck. C14 mutation/restoration/fuzz steps explicitly SKIPPED under dispatched stress=false;
+  artifacts0. Sole observer37827 ended naturally0. No repeated C14/stress, local heavy or VPS action.
+- That push's automatic Android39243019987 was actually CANCELLED11:13:15Z BEFORE the app job started,
+  no app steps/artifacts0. This is NOT AndroidPASS. No new APK, version, Android build or delivery/install
+  follows from the D1 records task. Existing authoritative client APK remains source75fd/CI39235750952,
+  0.7.18/code66/SHA483caf4e, already installed BOTH/no-launch under fulfilled049; unchanged, no reinstall.
+- D1 goal is ACTIVE again (actual controls verifiedOctober19 11:46Z), after the owner resumed the SAME goal.
+  The post-interruption PAUSED11:44Z observation is now history, not a current resume-input gate.
+  No new goal/deployment approval, completed timed review or automatic-execution guarantee is inferred.
+  FIRST/immediate/ordinary/+1 retained PASS are reused, not rerun.
+  Actual +7 remains PENDING, NOT BEFORE2026-10-21T05:20:44Z; only after assessed PASS complete C15
+  post-phase-D records/inventory/acceptance and both-repository finalization. SAME073000/source78391b26,
+  strict original isolation/memory/preservation/fail-closed mandatory inverse, owner last OFF and STOP
+  BEFORE D2 remain. No fresh live health, observer/timer/automatic-execution guarantee, toggle or secret
+  action is claimed. Old unanswered-choice/BLOCKED statements predate owner095; they are not current gates.
+- C45_DATA's inherited27-line draft was NOT committed. Only the new16-line top prefix was staged;
+  committed blob98f37800/SHAfeb58b1f excludes the27. Removing only the new prefix from the working file
+  exactly recovered full old9a417f16 bytes (Gitblob19fd57d0), while removing it from index recovered
+  parent9c2fea4d. Current residual27 rawdiff SHA256 is
+  `8c054315db9ead3250cad47d5a711ed3ca53f97f01ac75aa24c3044900fd0e1a`;
+  its header/context shifted after the owned prefix entered HEAD, not a content loss. Six untracked
+  exclusions and currentrejd059 remain preserved; earlier disclosed original-.rej loss stays unresolved.
+- Canonical external root remains `/root/work/_agent-coordination/private-media-tv/`: one tracked/Git
+  writer Codex; Claude research-only; exclusive-flock/atomic publication; both inboxes/semantic dedupe;
+  valid READY_FOR_CODEX consumption and owned ACK. COORD006 records decision is qualified, not D1 closure.
+  Next approved local product work remains settled REQ149v4/A1 test-first before S3a/remainingT3→T4,
+  using the already-prepared/UNAPPLIED proposals and consumed briefs below. No A1 source/test execution
+  occurred during this D1 record. Do not redo sealed account/build66/inventory/installs or future-source
+  research. Physical account/provider/native/startup/idle/scroll acceptance remains OPEN/owner-operated.
+- Only after this final project/CI truth is the current prefix written for helper-only memory finalization.
+  No direct state-changing memory Git operation. A later actual helper receipt binds the memory commit.
+
+---
+
 # private-media-tv — Codex writer; build66 installed BOTH; exact records75 CI/inventory/publication qualified (2026-10-19)
 
 Software/publication and install checkpoint, NOT full T3/T4 completion or physical feature acceptance.
