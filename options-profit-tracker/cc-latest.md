@@ -1,138 +1,131 @@
-# OptionsProfitTracker — 2026-10-19 urgent Flex option-parse repair handoff
+# OptionsProfitTracker — 2026-10-19 single-flight Flex sync handoff
 
 Date: 2026-10-19. Same branch `s2/ibkr-reconciliation-lifecycle-dashboard`, same PR #19 OPEN,
 NOT merged; no push to main (`7225b7af16c183de00a9f064ead03a01ad6af1d3` untouched). This complete
-replacement supersedes the 2026-10-01 S2.8 handoff as the CURRENT state; that handoff's history is in
-agent-memory git and in the project docs (`docs/S2_8_ACCEPTANCE.md`, `S2_8_VALIDATION.md`, TODO,
-PROJECT_STATE, HANDOFF), and every open S2.8 item below is carried forward, not closed.
+replacement supersedes the same-day "urgent Flex option-parse repair" handoff as the CURRENT state;
+that round is summarised below and kept in agent-memory git, and its project record is
+`docs/S2_8_ACCEPTANCE.md` / `S2_8_VALIDATION.md` §2026-10-19. Every open S2.8 item is carried forward.
 
 ## Heads and gates
 
-- Starting project HEAD: `ab168766ec636d072832057cc1237e511d58e7aa` (S2.8 Review20 clean).
-- Final project HEAD: `6879976c499266b216477579b548de8b8c84afba`.
-- Exact-head checks/review: normal Codex (trusted connector) review on exact `6879976c` CLEAN — "Didn't find any major issues" (2026-10-19T14:28:01Z); check-codex-status pass ("Reviewed — clear"); codex-gate-evaluator pass after re-running the push-time evaluation run 39269011089 ("outdated_findings_and_current_head_signal on head 6879976"); PR Build Gate pass (4m16s); Workflow Scripts Tests pass; 84 review threads, 0 unresolved active; PR #19 OPEN, not merged.
+- Round start: `6879976c499266b216477579b548de8b8c84afba` (urgent repair final, Codex clean).
+- `d39aec7e4dd27513f3b260822e0611777ab61f5c`: owner "Option 2" implementation. Exact-head Codex review
+  5573929901: P2 4315700680 (boot persistence) + P2 4315700698 (REPLACE decided from a stale
+  WorkManager snapshot) — fixed in `c3cf04997f6c90ce878b5f7d514a775e17624bba`; replies
+  4315983605/4315984015, threads resolved.
+- `c3cf04997f6c90ce878b5f7d514a775e17624bba`: exact-head Codex review 5574298999: P2 4316014193 (a
+  dashboard sync-now tap that JOINS a same-kind sync finishing before the tap reads its last-sync
+  baseline waited 60/120 s and reported "still running"; full path skipped auto-expiry) — first fix in
+  `97c3539c5dc24cb2d640a7252d5321ad88273507` (reply 4316387677, resolved).
+- `97c3539`: exact-head Codex review 5574785803: P2 4316418642 (that fix identified the joined request
+  from a slot read AFTER the enqueue, which WorkManager's deletion of finished records on the next
+  insert can redirect) — fixed in `6add95960f3dccc9e174e86d30ff92a35f81c3a3` (reply 4316567905, resolved).
+- `6add959`: exact-head Codex review 5575010512: P2 4316598285 (the tap still completed on any advance
+  of the SHARED last-sync time, which periodic/pre-market/other-kind runs move while the tap's own
+  request waits for Flex ownership) — fixed in `bd9b8269389c0a2794a8205e59cb99546114f63e` (reply
+  4316678374, resolved).
+- `bd9b826`: the requested exact-head Codex review did NOT run — "You have reached your Codex usage
+  limits for code reviews" (comment 6272919243, 2026-10-19T17:15:13Z; state `failed`); build-gate and
+  scripts-test passed there, check-codex-status / codex-gate-evaluator failed for lack of a signal (not
+  bypassed). An independent read-only review agent (NOT Codex, not a gate) found no P1/P2 and three P3,
+  fixed in the final HEAD: cleanup re-reads each stale one-shot before `cancelWorkById` and skips one
+  that started (`startedSinceRead`); a queued Import runs only on the trades tapped (a reset while it
+  waits cancels it); coordinator comment corrected.
+- Final project HEAD: `fbe255608f305db0ccdb16dab22430d18babd2e0`.
+- Exact-head checks/review: on the final HEAD `fbe255608f305db0ccdb16dab22430d18babd2e0`: build-gate success (run 39296972085, 2026-10-19T17:51:30Z) and scripts-test success (run 39296971999); check-codex-status and codex-gate-evaluator FAILURE because the exact-head Codex review could not run — the Codex connector reports its usage limit (comments 6273524502 and 6273530110, 2026-10-19T17:46Z; also 6272919243 on bd9b826). Not bypassed; re-request the Codex review when the limit or credits allow. Status comment 6273643578. All five Codex threads of this round replied and resolved; PR #19 OPEN, not merged.
 
-## Owner-authorized scope
+## Owner decision implemented — "Option 2" (cancel stale one-shots, single-flight Flex sync)
 
-Urgent, narrow repair of the manual IBKR sync failure seen after the Flex token renewal —
-`שגיאת פירסור: Flex options incomplete: rejected=8 multiplier=0 contractId=0 zeroQuantity=0
-requiredField=8` — plus ONE controlled real-device sync. Not authorized: merging PR #19, main,
-rewriting trading data, delete+import/full re-sync, repeated live calls, other provider quota, a new
-version/milestone, the wider S2.8 backlog.
+- `notification/FlexSyncQueue`: four unique homes only (`flex_price_sync` periodic, `pre_market_sync`,
+  `flex_sync_now_full`, `flex_sync_now_regular`). LEGACY = a FlexSyncWorker one-shot in none of them
+  and without the pre-market tag. On every process start `OptionsTrackerApp` cancels legacy
+  ENQUEUED/BLOCKED work by id (`cancelWorkById`, bounded 10 s) before scheduling anything and logs one
+  `FLEX_QUEUE legacy Flex one-shot cleanup: cancelled=… startedSinceRead=…` line; each is re-read just
+  before its cancel and one seen RUNNING is reported, not cancelled (WorkManager has no conditional
+  cancel, so a start in that last gap stays possible); idempotent. The worker ends a legacy one-shot that starts anyway without a broker request.
+- Slot policies are CONSTANTS (Codex fix): sync-now `KEEP` — joins a pending, waiting or running
+  request, never cancels it (the owner-approved join semantic); external pre-market re-arms (app
+  start, dashboard, boot) `KEEP`; only the running pre-market worker `REPLACE`s its own slot (as
+  before). Enqueues run on the caller's thread and return their `Operation`; `BootReceiver` waits for
+  persistence (bounded 5 s each, IO coroutine) before `pending.finish()`. Never decide `REPLACE` from a
+  WorkManager snapshot — it can cancel work that started running in between.
+- Dashboard taps (`syncPrices`/`fullSync`) complete ONLY when a request serving them records a completed
+  sync — never on the shared last-sync time (display only). `DashboardViewModel.requestSyncNow`
+  (`NonCancellable`): read the joinable requests (`FlexSyncQueue.pendingRequestIds` = the slot's
+  ENQUEUED/RUNNING work, the state KEEP evaluates) BEFORE enqueueing; `syncNow` returns a
+  `SyncNowTicket`; `FlexSyncQueue.servingRequestIds`/`servingIdsOf`: inserted → only its own request;
+  discarded by KEEP → the same-kind request it joined (read before, or just after if another caller
+  inserted one in between). The worker records each completed sync's id in process memory
+  (`recordCompletedSync`, bounded 32) immediately before each success that follows a last-sync write;
+  no-op exits never record. Never identify the joined request from a slot read after the enqueue.
+- `data/remote/FlexSyncCoordinator`: one in-process owner (process-wide Mutex) of every Flex
+  fetch/write — worker, manual `סנכרן מ-IBKR`, Import, full re-sync. Only the periodic job coalesces
+  (into any in-flight run); everything else waits and runs. No-op exits happen before ownership;
+  released on success/failure/cancellation; a cancelled waiter never runs; `doImport` is not wrapped
+  (fullResync calls it while holding ownership). No polling/automatic import/extra provider request.
+- Terminal IBKR codes 1010–1012/1014–1016 stay non-retryable (urgent repair).
 
-## Root cause (evidence, not assumption)
+## Validation (actual, final HEAD)
 
-- S2.8 made every per-row option refusal fatal; the last pre-S2.8 parser (`4512cbf`) dropped the same
-  rows silently ("previously worked").
-- The only `requiredField` condition that refuses a well-formed broker row was the March-2026 filter
-  `ticker == "OPEN" || ticker.length < 2` (`39de587`, "filter OPEN phantom ticker").
-- The owner's own June-2026 Flex export (read locally, never copied/printed) carries `OPEN` as
-  Opendoor Technologies (NASDAQ), a real SELL EXECUTION with conid and fifoPnlRealized; the persisted
-  feed has Flex-derived STOCK_SOLD rows for OPEN and O and an OPEN CSP draft.
-- Live confirmation: the fixed build parsed the same-day snapshot with 0 refusals; every other
-  refusal rule is unchanged, so the 8 were OPEN/one-letter-underlying rows (deduction; the earlier
-  payload itself was never saved).
+- Focused (FlexSyncQueueTest 21, FlexSyncCoordinatorTest 9, FlexTerminalErrorPolicyTest 3) 33/33;
+  full `cleanTestDebugUnitTest testDebugUnitTest compileDebugKotlin assembleDebug` with the persisted
+  audit input: 1808 tests / 0 failures / 0 errors / 1 existing skip / 117 classes, BUILD SUCCESSFUL,
+  zero real `^e:`; audit unchanged (selected=4844.09 brokerReference=4741.75 delta=102.34); scripts
+  76/76; `git diff --check` clean. All Gradle via heavy-run, JDK 21.
+- Offline replay of the cleanup rule on the morning read-only WorkManager copy: exactly 42 cancels
+  (attempts 19..55, 1,550 total, due 12:55–12:56 ET); preserves periodic `acc3a84a…` and pre-market
+  `e16f7f59…`; 8 other workers untouched.
+- APK 1.0.0/1 (no bump) SHA-256 `4afde87e616f74e45eb81b69e01aaae079e3a56eca25fcadabc731c481e665d5`,
+  65,957,453 bytes, original signer SHA-256 `9e5307e1…8221` / SHA-1 `5d3d855c…1551`; at
+  `/sdcard/Download/OptionsProfitTracker/OptionsProfitTracker-1.0.0.apk` (shared-storage copy 13:45 ET,
+  hash matches). Superseded in Download: `e0169b00…` (bd9b826), `8a6d86e8…` (6add959), `2016a75d…`,
+  `48daf02a…` (97c3539), `8323eaf1…` (c3cf049), `8c4a29cf…` (d39aec7), `ee8808f2…` (interim).
 
-## Change
+## Device: BLOCKED — nothing physical this round
 
-- `ui/screens/settings/FlexOptionRowParser.kt` (pure, JVM-tested) = the per-row option parse moved
-  from `ImportViewModel.parseFlexXmlTrades`, identical except: any non-blank broker underlying is
-  accepted; every refusal names field + missing/unsupported/exception kind with a redacted shape
-  (no symbol/id/account/token/money/XML). Debug hook inside the per-row guard; NaN/Infinity commission
-  refused (unknown money never 0). Any refusal still fails the WHOLE payload.
-- `syncFromIbkr` and `fullResync` validate option rows BEFORE persisting NAV/holdings, basis anchors,
-  stock-realized ledger or cash; `fullResync` aborts on any option-parse failure (no OpenPositions
-  fallback before deletion).
-- `FlexQueryService.errorCodeOf` + `isTerminalError`: IBKR credential/configuration codes 1010, 1011,
-  1012, 1014, 1015, 1016 (official table, recorded in funzi7/trading-tracker
-  docs/research/ibkr-flex-api.md §1.8; live refetch 403 from this host). 1013 IP restriction excluded
-  (phone IP changes). GetStatement loop stops on them; `FlexSyncWorker` returns failure (pre-market
-  chain re-armed) instead of retry. Everything else keeps retrying.
-- Exact-head Codex review 5572314869 on `cdb535c6d92a731e3ad9a67f71b6246d3569d8e8`: P1 4314426490
-  (`parseFlexXml` dropped `<Trade>` without `symbol` before validation) and P2 4314426505
-  (multiplier/contract-id/zero-quantity refusals unclassified) — both fixed in
-  `1e692de682213c9586d79dfd74c73d52fc7d4536` (`parseFlexXmlTradeRows` rows + withoutSymbol validated
-  in both sync paths; every refusal classified), threads replied 4314578079/4314578458 and resolved.
-- Exact-head Codex review 5572561055 on `1e692de`: P1 4314621523 — non-standard multipliers were
-  imported while protected ProfitCalculator prices ×100. Fixed fail-closed in
-  `90771cfd9bbb5548da6485b449d97fa665f05bb0`: only the proven multiplier 100 is imported, any other
-  refused as `unsupported:multiplier`; ProfitCalculator untouched (owner decision 5). Replied
-  4314668383, resolved.
-- Exact-head Codex review 5572695391 on `90771cf`: P1 4314727842 (Opendoor `OPEN` STK executions
-  dropped from the stock ledger) + P2 4314727849 (`OPEN` dropped from the market-brief universe) —
-  fixed in `6879976c499266b216477579b548de8b8c84afba`: `OPEN` is a real ticker in StockRealizedGrain,
-  StockLotAccounting, OrdersTradesRealized, MarketBriefBuilder and ReportGenerator's validator; `OPEN`
-  joins MarketNewsRelevance.AMBIGUOUS_BARE (`$OPEN` still matches). Replies 4315006147/4315006555,
-  resolved. The screenshot-OCR word list keeps `OPEN` (UI status word in free text).
-- Tests: FlexOptionRowParserTest (18), FlexTerminalErrorPolicyTest (3), StockRealizedGrainTest and
-  MarketNewsRelevanceTest Opendoor cases; MarketBriefBuilderTest updated (had pinned the defect).
+The owner's rule requires the shared ADB device lease; on this host there is no lease tooling
+(`/root/work/.locks/adb-device.lock` is only an empty file this agent's own per-command `flock`
+created during the urgent repair). So NO ADB command ran: no read-only inventory, install, launch or
+queue check. The phone's WorkManager state is UNVERIFIED; the last verified install is `5b532f56…`
+(10:26 ET). The 42 stale chains (due ≈12:55 ET per the morning copy) are cancelled only when this
+build's process starts on the phone; that due time has passed and whether they ran (jobs of this
+background-restricted app wait for the foreground) or whether the owner installed one of this round's
+APKs first is unknown. No IBKR request was made. Pending physical check (needs lease
+tooling or the owner installing the Download APK): one `FLEX_QUEUE … cancelled=` line on first start,
+`flex_price_sync` + `pre_market_sync` remain, launches do not recreate the queue.
 
-## Validation (actual)
+## Owner decisions / actions (numbered; nothing implemented for 3–7)
 
-- Focused first run 163/0/0; final full suite (after all Codex fixes) 1778 tests / 0 failures / 0 errors /
-  1 existing skip / 115 classes, compile + assembleDebug `BUILD SUCCESSFUL in 1m 49s`, zero real `^e:`;
-  scripts `node --test` 76/76 and exporter unittest 3/3 locally;
-  real offline audit unchanged (49 canonical / 4844.09 / residual 102.34, same three pairs);
-  `git diff --check` clean. All Gradle via heavy-run (waited behind another project's builds).
-- Independent Opus reviewer subagent (NOT Codex): no P1; P2 (SendRequest error-code path untested) and
-  P3s (hook guard, fullResync fail-open, vacuous assertion, 1013, NaN commission) all fixed.
-- APK 1.0.0/1 final SHA-256 `5b532f56fa94d78533123a4f57421ef71e8f749c5e6681d22c4787c1a1723895`,
-  original signer SHA-256 `9e5307e1344917f0cdc495c5cc04a80d23a92c5965c779b6efb0faa1135b8221`;
-  delivered to `/sdcard/Download/OptionsProfitTracker/OptionsProfitTracker-1.0.0.apk` and installed in
-  place at 10:26:08 ET while the app was idle (`Success`, installed bytes match); not launched — it is
-  the final source. Superseded artifacts: 14d72da4… (the live-tested build), f8969b73…, 894ec374…
-  (installed 09:46:51 ET; that install restarted the app the owner had opened at 09:28:12 ET — no sync
-  in that session, data preserved, session interrupted), cfd473c6… (delivered only, owner's app open).
+1. DECIDED (2) and implemented — this round.
+2. RESOLVED by correction (urgent repair): `OPEN` (Opendoor) is a ticker in stock paths/brief/report.
+3. Owner's own Import of the newly accepted OPEN/one-letter option cycles (moves realized totals and
+   Sep/YTD parity references; re-audit afterwards).
+4. Pace non-terminal GetStatement `Fail` retries (documented 1 request/second).
+5. Non-standard option multipliers refused at import; support needs `contractMultiplier` authorized in
+   protected ProfitCalculator paths.
+6. A dashboard/settings sync-now tap joins a request waiting in retry backoff (30 s … WorkManager's 5 h
+   cap): keep / bound one-shot retries to N / run those taps in-process like `סנכרן מ-IBKR`.
+7. An overdue pre-market sync now RUNS at the next opportunity (background-restricted phone: next app
+   foreground, weekends included) instead of being moved to the next day by every app start/dashboard
+   visit; on a weekday's first open 09:00–18:59 ET with no sync yet, the app-start full sync follows
+   (serialized). keep / skip when a later sync already succeeded / drop after an owner-chosen window.
 
-## Device / live (host ADB only, TracerPid 0; per-command flock on /root/work/.locks/adb-device.lock —
-## the documented adb-device-release helper and lock did not exist on this host)
+## Same-day urgent Flex repair (summary; details in project docs)
 
-- Pre-review build `14d72da4…` installed in place; normal launch 09:11:51 ET: Application.onCreate
-  enqueued a one-shot FULL worker sync and the overdue hourly job fired 5 ms later → IBKR 1018 for one
-  (RETRY); the full sync succeeded 09:14:24 ET. Then no worker running/due until 10:31:56 ET.
-- ONE manual `סנכרן מ-IBKR` at 09:16:27 ET: 1588 EXECUTION rows (167 rebate fills), parse card 498
-  opens / 474 closes / 0 errors, no refusal, no error. Preview only — Import NOT pressed.
-- Data survived: DB integrity ok; 353 positions, 0 added/removed (only current_stock_price/updated_at
-  on 8 OPEN rows); 1209→1210 events (+SYNC_COMPLETED); stock ledger 279→279 (idempotent), basis 52,
-  reconciliation 275; 0 fatal lines; app alive.
-- NOT exercised live (later commits): error/abort paths, refusal wording, non-finite commission
-  strings, validation of `<Trade>` elements with NO `symbol` attribute, the non-100-multiplier refusal
-  and Opendoor STK rows entering the stock ledger. Evidence they don't break the proven success path:
-  IBKR emits every configured attribute on each element (June export: one identical 85-attribute set)
-  and all known option multipliers are 100 (June export + 353 stored positions); if either assumption
-  fails on a future payload the sync fails closed with the named reason (`missing:symbol` /
-  `unsupported:multiplier`) instead of importing a subset or wrong money. The Opendoor stock-ledger
-  inclusion is a deliberate visible change (decision 2).
-
-## Device finding — retry storm (owner decision pending)
-
-WorkManager (read-only copy): 42 non-unique one-shot FULL-sync FlexSyncWorker chains, 19–55 attempts
-each (≈1,500), created by app starts/sync taps while the token was expired (old code retried every
-failure forever, default backoff capped 5 h). All due together ≈12:55 ET 2026-10-19, ignoring the
-trading-hours gate, vs IBKR's 1 request/second, 10/minute per token. last_sync_time had been
-2026-10-08 21:30 ET; it is now 2026-10-19. App UID is background-restricted (jobs deferred).
-
-## Owner decisions / actions (numbered; no code until chosen)
-
-1. Stacked chains & non-unique syncNow: leave / cancel stale one-shot chains + single-flight sync /
-   single-flight only.
-2. RESOLVED by correction (exact-head Codex P1 4314727842 + P2 4314727849 on `90771cf`): the stock
-   paths, market-brief universe and report ticker validator no longer drop `OPEN`. Owner-visible:
-   Opendoor's own fifoPnlRealized enters the stock ledger at the next sync (feed shows OPEN sales
-   2026-01-09 and 2026-06-09), changing those months' stock/combined totals.
-3. Owner's own Import of the newly accepted OPEN/one-letter option cycles (changes realized totals and
-   Sep/YTD parity references).
-4. Pace non-terminal GetStatement Fail retries (documented 1 request/second).
-5. Non-standard option multipliers: now refused at import; supporting them requires authorizing
-   `contractMultiplier` in protected ProfitCalculator paths.
+Post-token-renewal manual sync failed `Flex options incomplete: rejected=8 … requiredField=8`: the
+March-2026 `ticker == "OPEN" || length < 2` filter refused real broker underlyings and S2.8 made
+refusals fatal. Fixed with the pure `FlexOptionRowParser` (any non-blank underlying; named, redacted
+refusals), validate-before-persist, fail-closed full re-sync, NaN commission refused, standard
+multiplier 100 only, `OPEN` accepted in every stock/brief/report path, terminal IBKR codes not
+retried. One live manual sync passed (1588 rows → 498 opens / 474 closes / 0 errors; preview only).
+Final HEAD `6879976c…` exact-head Codex clean.
 
 ## Carried-forward S2.8 backlog (unchanged, not closed)
 
 - Fixed Sep 1–28 options: broker 4741.75 vs canonical 4844.09, residual 102.34 over 33 local-only
   cycles; owner has no saved export. Sep3–Oct2 206.27 (whole-dollar reference); September statement
   5634.27 vs 5832.48 (198.21; SOXL3586 assigned-vs-expired evidence gap, −1.02 counterfactual);
-  YTD 38287.55 vs 37688.74 (598.81). No offsets/plugs. NOTE: importing the newly accepted option
-  cycles (decision 3) will move these app-side figures; re-audit after any import.
+  YTD 38287.55 vs 37688.74 (598.81). No offsets/plugs. Re-audit after any owner Import (decision 3).
 - Held exact series identity / positive non-penny tick metadata for automatic recommendations.
 - OPT→Trading Tracker bridge and conditional ChatGPT report SPEC_ONLY; Phase 3 exit learning;
   historical stock-ledger coverage; SOFI attribution; missing Flex ibOrderID; PR #20 rollout;

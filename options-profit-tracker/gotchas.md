@@ -1145,3 +1145,10 @@ Do not claim a clean exact-head review/gate until that placeholder is replaced w
 - `FlexSyncWorker.syncNow` is NON-unique and every failure used to `Result.retry()` (one-shot default backoff, capped 5 h): an expired token stacked 42 full-sync chains (19–55 attempts each) on the device, all due together. Launch on a weekday 09–18 ET with last sync not today also enqueues one, and the overdue hourly job can fire in the same 5 ms → IBKR 1018 (1 request/second, 10/minute per token). Terminal codes 1010–1012/1014–1016 now end the run; single-flight/cleanup is an owner decision.
 - Import screen shows the Flex token/query id as plain field text: never screenshot it; read UI via stdin-only dump filtered to exact labels.
 - The documented `adb-device-release` helper / `adb-device.lock` did not exist on this host (2026-10-19); per-command flock on that path was used.
+
+### 2026-10-19 — WorkManager single-flight gotchas (OPT fbe2556)
+- WorkManager has NO conditional replace: never decide REPLACE from a getWorkInfos snapshot — a retry can turn RUNNING in between and REPLACE cancels it. External callers use KEEP (join).
+- When KEEP/REPLACE inserts, WorkManager cancels AND DELETES the name's existing records: a finished joined request's record can vanish at the next insert. Read joinable requests BEFORE enqueueing and record completion in app state (by request id), not in WorkManager output.
+- A BroadcastReceiver must keep goAsync() alive until Operation.result completes; enqueue persistence is asynchronous on WorkManager's executor.
+- The shared last-sync time also moves for periodic, pre-market and other-kind runs: never use it to decide that a specific request completed.
+- Codex reviews can hit the account's usage limit ("You have reached your Codex usage limits for code reviews"); the Codex Gate then fails for lack of a signal — report it, never bypass it.

@@ -1310,3 +1310,8 @@ No unrelated backlog item closed; no broker/API quota consumed.
 3. Owner's own Import of the newly accepted OPEN/one-letter option cycles (moves realized totals and Sep/YTD parity references; re-audit afterwards).
 4. Pace non-terminal GetStatement `Fail` retries (documented 1 request/second).
 5. Non-standard option multipliers are refused at import; supporting them requires authorizing `contractMultiplier` in protected ProfitCalculator paths.
+
+### 2026-10-19 owner decisions from the single-flight Flex sync (OPT fbe2556)
+6. A dashboard/settings sync-now tap joins a request waiting in retry backoff (up to WorkManager's 5 h cap): keep / bound one-shot sync-now retries to an owner-chosen N / run those taps in-process like `סנכרן מ-IBKR`.
+7. An overdue pre-market sync now runs at the next opportunity instead of being moved to the next day: keep / skip when a later sync already succeeded / drop after an owner-chosen lateness window.
+- Pending: physical verification of the queue cleanup once lease tooling exists (or the owner installs the Download APK); exact-head Codex review of the final HEAD once the usage limit allows.

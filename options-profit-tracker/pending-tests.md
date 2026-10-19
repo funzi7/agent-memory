@@ -675,3 +675,7 @@ Physical QA actually performed remains readonly DB/WAL/reconciliation copies wit
 ### 2026-10-19 urgent Flex repair (OPT 6879976)
 - DONE physically: one controlled manual `סנכרן מ-IBKR` on the fixed build — 1588 rows, 498 opens / 474 closes / 0 errors; data survived; final build installed in place without launch.
 - PENDING (owner): Import of the newly parsed cycles; note Opendoor's realized entering the stock ledger at the next sync; re-audit Sep/YTD after it; any further live sync only with owner authorization.
+
+### 2026-10-19 single-flight Flex sync (OPT fbe2556)
+- NOT DONE physically (device operations blocked): first start of the new build logs one `FLEX_QUEUE legacy Flex one-shot cleanup: cancelled=…` line; `flex_price_sync` + `pre_market_sync` remain; launches never recreate anonymous one-shots; dashboard sync buttons report on their serving request; boot re-arm persisted.
+- Broker E2E of the new scheduling: not authorized; no IBKR request was made.
