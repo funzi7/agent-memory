@@ -288,3 +288,7 @@ date,portfolio_id,strategy,ticker,side,shares,fill_price,commission,cash_after,e
 2026-10-15,rsi2_100,rsi2,SPYM,BUY,1.0,90.2151,0.9022,4.54,95.38,RSI2=7.5 < 10
 2026-10-15,rsi2_10k,rsi2,SPY,BUY,13.0,766.6331,1.0,208.26,10241.53,RSI2=7.5 < 10
 2026-10-15,swing_100,swing,FAST,BUY,1.0,52.2161,0.5222,27.58,77.96,"פריצה #3 +1.0% מעל הרף, RSI 64"
+2026-10-16,rsi2_100,rsi2,SPYM,SELL,1.0,90.9645,0.9096,94.6,94.6,exit
+2026-10-16,leveraged_momentum_10k,leveraged_momentum,TECL,SELL,5.0,204.9375,1.0,4209.9,8189.62,סטופ הועלה לנקודת הכניסה — מתחת לכניסה
+2026-10-16,swing_100,swing,FAST,SELL,1.0,50.7446,0.5074,77.81,77.81,המהלך נגמר — מתחת לממוצע 10
+2026-10-16,swing_100,swing,BBWI,BUY,3.0,20.4602,0.6138,15.82,76.24,"פריצה #1 +7.9% מעל הרף, RSI 69"
