@@ -1152,3 +1152,11 @@ Do not claim a clean exact-head review/gate until that placeholder is replaced w
 - A BroadcastReceiver must keep goAsync() alive until Operation.result completes; enqueue persistence is asynchronous on WorkManager's executor.
 - The shared last-sync time also moves for periodic, pre-market and other-kind runs: never use it to decide that a specific request completed.
 - Codex reviews can hit the account's usage limit ("You have reached your Codex usage limits for code reviews"); the Codex Gate then fails for lack of a signal — report it, never bypass it.
+
+### 2026-10-20 — ADB device lease: shell-text policy lessons
+- A shell-text command policy MUST model bash EXPANSION, not just quoting. Two independent reviews found bypasses: the IFS variable word-splits a glued client+subcommand, and ANSI-C dollar-quote decoding spells a forbidden word from hex. Resolve both before tokenizing (verify against real bash with a NEUTRAL stub, never the real client).
+- Fail closed when the device-shell program is unknowable (pipe / redirect / unresolved substitution / xargs / a variable), the same way xargs was already handled.
+- The prefilter (triggered) must be a SUPERSET of the analyzer, or the hook skips a command the analyzer would have caught.
+- NEVER test lease tooling against the real client: an unstubbed fixture test ran a real server kill and stopped the Termux host ADB server (2026-10-20 10:05Z). Every test env stubs the client first on PATH and aborts otherwise.
+- The hardened policy is a text policy by design and says so: the client invoked from inside a script FILE, or built from runtime data, is invisible to it — run such scripts explicitly under the run helper. Known accepted limit.
+- Over-trigger seen in practice (acceptable, fail-safe): a Python heredoc that WRITES documentation containing a markdown code-span is treated as interpreter code with an execution construct, so if that text also names the lease engine the hook denies it. Write such files with the editor tool, not an interpreter heredoc.

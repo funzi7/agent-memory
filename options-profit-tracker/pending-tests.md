@@ -679,3 +679,6 @@ Physical QA actually performed remains readonly DB/WAL/reconciliation copies wit
 ### 2026-10-19 single-flight Flex sync (OPT fbe2556)
 - NOT DONE physically (device operations blocked): first start of the new build logs one `FLEX_QUEUE legacy Flex one-shot cleanup: cancelled=…` line; `flex_price_sync` + `pre_market_sync` remain; launches never recreate anonymous one-shots; dashboard sync buttons report on their serving request; boot re-arm persisted.
 - Broker E2E of the new scheduling: not authorized; no IBKR request was made.
+
+- [ ] (ADB1) Live-network scheduling: on the owner next open, confirm the one pending single-flight flex_sync_now_full runs plus any due periodic/pre-market, serialized by the coordinator, with no duplicate anonymous Flex one-shots. Not verified this round (QA ran under an app-scoped network block; no IBKR request authorized).
+- [ ] (ADB2) Broker E2E of the new single-flight scheduling against a real daily Flex snapshot — not authorized this round.

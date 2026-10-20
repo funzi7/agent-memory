@@ -1315,3 +1315,8 @@ No unrelated backlog item closed; no broker/API quota consumed.
 6. A dashboard/settings sync-now tap joins a request waiting in retry backoff (up to WorkManager's 5 h cap): keep / bound one-shot sync-now retries to an owner-chosen N / run those taps in-process like `סנכרן מ-IBKR`.
 7. An overdue pre-market sync now runs at the next opportunity instead of being moved to the next day: keep / skip when a later sync already succeeded / drop after an owner-chosen lateness window.
 - Pending: physical verification of the queue cleanup once lease tooling exists (or the owner installs the Download APK); exact-head Codex review of the final HEAD once the usage limit allows.
+
+### 2026-10-20 — carried forward after the ADB-lease/device-QA round
+- Codex Gate (PR #19) is blocked by TWO pre-existing P2s from the 2026-10-19 review, both in the financial/reconciliation engine and OUT of the device-QA rounds scope: ClosePositionScreen.kt:768 (sanitize stale legs before deriving BTC targets) and AppModule.kt:143 (observe reconciliation evidence changes in canonical flows). Owner to resolve; do not touch the engine to clear the gate, and do not add the override label.
+- Owner choices 3-7 (import of newly-accepted OPEN/one-letter cycles; GetStatement pacing; non-standard multipliers; sync-now tap joining a backoff wait; overdue pre-market now runs) remain OPEN.
+- Live-network verification of the single-flight scheduling and a broker E2E remain owner-gated (see pending-tests ADB1/ADB2).
