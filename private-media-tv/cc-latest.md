@@ -1,3 +1,147 @@
+# private-media-tv — A1–A3 project software gates qualified; memory seal pending; installed66 (2026-10-21)
+
+This is the final A3 project-evidence checkpoint, not an installation, launch,
+physical acceptance, D1 +7 review, C15 execution or completed TV port.
+Helper-only memory finalization follows this reviewed prefix; a later external
+receipt binds its actual commit and closes the A3 software seal. This document
+does not predict its own future memory SHA.
+
+The complete previous memory body is retained byte-exact below this prefix:
+483005 bytes / SHA256
+`3e535412b12dda39a4dd9b776e49a6974df406673f2591ff453b7668fa85a718`.
+
+## Final project source, exact review and successful CI
+
+- Application local/tracking/live remote was independently verified at normally
+  pushed `13b98b4bb226145ae5de1644245b9aed99cbad92`, sole parent
+  `4978dfc31fc72ad60c245c4e960aca81ba255417`. Its exact13path records commit
+  has twelve reviewed Markdown blobs plus the admitted raw C45 inventory, and
+  no production, test, workflow, identity, version or mode change. V2 review
+  ea4ddd40 and committed-byte binding f5001618 are SCOPED CLEAN. The additive
+  847499dd corrects only a receipt count: SEVEN inherited untracked paths plus
+  separately modified Data27 are excluded—eight status entries, all preserved.
+- Own normal Android `39519357501`, push/main/attempt1/exact13b98,
+  completed SUCCESS, updated at2026-10-21T00:36:44Z. Wrapper118959126087 and
+  main118959206537/all ordinary core/catalog/sharedUI/phone/TV/inventory/lint/
+  assembly/verifier/metadata/upload phases passed. Sole observer46507 ended
+  naturally0 at00:38:10Z and was released. No workflow retry or local rebuild
+  was needed for this records checkpoint.
+- Authoritative inventory artifact12312285822 passed unchanged strict consumer
+  ee793421 with expected full source13b98. Actual4510=4499PASS+11retainedSKIP+
+  0FAIL/530XML. Raw SHA256
+  `42f348b15b453742b5439a0f4bfaee2bc34905ad652c0ff815256d4d345826ba`,
+  655071 bytes/4510lines; properties SHA256
+  `863118ec4511d553f56e1bfdcc3a92bc8bb0ae3f5af323dcfcb5f8c60ee5f4f3`.
+  Mobile1695/1689P6S/217XML; catalog2042/2037P5S/202XML; TV718P/100XML;
+  sharedUI55P/11XML. This is four app-facing modules, not an all-core or
+  physical total.
+- Candidate4978 raw = committed C45 = worktree C45 = records13b98 raw42f,
+  established by direct byte comparisons and hashes. Parsed maps each have
+  27unique keys; only sourceSha differs and the other26values match. No
+  metadata-file-hash equality is claimed. Root receipt ea93a8d0/APIb71e2d86
+  and independent6f199ea8 are bound; the latter is SCOPED CLEAN. Immutable T2
+  remains d4f59616; closed baseline/ID lineage was not re-audited.
+
+## Delivered authoritative code67 APK — not installed
+
+Own exact APK artifact12312565537 was canonically refreshed by installed-queue
+Gate25554, naturally0/released, to the SINGLE GENERAL installer:
+`/storage/emulated/0/Download/private-media-tv/private-media-tv-mobile-0.7.19.apk`.
+
+- Package com.funzi7.privatemediatv.mobile,0.7.19/code67, ARM64-only.
+- APK SHA256
+  `bce37fe9ecf421518160b944868eec9a660b29b011148194a7c830f9c47793b6`,
+  272091198 bytes; regular nonsymlink file/link1.
+- Actual mtime2026-10-21T00:40:54.352973765Z. Removals0/all4skip counters0;
+  owner160 single-newest GENERAL installer rule is preserved.
+- Development signer2987a463 and pinned TDLib JNI790c545f.
+- Root post-terminal whole-file/stat check matched. Publication receiptc4d88257,
+  terminalbc18ab47 and independent440a964c bind the NEW13b98/run/artifact
+  provenance; independent review is SCOPED CLEAN.
+- Literal APK bytes equal the qualified1e1/4978 bce candidate, so reuse ONLY
+  byte-derived Gate87100 offline66→67 package/signer/version/ABI and CL106
+  STATIC/OFFLINE checks, qualified bya6319241/52e606dc. Old source/run/artifact
+  provenance is not reused. No rebuild/redecode or repeated broad gate was run.
+
+Both devices remain last proven installed0.7.18/code66. There is NO67install
+go, installation, app launch, current-A3 native/runtime/storage/subtitle or
+physical PASS. Publication is not installation or runtime effectiveness.
+
+## Implemented A1–A3 scope and preserved acceptance boundary
+
+Since66, the qualified source contains complete existing poster-status/Ophir
+labels; TV hero whole wrapped titles and whole-sentence overviews; A3 natural
+card text and current-font tallest-loaded-row floors across implemented phone/
+TV surfaces. Cached content is presented while geometry is measured off Main,
+with exact-source admission and Back/focus/viewport preservation. These are
+implemented software contracts, not a measured cold-start or Shield performance
+PASS. No new look default, row order, source policy, history/progress or spoiler
+decision follows.
+
+Applicable owner-run first-frame, complete-text at normal/large font, tallest
+row, both TV looks, late-floor/D-pad precedence and exact Back key/pixel checks
+remain OPEN. Prior unrelated phone1080p/punctuation and Shield54 TV-mode Settings
+PASSes are not reopened. TV YouTube Home rows are NOT built here: S3a is next
+only after the actual memory-sealed A3 checkpoint.
+
+The preceding a627 CI39505178675 failure proved missing/unset Main only;
+original producer/order remains UNPROVEN. Private TEST22ae1199 owner-join
+invariant is causally qualified by old-order Gate8408 RED11318f5f → SAME22478
+PASS92d6c8a7 → full affected Gate22635 four PASScb7081d6. Three old IDs/oracles/
+caps/real-I/O/deadlines and production were unchanged. Corrected4978 own CI
+39511181406/actual4510/canonicalGate13878 also passed, but its old run identity
+is not substituted for the final13b98 gates above. Do not redo these phases.
+
+## Current owner work and coordination
+
+- REQ-CODEX-051 playback stalls/source-list/control placement remains OPEN.
+  Owner-approved targets remain: keep already-hidden controls hidden during
+  automatic buffering; explicit input/Pause/error/end/Next reveal controls;
+  Next sits physically RIGHT of Play/Pause. These fixes are NOT implemented
+  in67. Actual stall cause is UNPROVEN; the diagnosis is not a fix.
+- REQ052/054 Shield/phone storage remains OPEN. Read-only size observations
+  are not an atomic census or safe-reclaim proof. Existing CL120/owner141a
+  shrinkBOTH→compact locally→fail-closed receiver guard remains the path;
+  Step3 is LANDED, Step4 old unkeyed CW-protection30day aging is DECIDED/
+  QUEUED, not implemented. No cleanup, deletion, unpin, VACUUM or new retention
+  policy was performed. Full row copy waits for compaction/receiver guard.
+- REQ053 intermittent leading Hebrew punctuation on Shield Telegram playback
+  remains OPEN; cue/track/path facts are insufficient. The older phone regular
+  Hebrew YouTube punctuation PASS stays scoped and closed.
+- REQ055 sports-app navigation/design survey plus visual addendum is DONE as
+  advisory research only, not icons/menu/Sports implementation or new UX.
+- Canonical coordination is
+  `/root/work/_agent-coordination/private-media-tv/`; root/Codex remains
+  primary integration/Git and sole tracked writer. Claude is READ_ONLY.
+  Register own intake before work, read both actor-owned inboxes and perform
+  semantic dedupe; consume valid READY_FOR_CODEX with an ACK. Existing
+  READY_FOR_CLAUDE code67 feature/acceptance handoff is ready in CODEX_ACK,
+  not proof Claude has told the owner. This final records provenance updates
+  that SAME delivery, not a new version or duplicate owner test request.
+- After actual A3 software seal, approved order is S3a → FreeTV v3 → CL179 →
+  READY, reusing CL218 and existing applicability maps. A4/B/C remain OPEN.
+  No fresh plan, source survey, product choice or S3a implementation was done
+  merely to prepare these final records. Data27/seven exclusions are untouched.
+
+## D1 exact remaining goal — not closed by this software checkpoint
+
+D1 remains ACTIVE on ONLY `pmtv-data-20261013T073000Z`, existing frozen
+78391b26 source/build provenance.
+FIRST/immediate/ordinaryOct14/+1Oct15 are accepted; do not replay them.
++7 is NOT BEFORE2026-10-21T05:20:44Z. Run the existing review operator at/after
+that time; assess every required field fail-closed. Only actual assessed PASS
+permits C15 and both-repository D1 finalization; STOP BEFORE D2 remains.
+
+Last owner Tailscale is OFF. No toggle, new secret, VPS mutation, D1 runtime
+measurement, deployment, baseline refresh or timed review occurred in this
+records finalization. Any required +7 failure/inconclusive result invokes the existing
+ONLY073000 inverse and restoration contract, not a generic retry approval.
+Owner095 permanently leaves original FIRST facts.lines/facts.bytes/counts.series/
+counts.ilYes historical UNPROVEN; elapsed28minutes remains proven. Do not
+re-ask, recapture or reconstruct those four fields.
+
+## Earlier memory — retained verbatim
+
 # private-media-tv — D1 owner095 reporting decision persisted; exact74de Go CI PASS; +7 still pending (2026-10-19)
 
 Records-only checkpoint, NOT a +7 review, C15 execution, live deployment or D1 completion.
