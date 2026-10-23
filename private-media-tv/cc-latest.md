@@ -1,3 +1,198 @@
+# private-media-tv — build70 SOFTWARE seal; BOTH installed69; future134 separate (2026-10-23)
+
+This is the final source70/records65 SOFTWARE publication truth. The helper
+receipt after this edit must bind the actual pushed memory SHA; do not invent
+it. It is NOT build70 installation, physical/native acceptance, full T3/T4/TV
+port completion, D1 preservation clearance or D2 authority.
+
+The complete prior memory body remains byte-exact below: 514855 bytes,
+SHA256 `ba27a62dbee5be81924f61949a5217f8eb64f385e645a0f37b17ec1c9d2d7a96`.
+Older dated pending/install-hold blocks are history, not instructions to redo
+closed publication or the completed69 installations.
+
+## Actual project / review / final CI
+
+- Local, tracking and freshly observed live main match normally pushed
+  `65cdc2ef306cde5cb8621bd8e0a8bd8576ce2ad4`, parent source
+  `9f3fd4af0ef700f91127a7f082553e3fe823f568`, prior ABE
+  `abe577b1d6ee61f9145bf96c1ac1d60e8e8b8680`.
+- Source9f3 is the cohesive61-path checkpoint:46 source/test/schema/config
+  inputs (31 YouTube/focus +12 already-qualified UNWIRED134 foundations
+  +3 central identity/contract twins),15 factual docs. ONE normal central
+  0.7.22/code70 transition, not a separate foundation build. Source pins
+  6df2219e and committed binding72f6fc27 qualify exact bytes.
+- Records65 is ONLY16 factual records/inventory paths,226 insert49 delete.
+  Frozen diffbf458e35/postpins2d482c19, independent final scoped review
+  d31c85e1 CLEAN. Root fully read the exact task diff, staged bytes matched
+  the frozen diff, diff--check passed, task-only commit78995 and normal
+  push61127 succeeded; fresh remote ancestry checked, no rewrite/force.
+- Own records Android `40002137616`, exact65/main/push/attempt1/
+  workflow322189616 SUCCESS, updated2026-10-23T18:48:30Z.
+  Wrapper120580677442 and main120580779733 succeeded through ordinary
+  tests/inventory/lint/signed APK verification/uploads. Sole observer57903
+  CLOSED naturally; do not start another observer or retry green CI.
+- Source9f3 own39994259673 also SUCCESS. Records CI is its own proof,
+  not inferred from that earlier run. Final local authenticated receipts:
+  `results/req076-084-candidate70-package-20261023.5cygR9/`.
+  RECORDS_65CDC2_RUN.json44b0d9ee/JOBS54564157/ARTIFACTS7bdfae66.
+- Final independent message-only d1 reviewer found0P1/P2 in CI/inventory
+  and, after completion, canonical delivery/provenance. Root separately
+  verified destination whole-file bytes and stable stat.
+
+## Actual final inventory / canonical APK
+
+- Records inventory artifact12524436461, strict unchanged consumeree793421
+  accepted full65:4671 identities =4660 PASS +11 retained SKIP +0 FAIL/
+  557 XML. Four app-facing modules only, not an all-core/physical total.
+  Phone1728=1722P6S/222XML, catalog2084=2079P5S/209XML, TV804P/115XML,
+  shared55P/11XML.
+- Raw SHA256 `5c5a2eac75e74d9af7e49a620bb2a7a8f4bda7cd72d36119b39dadb6f5157e99`:
+  source9f3 = records65 = committed/worktree C45. Both27-key property maps
+  agree in all26 non-source properties; sourceSha alone differs as expected.
+  Records metadata4e22d845/consumer940f64c2. Original admissione38e0247
+  accounts for18 additions/3 replacements removed/4653 retained statuses,
+  same11 skips, zero residual/duplicates/status changes/FAIL.
+- Canonical downloader80479 NATURAL0 published records artifact12524890554
+  from own40002137616 to the SINGLE GENERAL destination:
+  `/storage/emulated/0/Download/private-media-tv/private-media-tv-mobile-0.7.22.apk`.
+  This follows existing owner160 single-newest/ONE-APP contract, not a new
+  packaging or extra Mobile Test decision. Publication refreshed; removals0
+  and all four skipped-cleanup counters0. Delivery log3b62a56e.
+- Exact APK SHA256
+  `3d9ba58727273f36fc92800e0746428cb63bff1ad8c6f020c95ab9bbbafd0f8c`,
+  272450016bytes, retained package,0.7.22/code70,ARM64-only.
+  Development signer2987a463; CI-pinned TDLib JNI790c545f.
+  Root independent hash/stability PASS, regular/non-symlink/link1,
+  modified2026-10-23T19:01:03.376932201Z.
+- Final bytes equal source9f3 canonical bytes. Reuse ONLY byte-derived
+  source70 gate89789: exact Gecko/FIDO/SnakeYAML, offline69-to70 and both
+  retained CL106 query structures/whole-file stability. Do not re-decode
+  or repeat ordinary assembly merely because records HEAD differs.
+  Outer33e925a8/innerbf7adcfe remain structural, NOT native effectiveness.
+  Final records run/artifact provenance is independently verified above.
+- Source70 sourcepackage21628 Manifest12/ONE ordinary assembly and93589
+  local package checks passed. Localb20a3315/JNI21d59ebf is NOT authoritative
+  CI. Canonical source44079 and final80479 replaced/refreshed the correct
+  CI3d9 bytes. API ZIP digests are API-reported, not raw APK hashes.
+  No extra local build/version/workflow retry was created for these records.
+
+## Devices and current owner feedback
+
+- BOTH devices are actually installed0.7.21/code69/exactd9b1be8a, not70.
+  Shield43105 NATURAL0 canonical guarded no-launch update and phone92890
+  NATURAL0 guarded no-launch update/installed-byte proof succeeded during
+  this continuation. Phone original first-install retained. Owner074/075
+  consumed69 timing authority only; historical073 hold is superseded for
+  those completed actions, not a general future-version install grant.
+- Build70 install permission was asked once nonblockingly after final
+  verification; reply PENDING. Until explicit new go, NO70 installation,
+  ADB/device probe/launch/unlock/interruption/uninstall/Clear Data.
+  READY_FOR_CLAUDE_BUILD70 is a handoff, not proof Claude relayed it.
+-076/080 CL038 and settled142: corrected provider translation eligibility/
+  session origin handling, <=1 Hebrew document +<=1 DISTINCT original
+  fallback/max2/clear notice/no loop; automatic115b defaultON/nativeHebrew
+  priority/saved opt-out/current owner intent retained. Host regressions,
+  affected lints and exact CI pass; actual phone/Shield translation PENDING.
+-079 best-to-worst TV manual qualities included70; Auto separate, stable
+  ties/unknown-last/selection handles retained. Actual device check PENDING.
+-083 clarified: DIFFERENT videos/order and ONLY TWO videos, BOTH MUSIC.
+  Mixed-renderer source-order regression corrected70, but actual quantity/
+  full signed-in shelf parity cause OPEN. Safe fixed-count diagnostics are
+  not proof of a fix. No filler/music filter/wrong-account assumption.
+-077 missing YouTube ACCOUNT History (not local PMTV history) and078 title
+  discrepancy remain OPEN; diagnostics only, no account data capture.
+-084 actual Shield first-UP/two-press/skipped Channels/CW remains OPEN.
+  Classic/hero host walks NONCAUSAL; fixed-vocabulary diagnostic only,
+  no navigation correction or physical PASS claimed.
+-082 DONE evidence clarification: second video's native Hebrew ASR works;
+  not proof English-to-Hebrew translation works.081 SponsorBlock remains
+  queued existingY3, capabilityfalse/empty; privacy/categories/defaults
+  are not invented. Existing owner051-054, FreeTV/provider/Back/focus/native
+  and full T3/T4 acceptance remain OPEN; no phone-only TV acceptance.
+
+## Future134 actual dirty continuation — NOT in70/65/APK
+
+- Reuse consumed FreeTVv3/CL208 f705e81b and CL216v2, not a new survey/order.
+  Twelve catalog/identity/replay/schema1 foundations are committed9f3 but
+  UNWIRED. Real reader/lifecycle/D5/player/route/reset/UI/bindings/replay work
+  remains incomplete. No standalone foundation APK/version is authorized.
+- Before final artifact completion root had SEVEN future files: pure
+  coordinator2, countedHTTP3, real admission-owner2; none in9f3/65.
+  Focused actual coordinator12PASS/lint0, countedHTTP7PASS after preserved
+  cancellation-object oracle failure, admission13PASS. Those are separate
+  scoped host receipts, NOT global app integration or runtime acceptance.
+- Root subsequently applied the fully read/reviewed durable V1 production
+  plus V2 TEST-only closure and one opt-in publicHTTP smoke through exact
+  pin/absent-target checks and literal ABSOLUTE apply_patch headers only.
+  Future source now15 paths plus actual KSP-generated schema2=16.
+  ONE metadata15 gate90906 ended NATURAL1/1m23: old store8 and new state6
+  PASS; migration1 FAILED FileNotFoundException loading its schema asset.
+  BkLKTA copied all three XMLs/log before any rerun; no whole15 PASS.
+  First-run merged test assets contained ONLY schema1 although source schema2
+  had just been generated. Exact migration-only63812 NATURAL0/1m6 now PASS;
+  packaged schema2 equals source437ab755. No source/cache/settings change:
+  merge/package tasks reran after schema export. Do not repeat14 green cases.
+  Generated schema2 SHA437ab755; schema1 retains exacte8320ae0.
+  Independent generated-schema admission SCOPED CLEAN; only additive read-state
+  table/version/identity, both old entities/index/FK unchanged. Actual migration
+  is separately1PASS, not a rerun-whole15. Affected coordinator12/adapter3/real Room-chain1/
+  default-smoke SKIP/ONE opted-in live public first page remain pending.
+- Durable contract: persisted revision/timestamps, atomic snapshot+success,
+  opaque exact open-store authority rejects reset/reopen stale tokens,
+  checked counter exhaustion. No new TTL/counter/tombstone/security policy.
+  V2 file-reopen/overflow/Room-chain tests were independently SCOPED CLEAN;
+  production callsite exclusion is still missing.
+- Important preserved failures:66049 HTTP gate FAILED before tests after an
+  external author accidentally applied8 live paths while inputs were frozen.
+  Root stopped author, proved exact post/preimages, removed only four newly
+  accidental files with recoverable external copies, restored four prior
+  files byte-exact; Data27/six untouched. ROOT_INCIDENT_RECEIPTb6928e15.
+  Current deliberate application is later, pin-gated and separately reviewed.
+  No incident-contaminated compile is counted as product RED/PASS.
+- Earlier admission V1 sealed test was changed post-announcement; V1 not
+  immutable/admitted. Additive V2 production/V3 bounded test packets are
+  retained and qualified13PASS. No helper may replay/dry-run patches.
+- Current external WG next proposal covers due-preflight and lazy real
+  process composition ONLY, UNAPPLIED/UNRUN. Actual player/route mutation
+  hooks must be leaf-sized; wrapping entire playback/reset chains would
+  trigger intentional reentry rejection. Activity/row hooks must not enable
+  readers until all global guards are wired. No new owner UX choice found.
+- Keep all current future code out of records65 publication. Index remains
+  empty; inherited docs/C45_DATA27 SHA0b5ec538 and SIX loose diagnostic/
+  research files remain excluded/untouched, recovery backup unchanged.
+
+## Coordination / D1 / exact next work
+
+- ONLY canonical `/root/work/_agent-coordination/private-media-tv/`.
+  Root Codex is primary/integration/Git owner/ONLY TRACKED_WRITER; Claude
+  read-only default. Session start reads all eight files, both inboxes,
+  active claims/tasks/results. Register before substantive owner work and
+  SEMANTICALLY dedupe across both agents; owner need not remember recipient.
+  Consume valid READY_FOR_CODEX, refresh only applicability/time-sensitive
+  evidence; Codex ACKs consumption. Never write Claude-owned inbox/findings.
+- Current076-084 statuses already registered, no duplicate owner request.
+  Root alone edits; helpers are external-only proposal authors/read-only
+  reviewers with non-overlapping paths. Sealed evidence is immutable.
+- D1 last-observed separate: +7 FAIL11 worker restarts/pinned rollback done,
+  data DOWN/env HELD/sync UP; restored isolation/member-positive PASS,
+  preservation FAIL15 known changed records. Known services remain recognized.
+ 31 gaps =1 boot provenance +30 unallocated E/L/P; old report unavailable.
+  V4/V5 failclosed broad name-census family, exact raise/counts absent.
+  Do NOT reask lost output/repeat merely for counts/startV6/waive baseline/
+  restart data/run C15 or D2. ONLY073000 historical FIRST/immediate/+1 retained.
+  Goal last queried ACTIVE; this logical continuation is audit encounter1.
+- Owner004 permits operational Tailscale OFF during this hold/local work,
+  request ON only for a named later D1 check. Actual toggle UNKNOWN; not
+  final restoration/OFF PASS. No VPS/network/device D1 action here.
+- NEXT: finalize this memory ONLY through agent-memory-finalize; verify both
+  pushes. Then retain exact90906 fourteenPASS +63812migration1PASS, qualify only
+  affected new boundaries, run ONE explicit productionHTTP first-page smoke,
+  finish real app-global/lifecycle/reset/row wiring in approved134/T3 order.
+  Exact70 install waits owner reply; owner opens/tests, agent does not launch.
+  No repeated green matrix/stress/sandbox/cache cleanup/process kill.
+  D1 remains held and STOP BEFORE D2; full TV port not complete.
+
+---
 # private-media-tv — FreeTV69 software published; BOTH installs/ADB HELD; local134 preserved (2026-10-23)
 
 This seals only the FreeTV69 SOFTWARE publication checkpoint after the helper
