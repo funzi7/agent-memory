@@ -1,3 +1,185 @@
+# private-media-tv — T3-S3a project software gates qualified; memory seal pending; installed66 (2026-10-23)
+
+This is the final S3a project-evidence checkpoint, NOT installation, launch,
+physical/native acceptance, completed T3/T4/TV port, D1 completion or D2 authority.
+Helper-only memory finalization follows this reviewed prefix; its later external
+receipt binds the actual memory SHA and closes only the S3a SOFTWARE seal.
+Do not predict a future memory SHA or repeat qualified stages from dated
+pending words in older project records.
+
+The complete previous memory body is retained byte-exact below:
+491828 bytes / SHA256
+`6273aeb2178716edb86fe02864aeca71b7c7aa24f992b29def63d4aaeaab0998`.
+
+## Exact final project and own CI
+
+- Local/tracking/live remote independently match normally pushed
+  `e8abf622b5919a213ec9309b6cd2159305617ed0`, sole parent
+  `1b6cd39df5d588e48f4aa68efb8f1924c44ebe50`, tree
+  `fbbe84c7914147aab36ddfb2e621a9334038a717`.
+  Exactly15 paths:14 factual documents plus admitted raw C45 inventory. No
+  production/test/workflow/identity/version change in this records commit.
+  Factual review da5e9303/487cce52 and exact committed-byte binding890dfe90/
+  9d05b3b6 are SCOPED CLEAN. All committed blobs equal reviewed postimages;
+  root inspected the complete task diff and diff--check; index is empty.
+- Own normal Android `39881737191`, exacte8ab/main/push/attempt1/workflow322189616,
+  completed SUCCESS, updated2026-10-23T01:49:17Z. Wrapper120180427553 and
+  main120180514616/all ordinary core/catalog/sharedUI/phone/TV/inventory/lint/
+  assembly/verifier/metadata/upload stages succeeded. Soleobserver93088 ended
+  naturally0 at01:49:25Z and is CLOSED. No workflow retry or extra version/build.
+- Authenticated inventory artifact12472751236 passed unchanged strict consumer
+  ee793421 with expected full sourcee8ab. Actual4557=4546PASS+11retainedSKIP+
+  0FAIL/541XML. Raw SHA256
+  `7021987be7c25b2640deea36d078b67dc92214f2f7c9fd023d5505c8e78c0e87`,
+  661985bytes/4557lines; properties SHA256
+  `ddf53151236ac7bec4b0b640d94646db6bc71848cbc02878a744ee8d2e0e1176`.
+  Phone1695/1689P6S/217XML; catalog2049/2044P5S/204XML; TV758P/109XML;
+  sharedUI55P/11XML. This is four app-facing modules, not an all-core or
+  physical total.
+- Candidate1b6 raw = committed/worktree C45 = recordse8ab raw7021987b exactly.
+  Both metadata maps contain27unique keys; only sourceSha differs, other26
+  values match. Metadata-file hashes are NOT claimed equal. Root equality
+  a891af10 and actual exact-run receipt22a645ed bind the comparison.
+  Independent final gates review df92ec1bd2b95faf5f51ab57825473adb6fb6335190befbc451552dc949ae023 is SCOPED CLEAN.
+  Closed lineage:4509 unchanged retainedstatuses,48 reviewed PASS additions
+  and one reviewed F2bHomeLayout rename removal, zero residual/newskip/FAIL.
+  C45 was copied only after full independentce04ae52 admission. Immutable T2
+  d4f59616 is unchanged; do not redo the expectation-union research.
+
+## Authoritative code68 APK delivered — not installed
+
+Own exact APK artifact12472636513 was canonically refreshed by queue52555,
+naturally0 at01:55:33Z, to the SINGLE GENERAL installer:
+`/storage/emulated/0/Download/private-media-tv/private-media-tv-mobile-0.7.20.apk`.
+
+- Retained packagecom.funzi7.privatemediatv.mobile,0.7.20/code68,ARM64-only.
+- Whole APK SHA256
+  `c85a253961ccdd8334f40ba9292542897e39975a9d44e3bb34cd86ef62188746`,
+  272189498bytes, regular nonsymlink file/link1;
+  actualmtime2026-10-23T01:54:44.752955691Z.
+- Development signer2987a463; pinned TDLib JNI790c545f.
+- Records publication REFRESHED; removed0/all4skipcounters0. Earlier source
+  candidate publication removed1 verified superseded installer only. No
+  installed app/data/cache was removed. Owner160 single-newest GENERAL rule,
+  not the old BOTH/mobile-test duplication, remains authoritative.
+- Own exact run/source/artifact provenance is NEW: canonical log0c4e22c6 and
+  receipt4f5767df. APK ZIP00032a61 is API-reported, not independently hashed;
+  exact GeckoView payload verification belongs to OWN successful CI step,
+  not an independent downloader payload comparison.
+- Literal APK equals independently qualified1b6 candidatec85a. Reuse ONLY
+  byte-derived queue96657 offline66->68 package/signer/version/ARM64 and
+  CL106 static shape: outer85registers/4states/1636CU/19ranges/
+  4cancel+4adapter+19catchall; inner192registers/42states/25686CU/
+  zero ranges/catches/two project calls; both final packed-switch tails true.
+  Outputs33e925a8/bf7adcf, review901d202e/efd52111 and corrected manifestV2
+  f50349ce qualify that reuse. Do not reuse old source/run/artifact provenance.
+  No local reassembly, redecode or broad repeated matrix was needed.
+- V1 APK-review manifestd9a63088 had one62-character digest transcription;
+  preserved correction9f2e68ec/V2f50349ce re-read the actual64-character hash
+  and all22 operands passed. This was a receipt correction, not a product
+  defect or repeated mutation/fuzz/stress/review round.
+
+Both devices remain last-proven0.7.18/code66. There is NO67/68 install go,
+installation, app launch, ART/native/provider/account/performance or physical
+PASS. APK publication and offline/static checks do not establish effectiveness.
+
+## Implemented S3a slice, scoped failures and remaining TV acceptance
+
+The two account-backed TV Home rows now follow Israeli channels: latest uploads
+then recommendations. They reuse the real shared account feeds/presentation/
+progress, direct existing actions/player, exact Back/card/key/pixel ownership,
+managed-Short launch gate, feed-only VideoHero, natural measured geometry,
+minute-label isolation and truthful HOME loading/disconnected/failure notices.
+This is not a new phone layout, third Shorts row, hidden ranker, default-look
+change, provider grant, spoiler/history policy or completed whole T3/T4.
+
+Full source chronology is retained in docs/TV_PORT_T3.md. Initial eaa CI had9
+TV failures, corrected04424 CI had1 quiet-window fixture failure; original
+scheduling causes not proven remain UNPROVEN. The minimum32fc45dd TEST-only
+fixture establishes actual horizontal movement after every unchanged400ms
+advance, retaining strict scroll/enrichment oracles. Unchanged singletonPASS
+was NONCAUSAL; passive probe was removed exactly/no TEMP. SAME9PASS and own
+1b6 CI398766SUCCESS precede final e8ab exactCI. Keep qualified placed-row/
+actual-focus geometry corrections and all existing owners; do not recreate
+them, restore old fixtures or add an unapproved generic D-pad heartbeat.
+
+Owner-operated row/feed matching, OK/heldOK/managed Short, Back restoration,
+feed-only hero/refresh, heldDOWN/UP and real Shield smoothness/sampling remain
+PENDING. A3 first-frame/height-delta/complete-text and applicable native
+refresh/cancellation/timeout/playback checks remain open. Prior scoped phone
+1080p/regular-Hebrew punctuation and Shield54 TV-mode Settings PASSes stay closed.
+
+## Current owner work, coordination and next approved order
+
+- Root/Codex remains primary integration/Git and ONLY TRACKED_WRITER.
+  Canonical live coordination root:
+  `/root/work/_agent-coordination/private-media-tv/`.
+  Claude READ_ONLY by default; read all eight logical files/both actor-owned
+  inboxes, register intake before work, semantically dedupe, consume valid
+  READY_FOR_CODEX evidence with ACK. The other root remains archived.
+- Meaningful build68 READY_FOR_CLAUDE feature/delivery/limits/test handoff is in
+  `/root/work/_agent-coordination/private-media-tv/results/t3-s3a68-records-publication-20261023-root.LApKuE/READY_FOR_CLAUDE_BUILD68.md` and CODEX_ACK. It is not proof Claude
+  has already told the owner. Owner is asleep/cannot answer or act: no new
+  questions/toggles/ADB/install/launch/runtime/VPS action was requested.
+  APK file publication only; collect the morning summary/questions together.
+- Owners051–054 remain OPEN, not fixed by68: Telegram stalls/missing player
+  alternatives/control placement, storage growth/shrink/compaction/receiver
+  guard and Step4 unkeyed30-day mark aging, intermittent Shield Telegram
+  Hebrew punctuation. Existing 051 hidden-during-auto-buffering/Next physical
+  RIGHT decisions stand; startup-failure versus longer-prebuffer clarification
+  remains future. Step3 cache work is landed; Step4 remains unimplemented.
+- Owner055 Sports design survey remains advisory-only DONE, not implemented.
+  Notes059–062 are queued: large hero image flash; AM-Vision authorization/
+  connection mechanism survey (NO extracting/reusing secrets or access-control
+  bypass); duplicate TV performance note; selected-season TV episodes in a
+  horizontal row preserving all episode/source/focus/Back state. Not in68.
+- After actual helper-sealed S3a software checkpoint:
+  FreeTV front v3/T4 route-profile prerequisites -> CL179 -> READY-time backlog.
+  A4/B/C, full T3/T4 and the TV port remain OPEN. Reuse FULLread FreeTV v3/
+  verification, T4 PLAN+REFRESH, CL179 parentv9 and Russian delta v3/verification.
+  Current one-APK mobile package supersedes old separateTVpackage/version/
+  build-command premises. CL187 removal belongs first/same FreeTV build;
+  Russian registry delta belongs with the first CL179 store. No resurvey/
+  replan or unrelated fresh LATER task before the current seal.
+
+## D1 separate held truth — STOP before D2
+
+Existing D1 goal remains ACTIVE/held, not completed by S3a. ONLY transaction
+`pmtv-data-20261013T073000Z`, frozen78391b2679d3bd0a25bff31401d0e395e2f89338.
+FIRST/immediate/ordinary/+1 accepted history must not be replayed. Actual+7
+FAILED worker_restart_count11 versus required0; cause/times remain UNPROVEN.
+Pinned rollback completed: data DOWN/env HELD/sync UP. Restored ON member-
+positive/isolation PASS is already consumed, not awaiting another owner toggle.
+Preservation FAIL15 changed known host-service records is still blocking;
+known applications remain recognized, not mysterious unknown services.
+
+Owner diagnostic V3 completedtrue/gaps31 means1 boot-provenance plus30
+unallocated executable/lifecycle/package gaps, NOT31 services/restarts/incidents.
+Individual E/L/P counts/finalreportexit are UNKNOWN; report/count reply was
+unavailable. Do NOT reask lost report/counts/services/raw output or rerun merely
+to count. Oct13–21 DO backups-only/no explanatory provider action evidence is
+accepted negative evidence, not a cause. The historical one-time fwupd gap
+decision is not a blanket waiver for these15 current records.
+
+Last owner Tailscale ON is stale, with no fresh connection proof or OFF-safe
+assertion. Fresh PMTV Sync->OFF restoration chain has NOT been reached behind
+FAIL15. No new collector/private wrapper/key/body read, baseline waiver,
+rebaseline/retry/startup/C15/D2 or live mutation occurred in this software
+checkpoint. Old21:30 worker slot is not active while data is DOWN. Standing
+D1 authority and its genuine safety/input stops remain; STOP BEFORE D2.
+
+## Preservation and next execution
+
+Inherited Data27 remains unstaged/unabsorbed:
+whole0b5ec538... / body1cca7321..., plus exactly seven untracked exclusions.
+Immutable T2 and recovery bundle/patch are untouched. Actual8status entries
+are one inherited tracked change plus seven untracked files, not eight
+untracked files. Existing source/milestone history is preserved.
+Next is helper-only memory finalization/both-push proof; only then start the
+approved FreeTV work. Device/owner/physical gates remain separate.
+
+## Earlier memory — retained verbatim after S3a records
+
 # private-media-tv — A1–A3 project software gates qualified; memory seal pending; installed66 (2026-10-21)
 
 This is the final A3 project-evidence checkpoint, not an installation, launch,
