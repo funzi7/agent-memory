@@ -1,3 +1,186 @@
+# private-media-tv — FreeTV69 software published; BOTH installs/ADB HELD; local134 preserved (2026-10-23)
+
+This seals only the FreeTV69 SOFTWARE publication checkpoint after the helper
+below succeeds. It is NOT installation, launch, physical/native acceptance,
+completed T3/T4/TV port, D1 completion or D2 authority. The actual helper receipt
+must bind the memory SHA; do not invent it or repeat qualified gates because
+older dated project prefixes still say pending.
+
+The complete previous memory body remains byte-exact below:503298bytes,
+SHA256 `3f05c2dee2ff68feefd5b554b4613fe98094ebe7c90e11be1add1937409064d3`.
+
+## Latest owner authority / coordination
+
+- REQ-CODEX-073: owner says hold installation/ADB OFF. BOTH phone and Shield
+  installation and all ADB activity wait for fresh owner go/reconnection.
+  **SUPERSEDED — owner approved, timing only:** earlier071 Shield install
+  timing. Do not request ADB while held. Neither device was touched; both
+  remain last-proven0.7.18/code66. No agent launch/unlock/uninstall/Clear Data.
+- REQ-CODEX-072: continue the next eligible already-approved work during this
+  and future CI/runtime/input holds; return to the ready gate. No roadmap,
+  prerequisite, product-choice, privacy/preservation or safety waiver. This
+  authorized separate COORD134 work during immutable69 CI; not D1 progress.
+- Owner004 permits operational Tailscale OFF during D1 hold/local-only work;
+  request ON for a named later check. Actual current toggle UNKNOWN. This
+  supersedes only blanket ON timing, not final restoration/OFF acceptance.
+- Canonical ONLY root `/root/work/_agent-coordination/private-media-tv/`.
+  Codex remains primary/integration/Git owner and sole TRACKED_WRITER; Claude
+  read-only by default. Read PROTOCOL/CURRENT/TASKS/CLAUDE_FINDINGS/CODEX_ACK/
+  CLAIMS/BOTH owner inboxes at resume. Register new work in the receiving
+  agent's inbox before substantive work and semantically dedupe both inboxes;
+  the owner need not remember which agent received an earlier request.
+  Consume valid READY_FOR_CODEX evidence, rechecking only applicability and
+  time-sensitive facts. Do not write Claude-owned files or start another root.
+- READY_FOR_CLAUDE_BUILD69.md and CODEX_ACK now bind final ABE source/artifact,
+  included features/limits and owner checks only AFTER the hold is lifted.
+  READY is not proof Claude has already relayed it. All helpers released;
+  root owns final memory. No active heavy/CI observer/device/VPS operation.
+
+## Exact project / review / CI
+
+- Local/tracking/live remote match normally pushed
+  `abe577b1d6ee61f9145bf96c1ac1d60e8e8b8680`, parent
+  `7e2fbcfb3507ab17a1041d1c743562b1a5bbcf19`, tree
+  `b76806f453c15c0467680e1ee5f660fb3b055af9`.
+  Records-only13paths/359insert5delete. Factual review52b7160a/pins43485f56
+  and exact committed-byte binding21107c38/pins7ca69d7f SCOPED CLEAN;
+  reviewed committed postimages match. Count-only erratumdc9503e4 preserves
+  the earlier report. No production/test/version/workflow change in ABE.
+- Own normal Android `39952276659`, exactABE/main/push/attempt1/
+  workflow322189616 completed SUCCESS, updated2026-10-23T13:03:11Z.
+  Wrapper120409381553 and main120409471168 succeeded; ordinary core/catalog/
+  sharedUI/phone/TV/inventory/lint/assembly/package/signer/JNI/Gecko/metadata/
+  upload gates passed. ONE observer99617 closed on completed/success.
+  No workflow retry/new version/local APK rebuild. Original direct observer
+  invocation126 was non-executable; explicit bash corrected it without chmod.
+- Final authenticated API receipts are in
+  `results/coord133-freetv69-local-package-20261023.SsLU8WES/`:
+  RECORDS_ABE577_RUN.json24cafc18, JOBS148e75e9, ARTIFACTS3cb5516b.
+  An accidental Markdown-render pipe failed403 after valid run JSON capture;
+  no repository state changed, not a CI/artifact failure.
+
+## Actual inventory and exact artifact publication
+
+- Inventory artifact12503282705, unchanged strict consumeree793421 accepts
+  expected fullABE. Actual4656=4645PASS+11retainedSKIP+0FAIL/556XML.
+  Phone1728=1722P6S/222XML; catalog2078=2073P5S/209XML; TV795P/114XML;
+  sharedUI55P/11XML. Four app-facing modules, not all-core or physical total.
+- Raw676385bytes/4656lines, SHA256
+  `142b4c6de2d8fbef41ccc0b3ef70abca56e4ea4377cf78dbeabfdd66186a59f4`:
+  source7e2f = recordsABE = committed C45 = worktree C45. Both properties
+  maps have27unique keys, only sourceSha differs, the other26 values match.
+  Final propertiesb6497159; consumerlogee024ad5/equality6aaab216.
+  Prior full admission375ccfc2/31171ae7 retained:4552 unchanged statuses,
+  104PASS additions, five replaced PASS removals, exact same11 skips, zero
+  duplicates/status transitions/residual/FAIL. Five predicted class names
+  were explicitly corrected by2807beb3; prediction was not silently waived.
+- Final ABE APK artifact12503183053 /own39952276659 was canonically fetched
+  through the global heavy queue;40354 natural0. SINGLE GENERAL destination
+  `/storage/emulated/0/Download/private-media-tv/private-media-tv-mobile-0.7.21.apk`
+  refreshed,272351712bytes, retained package/0.7.21/code69/ARM64-only,
+  signer2987a463, pinned CI JNI790c545f. Pruned0/all four skip counters0.
+  Delivery log47338813/stat156217bb retain actual provenance and file state.
+- Actual APK SHA256
+  `d9b1be8abe02181d87d0e72711082d5b6df265d842bbd99b77f2c6208aeaa18b`.
+  Root freshly whole-file hashed the final regular/non-symlink/link1 file;
+  pre/post size/mtime stable,2026-10-23T13:23:46.244939921Z. These bytes equal
+  the independently qualified7e2f APK. Reuse ONLY byte-derived offline66→69
+  and CL106 outer33e925a8/innerbf7adcfe checks, not old CI/artifact provenance.
+  No re-decode/assembly/repeated whole matrix/native effectiveness claim.
+- Independent final CI/inventory reviewf77f917f/34ed3e97 SCOPED CLEAN;
+  root read it fully/all14 literal pins verified. Frozen delivery addendum
+  a02b6701/f9542e6f SCOPED CLEAN, root full read/all11 literal pins verified.
+  Original source APK reviewddce30f9/dc00bc25 and actual whole-copy evidence
+  remain byte-applicable. ZIP digests are API-reported, not independently
+  hashed: inventory5e8db2de, APKefa6d6c7. Never confuse ZIP and APK hashes.
+- Included69 features: Channel9 registry/guide/credits retirement; private
+  owner-selected TV Israel-profile transfer/consent/reset/lazy route;
+  FreeTV own-site portal/fixed package channels/device-history precedence/
+  scoped failure cooldown; phone LIVE row/one-tap channel handoff; wrapping
+  labels/Back/cancellation/parent-ownership corrections. Not complete T3/T4.
+  Source14125/b969 CI failures and narrow causal fixture corrections are
+  retained in TV_PORT_FREETV; original past grid-CI cause remains UNPROVEN.
+
+## Actual NEXT work — COORD134 is DIRTY, NOT in69
+
+Owner072's next approved FreeTV VOD/replay work reused CL208/v3 and CL216/v2;
+no resurvey or redo of first-build69 portal/guide/profile/channel work.
+12 local source/schema paths are applied UNCOMMITTED:
+
+- core-website main: FreeTvVodCatalog.kt, FreeTvVodIdentity.kt,
+  FreeTvReplay.kt and modified IsraeliChannelGuide.kt;
+- core-website tests: FreeTvVodCatalogTest.kt, FreeTvVodIdentityTest.kt,
+  FreeTvReplayTest.kt, FreeTvReplayGuideCodecTest.kt;
+- core-metadata main: FreeTvVodStore.kt, RoomFreeTvVodStore.kt;
+- core-metadata test FreeTvVodStoreTest.kt and actual generated
+  schemas/com.funzi7.privatemediatv.metadata.FreeTvVodDatabase/1.json.
+
+Six factual docs are additionally dirty: AGENTS/TODO/docs PROJECT_STATE/
+HANDOFF/TV_PORT_FREETV/DATA_MODEL. They state the exact local qualification
+and remaining integrations; old external/unapplied claims are explicitly
+historical. A3's two qualifier P2s closed MESSAGE SCOPED CLEAN. The index is
+empty; none of these18future paths is part of ABE CI/APK. No new version/APK.
+
+Actual separate-run qualification — DO NOT rerun the green slices:
+
+-60953 causal RED: completion then rejected page must still KeepPrevious;
+  missing final failed guard corrected.7733 natural0/53s:catalog10+identity11
+  PASS/zero skip-fail-error, XML e902756a/4fb7de86/log26557875.
+-19989 natural1/1m27: affected guide/replay7classes39 PASS/zero skips-failures-
+  errors, frozen BpciHw/website-xml; later metadata TEST compile failed before
+  any metadata unit. Installed Room2.8.4 receiver proves wrong import.
+  TESTIMPORT-only androidx.sqlite.execSQL→androidx.room.execSQL;83005 natural0/
+  1m19/store8 PASS, XML3253fc8f/log712701aa. No production API/SQL change.
+-5587 lint failed actual NewApi: BigInteger.longValueExact API31/min26;
+  metadata lint not reached. Minimum signed63bit-bound then toLong keeps
+  exactness, no suppression/minSDK relaxation. Added max/outside±bounds case.
+ 75394 natural0/3m36:catalog11 PASS/zero skip-fail-error/XML7b9cf208;
+  website lint zero issues/a4ca4bc4, metadata1Warning/0ErrorFatal/ef24af08,
+  log8dffda13. Identity11/guide39/store8 were not repeated.
+-Generated own databasev1 schemae8320ae0/4264bytes/identity12cc3ecf,
+  two entities/FK/index; independent631495b2/d89ea152 SCOPED CLEAN/root13
+  literal pins. No existing schema change or production file/migration PASS.
+-ONE public actual compiled-parser smoke7480 natural0 after canonical
+  delivery released the global heavy slot: HTTP200/184763bytes/100items/
+  total5934/PAGE/NEED_PAGE_100_KEEP_PREVIOUS. Sanitized logf41b3527; exact
+  sourcee7f3acaa/JARc34a6e1f bound; reviewed hostJDK21 entry5d990271 uses
+  release17. One fixed anonymous first-page GET/no redirects/auth/private
+  values, not full catalog/pagination/app/native/physical acceptance.
+
+Remaining approved scope: daily/explicit-refresh job/read-state/pacing/
+player and route cancellation/direct-route exclusion; durable empty-read
+state; lazy factory/full reset/no-backup; bounded exact metadata confirmations;
+tag/Details/row adapters/A3/Back; CL205 content-date/two-year operator-row
+prerequisite; replay fetch/cache/spoiler/portal integration and owner checks.
+Do not create an early row or substitute series first-air for latest regular
+episode date. Main still must read full req171 designv3/verificationv2 before
+CL205 edits. Existing verified briefs are the plan, not a prompt to re-plan.
+
+Preserved exclusions: inherited docs/C45_DATA.md27-line diff whole SHA
+0b5ec538df35acaf20465a4c3076aaf4ee141d7d3e48ffbed28216de5e8f1567,
+diffb15013f6; two feature-catalog hs_err logs, literal o-backslash filename,
+s, t.html, and literal tatus diagnostic file. Never absorb/delete them.
+Recovery backup and existing history remain untouched. git diff--check PASS.
+
+## D1 and physical truth — still OPEN
+
+D1 +7 failed11 worker restarts; pinned ONLY073000 rollback completed, data
+DOWN/environment HELD/sync UP last observed. Restored sync member-positive/
+isolation checks passed, preservation remains FAIL15 known changed records.
+Original31 gaps =1 boot provenance +30 unallocated E/L/P; lost output and
+E/L/P counts UNKNOWN. V4/V5 stopped fail-closed in fresh name-census family;
+exact V5 raise unavailable. No repeated lost-output request, rerun merely for
+counts, speculative V6, baseline waiver/new startup/C15/D2. No fresh VPS
+query/change occurred here. Goal remains ACTIVE/unbudgeted, not complete.
+
+Phone evidence is not Shield evidence. Real profile/Keystore/VPN/EME/login/
+FreeTV/portal/playback/Back/D-pad/native/Shield acceptance remains PENDING;
+owner073 also holds installations. No physical PASS or completed TV port.
+After software memory seal, continue eligible COORD134 in existing order,
+returning to held gates only when their actual prerequisites are available.
+
+---
+
 # private-media-tv — T3-S3a project software gates qualified; memory seal pending; installed66 (2026-10-23)
 
 This is the final S3a project-evidence checkpoint, NOT installation, launch,
