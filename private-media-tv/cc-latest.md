@@ -1,3 +1,188 @@
+# private-media-tv — narrow build73 publication / Shield73 / local136 separate (2026-10-26)
+
+Final records CI, inventory, canonical publication and new-byte proof below are
+actual completed evidence. The helper-memory commit/push receipt after this edit
+still must bind its actual SHA; this text alone is not that push proof.
+
+This checkpoint ships OWNER222/q62a: source72 plus ONLY the CL264 cache-accounting
+fix, regression tests and ONE0.7.25/code73 transition. It is not the broader136
+storage feature, total-app-data cap, measured performance, native playback,
+physical acceptance, full T3/T4/TV-port completion, D1 clearance or D2 authority.
+
+The complete prior memory body must remain byte-exact below:527686bytes,
+SHA256 `9b140c898cf2c19bae3a9547f22552cf97893e2f2f3303b5be4f1c0ea69165ca`.
+Older dated install/hold/publication snapshots are history, not instructions to
+redo completed work. The helper receipt after the final edit binds the actual
+pushed memory SHA; never invent that SHA in this document.
+
+## Actual application HEAD, scope and review
+
+- Local/tracking/live main normally pushed
+  `bce2b431c1c38c8f8d4d41419b77ffcae1e3548d`, records tree
+  `eb0f02954ef5c10960f8c8ce3bec1b50417aeede`, parent source
+  `b69bd90f9b0f835f9edf3bae2c13cc9c3fc57241`/tree8d8ae940.
+- Sourceb69 differs from source72ce9184d9 in exactly6 build-input paths:
+  TdLibMediaCache trackedCacheBytes restoration, two existing test files,
+  central version identity and its two existing contract twins. All other
+  code/assets match72. No136 compile dependency or deferred feature is shipped.
+- CL264 restores REQ111 accounting: unclaimed/old-run bytes without a live
+  fileId cannot fill the disposable cap and deny every new title. It does not
+  delete guessed files, bypass filesystem floors or remove Downloads/pins.
+  Narrow causal2RED→SAME2PASS, retained4strict controls+correctedSAME5PASS qualify
+  11 distinct methods across runs, not one whole-module matrix. Exact sourceCI
+  independently compiles/tests the narrower released composition.
+- Previously committed136/rest137 work stays in ancestry and exact WT bytes;
+  forward-only tip projection excludes it from73 without reset/restore/checkout/
+  history rewrite. Preserve07f041e5/121fc105/4880bef6/eddd5c11 and held131/134/
+  088/Data27/six/untracked diagnostics. Do not assemble this mixed WT as73.
+- Records bce is exactly13 docs/+252 only; non-MD diff versusb69 is empty.
+  Frozen candidate6e018048/all13pins/inverse-old-body proof and independent
+  actual scoped review CLEAN0P1P2; root full-read/task-only commit/normal push/
+  diff--check succeeded. No unrelated work was absorbed; index remains empty.
+
+## Source and final records CI
+
+- Source ownAndroid40317481792 attempt2 SUCCESS at2026-10-26T12:58:26Z, all
+  ordinary core/catalog/sharedUI/phone/TV/inventory/lint/assembly/package/
+  native/upload phases passed. Observer45348 naturally CLOSED0.
+- Attempt1 retained FAILED phone1741/onefailure/6SKIP before Ready @Before/body;
+  core/catalog/sharedUI passed; TV/APK skipped. Sole12647874246 catalogXML was
+  NOT APK. ONE same-head failed-job retry passed, not a causal harness repair.
+  Known sanitized suppressed ISE/ShadowLegacySQLiteConnection#getConnection/
+  prepareStatement/SQLite execution/noPMTVframe is recorded; exact borrower,
+  owner and causal chain UNKNOWN. Prior body and cleanup passed. Earlier async
+  SQL/closed framework connection is plausible inference, not proof of the
+  immediately previous catalog fixture. Preserve uncaught assertions; no
+  speculative join/UserState/production fix. CL272/273 consumed with that limit.
+- Final ownAndroid40330002161 exactbce/main/push/attempt1 SUCCESS, updated
+  2026-10-26T14:13:31Z; both jobs and all ordinary phases passed. Sole observer
+  32999 naturally CLOSED0, no duplicate waiter or green source-run replay.
+- Final captured receipt `results/coord137-records73-final-publication-20261026.aCQfdf/`:
+  RUN911ebf6b/JOBS6ec37501/ARTIFACTSd156a6d7. Independent exact CI/inventory and
+  final canonical publication-provenance reviews CLEAN0P1P2. Final new-byte
+  receipt/completed memory prefix/four tiny local-status deltas independently
+  corroborated CLEAN0P1P2; no source or old-memory re-audit was repeated.
+
+## Actual inventory and final canonical artifact
+
+- Source actualinventory12651945579 strict consumeree793421 accepted4718
+  unique identities=4707PASS+11retainedSKIP+0FAIL/561XML. Phone1741=1735P6S/
+  225XML; catalog2116=2111P5S/210XML; TV805P/115XML; shared56P/11XML. These
+  four app-facing modules exclude core cache methods and physical acceptance.
+- Raw inventoryb12f27edfd3fed22c9ad7b022d82a072678c9e021a768905ba63440e02365b57
+  equals source72/trackedC45. Final records inventory artifact12657099226 is
+  byte-equal source73/trackedC45; strict unchanged consumer accepts exactbce,
+  same4718/counts/statuses/XML. Metadata c829953ce25c27011533966226e78c02a82da58da02fb30e36621b77322a3c68;
+  all26 non-source properties equal source73; only sourceSha changes as expected.
+- Source canonical publisher1715 NATURAL0 delivered artifact12651088206,
+  GENERAL `Download/private-media-tv/private-media-tv-mobile-0.7.25.apk`,
+  SHA256c78012693dc4f16b5a8cc2d89a94f6afa7b06d3bed66259fe2e5023f97e08eb6,
+  262401558bytes. One verified old72 installer pruned AFTER verified new copy;
+  exact retained72backup6f0112c5 and71backup40eda2cc remain. No app-data or
+  unrelated-file deletion. User notified.
+- Source byteproof90648 NATURAL0: offline71→73 and72→73, package/signer/ABI/
+  version, Gecko, official TDLib JNI790c545f, all10manual profile targets and
+  bounded CL106 outer0/inner2/noinnerhandlers/finalpackedtail/inner21914units.
+  This is not allDEX uniqueness, measured ART/AOT/speed or native effectiveness.
+- Final canonical publisher78682 NATURAL0/4e16e389 delivered records artifact
+  12657312391 from exact40330002161/bce to the same SINGLE GENERAL0.7.25/code73
+  installer. APK SHA256
+  `55ea84f4c14bb25a9fd7b1d047ecc02acdfe4b65c412f2ba0754a44c80a1b9cf`,
+  262401558bytes; publication replaced, removals0/all four skipped counters0.
+  PUBLISH.log910d630f, independent root hash/regular/link1/stat stability PASS.
+  Final record bytes DIFFER from installed sourcec780, so source90648 proof is
+  NOT reused by hash. NEW queued61568 NATURAL0 executes reviewed2a339855 on
+  actual55ea: offline71→73 and72→73, signer/package/ABI/version/Gecko/JNI790,
+  all10manual profile targets, outer0/inner2/noinnerhandlers/finalpackedtail/
+  inner21914codeunits and whole-file stability PASS. New proofj46hQG has
+  profilef16d5055/profm68a6a392/resolvedf26f9e87/outerfb8f0f2a/inner655fe9a0.
+  No source green replay, app rebuild, AOT/speed/native/physical claim.
+- Retained application id `com.funzi7.privatemediatv.mobile`, Development signer
+  2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0,
+  arm64-only, nondebuggable/profileable/minifyOFF. Manual profile is packaged,
+  not measured AOT or proven faster. One shared GENERAL installer/ONE-APP,
+  no extra Mobile Test, version, local app assembly or evidence build.
+
+## Actual devices and remaining physical gates
+
+- Shield session47192 NATURAL0 installed exact SOURCE c78073 from71 in place.
+  Whole installed baseAPK hash/version/original firstInstallTime verified;
+  Shield remained Asleep. No explicit UI launch/wake/connect/ADB lifecycle/
+  uninstall/ClearData. Canonical device lease explicitly released. A normal
+  package-replaced receiver may run; do not claim no app process executed.
+- Owner-onlyADB rule preserved. Initial96fwrapper NEVER RAN; reviewed derived
+  canonical no-connect projection packetf5289db7/outer6215bbaf retained all
+  signer/manifest/NVIDIA/idle/legacy/installedhash gates, private expectedSHA
+  staging and fail-closed postmutation lease/reconciliation/noblindretry.
+  Static+exact4tinyfake controls PASS. Actual installed-byte proof is separate.
+- /data2780556→2803472KiB is a dated observation, not proof of reclamation or
+  a performance effect. Claude's later13:23 offline transports observation
+  does not invalidate prior install proof or establish current connectivity.
+- Shield remains installed SOURCE c78073, not final records GENERAL55ea73;
+  records/source committed non-MD trees are identical, not whole-APK byte-equal.
+  No second installation for the records-only refresh. Phone last CONFIRMED
+  owner-installed72. Owner self-installs GENERAL73
+  unless asking Codex; no agent phone update/launch. ONE voluntary owner
+  Shield first-byte playback check was notified, no answer yet. All native/
+  cache/longplay/Stop/Back/ART/performance/provider/phone/Shield/T3/T4 physical
+  acceptance remains PENDING. Do not reinstall Shield for docs-only records.
+- User delivery-notification rule honored through canonical
+  `results/READY_FOR_CLAUDE_BUILD73_20261026.md` and CODEX_ACK; that is not proof
+  Claude already relayed it to the owner.
+
+## Productive local136 continuation, separate from released73
+
+- Existing16 own WT core paths preserved byte-exact againsteddd before the
+  ONLY3-path UNUSED fresh-claim addition. Existing packet53b7d838 re-attested
+  10756ecd against actualfc8 WT, not73's separate released Range. PreviewqtF1vv
+  and actualpostimage closure independently CLEAN0P1P2; no reimplementation.
+- Actual3 postimages Gatewayfce8d784/Rangebd291851/OfflineTested0081de are
+  UNCOMMITTED/excluded73. Defaultfalse Range callback UNUSED. Exact mutex
+  tryLock once/no wait; fresh RANGE-only membership; precise owner rollback
+  even on ACK callback failure. Admission issues no request; rollback may
+  schedule old Cancel obligation after unlock, never a post-Stop Download.
+- One queued89877 naturally BUILD SUCCESSFUL10m03s/178tasks, fresh XML8ef6
+  exact8uniquePASS=NEW5+controls3/zeroFES; TelegramDebuglintf6990ErrorFatal/
+  1retainedWarning. qhQxby exactCOMMAND/full log/XML/lint/SARIF retained;
+  independent receipt+four-local-prefix review CLEAN0P1P2. No old missing-API
+  run/causalRED/SAME, whole136 matrix, native, cleanup or release claim.
+- Four new local-only prefixes in TODO/PROJECT_STATE/HANDOFF/C45_STORAGE
+  remain uncommitted alongside future source. Source freeze/heavy slot now
+  released, no active local heavy/device/VPS. All unrelated held work retained.
+- Next actual work: proper136 reintegration/checkpoint preservingCL264 and
+  deferred qualified ACK/sealed/pathless corrections, then stopped consumer/
+  ACK lifetime and verified existing-ahead proof with narrow qualification.
+  No watched-byte deletion/head consumer/post-Stop download/extra build was
+  added here; real native/device gates stay open. Never publish mixedWT as73.
+
+## Coordination, owner decisions and held work
+
+- Canonical ONLY live root `/root/work/_agent-coordination/private-media-tv/`.
+  Read PROTOCOL/CURRENT/TASKS/CLAUDE_FINDINGS/CODEX_ACK/CLAIMS/BOTH owner inboxes
+  at session start. Codex sole tracked/Git/integration owner; Claude read-only
+  researcher. Atomic flock/preimage writes, one writer/heavy/device owner.
+- Register owner work before substantive action; semantic cross-inbox dedupe,
+  owner need not remember which agent got it. Consume valid READY_FOR_CODEX
+  evidence, recheck only applicability/time-sensitive facts. Repeated owner
+  continue/connected/ship73 inputs DUPLICATE222/099, no new research/request.
+- REQ-CLAUDE-223/q63–65 SETTLED/QUEUED after73delivery+136: FFmpeg AUDIO first,
+  libVLC later, LGPL approval ONLY these2/noGPL, quiet per-file/device fallback;
+  guide grid, TV±1min/OKGoLive/GUIDE-or-list/previouschannelinlist/▲▼unchanged;
+  eligible YouTube-live12/13>=90sDVR, background rejoinslive. Reuse CL269/270
+  briefs; not implemented73. CL263 CW artwork queued, no resurvey.
+- Owner097: retain only verified ALREADY downloaded ahead bytes after Stop;
+  no new download. Owner098/072: productive eligible work during CI/input
+  holds without violating acceptance/prerequisites/privacy/onewriter/oneheavy.
+- D1 HOLD/profile0/allclearancefalse/OFF-safe/dataDOWN preservation hold;
+  no VPS/D2/new diagnostic/input. Known tenants remain recognized. No current
+  executable D1 step; do not repeat broad audits or relax preservation gates.
+- Remaining131/held134readerdisabled/088/Data27/six and old evidence remain
+  present. Historical backlog remains authoritative; no unrelated physical
+  gate marked done. Full TV port is NOT complete.
+
+---
+
+
 # private-media-tv — build70 SOFTWARE seal; BOTH installed69; future134 separate (2026-10-23)
 
 This is the final source70/records65 SOFTWARE publication truth. The helper
