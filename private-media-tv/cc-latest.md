@@ -1,3 +1,162 @@
+# private-media-tv — source74 and records74 software checkpoint (2026-10-27)
+
+Source74 publication and its byte proof, exact records74 CI/inventory equality,
+and the final records74 canonical publication/new-byte verification are actual
+completed evidence below. The subsequent helper-memory commit/push receipt
+still must bind its actual SHA; this text alone does not prove that push.
+
+The complete prior memory body must remain byte-exact below: 540055 bytes,
+SHA256 `6569d431b1c2ccf4571849ed91a1290d1ea7a6c278331b5d38c14fe377f6fba1`.
+Older dated checkpoints remain provenance, not authority to repeat closed work.
+The later helper receipt must bind the actual final memory SHA after the write;
+this prefix does not predict or contain that SHA.
+
+## Exact source and records scope
+
+- Source74 implements the existing bounded watched-byte discard, authenticated
+  completed-Stop cleanup, fixed failure-exit classification, and owner104's
+  explicit-confirmation recovery notice/guard with the same-process lifetime
+  fence. Owner097 permits no new download after Stop. These are software
+  implementations, not a claim of measured bounded storage, native reclaim,
+  recovered space, universal uninterrupted playback or a total app-data cap.
+- Exact source `c445673540c683b3019db673880cb2ac08411078` own Android
+  `40431753897` attempt1 completed SUCCESS at 2026-10-27T01:53:23Z.
+  Its authenticated inventory is 4744 unique identities = 4733 PASS + 11
+  retained SKIP + 0 FAIL across 565 XML. The raw inventory SHA256 is
+  `2e8f03c8d40d682730f0f1adc5308a662807711fb9c0740b48c461f2325474ae`;
+  versus the prior tracked inventory it adds exactly 26 PASS identities with no
+  removals or status changes.
+- Source74's canonical publication produced the SINGLE GENERAL installer at
+  `Download/private-media-tv/private-media-tv-mobile-0.7.26.apk`, version
+  0.7.26/code74, whole-APK SHA256
+  `1b580da5216f79c34d48a66becb4b819dd5e48ee4a8a4dfa70df782263177b73`,
+  262499862 bytes. Publisher78141 exited naturally0. One verified GENERAL73
+  installer was pruned only after publication; its exact `55ea84f4...` backup
+  remains recoverable. No app data or unrelated file was removed.
+- Source byte verifier22876 exited naturally0. It proved the retained 73-to-74
+  package/signer/version/ARM64 relation, exact Gecko/native/notices inputs,
+  TDLib JNI `790c545f...`, all 10 manual profile targets, bounded CL106 smali
+  constraints and whole-file stability. This is offline byte evidence only,
+  not install, AOT/speed, native-runtime, playback, storage or physical proof.
+- Records commit `7248db710dcdbdc36ef66d5a51c074f0a657f35d`, tree
+  `52420f2d205a491ff5519eaab3fbc69c7487fb1b`, is normally pushed over parent
+  c445. Its exact diff is 14 records paths, 201 additions and 0 deletions:
+  13 documentation prefixes plus the 26-line admitted inventory delta; no code
+  or held/local feature byte changed.
+- Records own Android `40438619500` attempt1 completed SUCCESS at
+  2026-10-27T03:20:33Z; sole observer70576 detected terminal success at
+  03:20:51Z and closed naturally0. Authenticated inventory artifact12706692974
+  has archive SHA256 `281f5ea552426f21e4e71a153b92e46653e284b1a0183639b952b5d77fd51aef`.
+  The unchanged strict consumer accepts the same exact 4744 identities/counts/
+  statuses/565 XML; raw bytes equal source c445, tracked C45 and the records
+  commit object, and all 26 non-source metadata properties remain equal.
+- Records APK artifact12707112466's authenticated archive SHA256 is
+  `9d61371eadaf1da6d770260b013f6bfd47d17d1aef6a515b5116856cf2ee44cb`.
+  That is an artifact-archive digest, not a whole-APK digest, and cannot fill
+  the final whole-APK field below.
+
+## Actual final records74 publication
+
+- Reviewed execution packet NWDQ4X/manifest22093959/11 terminal pins787b5879
+  ran unchanged. Publisher62442 naturally exited0 from the global queue and
+  delivered authoritative artifact12707112466/run40438619500 at the SINGLE
+  GENERAL path above. Publication=replaced; superseded APK removals0 and all
+  four skipped-cleanup counters0. PUBLISH.log SHA256
+  `79f67c1d649695c88f3bb3dec4a19231b9c94480fca4fc14c899509cdcf856d1`.
+- Actual final whole APK is262499862bytes, SHA256
+  `331dd8796e525aa788766bd3d57f0ce3eae2db27bf017b1580de6476f76c15ec`,
+  regular/nonsymlink/one link. Packagecom.funzi7.privatemediatv.mobile,
+  0.7.26/code74, arm64-only, Development signer
+  `2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0`.
+- New-byte verifier49538 naturally exited0 under the global queue. It checked
+  the actual final331dd file, not source1b580. BYTE_VERIFY.log SHA256
+  `a3c910332fdef8bc5d806253735242239f20f096fb5601bfe4bcaea0639aa445`;
+  proof `results/coord138-records74-published-byte-proof-20261027.kcM9P9/`.
+  Passed retained73-to74 package/signer/version/ABI relation, exact Gecko154/
+  FIDO/SnakeYAML notices and13 ARM64 native libraries, TDLib JNI790c545f,
+  all10 resolved manual-profile targets, bounded CL106 outer0/inner2/no-handlers/
+  packed-tail21914-code-unit shape, and whole-file stat/hash stability.
+- Additive final receipt (the earlier terminal receipt remains immutable):
+  `results/coord136-records74-final-publication-20261027.pLdHQx/FINAL_PUBLICATION_RECEIPT.md`,
+  SHA256`70358f9d9bea8b7189afe38c97d5513f3cb8ab28fb4632b19086b6dfeb4a277d`.
+
+Final331dd differs from source1b580 despite equal length. Source equivalence
+was not substituted for the final new-byte checks. Normal delivery remains
+nondebuggable/profileable/minify OFF; the ten-rule manual profile is packaged,
+not measured AOT/speed. REQ-CODEX-095 permits a separate debug evidence build
+only for specifically owner-approved investigations; normal run-as recipes do
+not apply. The1GiB TDLib-local disposable budget and shared2GiB coordinator do
+not cap protected Downloads/pins/database/total Android app data.
+
+## Local work remains separate from released records74
+
+- CL277/Continued Watching is seven local paths with nine selected PASS; it is
+  uncommitted and outside c445/7248.
+- The whole-tree diagnostic is two local paths. Its causal four RED plus one
+  diagnostics-off control are retained; the corrected post gate has eight
+  selected PASS and Telegram lint zero Error/Fatal with one retained warning.
+  It is diagnostic observation only, with no purge, cap or retention action.
+- CL269 player classification is two local paths. Eight distinct methods are
+  qualified across retained five plus fresh corrected three, not one eight-case
+  run; Playback lint has zero Error/Fatal and nine retained warnings. This is
+  not codec/native/device/release proof.
+- CL270 policy is two new local pure-policy files. Run88324 naturally exited0
+  in52m9s, exactly four methods PASS/zero failure-error-skip, fresh release lint
+  zero Error/Fatal/four warnings, all2110 pins stable; independent actual
+  reviewaff529cd is SCOPED CLEAN. No process was interrupted. It is not guide
+  UI, Media3 wiring, runtime seeking, a dependency change or source74 content.
+- Guide-grid V2 is two new local files, exact930c989c/08e1fb7a, statically
+  reviewed539b/85feffa9 and applied only after the compiler freeze released.
+  Nanosecond geometry P2 is corrected; five methods and lint remain UNRUN.
+  The guide UI/focus/network/catch-up/playability feature is not implemented.
+- R0 official FFmpeg6.1.6 source bytes were captured atFFM16O after reviewed
+  runner262a/cf6c. Exact key/signature pins and one published-primary gpgv
+  VALIDSIG passed; source10497884bytes/SHA256
+  `d4fcb164028dd3beee5d92c0ac72e46aac6973c75ea12dc14de07bf8f407370a`,
+  actual receipt323ef96f/independent e092 CLEAN. A streamed RELEASE read says
+  6.1.6. Exact Media3 commit5fb306 source captureXFsOMi separately completed
+  11 files/8 known hash matches/3 newly measured Java hashes (receipt69ac4984).
+  No source was vendored or executed, no native build or dependency changed;
+  source admission/security/licence/compile/decode/physical gates remain OPEN.
+  Fixed NDK28.2/API26 launcher presence is not local-host executability; no
+  sandbox/emulation or native probe was run. Reuse the accepted CI-first lane.
+- Held 131/134/088/Data27/six/91 and later artifact preparations remain
+  excluded. Never infer them, the four local lanes above, or mixed-worktree
+  bytes into source74, records74 CI, its APK, or physical acceptance.
+
+## Devices, gates and coordination
+
+- Both devices remain installed73; no74 install or agent launch occurred.
+  Phone evidence is only its prior narrow first-playback PASS. Shield73's
+  long-play failure remains OPEN. Native/cache/reclamation/Stop/Back/restart/
+  protected-Downloads/ART/speed/provider/T3/T4 and broader physical acceptance
+  remain PENDING.
+- D1 remains HOLD/profile0/all-clearance-false/OFF-safe,16 unaccounted/63 slots,
+  lost31 split UNKNOWN/+7 FAIL11. Last proved dataDOWN/environmentHELD/syncUP
+  is not a fresh live observation. No VPS/D2 action was performed here; D2 is
+  outside current authority. Standing D1 authority remains separate and does
+  not waive the preservation hold. Owner109 sleeps; batch owner-only actions.
+- The only live coordination root is
+  `/root/work/_agent-coordination/private-media-tv/`. Read its canonical eight:
+  PROTOCOL, CURRENT, TASKS, CLAUDE_FINDINGS, CODEX_ACK, CLAIMS and both owner
+  request inboxes. Codex/root remains sole tracked/Git/integration writer;
+  preserve one-writer, one-heavy and device-owner boundaries.
+- Before accepting owner work, semantically dedupe across both inboxes, TASKS,
+  CLAIMS, CLAUDE_FINDINGS and CODEX_ACK; the owner need not remember which agent
+  received a request. Consume valid `READY_FOR_CODEX` evidence, rechecking only
+  applicability and time-sensitive facts instead of repeating finished work.
+- Final filled-prefix/actual-publication review and helper-only memory commit/
+  normal push/remote verification close this checkpoint; their returned exact
+  memory SHA is separate evidence. Do not replay green CI/inventory or create
+  a docs-CI loop merely to restate final receipts. No later local code was
+  committed into the immutable7248 publication target.
+- Next eligible product work is the existing guide's finite five-method unit
+  gate and separate lint, plus the accepted CL269 artifact/source lane. Reuse
+  qualified slices and Claude notes; do not repeat surveys or stress work.
+  Follow the then-current canonical eight for subsequent changes. This
+  checkpoint grants no new owner/UX, device, install, cleanup, VPS or D2 action.
+
+---
 # private-media-tv — narrow build73 publication / Shield73 / local136 separate (2026-10-26)
 
 Final records CI, inventory, canonical publication and new-byte proof below are
