@@ -296,3 +296,4 @@ date,portfolio_id,strategy,ticker,side,shares,fill_price,commission,cash_after,e
 2026-10-19,leveraged_momentum_10k,leveraged_momentum,TECL,BUY,27.0,199.9299,1.0,188.06,8284.76,"מילוי אמצע-חודש — דירוג #3, מומנטום 6-1 +111.2%"
 2026-10-21,leveraged_momentum_10k,leveraged_momentum,AMDL,BUY,3.0,58.2391,1.0,12.34,8226.25,"מילוי אמצע-חודש — דירוג #1, מומנטום 6-1 +429.8%"
 2026-10-22,rsi2_10k,rsi2,SPY,SELL,13.0,770.7844,1.0,10227.45,10227.45,close>5SMA (769.05>768.03)
+2026-10-26,leveraged_momentum_100,leveraged_momentum,FNGU,BUY,1.0,29.3347,0.2933,0.27,87.44,"מילוי אמצע-חודש — דירוג #5, מומנטום 6-1 +101.3%"
