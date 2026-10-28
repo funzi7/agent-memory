@@ -1,3 +1,45 @@
+# private-media-tv — Claude hand-back checkpoint (2026-10-28 ≈08:50Z, actor=CLAUDE)
+
+The owner ended Claude's third bounded takeover ("ok pause tour work as a builder codex is back", 2026-10-28 ≈08:38Z,
+REQ-CLAUDE-237). Codex is the ONLY writer again; Claude is READ_ONLY_RESEARCH. This prefix is Claude's; the body below
+is Codex's record and stays authoritative for everything it covers.
+
+The complete prior memory body must remain byte-exact below: 550533 bytes,
+SHA256 `bbd21332df483db76d5e5689cd15877ea682eb0bde139ef5dbb1fb9a11995bfc`.
+Older dated checkpoints remain provenance, not authority to repeat closed work.
+
+## Exact state handed over
+
+- origin/main = `d2a45f78fad71b65b47d0e927ce4c35704312e5b` = 0.7.35 / code83, 13 commits past Codex's checkout
+  7248db71: 89a313e3 (75, CL-306 census fix) · 86ff9020 (76, automatic fence recovery, REQ-CLAUDE-227) · cbb2e324
+  (Codex's own finished 10-27 lanes landed verbatim: CW label CL-277, Media3 unsupported-format classification CL-269
+  inc 1, live window / Go Live adapter + LiveTimeshiftPolicy, TV live overlay, channel-guide grid model) · f6ed1055 (77,
+  catalog excluded languages, REQ-CLAUDE-231) · ecab0a19 + 85d243bb (78, Shield Settings, REQ-CLAUDE-232) · c93a8285
+  (79) · 25e32634 (80, היסטוריה page, REQ-CLAUDE-229) · a0172eb2 (Codex's ChannelGuideViewport + repaired test) ·
+  a309d4e3 (81, guide grid on both apps, CL-270 §3) · 4ca393ad (82, native-player live timeshift, CL-270 §2) · 53c46cb3
+  (lint fix) · d2a45f78 (83, channel-player page adapter, extension 1.14.0, CL-270 §2). Every commit was made in the
+  worktree scratchpad/wt-cl306 and pushed after `git fetch` proved origin/main unchanged; Codex's checkout and its 129
+  uncommitted entries were never touched.
+- Devices: Shield and phone both 0.7.35/code83 (guarded `adb install -r` 2026-10-28 00:06Z under the owner's standing
+  go REQ-CLAUDE-236, data kept, never launched); the phone's Download holds only `private-media-tv-mobile-0.7.35.apk`
+  (SHA-256 2f9932350d5a7a54cacdcb5c25473509ddede350f7aa040a05677f3b38ba4049). 80 and 81 were never delivered (CI red:
+  an append-only enum pin; a core-telegram flake then BidiSpoofing lint).
+- Resume point for Codex: coordination `results/CLAUDE_TO_CODEX_HANDOFF_20261028.md` (the commit list, the 107-file
+  footprint, the 26 of Codex's 129 dirty paths that overlap main — 20 are Codex's own hunks already landed by cbb2e324 /
+  a0172eb2, 6 need a textual merge keeping both sides: F2bCatalogScreens, F2bCatalogViewModel, MobileAcceptanceApp,
+  F2c759ChannelPlayerScreen, TvCatalogPlayerScreen, TvChannelPlayerScreen), CL-307's closing paragraph, the CURRENT.md
+  "LIVE — CLAUDE" section, the CODEX_ACK top notice (handoff_to_codex=READY), CLAIMS `## CLAUDE` RELEASED.
+- Open with the owner (product choices): q69 ⏩ tomorrow in the guide grid without tomorrow's data; q70 CL-217's first
+  increment without the owner's IPTV link; q71 programme reminders in the grid. REQ-CLAUDE-229's second half (the
+  twice-stopped movie that left Continue Watching) waits for the owner's reading of its row in היסטוריה.
+- Rules recorded during the lane, binding both agents: ONE Gradle job at a time and one CI watcher (REQ-CLAUDE-234,
+  Termux died under two queued runs); `HomeFocusTarget` / `Destination` enums are append-only; no bidi control
+  characters in string literals (code points; pre-push grep on `*/src/main`); push the next build only after the previous
+  one is downloaded; deliver from a detached worktree at the exact commit; install only when PMTV is idle.
+
+Physical and live claims stay gated for the owner: the grid's feel on the Shield, the remote's real ⏪/⏩ key codes in
+both players, a real page's seekable range on Kan 11 / mako, the "1m" glyphs' legibility, long-play after 75/76.
+
 # private-media-tv — source74 and records74 software checkpoint (2026-10-27)
 
 Source74 publication and its byte proof, exact records74 CI/inventory equality,
