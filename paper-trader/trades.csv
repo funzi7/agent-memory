@@ -1,5 +1,4 @@
 date,portfolio_id,strategy,ticker,side,shares,fill_price,commission,cash_after,equity_after,reason
-2026-06-23,benchmark_10k,benchmark,SPY,BUY,13.0,734.1769,1.0,454.7,9991.24,buy & hold init
 2026-06-23,trend200_10k,trend200,QQQ,BUY,13.0,716.0979,1.0,689.73,9967.18,close>200SMA (707.83>622.35)
 2026-06-24,benchmark_100,benchmark,SPYM,BUY,1.0,86.5633,0.8656,12.57,98.83,buy & hold init
 2026-06-24,momentum_scan_100,momentum_scan,GFS,BUY,1.0,83.5718,0.8357,15.59,99.29,"rank 3, 6-1 +147.6%"
@@ -297,3 +296,6 @@ date,portfolio_id,strategy,ticker,side,shares,fill_price,commission,cash_after,e
 2026-10-21,leveraged_momentum_10k,leveraged_momentum,AMDL,BUY,3.0,58.2391,1.0,12.34,8226.25,"מילוי אמצע-חודש — דירוג #1, מומנטום 6-1 +429.8%"
 2026-10-22,rsi2_10k,rsi2,SPY,SELL,13.0,770.7844,1.0,10227.45,10227.45,close>5SMA (769.05>768.03)
 2026-10-26,leveraged_momentum_100,leveraged_momentum,FNGU,BUY,1.0,29.3347,0.2933,0.27,87.44,"מילוי אמצע-חודש — דירוג #5, מומנטום 6-1 +101.3%"
+2026-10-27,swing_10k,swing,EXPD,SELL,43.0,196.2418,1.0,8443.24,8663.71,המהלך נגמר — מתחת לממוצע 10
+2026-10-27,swing_10k,swing,MO,SELL,3.0,72.6736,1.0,8660.26,8660.26,המהלך נגמר — מתחת לממוצע 10
+2026-10-27,twitter_track_100,twitter_track,MGNI,BUY,1.0,21.7609,0.2176,29.62,92.21,קנייה לפי @theaiportfolios
