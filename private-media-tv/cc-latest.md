@@ -1,3 +1,167 @@
+# private-media-tv — build108 software checkpoint, Codex writer (2026-10-30)
+
+Records CI, authenticated inventory and canonical publication are complete;
+agent-memory helper finalization follows this prefix. Physical/runtime acceptance
+remains OPEN. This closes the older records-open source snapshots below without
+creating another self-referential Android build or repeating installation.
+The complete prior memory body must remain byte-exact below:554354bytes,
+SHA2560b42a7daa40bd2833210923ade862e89952c7a9a237416db4d7208f33f002a57.
+Older dated snapshots are provenance, not instructions to repeat closed work.
+
+## Actual continuation, authority and preserved trees
+
+- Owner112 returned sole tracked/Git/integration ownership to Codex after Claude's
+  October30 quota stop; Claude is read-only. Canonical coordination root remains
+  /root/work/_agent-coordination/private-media-tv/. Read PROTOCOL/CURRENT/TASKS/
+  CLAUDE_FINDINGS/CODEX_ACK/CLAIMS/BOTH owner inboxes on resume, register new
+  requests before substantive work, semantically dedupe, consume READY_FOR_CODEX.
+  The owner need not remember which agent received a note. Use permanent flock
+  and atomic preimage-checked publication; only one tracked writer/heavy job.
+- Existing active release tree is Claude's scratchpad/wt-b107f at branch
+  claude/b107-fixes2 (no upstream), not a new worktree. Actual normally pushed
+  records HEAD is a4973d4ae8f95074e645f4c2b60db6837a0c8e42,
+  treebb26da49346e6212540c50cb9a631bb49fe7bca3. Its12 paths are records only.
+  Source1082095792c8cdb3ee6ca12afdbdda18db2ddc5db73 and107f21ff430 are ancestry.
+- /root/work/private-media-tv remains main/d2a45f78fad71b65b47d0e927ce4c35704312e5b,
+ 111modified+49untracked/indexempty. Preserve all160 paths, held recovery/134
+  and accidental diagnostics. Existing A2 draft747a10e124f013cbab85d3aaf5e51a3db70c646a
+  in scratchpad/wt-cl269a2 remains untouched/uncompiled/unshipped. No reset,
+  clean, restore, stash, rebase, history rewrite or new-worktree bypass occurred.
+- Claude's source84–99 work and A1 native qualification are already landed;
+ 100–107 are one combined source107, not versions to rebuild individually.
+  Read docs/BUILD107_HANDOFF_20261030.md and BUILD108_HANDOFF_20261030.md.
+
+## Completed source107/108 qualification and delivery
+
+- Source107f21ff430f4a67f1641b445ed6088f9a0ab27a429 ownAndroid41046427358
+  SUCCESS12:05:37Z, authenticated4993=4982PASS+11retainedSKIP/606XML,
+  canonical GENERAL0.7.59/code107 delivery and BOTH exact idle/no-launch installs.
+  Root reviewed the existing product delta and closed1P1+7P2 plus the separate
+  runtime-publication regression gap;29 distinct focused corrections across
+  retained runs, separate publication1, five fresh affected lints passed.
+  Earlier local ARM SQLite/fixture/causal failures remain recorded, not invented
+  successes. Recordsbb1e6702 are already pushed in108 ancestry. Do not redo107.
+- Owner117 made CL317B AV timing first after107, before A2. Source108 adds bounded
+  TV-only exact Telegram Range cadence sampling, device-local next-entry memory,
+  frozen nonblocking entry lookup and exact accepted-resource ownership.
+  Existing display entry/exit restoration, no mid-watch/same-source-switch mode
+  change, source eligibility and progress/history remain. Phone observation OFF.
+  This is not an arbitrary10ms correction or proof of the reported offset's cause.
+- Source209 ownAndroid41070532538 SUCCESS15:10:48Z. Authenticated5006 identities
+  =4995PASS+11retainedSKIP+0FAIL/608XML,13addedPASS versus107, no removed/status
+  changes. InventorySHA7a179828691c66575cc644835ba921374ef0e9a5deddffd2f1a0a7cc2552bcff.
+  Original267 CI41062396657 catalog9FAIL remains; two test files corrected nine
+  invalid bare-playable mocks only, SAME9+4 controls PASS47817, independentCLEAN.
+  Previous61 functional cases and identity/four-lint75047 remain separately scoped.
+- Canonical source108 downloader51083 delivered GENERAL0.7.60/code108 to
+  Download/private-media-tv/private-media-tv-mobile-0.7.60.apk,263026462bytes,
+  SHA0769c19aaaaece0abe8cb2bb2d704bd3fa8571f2d87b0b456ba6241f6f8e6fa3.
+  Same Development signer2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0.
+  Exact107→108 offline49895 passes; original wrapper's missing operand-binding
+  P2/failure remains. Source108 backup is retained in records108-seal sV0pVQ.
+- Shield34658 installed exact108 at15:27:30Z, Asleep/no-launch/firstInstallTime
+  preserved. Phone95403 installed exact108 at15:32:28Z after owner reconnect,
+  pre/post idle/unlocked/exact bytes/firstInstallTime; actual Termux executable
+  and Tracer0 verified. No agent launch/unlock/clear/uninstall/server lifecycle.
+  Both leases released; do not reinstall merely for records-only CI.
+- Records review475b41bf SCOPEDCLEAN closes the unsupported host-provenance
+  wording; root final staged12patch718120c5/diff-check clean, normal push/live
+  a497 equality proved. Records ownCI41085165586 SUCCESS16:28:54Z; sole observer
+  26460 CLOSED0/tee0. Authenticated inventory15390 passed exact source209 equality:
+  5006/4995PASS/11retainedSKIP/0FAIL/608XML, same SHA7a179828, no additions,
+  removals or status changes. Inventory artifact12993536920/148623bytes,
+  ZIPa3aa7c8ec0535dd9accd3153a76e41d097991637cf69ac1d6e3ccafb1bfa7b5a.
+  Records canonical downloader35235 naturally0/tee0, finished16:42:25Z,
+  exacta497/run41085165586/artifact12993092438. GENERAL0.7.60/code108 at the
+  same Download path,263026462bytes, Development signer unchanged, APK SHA
+  32f190c7c34354d24095515c77b6ed77ce89572e8720acaae2ee2f9df9033392.
+  Delivery log4cc5f756 retained gO2wSz; no old installer was deleted.
+  Strict ZIP comparison62214 exits1 for ONE expected provenance difference:
+  META-INF/version-control-info.textproto changes only source209 revision to
+  recordsa497. All540 other payloads/entry order match exactly; both full APK
+  hashes stable before/after. Root inspected the complete two provenance entries.
+  APKs are NOT byte-identical; both devices retain source1080769, no redundant
+  records-only reinstall. See gO2wSz/PAYLOAD_COMPARISON_RECEIPT.md.
+
+## Physical truth and owner decisions carried forward
+
+- Owner115 asked whether the fine AV offset work was done. A's entry/exit display
+  restoration already shipped85/99 and is not redone. At that inquiry B cadence
+  measurement/memory was still open; source108 now implements that software,
+  while actual lip-sync/cadence/device acceptance remains OPEN. Do not promote
+  the earlier inquiry's unimplemented-software snapshot into current next work.
+- Owner120 sound AHEAD of picture on Shield, Minimum Wage ep5/other Telegram
+  files; constant-vs-growing unknown. Pre108 background107 snapshotPSS202211kB,
+  MemAvailable1047272kB, Activities0/no admitted timing lines is noncausal, not
+  evidence of memory overload or a physical fix. Actual108 AV/cadence/native/
+  Back/source-switch/auto-next/cache/TV-port acceptance remains OPEN.
+- Owner116 reports Ktuvit Stremio-addon Hebrew subtitles work on Shield; exact
+  title/build/selection/timing not supplied. Preserve that scoped positive only.
+- Owner114 answered85a/86a/87a/88a: three Israeli cups via existing365scores;
+  best quality without a dubbing preference (existing behavior); TV selected-chat
+  catch-up plus phone Israel-arrivals in index copy; extra badges share existing
+  two poster-label slots with dubbing/quality first. New85/87/88 work is queued.
+- Owner113 later SmartTube-halfway→PMTV CW missing and PMTV→YouTube account
+  progress still absent extends existing077/169/CL191+219, COORD142; no repeat
+  whole research. Preserve trailer-no-CW and separate local/account history.
+- Owner118 first Stremio sync all-title checkbox selection extends CL041/093.
+  Only selected titles import; original identity/privacy/defaults remain. Choice143
+  on later activity auto-enrolling an initially unchecked title is still open.
+- Owner119: notes are LATER by default, merge into existing relevant sections
+  before adding new items; explicit priority/operations still govern. Sports:
+  “ספורט” heading opens all Sports, Settings icon beside it, remove duplicate
+  “כל הספורט”/“הגדרות” buttons. Reuse CL243, no new survey/implementation in108.
+- Owner121 settled all three Sports choices: larger CARD titles/match information
+  in “מומלץ לך בספורט”; exact logos for new leagues; one stable representative
+  Bundesliga color; full league-colored CARD text/details with readable text
+  through rounded corners as one cohesive card, not a separate black panel.
+  Not the full Match Details page. SUPERSEDED — owner approved only CL125 dark
+  details fill, not the separately approved action/icon strip, identity/spoilers/
+  D-pad/Back. Queued with CL056/CL125/119, not shipped108; do not ask again.
+- D1 remains preservation HOLD/profile0/allclearancefalse/OFF-safe. No VPS/D2,
+  token, baseline waiver or deployment operation occurred. Continue eligible
+  local work during lane-local holds; request owner input only at genuine gates.
+
+## Next existing A2, no replay
+
+Resume CL269A2's existing draft/finding corrections after108 closeout; A1 native
+CI40993538919 and exact retained JNI fbff380e/ac3-eac3-dca-truehd are already green.
+MP2 is future separately-qualified scope, not implemented by current four codecs.
+Keep native/automatic-passthrough-first and same sink/PCM16 software fallback;
+q22 refused a new setting, not automatic passthrough. No PCM-only replacement.
+
+External corrected notice/provenance27, retained-A1 payload check64127,
+rollback-safe publisher serial12/42131, and APK-verifier synthetic21/3639 passed.
+These are separate bounded checks, not native playback or wholeA2 qualification.
+FIFO publication contention remains CI-only/unrun locally; F2/F4/About remain
+uncompiled/unapplied proposals. Caller/metadata/lint integration remains open.
+
+Existing A1 engineering record a974d47369f2d06d4f4ad00a1fc0f9d58957768a3d19996b547a079a46121861
+is verified under canonical results/ffmpeg-engineering-records/sha256/<id>.
+Root V5verify5923 naturallyPASS0, receipt6dd5d381/logab061ad2, independent7ba37766
+CLEAN:44members/24971081rawbytes incl27source-relink/23170609. Archive25016320bytes,
+manifest09208b23, receipta330941c; unchanged before/after. Host modes755/644 mean
+content-addressed procedural no-overwrite/tamper-evident LOCAL retention, not
+filesystem immutability/public/recipient/offdevice/legal proof. Retain V2 fail
+before publication, V3 fail after publication, V4 unrun; no recapture/chmod used.
+About V3complete7paths572e17f1 againsta497 has independent428c71c5 closure and
+scope erratum7813afd1; preserves passive placement/Activity fixture and names the
+verified internal record truthfully. Recheck actual preimages before applying;
+preserved original d2a160 is NOT the target. Controller composition C6vT9x patch
+d75fca4639cca2af64f14d9f904f9e3361405f851c8ef3a9d0f4e63c893cd81d
+preserves all108 timing/ownership and composes F2/F4's overlapping controller
+sections. Root fully read it and its independent scoped-CLEAN closure. The other
+seven F4 sections remain required; never apply the controller twice or replace
+it with the old A2 whole file. Caller-chain proposal/integration map remain
+external preparation; inspect their final manifests/closure before integration.
+No A2 composition is compiled, applied to tracked source, packaged or shipped.
+
+No native rebuild, sourceA1 mutation, extra Android version/local APK, device
+action or runtime PASS occurred during this external preparation. Current live
+CLAIMS/ACK hold newer resource/packet facts; finalized memory is not the live queue.
+Both app and memory final push receipts must be independently verified; this
+prefix does not invent its own memory SHA.
+
 # private-media-tv — Claude hand-back checkpoint (2026-10-28 ≈08:50Z, actor=CLAUDE)
 
 The owner ended Claude's third bounded takeover ("ok pause tour work as a builder codex is back", 2026-10-28 ≈08:38Z,
