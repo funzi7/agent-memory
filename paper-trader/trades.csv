@@ -1,10 +1,4 @@
 date,portfolio_id,strategy,ticker,side,shares,fill_price,commission,cash_after,equity_after,reason
-2026-06-24,momentum_scan_10k,momentum_scan,MRVL,BUY,7.0,281.6357,1.0,4108.63,9945.38,"rank 4, 6-1 +142.7%"
-2026-06-24,momentum_scan_10k,momentum_scan,MU,BUY,1.0,1083.4114,1.0,3024.22,9909.48,"rank 2, 6-1 +233.8%"
-2026-06-24,momentum_scan_10k,momentum_scan,ON,BUY,17.0,117.1936,1.0,1030.93,9883.77,"rank 5, 6-1 +140.6%"
-2026-06-24,leveraged_momentum_100,leveraged_momentum,AMDL,BUY,1.0,67.0335,0.6703,32.3,99.04,"rank 3, 6-1 +187.4%"
-2026-06-24,leveraged_momentum_10k,leveraged_momentum,AMDL,BUY,29.0,67.0335,1.0,8055.03,9990.49,"rank 3, 6-1 +187.4%"
-2026-06-24,leveraged_momentum_10k,leveraged_momentum,KORU,BUY,2.0,763.0914,1.0,6527.85,9945.87,"rank 1, 6-1 +473.8%"
 2026-06-24,leveraged_momentum_10k,leveraged_momentum,SOXL,BUY,8.0,233.2266,1.0,4661.03,9915.61,"rank 2, 6-1 +419.3%"
 2026-06-24,leveraged_momentum_10k,leveraged_momentum,TECL,BUY,9.0,210.3051,1.0,2767.29,9877.22,"rank 5, 6-1 +84.7%"
 2026-06-24,leveraged_momentum_10k,leveraged_momentum,USD,BUY,20.0,98.6893,1.0,792.5,9824.43,"rank 4, 6-1 +94.3%"
@@ -299,3 +293,9 @@ date,portfolio_id,strategy,ticker,side,shares,fill_price,commission,cash_after,e
 2026-10-28,swing_10k,swing,NXPI,BUY,6.0,238.2591,1.0,3959.16,8685.18,"פריצה #1 +3.1% מעל הרף, RSI 64"
 2026-10-28,swing_10k,swing,RCL,BUY,5.0,295.7478,1.0,2479.42,8696.94,"פריצה #3 +2.5% מעל הרף, RSI 63"
 2026-10-28,swing_10k,swing,TEL,BUY,7.0,230.115,1.0,867.62,8633.82,"פריצה #5 +2.3% מעל הרף, RSI 64"
+2026-10-29,leveraged_momentum_10k,leveraged_momentum,AMDL,SELL,1.0,64.3578,0.6436,76.06,8553.28,"מימוש חלקי +17% — נמכרה מחצית, סטופ הועלה לכניסה"
+2026-10-29,screener_track_10k,screener_track,HOOD,SELL,6.0,89.7751,1.0,1733.5,11149.29,סטופ הועלה לנקודת הכניסה — מתחת לכניסה
+2026-10-29,swing_10k,swing,BKR,SELL,29.0,54.3128,1.0,2441.69,8801.45,המהלך נגמר — מתחת לממוצע 10
+2026-10-29,swing_10k,swing,AON,BUY,7.0,317.7488,1.0,216.45,8827.69,"פריצה #1 +2.9% מעל הרף, RSI 67"
+2026-10-29,pullback_10k,pullback,FFIV,SELL,2.0,359.83,1.0,1285.38,11114.65,התמיכה נשברה — מתחת לממוצע 50
+2026-10-29,pullback_10k,pullback,HPE,BUY,21.0,58.6393,1.0,52.96,11118.5,משיכה #1 — חוזק יחסי 99% · מרחק מממוצע 50 +1.4%
