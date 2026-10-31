@@ -1,7 +1,4 @@
 date,portfolio_id,strategy,ticker,side,shares,fill_price,commission,cash_after,equity_after,reason
-2026-06-24,leveraged_momentum_10k,leveraged_momentum,SOXL,BUY,8.0,233.2266,1.0,4661.03,9915.61,"rank 2, 6-1 +419.3%"
-2026-06-24,leveraged_momentum_10k,leveraged_momentum,TECL,BUY,9.0,210.3051,1.0,2767.29,9877.22,"rank 5, 6-1 +84.7%"
-2026-06-24,leveraged_momentum_10k,leveraged_momentum,USD,BUY,20.0,98.6893,1.0,792.5,9824.43,"rank 4, 6-1 +94.3%"
 2026-06-24,screener_track_100,screener_track,CELH,BUY,1.0,28.064,0.2806,71.66,100.18,screener shortlist #2
 2026-06-24,screener_track_100,screener_track,RBLX,BUY,1.0,47.0235,0.4702,24.16,100.62,screener shortlist #7
 2026-06-24,screener_track_10k,screener_track,ADBE,BUY,7.0,195.9829,1.0,8627.12,10003.11,screener shortlist #5
@@ -299,3 +296,6 @@ date,portfolio_id,strategy,ticker,side,shares,fill_price,commission,cash_after,e
 2026-10-29,swing_10k,swing,AON,BUY,7.0,317.7488,1.0,216.45,8827.69,"פריצה #1 +2.9% מעל הרף, RSI 67"
 2026-10-29,pullback_10k,pullback,FFIV,SELL,2.0,359.83,1.0,1285.38,11114.65,התמיכה נשברה — מתחת לממוצע 50
 2026-10-29,pullback_10k,pullback,HPE,BUY,21.0,58.6393,1.0,52.96,11118.5,משיכה #1 — חוזק יחסי 99% · מרחק מממוצע 50 +1.4%
+2026-10-30,momentum_scan_100,momentum_scan,INTC,BUY,1.0,68.3942,0.6839,11.72,77.48,"rank 3, 6-1 +172.4%"
+2026-10-30,momentum_scan_10k,momentum_scan,FTNT,SELL,5.0,137.0215,1.0,2898.03,7403.71,סטופ נגרר — ירידה של 28.6% מהשיא
+2026-10-30,screener_track_10k,screener_track,PODD,SELL,7.0,154.5227,1.0,2814.16,10832.94,"מימוש חלקי +16% — נמכרה מחצית, סטופ הועלה לכניסה"
