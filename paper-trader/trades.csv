@@ -1,13 +1,4 @@
 date,portfolio_id,strategy,ticker,side,shares,fill_price,commission,cash_after,equity_after,reason
-2026-06-24,screener_track_100,screener_track,CELH,BUY,1.0,28.064,0.2806,71.66,100.18,screener shortlist #2
-2026-06-24,screener_track_100,screener_track,RBLX,BUY,1.0,47.0235,0.4702,24.16,100.62,screener shortlist #7
-2026-06-24,screener_track_10k,screener_track,ADBE,BUY,7.0,195.9829,1.0,8627.12,10003.11,screener shortlist #5
-2026-06-24,screener_track_10k,screener_track,CELH,BUY,50.0,28.064,1.0,7222.92,10024.91,screener shortlist #2
-2026-06-24,screener_track_10k,screener_track,FSLR,BUY,5.0,249.8449,1.0,5972.69,10016.48,screener shortlist #4
-2026-06-24,screener_track_10k,screener_track,NVDA,BUY,7.0,200.17,1.0,4570.5,10007.29,screener shortlist #1
-2026-06-24,screener_track_10k,screener_track,PODD,BUY,9.0,144.9024,1.0,3265.38,10042.09,screener shortlist #6
-2026-06-24,screener_track_10k,screener_track,RBLX,BUY,30.0,47.0235,1.0,1853.68,10068.59,screener shortlist #7
-2026-06-24,screener_track_10k,screener_track,TSM,BUY,3.0,434.192,1.0,550.1,10087.5,screener shortlist #3
 2026-06-25,swing_100,swing,SWK,BUY,1.0,89.985,0.8999,9.12,101.43,"פריצה #4 +3.4% מעל הרף, RSI 67"
 2026-06-25,swing_10k,swing,BKNG,BUY,11.0,181.1505,1.0,8006.34,9953.89,"פריצה #5 +3.1% מעל הרף, RSI 65"
 2026-06-25,swing_10k,swing,DHI,BUY,11.0,168.2641,1.0,6154.44,9938.44,"פריצה #3 +5.5% מעל הרף, RSI 69"
@@ -299,3 +290,12 @@ date,portfolio_id,strategy,ticker,side,shares,fill_price,commission,cash_after,e
 2026-10-30,momentum_scan_100,momentum_scan,INTC,BUY,1.0,68.3942,0.6839,11.72,77.48,"rank 3, 6-1 +172.4%"
 2026-10-30,momentum_scan_10k,momentum_scan,FTNT,SELL,5.0,137.0215,1.0,2898.03,7403.71,סטופ נגרר — ירידה של 28.6% מהשיא
 2026-10-30,screener_track_10k,screener_track,PODD,SELL,7.0,154.5227,1.0,2814.16,10832.94,"מימוש חלקי +16% — נמכרה מחצית, סטופ הועלה לכניסה"
+2026-11-02,rsi2_100,rsi2,SPYM,BUY,1.0,89.4247,0.8942,4.28,92.8,RSI2=9.3 < 10
+2026-11-02,rsi2_10k,rsi2,SPY,BUY,13.0,759.8297,1.0,348.67,10125.97,RSI2=9.3 < 10
+2026-11-02,momentum_scan_10k,momentum_scan,TEAM,BUY,14.0,193.8269,1.0,183.45,6939.99,"מילוי אמצע-חודש — דירוג #3, מומנטום 6-1 +173.8%"
+2026-11-02,leveraged_momentum_10k,leveraged_momentum,AMDL,SELL,2.0,51.8141,1.0,178.68,6678.0,סטופ הועלה לנקודת הכניסה — מתחת לכניסה
+2026-11-02,leveraged_momentum_10k,leveraged_momentum,ROM,SELL,3.0,133.3633,1.0,577.77,6703.59,סטופ הועלה לנקודת הכניסה — מתחת לכניסה
+2026-11-02,swing_10k,swing,TEL,SELL,7.0,215.932,1.0,1726.97,8875.32,המהלך נגמר — מתחת לממוצע 10
+2026-11-02,swing_10k,swing,MHK,BUY,11.0,143.8419,1.0,143.71,8926.44,"פריצה #1 +7.2% מעל הרף, RSI 68"
+2026-11-02,pullback_10k,pullback,HPE,SELL,21.0,55.4723,1.0,1216.87,10863.07,התמיכה נשברה — מתחת לממוצע 50
+2026-11-02,pullback_10k,pullback,VLO,BUY,3.0,392.8763,1.0,37.24,10827.82,משיכה #1 — חוזק יחסי 97% · מרחק מממוצע 50 +0.5%
