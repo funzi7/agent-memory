@@ -1,3 +1,127 @@
+# private-media-tv — BOTH229 installed; records CI not created (2026-11-04)
+
+This is a truthful continuation checkpoint, NOT full Sports/T4 completion or
+exact-records-head CI success. Keep every older body byte below this prefix:
+566143bytes/SHA2564d33d023402e478bbe4057b6f5ee5d23795f9ea13cc2ee39d8b3d894d3847790.
+The helper-only memory transaction follows; record its actual result externally.
+
+## Current ownership and preservation
+
+- Owner123 returned Codex as sole tracked/index/Git writer after Claude's quota
+  at2026-11-03T19:38:36Z. Claude is read-only. Canonical coordination remains
+  `/root/work/_agent-coordination/private-media-tv/`: read all eight files,
+  register requests before substantive work, inspect BOTH inboxes, semantically
+  dedupe, consume valid READY_FOR_CODEX research rather than repeat it. Owner
+  need not remember which agent received a note. Permanent flock/preimage-
+  checked atomic publication; one tracked writer and one global heavy job.
+- Current release tree is the EXISTING scratchpad/wt-229, detached at normally
+  pushed/live-verified records6174992c2f2ccca55b7713b8e11c8ab035ea9f51,
+  tree9f2933f4d3d60babb2998e2875aee13d8ca47869, clean. Its parent/source is
+  1d58503b9ed3e9e24252f499c36a278f441d509f, the APK actually on both devices.
+- Source1d585 is the reviewed same-tree forward integration of remote210
+  9a5e49a3415ba5f433f1248bfbada629230e6b43 and candidate9c3a6c3f30c9d6584ac9c581d3903693af688fe6.
+  Both histories retained; no reset/rebase/amend/squash/stash/new-worktree bypass.
+- Original `/root/work/private-media-tv` remains main/d2a45f78fad71b65b47d0e927ce4c35704312e5b,
+  111modified+51untracked/indexempty at takeover. Existing partialwt-230 remains
+  b15d5371dbae768647efcc250c25d6c4fd145f79,18modified+3untracked. Both untouched.
+  Partial230 is unfinished audit3 batch5, NOT a qualified new version/APK.
+- Evidence root: canonical `results/codex-resume-20261104.EKk8w9/`.
+  Current tracked receipt: `docs/BUILD229_HANDOFF_20261104.md`. Do not resume
+  old automatic ship/rebase/amend scripts or redo dated109/84 checkpoints.
+
+## Executed source229 validation, delivery and installations
+
+- Preserved inherited211–229 work and all six ff01 review corrections. Imported
+  Claude's existing cf299 FreeTV replay fixture byte-for-byte, no production
+  rewrite. Retain originalG228B phone2FAIL and16green steps; not whole-localPASS.
+- Run19793 replay10PASS, run35411 website57/catalog42/phone52/TV81PASS:
+  242distinct selected methods across separate runs, zero error/failure/skip.
+  feature-sports NO-SOURCE means ZERO tests. Exact inputs/diffs stable, one
+  global queue/worker; no stress or process killing. Independent source/merge
+  reviews SCOPED CLEAN; actual rendering/provider/runtime acceptance separate.
+- Exact source1d585 Android41811107125 attempt1 SUCCESS2026-11-04T10:44:41Z;
+  observer1180 CLOSED0. Authenticated inventory13315245310:
+  5406=5395PASS+11retainedSKIP+0FAIL/661XML, payloadSHA
+  471353feade132747a983b40e79206f8f061c42f1e20731e1cc07ec01b701d58.
+  Versus210:88addedPASS identities INCLUDING4exactPASSrenames,84net additions,
+  no status changes/unaccounted removals. The old installed-gh unsupported
+  `attempt` field fetch failure is retained; reviewed raw-API normalization
+  preserved provenance guards and corrected fetch59456 passed.
+- Canonical download75561 completed0 at10:49:31Z, artifact13314841829; ONE GENERAL
+  `Download/private-media-tv/private-media-tv-mobile-0.7.181.apk`,code229,
+  265136845bytes/SHA2569e5c799ac83ece1b82425fbe147b467ba03a632d3482a8a301bf0a299f895e9f.
+  Same mobile package/Development signer2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0.
+  Manifest/TDLib/Gecko/FFmpeg association passed, FFmpeg public inputs VERIFIED.
+  Old210 installer pruned only after exact backup; source210 and source229
+  backups remain in evidence root. Offline60748 exact210→229 passed, not runtime.
+- Owner125 confirmed both idle/closed/phone unlocked. Fresh measured guards
+  controlled each update through untraced Termux-hostADB10063. PHONE47703
+  installed10:51:33Z; SHIELD76175 installed11:00:24Z via canonical --no-launch.
+  Whole APK/version/unchanged firstInstallTime verified; phone unlocked before/
+  after. No app launch, device unlock, force-stop, uninstall or data/cache clear.
+  Both heavy/device leases released. Owner told both installed and may use apps.
+- FirstShield52816 deferred75 before mutation on a historical PMTV audio UID.
+  Read-only accounting proved zero current sessions/null global+media-button,
+  history-only tail. External parser correction31f60b3157ed6b1c69c02da5a1336318b0ec3c01af241b54e6ce6833a642268c
+  accepts only that proved shape; unknown/nonzero/contradictory states refuse.
+  Sixteen finite fake checks and independent SCOPED CLEAN preceded fresh retry.
+  No Android/source/APK/version change for this correction.
+
+## Records closeout: done versus pending
+
+- Exactly10 Markdown records committed617499, normal push/live equality passed.
+  Final diffd552fc69b9c9ee4b1f5f1fa5e9e5f34b20c685ed7ff1fbcb4f9b750ca3687916,
+  independent patch and actual exact-commit SCOPED CLEAN, zero unresolvedP1/P2.
+  One ambiguous future-finalization claim was corrected before commit. Root
+  verified task-only index/clean tree/diff-check. No build inputs changed.
+- Records Android CI has NOT been created. Sole discovery observer15189 ended1
+  after10 bounded60-second attempts. Fresh repo Actions enabled/workflow active;
+  exact617499 has zero check suites/runs/statuses; latest actual run remains
+  source41811107125. Cause UNKNOWN, not a code/test failure and not a CI PASS.
+  No active observer remains. Do not launch repeated parallel watchers or
+  manufacture an empty/version/workflow change merely to trigger CI.
+- Therefore records inventory/publication/payload comparison remain UNRUN.
+  Reviewed fetch_records_inventory.sh and compare_records229.py are ready but
+  require independently authenticated exact records artifacts first. Source229
+  remains canonical downloaded/installed bytes; no redundant reinstall planned.
+- APK delivery/install checkpoint is complete; exact-records finalization and
+  full Sports/T4 are NOT complete. Physical phone/Shield Sports layout, D-pad,
+  Back, FreeTV5MAX guide/replay, Sport6 owner-IPTV, SerieA, spoiler behavior,
+  split playback, storage and AV gates remain OPEN. No physical PASS invented.
+
+## Existing next work and fresh owner126 notes
+
+- Continue existing COORD146/REQ-CLAUDE-286/REQ-CODEX124 Sports/T4 after the build
+  checkpoint: preserved audit3 batch5 G24/G26–32, then existing G19 and approved
+  related Sports queue. Source211–229 is already delivered, not work to recreate.
+- Reuse PARTIAL_BATCH5_REVIEW.md, BATCH5_TEST_SEAMS.md, BATCH5_CORRECTION_MAP.md
+  and G19_U2_U3_APPLICABILITY.md. Partial230 P1: a tap must own its exact Website
+  request/generation, not any Website route; P2: optional round/ground must not
+  expand compact rows. Proposed corrections are UNAPPLIED/UNRUN, not qualified.
+  Missing imports and CL151 guide-cell/no-Toast scope remain unfinished. Keep
+  ff01's vault-backed sourceRevision alongside partial shared management labels.
+- G19 factual answers: no production match-CW writer; per-install recurring
+  scopes differ; current setters use local-account/local-now and NI=false journal
+  lacks recurring scope. SliceD deferred; SliceB safe-apply contract still needed.
+- REQ-CODEX126 is registered QUEUED in the canonical Codex inbox/task/current,
+  extends existing Sports/T4, not an extra release. Owner reports Shield Match
+  Details should use phone-style wide banner/no small poster + centered summary
+  (G28/G29 duplicate/refinement); reminder/not-interested side by side with icons;
+  live-only match broadcast listings before/during play, not reruns; match-specific
+  Israeli plus relevant UK/US sources, not all Sport5/ONE channels; RTL bench
+  beside formation without duplicate starters; fix contradictory schedule-refresh
+  message despite retained broadcaster; investigate stale pre-match standings.
+  AEK Athens–Real Madrid/Sport5 is owner-reported PMTV display, not independently
+  proved channel binding. CL058/060 remain landed; new stale report stays open.
+  Optional designed side area/logos is a suggestion, not a silently fixed layout
+  decision. Preserve fixture identity, spoiler/frozen-table and missing-formation
+  fallback contracts. Carry notes into tracked batch UX/test/acceptance records
+  at its next substantive checkpoint; no immediate product mutation from intake.
+- D1 remains HOLD/OFF-safe, no VPS/D2/deployment/baseline waiver. All unrelated
+  dirty/held work preserved. Claude remains read-only; no writer handoff.
+
+---
+
 # private-media-tv — build108 software checkpoint, Codex writer (2026-10-30)
 
 Records CI, authenticated inventory and canonical publication are complete;
