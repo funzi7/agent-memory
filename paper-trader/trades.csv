@@ -1,8 +1,4 @@
 date,portfolio_id,strategy,ticker,side,shares,fill_price,commission,cash_after,equity_after,reason
-2026-07-01,twitter_track_100,twitter_track,PGY,BUY,1.0,18.3292,0.1833,49.49,99.22,קנייה לפי @theaiportfolios
-2026-07-01,twitter_track_10k,twitter_track,ARDX,SELL,308.0,5.1174,1.54,1613.45,10378.73,קנייה לפי @theaiportfolios
-2026-07-01,twitter_track_10k,twitter_track,NOW,SELL,18.0,103.5482,1.0,3476.32,10337.2,קנייה לפי @theaiportfolios
-2026-07-01,twitter_track_10k,twitter_track,PGY,BUY,182.0,18.3292,1.0,139.41,10416.43,קנייה לפי @theaiportfolios
 2026-07-02,rotation_10k,rotation,QQQ,BUY,13.0,725.9428,1.0,561.74,9825.54,rotate->QQQ (25.8%)
 2026-07-02,swing_10k,swing,DHI,SELL,11.0,156.8915,1.0,2148.31,9990.7,המהלך נגמר — מתחת לממוצע 10
 2026-07-02,swing_10k,swing,APD,BUY,7.0,306.6132,1.0,1.02,10042.74,"פריצה #1 +5.2% מעל הרף, RSI 68"
@@ -299,3 +295,7 @@ date,portfolio_id,strategy,ticker,side,shares,fill_price,commission,cash_after,e
 2026-11-03,screener_track_10k,screener_track,SE,BUY,14.0,76.5432,1.0,470.7,10793.29,screener shortlist #5
 2026-11-03,pullback_10k,pullback,VLO,SELL,3.0,378.7105,1.0,1172.38,10844.16,התמיכה נשברה — מתחת לממוצע 50
 2026-11-03,pullback_10k,pullback,CRWD,BUY,4.0,244.2971,1.0,194.19,10844.69,משיכה #1 — חוזק יחסי 100% · מרחק מממוצע 50 +0.2%
+2026-11-04,rsi2_100,rsi2,SPYM,SELL,1.0,89.7451,0.8975,93.13,93.13,exit
+2026-11-04,momentum_scan_10k,momentum_scan,MRVL,SELL,7.0,165.1774,1.0,2776.95,6926.58,סטופ נגרר — ירידה של 42.3% מהשיא
+2026-11-04,momentum_scan_10k,momentum_scan,AMD,BUY,5.0,485.4926,1.0,348.48,6942.01,"מילוי אמצע-חודש — דירוג #2, מומנטום 6-1 +186.9%"
+2026-11-04,pullback_100,pullback,MTCH,SELL,2.0,38.5807,0.7716,88.13,88.13,התמיכה נשברה — מתחת לממוצע 50
