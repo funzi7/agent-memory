@@ -1,16 +1,16 @@
 # thai-rent-finder — State
 
 > Living document. Auto-updated daily at 02:00 UTC by `auto-update-state.yml`.
-> Last auto-update: 2026-11-05
+> Last auto-update: 2026-11-06
 > Production: https://thai-rent-finder.vercel.app
-> Total listings in DB: 3143
+> Total listings in DB: 3147
 
 ## Sources status (current)
 
 | Source | Tier | Cron (ICT) | Status | Listings 7d |
 |--------|------|------------|--------|-------------|
 | FAZWAZ | 2 (GH Actions) | 03:00 | ✅ active | 60 |
-| RENTHUB | 2 (GH Actions) | 03:30 | ✅ active | 588 |
+| RENTHUB | 2 (GH Actions) | 03:30 | ✅ active | 477 |
 | THAILAND_PROPERTY | 2 (GH Actions) | 09:00 | ✅ active | 31 |
 | LIVING_INSIDER | 2 (GH Actions) | paused | ⏸️ paused (access blocked) | n/a |
 | LAZUDI | 2 (GH Actions) | paused | ⏸️ paused (access blocked) | n/a |
