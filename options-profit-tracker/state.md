@@ -1610,3 +1610,39 @@ No broker/provider QA or manual device DB write; network-capable physical UI rem
   `-926.74` versus `-990.92`, MULL `-5678.18` versus `-4563.93`, OPT `-6604.92` versus broker headline
   `-5554.86` (displayed broker rows sum `-5554.85`). Flex FIFO evidence reproduces OPT; displayed average
   anchors can reproduce broker, but no accounting-policy choice or invented cent was made.
+
+### 2026-11-06 — installed stock-price recovery and automatic Flex isolation (PR #19)
+
+- OPT follow-up start `6f13551b7c28b908e4a5a6e82a3fbf78f9cfa135`; final/pushed/reviewed exact
+  HEAD `b928645dd3290909fe71367b6e480e925ddd3e3d`. Same
+  `s2/ibkr-reconciliation-lifecycle-dashboard` branch and open PR #19; no merge/main push. The owner
+  `local.properties` edit remained unstaged/excluded.
+- Proven installed root cause: the retained package-only `OEM_DENY_3` QA block denied DNS, producing
+  a canonical Yahoo batch `0/8`. WorkManager simultaneously held four unfinished Flex slots
+  (periodic, pre-market, full sync-now, regular sync-now), so removing the block first was unsafe.
+- Automatic Flex origins now persist `requires_auto_sync=true` and check the durable switch before
+  credentials/provider access. Legacy origin-less requests fail closed while disabled. OFF cancels
+  and awaits all four slots; app start/boot also clear them and boot awaits persistence. Every
+  pre-market re-arm is gated. ON restores pre-market+periodic. Explicit owner sync persists false and
+  remains available. `OptionsTrackerApp` is the sole pre-market owner; Dashboard no longer schedules.
+- Focused policy tests passed 28/28 across 2 classes. Full JVM passed 2336 tests / 169 classes / 0
+  failures / 0 errors / 2 skips (`BUILD SUCCESSFUL in 31s`). Final compile passed in 12s with zero
+  real `^e:` lines. Fresh clean assembly passed in 4m54s (42/42 tasks).
+- APK version `1.0.0` / code `1`, 64,832,472 bytes, SHA-256
+  `50deec8ea135426b88633a23be2050ee8d38823d40a0380b2f8034d441cd7481`; unchanged signer SHA-256
+  `9e5307e1344917f0cdc495c5cc04a80d23a92c5965c779b6efb0faa1135b8221`, SHA-1
+  `5d3d855c6c6c397f817df2bd0c62f16f940b1551`. Installed in place with data preserved; exact copy
+  delivered to `/sdcard/Download/OptionsProfitTracker/OptionsProfitTracker-1.0.0.apk`.
+- A temporary signed helper used only app APIs to set auto-sync OFF and await all Flex cancellations,
+  then was removed/uninstalled. WorkManager integrity was `ok`, unfinished Flex rows zero. After
+  releasing `OEM_DENY_3`, a bounded Yahoo check returned stocks 8/8 and indices 4/4; durable evidence
+  recorded attempt/commit 8, requested 8, usable 8. No Flex worker/fetch/start and no IBKR request ran.
+  Temporary Doze/background allowances were removed, normal stopped/background policy restored, and
+  OPT was force-stopped. The phone stayed locked, so visual screen rendering remains unclaimed.
+- Trusted Codex receipt comment `6692049538` reviewed exact `b928645dd3` clean: “Didn't find any major
+  issues.” Exact-head Build Gate run `42268223284` / job `128065633929`, scripts run `42268223214` /
+  job `128065633553`, Codex evaluator run `42268932939` / job `128068119850`, and PR-head status check
+  `128068254240` passed. The initial push-time Codex evaluator failure preceded the review and is
+  superseded by the authoritative green PR-head check.
+- Existing Sep/YTD/November financial residuals and the separate standalone market-agent plan remain
+  unchanged. No broker sync/import/resync, IV/chain/PUT/news refresh or trade ran.

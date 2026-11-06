@@ -1348,3 +1348,17 @@ No unrelated backlog item closed; no broker/API quota consumed.
 - Standalone market-agent implementation is intentionally out of this repository/task. The approved
   plan remains `docs/STANDALONE_MARKET_AGENT_PLAN.md`; future implementation belongs in private
   `funzi7/opt-market-agent`, with separate hosting/schedule/budget approval.
+
+### 2026-11-06 — stock-price item closed in provider/persistence scope
+
+- **DONE:** Dashboard quote ownership, process dedup, full-universe chunking and attempt-ordered
+  persistence; installed network recovery returned Yahoo stocks 8/8 and indices 4/4.
+- **DONE:** automatic Flex admission/cancellation safety. OFF cancels all four durable slots and
+  automatic/legacy jobs cannot reach broker access; manual owner sync remains distinct.
+- **PENDING only:** visual rendering after the owner unlocks the phone. Auto-sync remains OFF. Do not
+  spend broker/option/paid-provider quota for this check.
+- Still open and unchanged: Sep fixed-window/options statement/YTD parity, November stock accounting
+  policy/evidence, historical stock-ledger/SOFI coverage, missing Flex `ibOrderID`, migration
+  registration hazard, PR #20 rollout, OPT → Trading Tracker, conditional daily ChatGPT report,
+  Phase 3 personal exit learning, and standalone agent implementation in future private
+  `funzi7/opt-market-agent`.

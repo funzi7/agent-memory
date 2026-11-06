@@ -1180,3 +1180,16 @@ Do not claim a clean exact-head review/gate until that placeholder is replaced w
 - `IBKR 1003 statement not available` was observed from the old miswired Prices action. Do not reproduce
   it by retrying broker sync for quote QA; validate ownership with fakes and perform live checks only with
   explicit owner approval.
+
+### 2026-11-06 — package network blocks can hide queued broker work
+
+- A package-only network deny can make the quote provider look empty (`0/8`) while WorkManager broker
+  jobs accumulate behind the same connectivity constraint. Inspect both before unblocking; never infer
+  provider failure from the UI message alone.
+- Auto-sync OFF is a broker-access admission rule, not merely cancellation of one periodic name.
+  Automatic jobs need durable origin metadata, legacy jobs fail closed, and all known periodic,
+  pre-market/full/regular one-shot slots must be cancelled and awaited. Explicit owner sync is the
+  only false-origin request.
+- A locked Android device may keep foreground-launched work under Doze/background restrictions.
+  Temporary app-only exceptions must be bounded, removed afterward and never used until unfinished
+  broker work is zero. Provider log+persistence evidence is not visual UI acceptance.

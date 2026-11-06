@@ -708,3 +708,17 @@ assembly successful; exact-head trusted Codex receipt, PR Build Gate, scripts an
 No broker sync/import/full resync, price/IV/option-chain/PUT/watchlist/news refresh, paid request,
 trading action, manual device-DB mutation, uninstall or clear was performed. These paths are PENDING,
 not silently promoted to PASS.
+
+### 2026-11-06 — stock-price recovery physical result and remaining check
+
+- **PASS:** exact installed APK, preserved data/signer; auto-sync durably OFF; zero unfinished Flex
+  work before package networking was restored; bounded Yahoo stocks `8/8` and indices `4/4`; durable
+  quote evidence attempt/success `8`, requested/usable `8`; no broker request.
+- **PASS:** focused 28/28, full JVM 2336 tests / 169 classes / 0 failures / 0 errors / 2 skips, final
+  compile and clean APK assembly; exact-head Build/scripts/Codex Gates and trusted review clean.
+- **OWNER-VISIBLE PENDING:** the phone stayed locked, so unlock/open Dashboard and confirm the fresh
+  persisted prices render. Do not run a broker sync to verify quotes. Auto-sync is intentionally OFF;
+  enabling it is a separate owner action.
+- The earlier blanket “price refresh cause undiagnosed” warning is superseded for Dashboard Prices:
+  quote ownership/dedup is implemented and the installed `0/8` failure was the retained package
+  network deny. This does not authorize live IV, option-chain, PUT, news or paid-key QA.
