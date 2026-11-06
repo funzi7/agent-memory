@@ -1320,3 +1320,31 @@ No unrelated backlog item closed; no broker/API quota consumed.
 - Codex Gate (PR #19) is blocked by TWO pre-existing P2s from the 2026-10-19 review, both in the financial/reconciliation engine and OUT of the device-QA rounds scope: ClosePositionScreen.kt:768 (sanitize stale legs before deriving BTC targets) and AppModule.kt:143 (observe reconciliation evidence changes in canonical flows). Owner to resolve; do not touch the engine to clear the gate, and do not add the override label.
 - Owner choices 3-7 (import of newly-accepted OPEN/one-letter cycles; GetStatement pacing; non-standard multipliers; sync-now tap joining a backoff wait; overdue pre-market now runs) remain OPEN.
 - Live-network verification of the single-flight scheduling and a broker E2E remain owner-gated (see pending-tests ADB1/ADB2).
+
+### 2026-11-06 — backlog reconciliation after reviewed OPT `6f13551`
+
+- **SUPERSEDED — fixed:** the October stale-spread-leg BTC-target P2 and non-reactive canonical-flow
+  P2. Exact reviewed source sanitizes single-leg evidence and makes durable reconciliation changes
+  process-observable only after successful commits. Do not reopen these without new evidence.
+- **DONE in source, physical acceptance pending:** Dashboard Prices owns canonical stock quotes rather
+  than Flex, complete universes are chunked/coalesced, attempt-ordered snapshot/evidence/Room projection
+  is fenced, historical assignments are excluded from CC reminders, and Settings shows the generated
+  app version. No final APK install/launch was possible because no device was attached.
+- **OPEN financial parity:** Sep1–28 102.34 residual/33 canonical local-only cycles; Sep3–Oct2 206.27;
+  September statement 198.21 with SOXL 199.23 local versus broker option 0 but residual -1.02 after the
+  counterfactual; YTD 598.81/45 local-only cycles; genuine BTCI/IRE/SPCH partial slices total 302.54 and
+  are not duplicates. November options match +232.30; November RKLX/MULL stock remains -6604.92 versus
+  broker headline -5554.86. No offset, cost-basis guess, cent plug or accounting-policy switch.
+- Preserve: partial historical stock-ledger coverage, SOFI historical attribution, missing Flex
+  `ibOrderID`, `MIGRATION_30_31` registration hazard, expired/null-close history and bidi debt,
+  exact-series/non-penny/larger-tick proof gaps, and cross-store process-death/permanent-projection
+  limitations.
+- Preserve owner choices 3–7: import newly accepted OPEN/one-letter cycles; GetStatement pacing;
+  non-standard multipliers; sync-now joining backoff; overdue pre-market semantics; plus ADB1 live
+  scheduling and ADB2 broker E2E.
+- Preserve unrelated roadmap: OPT → Trading Tracker remains SPEC_ONLY; conditional ChatGPT daily
+  report; Phase 3 personal historical BTC-exit learning; PR #20 automation-core/fallback rollout and
+  untested `issues:write` permission.
+- Standalone market-agent implementation is intentionally out of this repository/task. The approved
+  plan remains `docs/STANDALONE_MARKET_AGENT_PLAN.md`; future implementation belongs in private
+  `funzi7/opt-market-agent`, with separate hosting/schedule/budget approval.

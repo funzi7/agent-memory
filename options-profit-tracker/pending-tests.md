@@ -682,3 +682,29 @@ Physical QA actually performed remains readonly DB/WAL/reconciliation copies wit
 
 - [ ] (ADB1) Live-network scheduling: on the owner next open, confirm the one pending single-flight flex_sync_now_full runs plus any due periodic/pre-market, serialized by the coordinator, with no duplicate anonymous Flex one-shots. Not verified this round (QA ran under an app-scoped network block; no IBKR request authorized).
 - [ ] (ADB2) Broker E2E of the new single-flight scheduling against a real daily Flex snapshot — not authorized this round.
+
+### 2026-11-06 — exact-head deterministic PASS versus owner-deferred physical/network QA
+
+Deterministic PASS at OPT `6f13551b7c28b908e4a5a6e82a3fbf78f9cfa135`: financial focused
+134/134; stock-quote focused 53/53; full JVM 2334 tests / 169 classes / 0 failures / 0 errors / one
+existing private-history skip (2333 executed); Node 84/84; exporter 4/4; strict compile and clean APK
+assembly successful; exact-head trusted Codex receipt, PR Build Gate, scripts and Codex Gate all clean.
+
+- [ ] Physical install/launch of the final 64,832,472-byte APK and visual checks of Settings version,
+  CC reminder exclusions, close BTC price/percentage/saved target behavior and stock quote status. Host
+  ADB had no attached device; the APK is delivered but was not installed or launched.
+- [ ] Live stock-price freshness and provider batching on owner data. Source/fake-counter tests pass,
+  but no Yahoo/Finnhub request was authorized. Confirm only when a controlled live request is approved.
+- [ ] Confirm Dashboard Prices never presents `IBKR 1003 statement not available` after installation.
+  The source owner is corrected, but no broker/provider retry was made this round.
+- [ ] Reconcile Sep1–28 residual 102.34 using a per-cycle broker export if one becomes available; none is
+  saved locally. Keep Sep3–Oct2 206.27, September-statement 198.21/SOXL evidence and YTD 598.81 open.
+- [ ] Decide November stock accounting policy only with authoritative transaction-level broker basis:
+  RKLX/MULL OPT/Flex FIFO totals remain -6604.92 versus broker headline -5554.86. Do not rewrite history
+  or switch to displayed-average inference without owner approval.
+- [ ] Preserve ADB1 live scheduling and ADB2 broker E2E as owner-gated. Also retain historical-stock
+  coverage/SOFI attribution/missing Flex `ibOrderID`, assignment provenance and exact tick-proof gaps.
+
+No broker sync/import/full resync, price/IV/option-chain/PUT/watchlist/news refresh, paid request,
+trading action, manual device-DB mutation, uninstall or clear was performed. These paths are PENDING,
+not silently promoted to PASS.

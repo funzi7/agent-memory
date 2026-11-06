@@ -1160,3 +1160,23 @@ Do not claim a clean exact-head review/gate until that placeholder is replaced w
 - NEVER test lease tooling against the real client: an unstubbed fixture test ran a real server kill and stopped the Termux host ADB server (2026-10-20 10:05Z). Every test env stubs the client first on PATH and aborts otherwise.
 - The hardened policy is a text policy by design and says so: the client invoked from inside a script FILE, or built from runtime data, is invisible to it — run such scripts explicitly under the run helper. Known accepted limit.
 - Over-trigger seen in practice (acceptable, fail-safe): a Python heredoc that WRITES documentation containing a markdown code-span is treated as interpreter code with an execution construct, so if that text also names the lease engine the hook denies it. Write such files with the editor tool, not an interpreter heredoc.
+
+### 2026-11-06 — close-money, evidence-flow and quote-attempt ownership lessons
+
+- Strategy owns leg shape. Sanitize all four legacy spread-leg fields together before any single-leg
+  opening-money, BTC target, derived-percent or preview calculation; preserve them for genuine spreads.
+  Exact executable price drives money and percentage is derived—never multiply opening credit by a
+  rounded display percentage.
+- SharedPreferences evidence can change canonical identity without a Room row changing. Every store
+  instance must share one process revision, and only a successful changed durable commit may advance
+  it. Failed/no-op/CAS-rejected edits must not wake flows with false evidence.
+- Quote snapshot acceptance is not enough if Room `currentStockPrice` projection is deferred. Fresh
+  OPEN rows, durable attempt recheck and full-row CAS must run under the same lifecycle owner; success
+  commit plus bounded projection must resist coroutine cancellation. A different-universe request is
+  not coalesced, so attempt ordering—not a global mutex alone—prevents an older response from winning.
+- Dashboard **Prices** must never call Flex. Provider quote state, broker sync state and their timestamps
+  are separate facts. A zero/partial provider result retains prior successful prices and reports factual
+  failure or `X/Y`; it must not fabricate freshness or revive a pruned stock root.
+- `IBKR 1003 statement not available` was observed from the old miswired Prices action. Do not reproduce
+  it by retrying broker sync for quote QA; validate ownership with fakes and perform live checks only with
+  explicit owner approval.

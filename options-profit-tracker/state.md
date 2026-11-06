@@ -1542,3 +1542,71 @@ No broker/provider QA or manual device DB write; network-capable physical UI rem
 - INCIDENT 10:05Z: a fixture test run WITHOUT the stub client ran a real server kill and stopped the Termux host ADB server (an unfixed newline-in-quoted--c bug let a "#" comment hide the line). The phone link had already dropped phone-side 08:57Z and device QA was already complete, so nothing on the phone was affected; the server lifecycle was not broken deliberately from PRoot. Owner restarted the server in Termux (~10:17Z, protocol 41, TracerPid 0). Fix: every test env stubs the client first on PATH and aborts otherwise; a test asserts refused commands never reach the stub. RULE: never test lease tooling against the real client — stub it.
 - Codex Gate at head 2ae2916: Codex reviewed CLEAN ("no major issues", 10:52Z) and build-gate+scripts-test pass, but the Gate stays RED on TWO pre-existing active P2s from the 2026-10-19 review — ClosePositionScreen.kt:768 (stale legs -> BTC targets) and AppModule.kt:143 (reconciliation evidence in canonical flows), both financial/reconciliation engine and out of this round's scope. NOT bypassed; no override label added; no thread resolved without a fix; PR #20 not merged.
 - Owner choices 3-7 still open. Not verified: the new scheduling under a live network (owner's next open runs the one pending flex_sync_now_full + any due periodic/pre-market, serialized); broker E2E (not authorized).
+
+### 2026-11-06 — financial P2s, reconciliation/assignment hardening and truthful stock-price refresh (PR #19)
+
+- OPT start `d2c5a3ebeded5c09ca7c3f03375418a40a069bb3`; final/pushed exact HEAD
+  `6f13551b7c28b908e4a5a6e82a3fbf78f9cfa135` on the existing
+  `s2/ibkr-reconciliation-lifecycle-dashboard` branch. PR #19 remains OPEN and unmerged; `main` was
+  not pushed. The owner's `local.properties` SDK-path edit stayed unstaged and was excluded from every
+  commit. `docs/STANDALONE_MARKET_AGENT_PLAN.md` was preserved unchanged; implementation remains a
+  future separate private repository, `funzi7/opt-market-agent`.
+- **SUPERSEDED — fixed with owner approval:** the 2026-10-20 stale-leg BTC P2. All close-screen opening
+  money now uses `SpreadEvidence.sanitizeLegs`: legacy second-leg fields are cleared atomically for
+  CC/CSP/other strategy-owned single legs and preserved for genuine spreads. Owner-entered BTC price,
+  edited percentage, saved targets, reopening and exact price-based dollars remain intact. WDCX stays
+  exactly `0.95 × 3 × 100 - 0.65 × 3 × 100 - (-1.46) - (-1.47) = 92.93`; rounded `32%` never produces
+  `94.13`.
+- **SUPERSEDED — fixed with owner approval:** the 2026-10-20 non-reactive canonical-flow P2.
+  `BrokerReconciliationStore` instances share one process-owned `BrokerEvidenceRevision`; only a
+  successful changed synchronous durable commit advances it. `OptionsRepository` combines Room rows
+  with that revision before canonical selection, so evidence invalidation/reassociation recomputes even
+  without a Room emission. No-op, failed and rejected CAS commits do not publish false changes.
+- Subsequent complete-PR findings were fixed without financial plugs: broker evidence/class/open-exec
+  proof is required for partial replay; signed opening-commission cents are conserved sequentially;
+  destructive canonical+hidden-inverse deletion requires durable association, evidence revision and
+  complete full-row group CAS with all-or-none cancellation recovery; assignments and collapsed
+  representations fail closed. Historical assignments are excluded from covered-call reminders. The
+  owner confirmed the prior BBAI/ASTX/BTCI reminder phantoms no longer appeared. App version now renders
+  from `BuildConfig.VERSION_NAME` in Settings, without a version bump.
+- Stock-price root cause was proven: the visible Dashboard **Prices** action called the Flex/IBKR sync
+  path, explaining the observed `IBKR 1003 statement not available`, while quote ownership was split
+  across callers. It now forces the process-owned `DASHBOARD_PRICE_REFRESH` workflow, covers the complete
+  normalized snapshot+OPEN universe in stable provider batches of at most 30, joins equivalent in-flight
+  work, and keeps explicit force distinct from automatic freshness. Quote evidence is operational,
+  non-backup and separate from broker timestamps. Success/failure, partial `X/Y`, omissions and
+  authoritative pruning are factual; no Flex call is owned by Prices.
+- Exact-head review `5801013995` of predecessor `00bb211d47...` found P2 comment `4493135680`: an older
+  different-universe quote attempt could still overwrite newer Room position prices after the canonical
+  snapshot/evidence attempt had won. Final fix `6f13551...` rereads fresh OPEN rows under
+  `BrokerLifecycleMutationCoordinator`, rechecks the durable accepted attempt, uses bounded full-row CAS,
+  and keeps accepted commit+projection non-cancellable; failure commits use the same owner. Five
+  concurrency regressions cover supersession, CAS races, failure release and cancellation. Reply
+  `4493482112` resolved the thread.
+- Normal trusted `chatgpt-codex-connector[bot]` clean receipt comment `6687271825` reviewed exact final
+  HEAD at 2026-11-06T14:32:23Z: “Didn't find any major issues.” GraphQL paged all review threads and
+  found zero unresolved current/non-outdated threads. Exact-head PR Build Gate run `42234318111`, job
+  `127947896680`; Workflow Scripts Tests run `42234318000`, job `127947895442`; and Codex Gate check
+  `127949734602` all passed. The push-time evaluator failure before the review signal is historical.
+- Final deterministic validation: financial focused `134/134` across 3 classes; stock quote `53/53`
+  across 6 classes; full JVM `2334` tests / 169 classes / 0 failures / 0 errors / 1 existing private-
+  history skip (`2333` executed), `BUILD SUCCESSFUL in 30s`; Node `84/84`; exporter `4/4`; strict
+  `:app:compileDebugKotlin` `BUILD SUCCESSFUL in 10s` with zero real `^e:` lines; `git diff --check`
+  clean. Clean APK assembly passed in 4m11s. Version `1.0.0` / code `1`, 64,832,472 bytes, SHA-256
+  `4c8db166356120ceb9afb64698e1397c7af8112f3752065dd3f19c5736b7398a`; unchanged signer SHA-256
+  `9e5307e1344917f0cdc495c5cc04a80d23a92c5965c779b6efb0faa1135b8221`, SHA-1
+  `5d3d855c6c6c397f817df2bd0c62f16f940b1551`. Exact copy delivered to
+  `/sdcard/Download/OptionsProfitTracker/OptionsProfitTracker-1.0.0.apk`.
+- The shared host ADB server listed no attached device. The APK was not installed or launched; no live
+  UI/quote/CC-reminder/version-label acceptance was claimed. No IBKR/Flex/import/resync, Yahoo/Finnhub,
+  price/IV/chain/PUT/watchlist/news/provider refresh, trading, credential or device-DB mutation occurred.
+- Financial parity remains **FAILED**, without offsets: fixed Sep1–28 audit 52 rows / 16 broker-backed /
+  36 local-only, raw `5089.44`, 49 canonical `4844.09` versus broker `4741.75`, residual `102.34`; the
+  prior screenshot was `5089.43`, three proven duplicates remove `245.35`, and exact cent handling adds
+  `0.01`. Sep3–Oct2 canonical `5724.27` versus owner-reported broker `5518`, residual `206.27`; September
+  statement `5832.48` versus `5634.27`, residual `198.21`; SOXL assigned 128C local `199.23` versus broker
+  option `0`, but removing it still leaves `-1.02` and raw assignment evidence is absent; YTD `38287.55`
+  versus `37688.74`, gap `598.81`. November options match `+232.30`; November stock remains RKLX
+  `-926.74` versus `-990.92`, MULL `-5678.18` versus `-4563.93`, OPT `-6604.92` versus broker headline
+  `-5554.86` (displayed broker rows sum `-5554.85`). Flex FIFO evidence reproduces OPT; displayed average
+  anchors can reproduce broker, but no accounting-policy choice or invented cent was made.
