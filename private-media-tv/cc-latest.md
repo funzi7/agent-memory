@@ -1,3 +1,109 @@
+# private-media-tv — build232 records checkpoint; Sports/T4/IPTV/D1 remain open
+
+Continuation checkpoint, not full Sports/T4 completion or physical acceptance.
+Preserve the existing cc-latest body byte-for-byte:574862bytes/SHA256
+545d8d3b1f052276efdcc7949e7cd21ddd93dc63d3b5ff41f00774b52265f28f.
+
+## Ownership/current repository
+
+Codex remains COORD146 sole tracked/index/Git writer; Claude is read-only.
+Canonical coordination `/root/work/_agent-coordination/private-media-tv/`:
+read all eight files, register new owner requests in the receiving agent's
+inbox, semantically dedupe BOTH inboxes, consume READY_FOR_CODEX work, and
+publish Codex ACK. Owner need not remember which agent received a note.
+Permanent flock/preimage-checked atomic publication; one writer/one local
+heavy through the global queue; no stress tests or app launches.
+
+Actual active tree is EXISTING scratchpad/wt-230 under
+`/tmp/claude-0/-root-work-private-media-tv/143a246c-616a-40cb-b888-9a161e4913bd/`.
+Detached HEAD and normally pushed main2d3803f7d9b841ca5d912dee130e796e7b75e36a,
+parent3da43aed976e45bd49665a7e537bfe6e4e34468e. Real index empty; mixed
+tracked/untracked work remains preserved. Original root repository remains
+untouched. Never stage the whole tree, assemble mixed inputs as232, reset,
+restore, clean, stash, rebase or create a worktree to bypass it.
+
+## Software publication and actual device truth
+
+Source232 is bfb664067973c51caf2f6bb2acd2fdc1148e19ca, code232/0.7.184.
+OwnCI42404634783 SUCCESS;5461=5450PASS11retainedSKIP0FAIL/662XML.
+Canonical GENERAL delivery and retained231→232 offline check passed.
+Shield installed source23219:52:35Z without launch: APK
+4c479b64b9a915e60b3e22a3428c07c2e9fcd4081018894ddb2eed859a76ec68,
+265169617bytes; whole APK/version/firstInstallTime preserved. Phone remains
+last-verified230, no phone install authority inferred. No clear/uninstall,
+unlock, playback interruption or physical acceptance was performed.
+
+232 adds bounded declared-live IPTV END recovery and late-callback fences,
+retaining231 Telegram LIVE corrections. It does not prove every silent stop
+fixed. Owner will report Telegram LIVE issues during normal use; no replay
+requested. Both normal sustained playback and wider Sports/T4 gates OPEN.
+The imported-playlist transfer155 is excluded, not delivered by232.
+
+Records df59 first failed on Maven429/missingAPI34; corrected prefetch now
+pins26/28/34/36. Actual local21PASS retained despite wrapper97's wrong count.
+Exact3da CI42414253893 then failed before startup test body with legacy
+SQLite exception; original borrower/cause UNPROVEN. Deterministic68318
+causal missing-close RED and53878 fivePASS prove a separate third-database
+fixture cleanup correction. Earlier97712/60266 are fixture-premise failures,
+not causal proof. No production/version change in2d's ten-path records/test
+commit; exact source/diff independent review SCOPED CLEAN, git diff --check
+and normal push/live equality passed. Packet SgFBbD/v3 holds exact receipts.
+
+Exact records2d3803 Android42419059777 attempt1 SUCCESS2026-11-07T23:03:01Z;
+observer24355 CLOSED0. Authenticated inventory13593569116, archiveSHA
+9bdb19cd3e480278650066171ac28ccad9f5daccdc22ea88b4e68e1fd1b1344b,
+payloadSHA b04b8527b8089449c92e5f69755d469660e0175da8145e675ed8dd23903bcaf5:
+5462=5451PASS+11retainedSKIP+0FAIL/662XML. Exactly one added PASS, the new
+startup database-cleanup method; zero removals or status changes. Independent
+exact receipt/inventory review SCOPED CLEAN. CI success does not establish
+the cause of the earlier CI failure or constitute runtime acceptance.
+
+Canonical same232 publication completed0 at2026-11-07T23:09:38Z to
+`Download/private-media-tv/private-media-tv-mobile-0.7.184.apk`:
+SHA2565010235ccb6e02f3155038e110a2781e0f118672ad21143fac1eeb7016862131,
+265169617bytes, same Development signer
+2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0.
+Manifest/native TDLib/FFmpeg association and canonical export checks passed.
+The prior same232 installer is retained byte-exact in v3/source232-bfb66406.apk;
+zero superseded installers removed. No device installation followed this
+fixture-only records build; installed Shield source232 remains as above.
+Offline43922 retained231-to-records232 verification PASS: strictly higher
+versionCode, unchanged package/signer/ARM64 TDLib; both pinned operands and
+repository scripts/identity verified unchanged before and after. This does
+not test installed-device upgrade or runtime behavior. The installer differs
+from installed source232 and is not represented as installed on either device.
+
+## Current155 and next work
+
+Continue the EXISTING imported-IPTV source transfer/removal implementation;
+do not repeat retained metadata/owner/controller/model/store/factory/lifetime
+qualification. Removal/prepared-empty45310 passed18 distinct synthetic
+methods;82020 fresh security/catalog lint0ErrorFatal/1+2retained warnings,
+full3152 inputs unchanged and independent reviews CLEAN. Not runtime proof.
+Activity proof9a950745/test7f33e5e4 is applied but nine-method/fresh-lint gate
+UNRUN in Bg0clW. History proposal aoSgP7 is external UNAPPLIED/UNRUN:
+history587ecb18/LeadFacts373f8ba9/test8cbd4724 independently STATICCLEAN;
+strict shape/debt closes reviewed partial-counter P2. Ten new plus three
+named legacy controls and affected lint runner1cdb8708 is STATICCLEAN,
+not executed. Keep publisher revoke/drain/same-owner, durable cleanup,
+source authority and QR/Sync activation gates; no fallback/secret leakage.
+GWZss4/RUNTIME_APPLICABILITY.md remains the existing wiring roadmap.
+
+REQ-CODEX-166 queued/FUTURE: owner saw Shield's ten-minute match reminder
+while using another app. Positive observation only for that occurrence,
+exact build then unknown. Later style like TiviMate, preserving timing and
+behavior, reuse CL195/TiviMate surveys. Already in tracked232 records; no
+new research/redesign/duplicate intake or question needed now.
+
+D1 HOLD/unaccepted/OFF-safe; Tailscale may stay OFF. No VPS/D2, deployment,
+historical diagnostic, baseline mutation or new private-input action follows.
+Held G19/163/affinity/PPV/Pengu and all unrelated mixed work remain preserved.
+Next: final232 evidence/memory transaction, then exact155 activity gate,
+history gate and already-planned runtime/QR/Sync integration in order.
+
+---
+
+
 # private-media-tv — BOTH229 installed; records CI not created (2026-11-04)
 
 This is a truthful continuation checkpoint, NOT full Sports/T4 completion or
