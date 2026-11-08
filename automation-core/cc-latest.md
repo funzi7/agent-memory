@@ -98,7 +98,54 @@ after merge. No paywall-bot sync dispatched (nothing to sync until automation-co
 A throwaway branch probe of the permission (`workflow_dispatch`) was attempted and removed: GitHub
 only registers dispatchable workflows from the default branch, so it could not run.
 
-Codex on PR #59 at handoff time (21:37Z): review-state marker `status=completed` for `4127173` with `has_any_findings=False`, `has_unresolved_findings=False`; the docs-only final head `5491701` still awaits its own exact-head Codex signal (check-codex-status 🟡 at 21:35Z, as designed). Receipt comments so far: 0.
+## Continuation (2026-11-08 21:43–21:50Z): review completed, merge blocked by design
+
+- Preflight: HEAD `5491701` == origin, worktree clean; agent-memory `d7653cf` == origin.
+- Codex reviews only on PR open / ready-for-review / `@codex review`, so the docs-only head `5491701`
+  had no review. Requested one through the supported trigger (`@codex review`, 21:44:50Z). Codex
+  reviewed the exact head: receipt "Didn't find any major issues" with `**Reviewed commit:**
+  5491701be5` (21:46:39Z), review-state marker `status=completed` for `5491701…` with
+  `has_any_findings=false`, 👍 (21:46:43Z), no review threads. The main-branch gate published
+  `🟢 Reviewed — clear` (`current_head_signal_no_active_findings`) at 21:46:52Z; CI
+  `validate-automation-core` green on the head. Review and required checks are genuinely satisfied.
+- **Merge Bot cannot merge PR #59 by design** (dry-run of `tools/merge_bot_logic.js`
+  `evaluateMergePolicy` against the live PR and check-runs): `not_candidate` without `automerge`;
+  with `automerge`, a green gate and exact-head Codex evidence → `protected_path_untrusted`, because
+  the branch `claude/codex-gate-fail-closed` carries Claude provenance and the PR touches
+  `workflows/**` and `.github/workflows/**` (`.claude-guard.json`). The two live Merge Bot runs woken by the green gate (`42526903520`, `42526913653`)
+  never reached candidate evaluation: they crashed with `Unhandled error: HttpError: Bad credentials`. Adding `automerge` would only escalate to `needs-owner`;
+  renaming the branch would evade the provenance rule. Neither was done. `main` is unprotected:
+  the owner merges with `gh pr merge 59 --squash --repo funzi7/automation-core`.
+- **Second, independent blocker — automation-core's `AUTOMATION_PAT` is rejected by GitHub.** Every
+  Merge Bot run in this repository since 2026-09-11 00:27Z (last success 2026-09-08 13:40Z), and every
+  Claude Fallback Watchdog and CI Doctor scheduled run on 2026-11-07/08, fails with `HttpError: Bad
+  credentials` (401) on the first PAT-authenticated call. The secret exists (listed) but is expired
+  or revoked. paywall-bot's own `AUTOMATION_PAT` works (its Merge Bot merged #120–#122 today). This is
+  an owner action — regenerate the fine-grained PAT (Contents/PRs/Issues write, Metadata read) and
+  update the automation-core secret — recorded as LOOP_STATE item 9. The fail-soft check only tests
+  non-emptiness, so an invalid PAT crashes instead of exiting green or alerting; a loud, deduplicated
+  preflight is a future hardening item, deliberately not added to PR #59 (Codex-clean, gate-green).
+- Post-merge validation (step 5 of the continuation) is therefore PENDING, not passed: the first
+  `pull_request_target` gate run from the merged `main` (any push to an open PR such as #58, or a new
+  PR) must log `indexed trusted head epoch run` and leave a `github-actions[bot]`
+  `codex-head-epoch:v3` comment; the `🟠` technical-error verdict cannot be induced safely in
+  production and stays covered by `tests/test_codex_gate_workflow.js` (scenario 11).
+- paywall-bot sync (step 6): its `sync-automation-core.yml` runs daily at 03:00 UTC (last run
+  2026-11-08 09:59Z, success, "Updated: codex-gate.yml, ci-doctor.yml, merge-bot.yml,
+  claude-fallback-watchdog.yml, claude-fallback-review.yml" then "A pull request already exists" —
+  branch content unchanged because automation-core `main` has not changed since PR #56). After the
+  merge, the next scheduled run (or an owner `gh workflow run sync-automation-core.yml --repo
+  funzi7/paywall-bot`) pushes a new commit to `chore/sync-automation-core` and refreshes PR #107
+  automatically; no manual sync action is needed and nothing in paywall-bot was edited. paywall-bot's
+  copy differs from `template/sync-automation-core.yml`: it checks out and pushes with
+  `AUTOMATION_PAT` (GITHUB_TOKEN cannot push `.github/workflows/*` changes) — the template still uses
+  GITHUB_TOKEN, a future item for other downstreams. Remaining paywall-bot work after the refresh:
+  Codex re-review of the new sync head (its October P1/P2 threads become outdated, not resolved), and
+  a paywall-bot commit updating `tests/test_codex_gate_logic.js` — test "authoritative workflow keeps
+  gate policy inline" pins `completedCodexSummaryTargetsHead` / `codex-pull-request-review-summary`
+  in `.github/workflows/codex-gate.yml`, `merge-bot.yml` and `claude-fallback-watchdog.yml` (the
+  synced gate binds through `codex-review-state:v1` instead), plus its three
+  `completedCodexSummaryTargetsHead` unit tests and the export in its local `tools/codex_gate_logic.js`.
 
 ## Not physically verified / risks
 
