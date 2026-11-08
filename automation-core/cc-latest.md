@@ -1,143 +1,148 @@
-# automation-core handoff — 2026-11-08 UTC (Codex P1 round on PR #58, closed)
+# automation-core handoff — 2026-11-08 UTC (Codex Gate reliability and fail-closed enforcement)
 
 ## Outcome
 
-PR #58 (`oauto`, the read-only privacy-restricted OpenCode reviewer launcher) went through
-six Codex review rounds and eight independent Opus review passes on its git preflight and
-worktree scan. Every Codex finding (three original P1s plus nine further P1s and one P2 raised
-on the fixed heads) and every independent-review P1/P2 is fixed on the PR branch with
-regression tests that reproduced each leak on the previous code, validated against the real
-OpenCode 2.2.6 and git 2.47.3 on the device, installed on the device, pushed, and re-reviewed
-by Codex at the exact final head with **no findings**. Codex Gate is green on that head.
-The PR stays open and unmerged; the owner merges.
+The two paywall-bot Codex Gate "failures" seen during the Telegraph token fix (PR #120 run
+`42477092393`, PR #122 run `42485718581`) were investigated read-only against GitHub and fixed in
+the source of truth (`automation-core/workflows/`). Nothing in paywall-bot was edited; the fix
+reaches it through the official daily sync after the owner merges the automation-core PR.
 
-Branch `claude/oauto-opencode-reviewer`, PR <https://github.com/funzi7/automation-core/pull/58>.
-Final HEAD `18011a91e35f55c3d94725224c749d08f1ab0ec4` (pushed, == origin). Commits this round:
-`b2abc1d` `bddef45` `de81444` `7f79e2e` `a2aa471` `a174b19` `a23cfec` `75c0814` `0ff038a`
-`ac10beb` `a87142f` `3733fb3` `60ab40f` `d789b5d` `a7c8548` `18011a9`.
+Branch `claude/codex-gate-fail-closed` (based on `main` `15652f6`), PR <https://github.com/funzi7/automation-core/pull/59>.
+Final HEAD `5491701be5cd67087dd304af9b1032a21afcef5a` (pushed, == origin). Commits: `d169c82` (permissions + technical
+fail-closed), `c43d5d6` (structured head binding, thread truncation, evidence block hardening)
+, `4127173` (independent-review follow-ups: own-branch `@ref` suffix only, producer 24 h mint bound, `has_unresolved_findings` guard, `core.error` annotations), `5491701` (handoff docs).
 
-## What was fixed (`launchers/oauto/oauto-run`, `launchers/oauto/oauto-policy.py`)
+## What actually happened in paywall-bot (verified from run logs, PR timelines and check-runs)
 
-- **Original P1s (Codex on `d17f3a1`)**: external diff/textconv helpers executed during the
-  preflight → every git call runs `timeout 120 env -i`, `--work-tree` pinned, `core.fsmonitor=
-  false`, `core.hooksPath=/dev/null`, `log.showSignature=false`, `submodule.recurse=false`,
-  `color.*` off, `diff.external=`, every `filter.*` driver emptied (`required=false`, `=` in a
-  driver name refuses), diffs carry `--no-ext-diff --no-textconv --no-renames --no-relative
-  --no-color --submodule=short --ignore-submodules=dirty`, `git log --no-show-signature`;
-  special-character filenames escaped the secret exclusion → `-z` NUL-delimited collection into
-  private files, bytes-exact `classify -z`, `:(exclude,literal)` pathspecs, C-quoted listing,
-  `check-excluded` proof, collection/proof/pair passes fatal on failure; rename detection hid a
-  renamed secret's source → `--no-renames` diffs plus one exhaustive `-M -C -l0` pair pass
-  excluding both sides (refuse on failure).
-- **Later Codex P1s on the fixed heads**: symlink aliases of `.git`/`.ssh`/`.gnupg`/`.aws`,
-  secret-like files and directories holding them, hard links, links inside `.git` leaving the
-  repo, a symlinked `.git` or Git config file → refused unconditionally; historical
-  `gradle.properties` credentials → changed `CONTENT_CHECKS` files (suffixed copies, rename/copy
-  pairs, `=`/`:`/whitespace separators, dotted keys, hunk headers) checked on both sides and
-  excluded on a hit, files read in full (>16 MiB refuses); newline-leading filenames hid scan
-  hits → C-quoted records and count-based `SUMMARY` verdicts; `.git/config` includes → git's
-  own `--show-origin` list plus a conservative parser (BOM, comments, continuations, outside
-  hops, linked worktrees), in-repository included files are secret-like (refuse unless
-  overridden), excluded and read-denied by exact name plus `*/` form (probed through `debug
-  agents`; metacharacter names refuse); deleted include targets and deleted chains → registered
-  before the existence check, last committed content (HEAD and merge base) parsed hop by hop,
-  outside bridges followed, the scan re-run to a fixed point (≤ 8 passes) so history-found
-  present files are counted and alias-checked; referenced-name keying → include targets tracked
-  under referenced and canonical names, traversal keyed by the referenced path, an include-name
-  link denied by its own name, a directory alias over it refused.
-- Contract and limitations are in `docs/adr/0002-oauto-read-only-opencode-reviewer.md` (items 4
-  and 8 and the consequences) and `launchers/oauto/README.md`; the full round record is the
-  2026-11-08 "Codex P1 round" entry in `handoffs/loop-build.md`.
+1. **Normal WAITING state, not a wrongful merge.** Each failed run is the `pull_request_target`
+   evaluator firing seconds after the push, before Codex reviewed. It published
+   `check-codex-status` = `🟡 Waiting for Codex review` (conclusion `failure`) and failed the
+   diagnostic evaluator job while application CI was green. Codex then posted a
+   `codex-review-receipt:v1` comment with `**Reviewed commit:**` naming the exact head on all three
+   PRs (#120 `23eac35` 11:47:14Z, #121 `68985bc` 12:49:00Z, #122 `fcd6263` 13:36:47Z); the
+   `issue_comment` gate run republished `🟢 Reviewed — clear` on the exact head
+   (`current_head_signal_no_active_findings`); Merge Bot woke on the gate's `workflow_run`
+   success, revalidated and squash-merged the evaluated SHA (merged_by `funzi7` = `AUTOMATION_PAT`).
+   PR #120's three Codex P2 threads were all resolved before `23eac35`; #121/#122 had no findings.
+   No P1/P2 was active at any merge and every merge had exact-head Codex evidence.
+2. **Real permission defect, universal.** `trusted head marker publish failed; markerless signals
+   stay fail-closed: Resource not accessible by integration` appears on EVERY `pull_request_target`
+   gate run in paywall-bot and in automation-core (PR #58, all day 2026-11-08). The gate declared
+   `issues: write` + `pull-requests: read`; the `codex-head-epoch:v3` marker is a comment on a pull
+   request. No marker exists on any PR of either repository since the mechanism shipped on
+   2026-08-13 (checked automation-core #41–#58, paywall-bot #94–#122). Effect: fail-closed
+   (reaction-only clean, trusted-sync grace and fallback quota episodes all need an authenticated
+   head epoch and stayed pending) — never a false green. `claude-fallback-review.yml` had the same
+   defect, so no fallback attestation could ever have been minted. Both repositories report
+   `default_workflow_permissions: write`; no repository setting is involved.
+3. **Fail-open on technical errors (latent).** The gate's exception branch published a GREEN
+   `check-codex-status` titled "Technical fail-soft". It did not fire in the observed runs.
+4. **paywall-bot runs a stale, locally modified gate.** `codex-gate.yml`, `merge-bot.yml` and
+   `claude-fallback-watchdog.yml` on paywall-bot `main` were changed by a paywall-bot feature commit
+   (`b07344f4`, 2026-09-05, summary-row reaction binding) and predate automation-core PR #56;
+   `codex-auto-fix.yml` matches; `claude-fallback-review.yml` is absent. The official sync PR #107
+   (open since 2026-10-02, head `c770aa5`) is red: Codex left 4 P1 + 5 P2 on the synced gate code
+   (addressed here) and paywall-bot's own `tests/test_codex_gate_logic.js` asserts the local patch
+   (`not ok 19 - authoritative workflow keeps gate policy inline`).
 
-## Validation actually run (device, git 2.47.3, OpenCode 2.2.6, disposable fixtures only)
+## What changed (source of truth `workflows/`, mirrors `.github/workflows/` byte-identical)
 
-- `tests/test_oauto_launcher.js` 75/75 (55 new this round; each new test was run against the
-  previous launcher first and failed as expected — repro outputs kept in the session
-  scratchpad); `bash scripts/validate.sh` green at the final head: 202/202 node tests, 59
-  github-script bodies, actionlint, `git diff --check`.
-- Real-binary battery (`oauto-run --check` on fixtures, 60+ checks): hostile textconv/
-  command/external/filter/fsmonitor/gpg config → no helper ran; six special-name deleted
-  secrets, renamed secrets (worktree and branch), symlink aliases (file, directory, hard link,
-  `.git/config`, dangling, two symlinked bridges), gradle credentials (history, colon separator,
-  `.bak`, hunk header, 256 KiB+), included Git configs (present, deleted, chained, outside
-  bridge, newline-leading name, history-discovered present file counted) — every scenario
-  behaved as the docs state; ordinary changes always shown. Six live model probes under the
-  rendered config: edit/write, shell, `/etc/hostname`, `.env`, `opencode/big-pickle`,
-  `--agent build` all denied/unavailable, no file created, probe secret absent from every
-  transcript (the edit probe's first run matched no phrase because the model declined without
-  calling a tool; the re-run listed the tools as exactly `glob, grep, question, read, skill`).
-- Device: `install.sh` refreshed `/root/work/bin/oauto-run` and `oauto-policy.py` after each
-  validated state (backups `*.backup-before-oauto-20261108-{120902,132239,134043,140044,
-  144953,152257,154043,160518,163804,171353,174147,183754,192727}`); `--verify` clean;
-  installed copies byte-identical (parity test passes); `/root/work/bin/ai-launch opencode
-  oauto-selftest-j [deepseek] --check` through the installed launcher resolved the fixture and
-  verified sources/models/agents; `ai-launch`, the Termux wrapper and both `.bashrc` blocks
-  unchanged (cauto/clauto/ai byte-identical); no fixture, lock, state dir or OpenCode process
-  left.
+- `codex-gate.yml`, `claude-fallback-review.yml`: `pull-requests: write` (kept `issues: write`).
+- `codex-gate.yml`: technical errors publish `failure` titled `🟠 Gate evaluation error —
+  fail-closed`, set `anyBlocked`, fail the evaluator; `decideCodexGate({technicalError})` →
+  `pending`/`technical_error_fail_closed` (inline + `tools/codex_gate_logic.js`); the watchdog
+  treats the new title like pending (`ERROR_TITLE`, pinned identical by test). A freshness-lookup
+  API error (`triggeringHeadEventIsCurrent`, now tri-state) is reported as such and fails the job
+  instead of being labelled a stale event.
+- `signalTargetsHead` (gate, Merge Bot, watchdog, producer, module): Codex's machine-written
+  `<!-- codex-review-state:v1 {…} -->` marker binds when `code_review.status === 'completed'` and
+  the full 40-char `commit_sha` equals the head (replaces paywall-bot's local summary-row heuristic).
+- Review-thread readers request `comments.pageInfo.hasNextPage`; a non-resolved thread with more
+  comments than one page and no visible finding fails closed (`review_thread_truncated` pending in
+  the gate; `true` from Merge Bot/watchdog finding predicates).
+- Canonical evidence block (3 verbatim copies + `tools/review_evidence.js`): same-second ties close
+  the quota episode; Route A bounded by the attestation time (24 h; ADR 0001 revised); attestation
+  must be minted inside the current head epoch (`attestation_predates_head_epoch`); inactive
+  candidates are skipped, not terminal; producer run path tolerates `@ref`; the producer counts
+  Codex reactions and refuses on a tie.
+- Tests: `tests/test_codex_gate_workflow.js` (new, executes the shipped gate script end to end:
+  marker 403, missing marker + 👍, unverifiable marker, authenticated marker + 👍, late
+  previous-head review, active P1/P2, resolved/outdated threads, non-inline P2, quota notice,
+  GraphQL outage → 🟠, override, marker contract, stale/force-pushed events, publish failure);
+  `tests/test_workflow_permissions.js` (new); gate-logic and evidence suites extended.
+- Docs: README (permissions, fail-closed vs fail-soft), LOOP_STATE (addendum + TODO item 8 +
+  paywall-bot row), CONTEXT (§3 verification, §4 contract, §5 downstream, §7 TODO A00),
+  ADR 0001 (Route A TTL, 2026-11-08 hardening), `handoffs/loop-build.md` top entry.
 
-## Review provenance
+## Validation actually run
 
-- Codex (trusted connector): review of `d17f3a1` (3 P1), `de81444` (2 P1), `a174b19` (1 P1 + 1
-  P2), `a23cfec` (2 P1), `ac10beb` (1 P1), `3733fb3` (2 P1), `d789b5d` (2 P1), `18011a9`
-  (**no findings**). Every thread replied to with the fixing commits and resolved only after the
-  fix was pushed and proven; 0 unresolved threads.
-- Independent Opus reviewer subagent (not the implementer), eight passes on the PR diff with
-  its own attack fixtures: 1 P1 and 7 P2 found and fixed before pushes, the rest P3 taken or
-  documented. `review_provider = claude_code_fallback` style, in addition to Codex, never in
-  place of it.
+- `bash scripts/validate.sh` green at every pushed head: 172/172 node tests (`tests/test_codex_gate_workflow.js`
+  25 end-to-end scenarios and `tests/test_workflow_permissions.js` 4 guards are new; gate-logic 38→48,
+  evidence 43→50), 59 github-script bodies syntax-checked, actionlint, `git diff --check`,
+  source/mirror parity and the byte-identical canonical block asserted by tests.
+- GitHub CI `validate-automation-core` on PR #59: success on `4127173` and on the final head `5491701`.
+- Live pre-fix behaviour reproduced on PR #59 itself (main's gate runs on `pull_request_target`): run
+  `42525806490` logged `trusted head marker publish failed ... Resource not accessible by integration`
+  and published `🟡 Waiting for Codex review` — exactly the paywall-bot shape, confirming the diagnosis.
+- Evidence gathered read-only from GitHub: job logs of paywall-bot runs `42477092393`/`42485718581` and
+  every automation-core PR #58 gate run; PR timelines, reviews, review comments, GraphQL threads,
+  reactions and check-runs of paywall-bot #120–#122 and #107; workflow run attempts (`path`,
+  `pull_requests`); Actions settings of both repositories; paywall-bot workflow files and their history.
 
-## PR / CI / Codex Gate state (verified 2026-11-08 ~19:45 UTC)
+Independent review: a reviewer subagent (not the implementer) reviewed the full diff with its own
+fixtures; no P1 found; one low P2 (scheduled sweeps keep the job green while the docs claimed it fails) and P3s (blanket `@ref` strip, producer without TTL, missing end-to-end truncation/marker scenarios, stale wording) — all addressed in `4127173`; 21/22 of its mutants were killed by the suite.
 
-- Exact-head CI `validate-automation-core`: success on `18011a9`.
-- Codex review state marker: `commit_sha=18011a91e35f55c3d94725224c749d08f1ab0ec4`,
-  `has_any_findings=false`, `status=completed`.
-- Codex Gate: `check-codex-status` on `18011a9` = success, "🟢 Reviewed — clear: Codex exact-head
-  review accepted. No unresolved non-outdated trusted Codex P1/P2 thread blocks 18011a9
-  (current_head_signal_no_active_findings)". The `codex-gate-evaluator` job of the push-event run
-  (19:35 UTC, before Codex finished) still shows failure in the checks list; the Gate's later
-  runs (19:42 UTC) succeeded and published the green check.
-- PR #58: OPEN, mergeable, not merged (owner decision).
+Not run: no production run of the changed gate — `pull_request_target` loads the workflow from the
+default branch, so the first real marker publish and the first `🟠` verdict can only be observed
+after merge. No paywall-bot sync dispatched (nothing to sync until automation-core `main` changes).
+A throwaway branch probe of the permission (`workflow_dispatch`) was attempted and removed: GitHub
+only registers dispatchable workflows from the default branch, so it could not run.
 
-## Not physically tested / limitations / risks
+Codex on PR #59 at handoff time (21:37Z): review-state marker `status=completed` for `4127173` with `has_any_findings=False`, `has_unresolved_findings=False`; the docs-only final head `5491701` still awaits its own exact-head Codex signal (check-codex-status 🟡 at 21:35Z, as designed). Receipt comments so far: 0.
 
-- The Termux hop itself (`proot-distro login` cannot run from inside the Debian session) — the
-  owner must run `oauto <repo>` once from a real Termux shell; no review on a real project
-  repository; no full DeepSeek TUI session; LFS/submodule/linked-worktree repositories only
-  against the test double and real git, not a real OpenCode session.
-- By design: classification is by path (a safe-named file that still holds secret text beyond
-  git's 50 % similarity, or copied from an unmodified secret under the override, is shown);
-  content checks cover only `gradle.properties`-style names with a heuristic word list;
-  included files outside the repository are followed but not checked; an include through a
-  directory symlink deleted with its target, and an include line removed from `.git/config`
-  together with its target, are not traced; a hard link to a file outside the repository is not
-  detected; `git diff` still refreshes stat data in `.git/index`; up to eight scan passes on
-  repositories with include chains; `https://org@...` remotes and shared-config includes
-  (`include.path = ../.gitconfig`) refuse unless `OAUTO_ALLOW_SENSITIVE_FILES=1`.
-- Every model request still transmits the selected code context and the preflight to
-  OpenCode's remote inference service under the provider's published zero-retention terms.
+## Not physically verified / risks
+
+- Marker publish succeeding with `pull-requests: write` (the documented permission model and
+  the observed 403 both point there; both scopes are now declared so the publish cannot fail on
+  whichever one GitHub checks). First signal after merge: a `pull_request_target` gate run logs
+  `indexed trusted head epoch run` and a `github-actions[bot]` `codex-head-epoch:v3` comment
+  appears on the PR.
+- Merge Bot's reaction to the new `🟠` verdict in production (it requires `check-codex-status`
+  success, so it skips; covered by tests, not by a live run).
+- paywall-bot: the daily sync will refresh PR #107 after merge; Codex must re-review the new sync
+  head; paywall-bot's local `tests/test_codex_gate_logic.js` summary-row assertions must be updated
+  in that repository (not done here — no direct edits to paywall-bot).
+- Docs on this branch will conflict trivially with PR #58's handoff entries (both prepend to
+  `handoffs/loop-build.md` and `LOOP_STATE.md`); resolve by keeping both entries.
 
 ## Backlog (reconciled 2026-11-08)
 
-1. **oauto PR #58** — owner merge (Gate green, Codex clean, CI green); one `oauto <repo>` run
-   from Termux; owner decision on listing `oauto` in `DEVELOPMENT_RULES_FULL` §7; after any
-   OpenCode upgrade re-run `--check`, the fixture battery and the tool-level probes, then bump
-   `VALIDATED_VERSION`.
-2. **Possible hardening (not requested, not done)**: private `GIT_INDEX_FILE` copy so the
-   preflight never writes `.git/index`; content-based secret detection beyond
-   `gradle.properties`; resolving deleted include chains through HEAD's tree for directory
-   symlinks; `--find-copies-harder` under the override.
-3. **Canonical Claude fallback review rollout** — unchanged since 2026-11-07: PR #56 merged but no
-   consumer default branch carries `claude-fallback-review.yml`; sync PRs paywall-bot #107, OPT
-   #20, TRF #92 open; no repo sets `CLAUDE_FALLBACK_REVIEW_ENABLED`; OPT PR #19 still needs fresh
-   exact-head evidence.
-4. LOOP_STATE items 1–4 and 7 unchanged and still pending.
+1. **DONE (this branch):** root cause and merge legitimacy established; permission fix; technical
+   fail-closed; structured head binding; thread truncation fail-closed; evidence-block hardening
+   (the nine PR #107 Codex findings); end-to-end regression harness; docs.
+2. **PENDING (owner):** merge PR <https://github.com/funzi7/automation-core/pull/59>; observe the first marker publish; let the daily sync
+   refresh paywall-bot #107 (or dispatch `sync-automation-core.yml` there); update paywall-bot's local
+   gate test; optionally reduce `issues: write` to `read` on the gate once a marker publish has been
+   observed with `pull-requests: write`.
+3. **SUPERSEDED:** "intentional technical fail-soft" (gate); "Route A deliberately carries no TTL"
+   (ADR 0001); paywall-bot's local summary-row reaction binding.
+4. **Unchanged:** LOOP_STATE items 1–7 and the oauto PR #58 item (previous handoff below).
 
 ## Operating invariants to preserve
 
-- Authoritative policy stays inline in trusted workflow YAML; `tools/*.js` are mirrors.
+- Authoritative policy stays inline in trusted workflow YAML; `tools/*.js` are mirrors; the canonical
+  block is byte-identical in gate, Merge Bot and watchdog (test 14c).
 - No `${{ }}` inside `github-script` bodies; Actions/Checks reads on GITHUB_TOKEN.
-- oauto: never `--auto`, never a `plugins` directive, every helper `--standalone`, one pattern
-  list for read-deny/policy/scan/diff-exclusion, every preflight git call through `g()`/`gd()`
-  (scrubbed, `--work-tree`, helper-free, `-z`, fail closed), the scan as the single refusal
-  decision (count-based, quoted records, fixed point over include history), cauto/clauto/ai
-  paths untouched (test-pinned), `~/.config/opencode` never written.
+- A missing, unverifiable or stale marker is never a clean review; API errors never publish green;
+  exact-head evidence is `commit_id` / `original_commit_id` / `Reviewed commit` / completed
+  `codex-review-state` with the full SHA — never timing, task summaries or capacity notices.
+
+---
+
+# Previous handoff (still open): oauto PR #58 — Codex P1 round closed (2026-11-08)
+
+PR <https://github.com/funzi7/automation-core/pull/58>, branch `claude/oauto-opencode-reviewer`,
+final HEAD `18011a91e35f55c3d94725224c749d08f1ab0ec4` (Codex clean, Gate green, CI green, owner merge
+pending). Full record in that branch's `handoffs/loop-build.md` 2026-11-08 "Codex P1 round" entry and
+agent-memory commit `0e4e644`. Owner follow-ups: merge; one `oauto <repo>` run from a real Termux
+shell; decision on listing `oauto` in `DEVELOPMENT_RULES_FULL` §7.
