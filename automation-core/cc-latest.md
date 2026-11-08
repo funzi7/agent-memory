@@ -8,9 +8,9 @@ the source of truth (`automation-core/workflows/`). Nothing in paywall-bot was e
 reaches it through the official daily sync after the owner merges the automation-core PR.
 
 Branch `claude/codex-gate-fail-closed` (based on `main` `15652f6`), PR <https://github.com/funzi7/automation-core/pull/59>.
-Final HEAD `5491701be5cd67087dd304af9b1032a21afcef5a` (pushed, == origin). Commits: `d169c82` (permissions + technical
+Final HEAD `39e42925a2d1e9f8608434d469bb867a9a244312` (pushed, == origin; docs-only on top of `5491701`). Commits: `d169c82` (permissions + technical
 fail-closed), `c43d5d6` (structured head binding, thread truncation, evidence block hardening)
-, `4127173` (independent-review follow-ups: own-branch `@ref` suffix only, producer 24 h mint bound, `has_unresolved_findings` guard, `core.error` annotations), `5491701` (handoff docs).
+, `4127173` (independent-review follow-ups: own-branch `@ref` suffix only, producer 24 h mint bound, `has_unresolved_findings` guard, `core.error` annotations), `5491701` (handoff docs), `39e4292` (continuation docs: review completion, merge blockers, sync plan).
 
 ## What actually happened in paywall-bot (verified from run logs, PR timelines and check-runs)
 
@@ -116,6 +116,11 @@ only registers dispatchable workflows from the default branch, so it could not r
   never reached candidate evaluation: they crashed with `Unhandled error: HttpError: Bad credentials`. Adding `automerge` would only escalate to `needs-owner`;
   renaming the branch would evade the provenance rule. Neither was done. `main` is unprotected:
   the owner merges with `gh pr merge 59 --squash --repo funzi7/automation-core`.
+- Final head `39e4292` (continuation docs commit) was reviewed the same way on request (`@codex review`
+  21:52:13Z): receipt "Didn't find any major issues" with `**Reviewed commit:** 39e42925a2` (21:53:58Z),
+  review-state marker `completed` for `39e4292…` with no findings, no threads; CI
+  `validate-automation-core` success (21:52:15Z); gate `🟢 Reviewed — clear` on `39e4292` at 21:54:10Z.
+  PR #59 is fully green on its final head; `main` is still `15652f6`; nothing was merged.
 - **Second, independent blocker — automation-core's `AUTOMATION_PAT` is rejected by GitHub.** Every
   Merge Bot run in this repository since 2026-09-11 00:27Z (last success 2026-09-08 13:40Z), and every
   Claude Fallback Watchdog and CI Doctor scheduled run on 2026-11-07/08, fails with `HttpError: Bad
