@@ -1,4 +1,25 @@
-# private-media-tv — lane 6: 0.7.185/code233 pushed (164 lease), CI runner pinned, 233 delivery pending the full-suite gate; Sports/T4/IPTV/D1 remain open
+# private-media-tv — lane 6: both devices 0.7.185/code233; G19 build 1 (0.7.186/234) amended + re-gating; G22 built; Sports/T4/IPTV/D1 remain open
+
+## November9 06:4x Bangkok — both devices 0.7.185/code233; G19 build 1 amended + re-gating; G22 built; REQ-302 on the later list
+
+Delivery: CI 42524417520 green on 72b027a8 (the reflective-helper repair); Shield installed 0.7.185/233 at 05:16:44 on the owner's
+"install on shield", phone at 05:24:59 under the idle guard (sha 1fd3f05a… both; not launched); ADB lease released. The Telegram LIVE
+lease's physical acceptance = the owner's watching (REQ-CODEX-160/164), OPEN.
+Sports/T4 lane (REQ-CLAUDE-286): G19 build 1 (the owner's watched / started / `לא מעוניין` match state the same on phone and Shield;
+ADR 0229) built by one Opus builder on Codex's dormant draft, reviewed (APPROVE WITH CHANGES: P1 five shell hunks staged; P2 batch+cache
+the overlay rebuild, first-sync follow-up, legacy half-watch limit documented), committed SCOPED from the mixed wt-230 as 0.7.186/code234
+(86 paths; partial hunks for F2c76TheSportsDbRepository.kt and AGENTS.md; the planner's `sortedBy` hunk and Codex's notes stay uncommitted),
+gated on a CLEAN detached checkout of the exact commit (6981 tests): one REAL defect found — Codex's reset-lease cohort dropped an owner's
+reminder toggle whenever the Sports reset gate was sealed (`AndroidSportsNotificationStore.update()`); fixed (the owner's write always lands,
+bookkeeping stays gated), commit AMENDED → 2ad83873; re-gate (feature-sports + app-tv + app-mobile full suites, then lintRelease on six
+modules) running; then a docs-only receipt commit, push after `ls-remote` = 72b027a8, ONE idle-only watcher (wt-deliver235). The 3
+core-catalog failures are the aarch64 host-only Robolectric SQLite limitation (CI x86_64 passes). G22 (Shield Match Details `פרטי שגיאה` /
+`פרטים` via the row's Menu; ADR 0230) built + reviewed in a clean worktree wt-g22; 14 targeted classes 172/0; lint queued; ships as
+0.7.187/code235 on top of the G19 head. REQ-CLAUDE-302 (an episode page's source search built from another series' stale `seriesDetails`;
+the one tap then played the wrong file) root-caused and designed as CL-326, LATER LIST on the owner's word. Briefs ready at HEAD for CL-175
+(ADR 0231), REQ-CODEX-121 b, CL-177 q2 a remainder, CL-214 a (ADR 0232), CL-073 (annotated), REQ-271, G19 build 2 bells (ADR 0233);
+CL-214 b–d being refreshed. Open-list reconciliation: research/sports-open-list-20261109.md (40 shipped / 1 partly / 25 open). D1 HOLD/
+OFF-safe; Tailscale OFF. Preserve everything below byte-for-byte.
 
 ## November9 Claude lane 6 — owner179 hand-off consumed: 164 shipped as 0.7.185/code233, CI runner pinned, reflective-test repair, G19 build 1 in progress
 
