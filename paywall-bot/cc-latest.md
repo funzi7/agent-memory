@@ -1,230 +1,130 @@
-# paywall-bot handoff — 2026-10-05 UTC (Tech Feed IL post-merge acceptance of #114 + #115; docs-only PR #116 DRAFT + `no-automerge`, NOT merged; Codex quota exhausted → Claude Code fallback review)
+# paywall-bot handoff — 2026-11-08 UTC (SECURITY: Telegraph access tokens out of git — fixed, merged, rotated)
 
 ## Headline
 
-Post-merge acceptance and final handoff for Tech Feed IL after the merged PRs **#114** (`dc9ab26`, `queue: max`) and
-**#115** (`6929d95`, official publisher Telegram channels + finished descriptions). Evidence reconciliation and
-documentation ONLY.
-- **No defect was reproduced, so no runtime code, workflow, config, test or state changed.**
-- ONE docs-only PR, **#116**: DRAFT, carrying `no-automerge` (verified present), not marked ready, NOT merged.
-- No production state was edited, nothing was dispatched or re-run, there was no Telegram send or Telegraph write, no
-  concurrency collision was manufactured, and no native story was manufactured or backfilled.
+The read-only security audit of 2026-11-07/08 found ONE committed real secret in this repository: both tenants'
+Telegraph access tokens, tracked as `state/telegraph_token.json` (TheMarker) and
+`state/techfeedil-telegraph-token.json` (Tech Feed IL), re-staged by every state commit, with a `createAccount`
+fallback whenever a file was missing. The owner approved the full fix (rotation included; NO history rewrite, NO
+force-push). It is **done**: code merged, both tokens rotated, both tenants publishing through the new secrets.
+
+- **PR #120** (security fix) MERGED 2026-11-08T11:48:14Z as squash `98796d9328244d01178c4ccdb23895abb936fb70`.
+- **PR #121** (docs-only acceptance log) MERGED 2026-11-08T12:51:25Z as squash `720fdacb205313e344bea970c3b7fca0bcdfa0e9`.
+- **Both Telegraph tokens rotated** at 12:35Z with `revokeAccessToken`; the old values (still in git history by owner
+  instruction) are revoked and verified rejected (`ACCESS_TOKEN_INVALID`).
+- No token value or fingerprint is stored anywhere in the repository; this handoff carries none either.
 
 ## FINAL STATE
 
-- **paywall-bot HEAD:** `1d7881d3b3d4c28c506d39d95c34959fc2249425` on `docs/techfeedil-postmerge-acceptance-20261005`,
-  four docs-only commits on `origin/main` `824a7b86d3deb83e8f2cc3b14375b410d3c3f272`:
-  - `9f41b5e`: the acceptance docs;
-  - `352175e`: the fallback-review fixes;
-  - `cfffbc3`: the final verifier's P3 wording;
-  - `1d7881d`: one last scoping nit ("the #114 merge" in report §8.7).
-  Verified equal on the local HEAD, `git ls-remote` and the PR head at 20:11Z. The worktree is clean.
-- **PR #116** (https://github.com/funzi7/paywall-bot/pull/116): OPEN, **DRAFT**, **`no-automerge`** applied at
-  creation and verified, NOT merged. Six `.md` files only, proven docs-only: no `state/` change, nothing untracked.
-- **Exact-head CI on the final head `1d7881d`:** run 37367296834 (job 111955425119), CPython 3.11.16, success
-  (20:08:36Z → 20:10:33Z).
-  - Message format passed; "Ran 2885 tests" OK; Node 21/21; "parsed 21 workflow files".
-  - Earlier heads:
-    - `9f41b5e`: run 37361633585, success, 2885 OK;
-    - `352175e`: run 37365088492, success, 2885 OK;
-    - `cfffbc3`: CI was still queued when `1d7881d` superseded it.
-  - Locally: `unittest discover` 2885 OK under the t.me/gkt.me request guard; `test_message_format` passed.
-- **Review: NOT Codex.** Codex answered "@codex review" (19:11:53Z) with comment 6001297396 at 19:12:02Z: "You have
-  reached your Codex usage limits for code reviews." The owner then asked for a Claude Code review.
-  - `review_provider = claude_code_fallback`, `reason = codex_quota_unavailable`.
-  - Before the first commit, an adversarial fact-check found 0 P1, 2 P2 and 15 P3, all fixed.
-  - Two independent reviewers then reviewed `9f41b5e`:
-    - requirements/policy: 0 P1, 3 P2, about 12 P3;
-    - accuracy: 0 P1, 1 P2, 9 P3.
-    All were fixed in `352175e`. Among them: the pre-merge §7 list restored verbatim as history, the CONTEXT §6
-    SUPERSEDED entries named, a TheMarker-on-#115 PENDING item added, PC rows marked inferred, and time bounds added.
-  - Final verifier on `352175e`: CLEAN (no P1/P2). Its 7 P3 wording nits were fixed in `cfffbc3`.
-  - An independent check rated `cfffbc3` CLEAN (0 P1/P2) with 2 P3:
-    - the report §8.7 nit, fixed in `1d7881d` (a one-line diff, confirmed);
-    - the PR-body nit, fixed in the description.
-  - Accepted as-is: 1 cosmetic source-line wrap in report §8.2, which renders identically.
-  - **Attestation:** PR comment 6002119915 (20:11:37Z), fields:
-    - `provider=claude_code_fallback`, `reviewed_head=1d7881d3b3d4c28c506d39d95c34959fc2249425`, `verdict=clean`;
-    - `findings_found=34`, `findings_fixed=33`, `unresolved_p1=0`, `unresolved_p2=0`;
-    - `validation=exact-head CI 37367296834 …`, `reason=codex_quota_unavailable`.
-  - This repository's Codex Gate has no fallback-attestation path, so `check-codex-status` gets no review signal for
-    this head. The PR stays DRAFT + `no-automerge`.
-- **`origin/main` at the end:** `824a7b86d3deb83e8f2cc3b14375b410d3c3f272`, unchanged since the branch start (20:11Z). No
-  Tech poll ran after 18:27Z; any later state commits are production writes, not task changes.
+- **`origin/main`:** `720fdacb205313e344bea970c3b7fca0bcdfa0e9` (the #121 squash on top of the #120 squash and the
+  bot's state commits). Canonical record: `docs/telegraph-token-secrets-20261108.md` (ADR + runbook + acceptance
+  log); `handoffs/CONTEXT.md` has the 2026-11-08 section at the top.
+- **Branches pushed:** `security/telegraph-token-secrets-20261108` (head `23eac3576e5b7213311f26bd34fa6537f5017a4c`,
+  merged by #120); `docs/telegraph-token-rotation-evidence-20261108` (head
+  `68985bc2d43285e64ef58a0b9b819aa880bbde34`, merged by #121); `docs/telegraph-tech-rotation-evidence-20261108`
+  (head **`fcd6263479d57387eb4d57d40634bf64b5fc8248`**, **PR #122**, docs-only, OPEN at handoff time with Codex review
+  requested — Merge Bot merges it once `check-codex-status` is green; it records the Tech post-rotation evidence
+  below). This is the task's final paywall-bot HEAD.
+- **Secrets (GitHub Actions, repository scope):** `TELEGRAPH_ACCESS_TOKEN` (TheMarker, Telegraph account `demarker`)
+  and `TECH_TELEGRAPH_ACCESS_TOKEN` (Tech Feed IL, account `techfeedil`), created 10:51Z with the then-current
+  values and updated 12:35:24Z / 12:35:31Z with the rotated ones (values always piped via stdin from a 0600 file,
+  never displayed). The rotated tokens also live on the owner's machine at `~/.config/paywall-bot/telegraph-<site>.token`
+  (0600, directory 0700).
+- **Local working copy:** clean; the legacy token files were deleted from the working copy at 12:48Z (revoked values;
+  both paths gitignored). Local pre-commit secret guard installed via `scripts/install_git_hooks.sh`.
 
-## #115 — merged (READ-ONLY PHYSICALLY OBSERVED)
+## What changed (PR #120)
 
-- **Merge sequence.** The owner marked it ready (15:38:54Z) and removed `no-automerge` (17:51:10Z).
-  - Merge Bot run 37351589338 (job 111903483146) logged at 17:52:08Z "#115: cleared transient needs-owner +
-    needs-owner-auto after exact-head fully-green validation; continuing to merge", then "#115: merged ✅".
-  - The result was squash `6929d9565f5bd2ebbae01e64d329bf6f1a9a1a2c` at 17:52:10Z. GitHub shows `funzi7` because the
-    PAT is the owner's.
-- **The merged head `cea598b`:**
-  - exact-head CI 37349205043: 2885 tests OK;
-  - Codex round 8 clean (17:42:52Z);
-  - `check-codex-status` 🟢 at 17:43:16Z and 17:51:37Z.
-  - Its code equals `6929d95`; only the 16:24–16:25Z state files differ.
-- **Main CI 37351655460** (job 111903705393, CPython 3.11.16) on `6929d95`: success.
-  - message format passed; 18 focused suites OK; "Ran 2885 tests" OK;
-  - Node 21/21; "parsed 21 workflow files";
-  - `bash -n`, `git diff --exit-code -- state/` and `git diff --check` all passed.
+- `sites/*/config.yaml`: `telegraph.token_file` → `telegraph.token_env`. `core/telegraph_pub.py`: token from the
+  environment only (`_resolve_token`, `require_token`); `TelegraphTokenMissing` carries the variable NAME only; a
+  config with `token_file`, or a named tenant without `token_env`, is rejected (`TelegraphTokenConfigError`); the
+  file cache and the `createAccount` fallback are deleted. `publish_article` without a token → None with subreason
+  `telegraph_token_missing:<env>` (item stays deferred). `core/main.py` + `core/backfill.py` call `require_token()`
+  right after `set_site_context` (fail fast, like a missing Telegram variable; red run).
+- Source Health (Tech): `validate_telegraph_token(token_env)` → `missing_telegraph_token` (critical, red run with
+  the monitor's own urgent owner DM naming the secret; deliberately NOT bridged — a poll without the secret never
+  reaches the Runtime Ops bridge, Codex P2) / `invalid_telegraph_token` (critical, bridged owner action
+  `telegraph_token_invalid`; the DM names the secret, never a file, never "create a token").
+  `not_initialized` no longer exists. `RuntimeOpsSettings.telegraph_token_env` (no fallback to another tenant's name).
+- Workflows: the tenant secret goes only to the publishing/health steps (`poll.yml`, `poll-techfeedil.yml`, both
+  `backfill.yml` jobs, `source-health-techfeedil.yml`). `ci.yml`: `fetch-depth: 0` + `scripts/secret_guard.py`
+  (`--tree` always; `--range origin/<base>..HEAD` on PRs).
+- Prevention: token files untracked; `.gitignore` (`state/telegraph_token.json`, `state/techfeedil-telegraph-token.json`,
+  `state/*telegraph*token*`, `*.telegraph-token`); `scripts/commit_tenant_state.sh` lists no token path and exits 4
+  if one is staged; `scripts/secret_guard.py` (redacting: path, line, rule only; Telegraph/Telegram/Anthropic/OpenAI/
+  GitHub/Google/AWS/Slack/private-key rules; bare 60-hex is token-shaped); `scripts/install_git_hooks.sh`.
+- `tools/telegraph_token_tool.py` (`info` / `verify` / `rotate`): fingerprints only, tokens only in JSON POST bodies,
+  `--out` created 0600 outside the repo BEFORE the revoke, pre-flight → revoke → verify; revocation confirmed only by
+  an explicit Telegraph refusal; exit 5 when a lost revoke reply leaves the old token dead; short writes completed or
+  reported (exit 3).
+- Provider canary stubs `_resolve_token`; `tools/provider_pr_guard.py` forbids the new names in scout tests;
+  `tools/telegraph_page_doctor.py` diagnoses without a token and refuses repair without one.
 
-## First post-merge poll 37352458678 (manual `workflow_dispatch` as `funzi7`, `6929d95`, 17:58:35Z → 18:00:41Z, success)
+## Tests and validation (physically run)
 
-- **Official channels:** "geektimecoil: 20 messages", "TheVerifier: 20 messages", "channels read=2 unreadable=0
-  linked_articles=31".
-- **Geektime first-enable baseline:** "phase1 bootstrap source=geektime::official-telegram: recorded 20 existing feed
-  identities without publishing; use manual backfill for history".
-  - State `poll_baseline_sources["geektime::official-telegram"]`: `initialized_at` 2026-10-05T17:59:22.083931Z,
-    `generation` 1, keys `https://t.me/geektimecoil/17867`–`17886` (20, consecutive).
-  - The Verifier is linked-only (`native_posts` not enabled), so it has no native baseline, by design.
-- **No historical native flood.** "posted=10 (telegram: 0, direct: 10, …)". Those numbers are `pub_<source>` counts:
-  `telegram: 0` is `pub_telegram` (articles published through the `telegram` extraction source), and a native would show
-  as a separate `telegram_native: N`, rendered only when non-zero. The 10 posts are messages 1237–1246, all `direct`: PC 8, Gadgety 1, Walla 1.
-  There was no `NATIVE-POST` line, no `telegram_native` block, no `pub_telegram_native` and no `native_rejected:*`.
-- **Day totals.** "Today total: posted=35, deferred=29 (retries-pending), permanent_fail=0, errors=0".
-  - State: posted 25 → 35 = `pub_direct` 35.
-  - `deferred` counts deferral EVENTS (28 → 29). The queue itself went 24 → 15 rows.
-- **State commit:** `2624d4b4b489a5908a295d707a31b98c11de7bd9` (github-actions[bot], 18:00:35Z) changes only
-  `state/techfeedil.json`. Every other state file is byte-identical, TheMarker's included.
-- **Quality:** "quality_inspector: no new quality issues to file". This is not proof of future quality.
-- **Runtime Ops:** open=1 waiting_external=1. The incident is `eee81f7e4c48a57e`, TGspot's publisher block (403
-  direct+Jina), unrelated.
+- Local: `python -m unittest discover` → **2955 OK** (three full runs, the last after the review fixes);
+  `python -m tests.test_message_format` passed; Node 21/21; `git diff --check` clean; `scripts/secret_guard.py
+  --tree/--staged` clean; every workflow YAML parses; every tracked `.sh` passes `bash -n`.
+- New suites: `tests/test_telegraph_token_secrets.py`, `tests/test_secret_guard.py`, `tests/test_telegraph_token_tool.py`.
+  Updated: `test_techfeedil`, `test_source_health`, `test_techfeedil_runtime_ops`, `test_techfeedil_source_health_recovery`,
+  `test_techfeedil_tenant_queue`, `test_runtime_ops_integration`, `test_provider_canary`, and every suite that stubbed
+  `_ensure_account` (now `_resolve_token`) or listed the token files as tracked state.
+- CI: the first PR head (`f513b3c`) failed only `git diff --exit-code -- state/` (one new test appended to the tracked
+  `state/errors.log`; fixed in `4d479db` with an isolated-log base class); every later head green; main CI
+  42477339972 green on `98796d9`; #121 CI green.
+- **Review:** Codex reviewed every #120 head: three P2 (rotation tool: lost `revokeAccessToken` reply reported as
+  "nothing revoked"; short `os.write` passing as "saved"; Source Health: `missing_telegraph_token` bridged to a path
+  the aborted poll never reaches) — each fixed in the next commit with tests, threads resolved; clean on `23eac35`;
+  #121 clean. Before the PR, an independent Claude Code (Opus) PR-style review of the staged diff: 0 P1, 1 P2 (the
+  lost-reply case), 7 P3 — fixed (except the deliberate JSON `getAccountInfo` body, live-verified). Not a Codex
+  fallback: Codex was available.
 
-## Production punctuation + bounded audit of the 10 descriptions (READ-ONLY)
+## Production evidence (READ-ONLY OBSERVED; manual dispatches are ordinary polls, the same the Guardian uses)
 
-- **Where the period was added.** `DIAG subtitle finish=period` appears on the 8 PC posts. Gadgety 370270 (og 148)
-  and Walla 3870955 (deck 184) already ended with `.` and were unchanged.
-- **Classes:** OK 2 (Gadgety, Walla: first-party verified), A 8 (PC: INFERRED from the production trail), C 0,
-  **B (clipped) 0, D (other, incl. ambiguous) 0**. This covers this bounded sample only.
-- **Telegram = Telegraph = `SUBTITLE-RECORD`** for all 10, each with exactly one final mark and no `..`.
-- **Why the PC rows are inferred, not observed:** PC pages and their `r.jina.ai` copies answer 403 (Cloudflare) to
-  this sandbox, so they rest on the production trail.
-  - Production fetched each page with HTTP 200 (268,912–273,556 bytes).
-  - No `DIAG subtitle overlap=` rejection line appears, so the first candidate (PC's visible deck) was accepted.
-  - The texts share at most 11 opening characters with the body, and `candidate_chars + 1` equals the published
-    length.
-- **PC's `●` separator:** publisher-owned and pre-existing (messages 1212/1219/1220/1228/1235; polls 37250890466,
-  37287364094, 37340553586); it never ends a subtitle.
+- The 12:00Z/12:17Z cron slots had not fired by 12:31Z, so both polls were dispatched by hand on `main` at 12:32Z
+  (old token values via the new secrets): Tech run 42480696596 success `posted=6` (six `telegraph_url` lines),
+  TheMarker run 42480699573 success `posted=4`, both `errors=0`, no `telegraph_token_missing`.
+- Rotation 12:35Z: `rotate` exit 0 for both tenants (new token verified on the same account — `demarker` 1393 pages,
+  `techfeedil` 2055 pages; old token `ACCESS_TOKEN_INVALID`); no poll in progress during the ~6 s windows.
+- Post-rotation dispatches 12:36Z: TheMarker run 42481015849 success `posted=1` with a `telegraph_url` → a real page
+  created with the rotated token; Tech run 42481012853 success `posted=0` (nothing new; the startup gate found the
+  rotated secret).
+- The 13:17Z Tech cron slot had not fired by 13:31Z, so the Tech poll was dispatched by hand once more at 13:31Z:
+  run 42485383691 success `posted=6` with six `telegraph_url` lines, `errors=0` — Tech Feed IL proven on the rotated
+  token. Both tenants publish on the new secrets; the bot's own state commits after these runs landed on `main` as usual.
 
-## Second post-merge poll 37355922941 (schedule, `2624d4b`, 18:26:11Z → 18:27:39Z, success; state `824a7b8`)
+## DONE / PENDING / SUPERSEDED (reconciled; repo: CONTEXT 2026-11-08 section, doc §4)
 
-- It was the first scheduled Tech poll since 09:01:53Z.
-- It read both channels again and published 5 `direct` posts (messages 1247–1251: mako 2, Gadgety 1, Geektime 2), no
-  native. Day total 40 = `pub_direct` 40.
-- Two more `finish=period` lines appeared, on mako (299→300, 176→177). Gadgety and Geektime already ended with
-  `.`/`?`.
-- **First `telegram_native` write:** an empty native `ledger` plus two body-free `article_hashes` (`source_id`
-  geektime), created by publishing the Geektime articles.
+- **DONE:** #120 merged; #121 merged; secrets created and rotated; both tenants observed publishing through the
+  secrets before the rotation; TheMarker observed publishing with the rotated token; old tokens verified revoked;
+  local legacy files deleted; CONTEXT §6 backlog item S-1 ("move the Telegraph token files out of the repository")
+  closed; the README no longer claims account creation on first publish.
+- **PENDING:** PR #122 (docs-only, the last evidence row) merging via Merge Bot after Codex; GitHub secret scanning /
+  push protection for the private repository (not readable with this session's token; owner decision); the same
+  env-only treatment for any future tenant (enforced by `configure`). The cron lag seen today (the 12:00Z, 12:17Z
+  and 13:17Z slots had not fired when checked) is pre-existing GitHub-schedule behavior, not changed by this task;
+  the Guardian's self-heal covers Tech as before.
+- **SUPERSEDED (engineering, security-driven):** "the Telegraph account is created on the first publish and its token
+  cached in `state/`" and the Source Health `not_initialized` state. Old token blobs remain in history by owner
+  instruction (no rewrite); they are neutralized by revocation — a future history scan will still find them (dead).
+- Unrelated, noticed: PR #116 (docs, DRAFT, `no-automerge`) and PR #118 (`dot/scout-standalone-cli-credits`, another
+  agent's work) are still open; untouched.
 
-## Linked description and native: status (PRECISE)
+## Process notes
 
-- **Linked:** 31 linked articles indexed per poll. `_linked_telegram_text` runs before every article parse and logs
-  `DIAG official telegram description candidate` when it has text; that line appears in neither poll. The two
-  Geektime articles published their visible decks: their channel posts (1249 ← 17884, 1250 ← 17882) are headline +
-  link only, so they offer no candidate.
-  - **PENDING:** the first publication actually using an official-Telegram linked-description candidate.
-  - **PENDING:** a NEW channel post classified LINKED whose article publishes exactly once.
-- **Native:** at 18:33:49Z the geektimecoil preview's newest message was still 17886 (13:04:59Z), so Geektime has
-  posted nothing since the baseline.
-  - **PENDING:** the first real post-baseline native: its classification, format, original t.me attribution, pinned
-    source-media preview where applicable, `pub_telegram_native`, ledger, and no duplicate afterwards.
-  - Nothing was manufactured.
+- Subagents (Opus): two implementation subagents for independent modules (secret guard + hook installer; rotation
+  tool) and one independent reviewer. Main thread (Fable) did the core/security-sensitive edits, the rotation and the
+  verification. Shell budget respected (one CI waiter at a time; background one-shot checks instead of polling).
+- No token value ever entered a shell argument, a log, a transcript or a document: the audit scanner, the token
+  tool and all evidence use sha256[:10] fingerprints or identity fields only; the secrets were piped via stdin.
+- Local side effect, fixed and disclosed: the test suite appended lines to the tracked `state/errors.log` in the
+  working copy (one new test at first, since fixed); never committed; the file was rewritten from `HEAD` content
+  (no reset/restore/stash was used anywhere).
 
-## #114 (`queue: max`) acceptance
+## Next steps (owner)
 
-- **DONE: GitHub accepts and runs the changed poll workflow.** This settles the workflow-level `queue: max` form,
-  which Source Health also uses; the job-level Backfill form has not run yet. All three runs succeeded:
-  - 37340553586: the Guardian's dispatch, 16:24:12Z, `3427b55`, which contains `dc9ab26`;
-  - 37352458678;
-  - 37355922941.
-- **No `startup_failure`:** 0 among the 330 runs created from the #114 merge to ~18:35Z, and 0 among the 1239 runs
-  since 2026-09-28T18:00Z (the earliest at 2026-10-01T23:22Z), counted on `conclusion`. The `status=startup_failure`
-  filter accepts any value.
-- **The Guardian (4th self-heal).** Guardian 37340511887 (schedule 16:23:53Z, success) logged `tenant_lock {"pending": [],
-  "readable": true}`, `SCHEDULER_GAP … missed_slots=7`, and `dispatch … 204 accepted run_id=37340553586
-  confirmed=true`.
-  - Sidecar `84c7494`; counters 4/4/4.
-  - The Guardian is outside `bot-state-techfeedil`: its own group, default queue, comment-only change in #114.
-- **TheMarker's workflow and queue configuration is unchanged by #114:** `poll.yml` has no diff; the Backfill
-  `site=themarker` group, queue and cancel settings are identical. No TheMarker poll has run since #115 merged; that
-  check is PENDING.
-- **PENDING:**
-  - the first `source-health-techfeedil.yml` run (cron `37 3 * * *`; last run 10:49Z, before #114) and the first Tech
-    Backfill run on the new queue;
-  - a NATURAL two-member wait. The three member runs never overlapped, and the concurrency-groups API showed 0 active
-    groups and a 404 for the group at 18:14Z/18:29Z. Never manufacture a collision.
-
-## DONE / PENDING / FUTURE (reconciled; repo: CONTEXT §6 block 2026-10-05c, #113 ADR §13, #115 report §7)
-
-- **DONE (merged):** #113 `62e467b`, #114 `dc9ab26`, #115 `6929d95`.
-- **DONE (observed):**
-  - #114: workflow startup for the poll, and for the Guardian workflow (comment-only change);
-  - the first Guardian and poll runs on the post-#114 main;
-  - #115: main CI, both official channel reads, the Geektime baseline, no history flood, production punctuation, the
-    bounded 10-post audit (0 clipped), quality filing ("no new issues"), the first `article_hashes` write;
-  - 4 Guardian self-heals; the 505-row cleanup.
-- **PARTIALLY OBSERVED:**
-  - no stale publication: 20/20 posts since #114 were dated, 1.8–9.4 h old; Walla rows 7.3–8.8 h corrected; 3 older
-    undated mako rows remain;
-  - the Source Health digest via the governed path (DM text not visible; no Source Health run since 10:49Z);
-  - no clipped description (first polls only).
-- **PENDING:**
-  - the first TheMarker poll on #115's merged shared code (none since the merge; the last TheMarker poll was
-    37306827516 at 12:02Z on `dc9ab26`). Its isolation is deterministically tested only;
-  - the first real native post (discovery, classification, format, t.me, pinned media, `pub_telegram_native`,
-    ledger, no duplicate);
-  - the first linked-description use;
-  - a linked post plus its article publishing ONE time;
-  - #114: Source Health and Backfill first runs, plus a natural two-member wait;
-  - a real Tech quality-Issue write (none needed yet);
-  - the external dead-man (no vendor; 2026-10-05 again had no scheduled Tech poll from 09:01:53Z to 18:26:11Z, and
-    the Guardian was undelivered from 07:42Z to 16:23Z);
-  - Tech AI provider scouting stays disabled;
-  - Walla +3 h: still reproduces (3870955 page `13:45:00+03:00`, stored `13:45:00+00:00`);
-  - `time_bound`: none in 9 post-#113 polls (normal 510, evergreen 11);
-  - Actions budget (not readable);
-  - the lost-sidecar duplicate DM (not observed);
-  - cosmetic: Codex thread 4178858301 on closed #113 is unresolved and unanswered (fix merged).
-- **FUTURE:**
-  - the #113 ADR §13 list;
-  - the #115 report §7 list: natives for more publishers, older-article citations, og-only and visible-deck clips,
-    the #113 prefix floor, MarkdownV2 backslash, preview GET deadline, `flash` sentinel, Gadgety "• •" (seen again in
-    37352458678), and the generic Telegram layer's (b)–(d);
-  - **owner roadmap (2026-10-05), roadmap only:**
-    1. channel branding/marketing identity: subtle differentiation; tagline, bio and pinned message; no per-post
-       marketing noise without approval;
-    2. an original logo: avatar-size legible; square plus a later wide variant; no publisher look-alike; NOT
-       generated;
-    3. a future Android app on the same data/publication layer: no second ingestion system; categories, sources,
-       notifications, read-later, article/IV; architecture later; NOT started.
-- **SUPERSEDED:**
-  - owner approved 2026-10-04: #113 ADR §12;
-  - owner approved 2026-10-05: README's "does not ingest another Telegram channel", replaced by the verified
-    allow-list. "Missing final punctuation alone is not truncation" is NOT superseded;
-  - engineering, in effect since `dc9ab26`: the tenant lock's guarantee role, now provided by `queue: max`. The hold
-    stays as a courtesy.
-
-## Subagents used (read-only, up to 4 in parallel)
-
-1. The 10-post description audit.
-2. Runtime/Actions/Merge Bot reconciliation.
-3. The state-commit semantic diff.
-4. The stale-docs and backlog inventory.
-
-Then, one at a time or in pairs:
-- an adversarial fact-check of the first draft;
-- the two fallback reviewers on `9f41b5e`;
-- a final verifier on `352175e`;
-- an independent check of the `cfffbc3` delta.
-
-Every figure recorded here was re-verified against primary evidence.
-
-## Next steps (coordinator / owner)
-
-1. Review PR #116 (docs only). It merges only if the owner marks it ready and removes `no-automerge`.
-2. Watch for the first real Geektime native post after the baseline: the `NATIVE-POST` line, the t.me link, the
-   pinned media preview and `pub_telegram_native`. Watch also for the first `DIAG official telegram description
-   candidate` that wins.
-3. Watch the first Source Health run (03:37Z cron) on `queue: max`, and any natural two-member wait. A
-   `startup_failure` alerts nobody, so check it by hand.
+1. Nothing is required for publishing to keep working: both tenants run on the rotated secrets.
+2. Optional hardening: enable GitHub secret scanning + push protection for the private repository; run
+   `scripts/install_git_hooks.sh` in any other clone; keep `~/.config/paywall-bot/*.token` as the only local copies.
+3. Let Merge Bot land PR #122 (docs only). If a Telegraph token ever needs rotating again, follow
+   `docs/telegraph-token-secrets-20261108.md` §3 — never create a new account, never store a token in the repo.
