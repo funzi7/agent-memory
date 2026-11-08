@@ -1,4 +1,45 @@
-# private-media-tv — build232 records checkpoint; Sports/T4/IPTV/D1 remain open
+# private-media-tv — lane 6: 0.7.185/code233 pushed (164 lease), CI runner pinned, 233 delivery pending the full-suite gate; Sports/T4/IPTV/D1 remain open
+
+## November9 Claude lane 6 — owner179 hand-off consumed: 164 shipped as 0.7.185/code233, CI runner pinned, reflective-test repair, G19 build 1 in progress
+
+Owner 2026-11-09 ≈02:44 Bangkok: "continue from codex handoff". Claude's sole writer claim ACTIVE 2026-11-08T19:55Z (REQ-CLAUDE-301 /
+COORD-149) at the existing wt-230 (detached; Codex's mixed work preserved — 165 slices, 155 transfer, G19 draft; nothing reset,
+rebased or re-created). Commits on main (all SCOPED: exact paths + record sections staged as HEAD+section; the mixed tree's other
+hunks stay uncommitted): 6f496ae0 = 0.7.185/code233 (CL-164 Telegram LIVE: one `TdLibLiveMembership` lease set per client lifetime
+in `TdLibClientGateway`; the two causal failures of 84699 now PASS + 12 bounded controls + gateway/bridge tests; independent Opus
+review APPROVE WITH CHANGES, all applied; packets results/live164-membership-fix-20261109.R6x3UM and …fix2-20261109.sfS7bY; lint
+GREEN); b8c2feae = CI build job pinned to `runs-on: ubuntu-24.04` (GitHub moved ubuntu-latest to 26.04 — actions/runner-images #14748 —
+which moved the FFmpeg artifact cache key's host-tool hash; the exact-hit step fails closed by design; no hashed input, pin, version or
+app source changed; the pinned run hit the cache); third commit (pending the full-suite gate) = test-only repair of
+`TdLibNativeCommandDisarmTest.rawRequest`, whose reflective lookup of the private `request()` by JVM arity 2 broke when CL-164 added a
+defaulted parameter (CI 42522271586: 933 tests / 5 failed, all that class) — APK still 233. Lesson (memory): gate the WHOLE module on a
+shared-signature change. Delivery: ONE idle-guarded watcher per pushed head (CI → canonical download → Shield --no-launch → phone);
+devices at the time of writing Shield 232 / phone 230; 233 not yet installed. Physical acceptance (the owner's Shield LIVE watching,
+REQ-CODEX-160/164) OPEN — the fix proves the synthetic ordering defect only.
+Sports/T4 lane: G19 read-only review of Codex's dirty draft (research/g19-codex-draft-review-20261109.md: a dormant foundation, nothing
+wired on either app; two live changes ride inside — the SyncOwner lifecycle rewrite and the V5 half-part codec); ONE Opus builder on
+"G19 build 1" (research/g19-build1-brief-20261109.md; bells = build 2; git read-only; heavy-run gates); open-list reconciliation
+(research/sports-open-list-20261109.md: 69 rows — 40 shipped, 1 partly (G30), 25 open, 1 in build, 2 unconfirmed; Codex's 230 =
+ADR 0228 closed G24/G26–G29/G31/G32); G25 = ADR 0154's choice (no Sports worker on the TV shell); G22 brief ready; G21 waits for CL-214.
+D1 HOLD/OFF-safe; Tailscale OFF; no VPS/private action. Preserve this body and the sections below byte-for-byte.
+
+## November8 owner179 local handoff — NOT finalized/pushed
+
+Owner requests Claude continuation at Codex usage boundary. Codex releases
+writer through canonical CLAIMS; Claude must acquire its own sole claim after
+fresh full rules/preflight/eight-file reconciliation. Handoff:
+`/root/work/_agent-coordination/private-media-tv/results/CODEX_TO_CLAUDE_HANDOFF_20261108.md`.
+Actual existing wt-230/detached2d3803f7d9b841ca5d912dee130e796e7b75e36a,
+index empty, mixed work preserved. No new commit/push/CI/APK/install or memory
+finalize; older publication below is historical, not this handoff finalized.
+165 applied: two-stall14/freshlint and WORKED17/fresh3lint78208 locally pass,
+stable inputs/independent reviews.16484699 proves2causal orderingFAIL+2PASS;
+actual session production fix is NOT implemented. ExternaldvR3dn only draft.
+All heavy jobs terminal/freezes released. Shield232/lastverifiedphone230,
+physicalOPEN. D1owner178 ONE receipt check complete: preparation authenticated,
+START/CHECKS/consumption/finally/residue UNKNOWN; readiness/retry/clearancefalse.
+HOLD/OFF-safe, no further private/VPS/retry authorized. Continue164/165SportsT4.
+Preserve entire prior body/history and all dirty files; no reset/rebase/newtree.
 
 Continuation checkpoint, not full Sports/T4 completion or physical acceptance.
 Preserve the existing cc-latest body byte-for-byte:574862bytes/SHA256
