@@ -1,5 +1,27 @@
 # private-media-tv — lane 6: both devices 0.7.187/code235 (233→234→235 delivered); CL-175 (236) gating; 121 b (237) in lint; Sports/T4/IPTV/D1 remain open
 
+## November9 18:0x Bangkok — INCIDENT REQ-CLAUDE-303: phone ANR at the splash since 234 (lock-order deadlock) → HOTFIX 0.7.192/code240 pushed 17:56
+
+Owner 17:0x: "pmtv on phone wont start … stuck on logo screen and then android say app stuck". Phone on 238 (installed idle-only 15:28; first
+interactive start since: 17:08). ANR trace (bug report 17:11, `anr_2026-11-09-17-08-18-443`): main holds `F2c75SportsProcessLifecycle.lock` in
+`F2c75SportsProcessOwner.getOrCreate → create → AndroidSportsPreferenceStore.<init>` (needs `FACTS_LOCK`); the G19 start-up cohort
+(`F2c75SportsOwnerSync.runCohort → prepare → persistOwnerFacts`) holds `FACTS_LOCK` and its `aliases` lambda took the lifecycle lock through
+`F2c76TheSportsDbProcessOwner.getOrCreateIfOpen`. Present since 234 (G19 build 1); 6,981 deterministic tests + a review + five green builds
+missed it (threads never overlap in Robolectric; no lock-order question; the Shield's small store hid it; no phone cold start after the install).
+Fix (planner, 2 files in feature-sports): the cohort resolves the repository ONCE before `prepare` (lifecycle lock before facts lock) and the
+lambda reads it lock-free (new `F2c76TheSportsDbProcessOwner.current()`); builder added `F2c75SportsOwnerSyncLockOrderTest` (thread test + a
+source-text guard that fails on the old code). Gated 3126/0 on a clean checkout (results/hotfix240-tests-20261109.kuZMlU; k7clP2 is VOID —
+a fresh worktree lacks `local.properties`); local lint skipped (CI lints all); pushed 17:56 = 365c774a; CI 42604921665; watcher wd_hotfix240
+installs both devices when green; acceptance = the owner's cold start. Incident note: the 239 watcher installed on the phone at 17:11 DURING
+the owner's attempts (the idle guard sees only "not running") — guard gap to fix. Standing rules (memory pmtv-tv-sports-parity): lock order
+lifecycle → facts, nothing under `FACTS_LOCK` calls a process owner; a lock-order question + thread test for start-up code; a device cold start
+before a start-up change counts as shipped; no install while the owner reports a failure.
+Also today: owner decision 16:5x (verbatim) "should only clips with higlights or full game not every telegram clip is an eye if the search is
+broad to interview (?)" → CL-214 a2 (restore `if (highlights) SHORT_HIGHLIGHT else CLIP`; built, gate queued; → 241 on 365c774a). CL-214 b1
+(halves; ADR 0234) built + reviewed APPROVE WITH CHANGES (1 docs P1 + 3 P2 applied; rerun queued; → 242); B2 (second-half continuation,
+"מה לצפות?") and part C (brief research/cl214c-build-brief-20261109b.md + decisions) follow. Both devices run 239 (deadlocked at cold start on
+the phone) until 240 lands.
+
 ## November9 16:1x Bangkok — both devices 0.7.190/code238; 239 (13r) pushed; CL-214 b building; CL-214 c brief ready
 
 Delivery today (idle-only, never launched): 236 (CL-175) 12:02, 237 (121 b) 14:10, 238 (CL-214 a) 15:28 on BOTH devices; 239 (13r)
