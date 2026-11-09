@@ -1,5 +1,27 @@
 # private-media-tv — lane 6: both devices 0.7.187/code235 (233→234→235 delivered); CL-175 (236) gating; 121 b (237) in lint; Sports/T4/IPTV/D1 remain open
 
+## November9 13:4x Bangkok — both devices 0.7.188/code236; 237 (121 b) pushed; CL-214 a built + in review; 13r building on 237
+
+Delivery: CL-175 = 0.7.188/code236 (86ee248f) on BOTH devices at 12:02 Bangkok (Shield 12:02:01 not launched: Asleep; phone 12:02:18 under
+the idle guard); ADB lease released. 121 b (REQ-CODEX-121 part b, larger titles/match lines in `מומלץ לך בספורט`, Shield row height derived
+from its cards; ADR 0237) = 0.7.189/code237 = bf348113, committed from the CLEAN wt-121b after `git checkout -m --detach 86ee248f` (CL-175
+and 121 b touch TvCatalogHomeScreen.kt in far-apart hunks), gated on the clean checkout — FULL app-mobile 1958/0 + app-tv 1073/0
+(results/121b-tests-20261109.er875p, RECEIPT.md) — pushed 13:09:32, CI run 42571351847, ONE idle-only watcher wd_121b delivers both devices.
+Lesson (memory pmtv-test-env-quirks): the review's P2-1 test was a `while` search for a soft wrap — under Robolectric LEGACY a real string
+never wraps, so it spun 26 min at 170 % CPU holding the heavy lock; jstack named the line, the planner killed only that worker, the test was
+redesigned (pure width rule `tvSportsKickoffMeasureWidth` + unit test; explicit two-line kickoff compose test). Two heredoc attempts to
+write that note were queued by the build-lock hook (the tool's name; "make") — notes go through Edit/Write.
+Sports/T4 lane: CL-214 part A (the eye after a watched Telegram highlights clip; `קצר` / `ארוך`; ADR 0232) built by one Opus builder in
+wt-cl214a (21 files, shared code only): affected classes 333/0, FULL core-sports/feature-sports/app-mobile/app-tv 3653/0, lint clean;
+the planner's read added the kickoff-correction rule (the completion guard uses the LATER of provider and corrected kickoffs because the
+ADR 0104 correction applies only to UPCOMING fixtures) and the bounded Telegram duration reader; the `part` cache key waits for part B.
+Independent read-only Opus review running (brief research/cl214a-review-brief-20261109.md); ship chain ready (build84/ship_cl214a.sh →
+0.7.190/code238 on bf348113). 13r (CL-177 q2 a remainder: a NEW live lead returns the row to its start; ADR 0238) building in wt-13r @
+bf348113. Then CL-214 b–d → G19 bells → CL-073 → REQ-271 → CL-312 A → CL-071 b → CL-209 → CL-191 → REQ-216; REQ-302/CL-326 = later list.
+Owner wording to confirm (not blocking): "every short Telegram video of the match counts as a highlights clip" (REQ-178). Open-list
+addendum F: research/sports-open-list-20261109-addendum-F.md (43 shipped / 1 committed / 1 in build / 22 open). Physical acceptance OPEN
+(U1 lagging fixture; the 121 b look on both devices). D1 HOLD/OFF-safe; Tailscale OFF.
+
 ## November9 10:5x Bangkok — both devices 0.7.187/code235; 233 → 234 → 235 delivered this lane; CL-175 (236) gating; 121 b (237) in lint
 
 Delivered and installed on BOTH devices today (idle-guarded, never launched): 233 (Telegram LIVE membership lease, CL-164) 05:16/05:24; 234
