@@ -1,4 +1,19 @@
-# private-media-tv — lane 6: both devices 0.7.185/code233; G19 build 1 (0.7.186/234) amended + re-gating; G22 built; Sports/T4/IPTV/D1 remain open
+# private-media-tv — lane 6: both devices 0.7.187/code235 (233→234→235 delivered); CL-175 (236) gating; 121 b (237) in lint; Sports/T4/IPTV/D1 remain open
+
+## November9 10:5x Bangkok — both devices 0.7.187/code235; 233 → 234 → 235 delivered this lane; CL-175 (236) gating; 121 b (237) in lint
+
+Delivered and installed on BOTH devices today (idle-guarded, never launched): 233 (Telegram LIVE membership lease, CL-164) 05:16/05:24; 234
+(G19 build 1: the owner's watched / started / `לא מעוניין` match state the same on phone and Shield, ADR 0229; one real reset-lease defect found
+by the committed-set gate and fixed on the way) 09:16/09:17; 235 (G22: the phone's `פרטי שגיאה` / `פרטים` on the Shield's Match Details rows via
+the row's Menu, ADR 0230) 10:46 after CI's single re-run of the known flaky `TvCatalogGridScreenTest` case. Local commits ready: CL-175 =
+86ee248f (0.7.188/236; the 150-minute live-source window for a match the provider still calls UPCOMING, ADR 0231; reviewed APPROVE WITH CHANGES,
+fixes in) — five-module committed-set gate running, push after it; REQ-CODEX-121 b (larger `מומלץ לך בספורט` text) built in wt-121b, in lint,
+then review → 237. Briefs + clean worktrees ready: CL-177 q2 a remainder, CL-214 a–d (ADR 0232/0234–0236), G19 build 2 bells (0233), CL-073,
+REQ-271, CL-312 A, CL-071 b/c (part c held on a live page read; a date-only binding needs the owner's yes), CL-209, CL-191 + alias table.
+REQ-CLAUDE-302 (an episode page's search built from another series' stale details → the one tap played the wrong file) = CL-326, LATER LIST on
+the owner's word. Lessons saved: gate the committed set on a clean checkout with FULL suites of touched modules + both shells; an outer
+`timeout` must not count the lock wait; the next push waits for the previous head's canonical DOWNLOAD. Housekeeping: 34 merged clean
+worktrees pruned (27 → 41 GB free). D1 HOLD/OFF-safe; Tailscale OFF. Preserve everything below byte-for-byte.
 
 ## November9 06:4x Bangkok — both devices 0.7.185/code233; G19 build 1 amended + re-gating; G22 built; REQ-302 on the later list
 
