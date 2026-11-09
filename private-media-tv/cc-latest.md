@@ -1,5 +1,20 @@
 # private-media-tv — lane 6: both devices 0.7.187/code235 (233→234→235 delivered); CL-175 (236) gating; 121 b (237) in lint; Sports/T4/IPTV/D1 remain open
 
+## November9 22:4x Bangkok — 243 pushed (the 242 CI leak fixed in the test harness; the halves ride with it); B2 in its review round; queue briefed to CL-073
+
+242's CI leak explained (builder, from the CI diag): Home's view models open three FRAMEWORK-SQLite Room stores (`F2bCatalogProcessOwners.kt`:
+metadata cache, territory availability, supplemental metadata) that `MobileStartupCompositionSmokeTest`'s teardown never closed; a pending Room
+coroutine finalized a statement after Robolectric's per-test SQLite reset (B1 only changed the timing). Fix = test infrastructure only: the
+after-test cleanup closes the three stores once every view model is cancelled and joined, before the catalog DB closes, on the existing cleanup
+worker (10 s bound; Main never parked — a first version inside setUp's Main `runBlocking` hung 25 min and was killed/removed). 243 = 863c3e3c
+= 0.7.195/code243 (gated 3064/0 by the planner as the only builder; pushed 22:37; CI 42646496165 is the proof; watcher wd_leakfix243 with the
+v2 guard installs both devices when green). 242 superseded undelivered; both devices still 241. B2 (ADR 0239) built + reviewed APPROVE WITH
+CHANGES (P1-1 Back must cancel the pending second-half launch via the session token; P2-1 the half line / continuation / choice must read the
+SHOWN sources before the reveal — a hidden extra-time row leaked); the B2 builder is the one builder applying them → 244 on 243. Briefs with
+planner decisions + launch prompts ready: C (ADR 0235, worktree ready), D (0236), B2b (0240, after D), G19 bells (0233: `לא מעוניין` arms
+nothing; `b` in `sports.m:`; the 240 lock order), CL-073 (0241: the owner's q2 = 1 strict recent finish; reuse the existing LIVE→FINISHED forced
+search). Owner rule in force (verbatim 21:4x): "max one builder (agent or you) and max one non builder".
+
 ## November9 21:4x Bangkok — OWNER RULE (verbatim): "max one builder (agent or you) and max one non builder"; 242 CI red 2/3 = real leak
 
 The owner said "too much agents" → "only one builder!" → "max one builder (agent or you) and max one non builder". Applied: the read-only
