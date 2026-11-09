@@ -1,5 +1,27 @@
 # private-media-tv — lane 6: both devices 0.7.187/code235 (233→234→235 delivered); CL-175 (236) gating; 121 b (237) in lint; Sports/T4/IPTV/D1 remain open
 
+## November9 16:1x Bangkok — both devices 0.7.190/code238; 239 (13r) pushed; CL-214 b building; CL-214 c brief ready
+
+Delivery today (idle-only, never launched): 236 (CL-175) 12:02, 237 (121 b) 14:10, 238 (CL-214 a) 15:28 on BOTH devices; 239 (13r)
+pushed 16:05 (5a10a35f; CI + watcher wd_13r pending). Each ship went through build84/ship_clean.sh: clean worktree detached onto the pushed
+head (121 b needed `checkout -m` for a far-apart hunk overlap in TvCatalogHomeScreen.kt), identity bump + five record sections, commit,
+FULL suites of the touched modules + both shells on the clean checkout (packets results/121b-…er875p 3031/0, cl214a-…cZt12T 3662/0,
+13r-…xY33Dy 3124/0, each with RECEIPT.md), push, ONE watcher; the next push waited for the previous head's canonical download.
+Reviews (independent Opus, read-only): 121 b APPROVE WITH CHANGES (P2-1 kickoff measured at the logo's width — pinned by a pure width rule
+after the first test spun forever under LEGACY and was killed; P2-2 the no-cap bound in ADR 0237); CL-214 a APPROVE WITH CHANGES (ONE P1: a
+date-only kickoff opened the "K + 150 min" branch during the live match — fixed, the time branch needs a known kickoff time or a recorded
+correction; the guard uses the LATER of provider and corrected kickoffs); 13r APPROVE WITH CHANGES (P2-1 the once-per-key memory was lost
+when the row left the Home column — now in a holder that outlives the row on each app; P2-2 the phone waits for the finger to lift; planner
+rule: the first card that TURNS live at kickoff also counts, once per key — ADR 0238).
+In flight: CL-214 b (halves; ADR 0234; wt-cl214b @ ee2d6333; refreshed brief research/cl214b-build-brief-20261109b.md + the planner's
+decisions: the mixed-fleet `f1`/`f2` sync proof is a MUST, a `part` on SHORT_HIGHLIGHT, the passive-pass re-fill, §13 last / B1-B2 split
+allowed; review brief + ship_cl214b.sh → 0.7.192/code240 ready). Ready next: CL-214 c (ADR 0235; research/cl214c-build-brief-20261109b.md
++ decisions: "מה לצפות?" stays with B, D = the score after seen + the `תוצאה` removals; the Shield's Menu-sheet clear goes, TV = phone;
+"תקציר · קצר" for an unknown-length short highlight) → d → G19 bells (ADR 0233) → CL-073 → REQ-271 → CL-312 A → CL-071 b → CL-209 → CL-191
+→ REQ-216; REQ-302/CL-326 = later list. Owner check list for 234–238: research/owner-device-check-234-237-20261109.md. Owner wording to
+confirm (not blocking): "every short Telegram video of the match counts as a highlights clip" (REQ-178). Pruned five clean merged scratch
+worktrees (≈ 4.3 GB). D1 HOLD/OFF-safe; Tailscale OFF; physical acceptance OPEN.
+
 ## November9 13:4x Bangkok — both devices 0.7.188/code236; 237 (121 b) pushed; CL-214 a built + in review; 13r building on 237
 
 Delivery: CL-175 = 0.7.188/code236 (86ee248f) on BOTH devices at 12:02 Bangkok (Shield 12:02:01 not launched: Asleep; phone 12:02:18 under
