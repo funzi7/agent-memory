@@ -1,5 +1,18 @@
 # private-media-tv — lane 6: both devices 0.7.187/code235 (233→234→235 delivered); CL-175 (236) gating; 121 b (237) in lint; Sports/T4/IPTV/D1 remain open
 
+## November9 21:1x Bangkok — both devices 241; 242 on CI attempt 3 (two different flakes); B2 in full gates; C/D staged
+
+Both devices = 0.7.193/code241 (20:02). 242 (CL-214 b1 = 751a71d6) pushed 20:01: CI attempt 1 red on the known startup-smoke leak
+(`MobileStartupCompositionSmokeTest` UncaughtExceptionsBeforeTest), attempt 2 red on a DIFFERENT timing flake (`core-provisioning
+SyncLanSessionTest > a cancel in phase 1 … :273`, module untouched by 242) → attempt 3 running (20:48); watcher wd_cl214b restarted (the repo's
+deploy script connects the Shield itself; the phone uses the v2 guard). A Claude session restart at ≈20:30 killed every background job and the
+Termux ADB server lost both devices (the owner turned ADB back on 20:39; the phone came back at a new port) — recovery checklist in memory
+pmtv-test-env-quirks (adb devices, lock queue, watchers restarted from the worktree, builders resumed by SendMessage with context, waiters
+re-created). CL-214 b2 (ADR 0239) builder resumed with context: gates 1–2 green (compile, 37 core tests; feature-catalog 51, app-tv 109; three
+phone test fixtures fixed — an empty launches flow — no production change), gate 3 = FULL suites of six modules + lint running. Staged: B2's
+review brief + ship chain (0.7.195/code243); C's worktree @ 751a71d6 (will move onto 243), launch prompt, review brief, ship chain
+(0.7.196/code244), records skeleton; D's brief being refreshed (ADR 0236) by a read-only agent.
+
 ## November9 19:3x Bangkok — REQ-CLAUDE-303 RESOLVED (owner: "app on phone opens" on 240); 241 in CI; 242 gated; B2 in build
 
 Hotfix 0.7.192/code240 = 365c774a: CI green 18:51; Shield 18:57; phone 19:17 (the phone was off ADB 18:57–19:15 and came back on a new
