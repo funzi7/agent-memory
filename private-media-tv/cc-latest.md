@@ -1,5 +1,18 @@
 # private-media-tv — lane 6: both devices 0.7.187/code235 (233→234→235 delivered); CL-175 (236) gating; 121 b (237) in lint; Sports/T4/IPTV/D1 remain open
 
+## November9 21:4x Bangkok — OWNER RULE (verbatim): "max one builder (agent or you) and max one non builder"; 242 CI red 2/3 = real leak
+
+The owner said "too much agents" → "only one builder!" → "max one builder (agent or you) and max one non builder". Applied: the read-only
+CL-073 brief refresh stopped, the B1 leak-fix builder stopped (its one-file fix survives in wt-cl214b; `SendMessage` resumes it with
+context), the orphaned script its flock had started killed. "Builder" includes the main session's own gates: a ship gate runs only when no
+builder agent exists; at most one read-only agent beside it. State: ONE builder — B2 (ADR 0239) in gate 4 reruns; B2's review brief + ship
+chain ready. 242 (CL-214 b1, 751a71d6): CI attempts 1 and 3 failed on the SAME startup-smoke leak (a Room statement finalized after the
+previous test's catalog close; attempt 2 an unrelated core-provisioning timing flake) → treated as REAL (B1 changed the odds; 240/241 passed
+first time); the B1 builder's fix (one file) will be re-run as the next builder → 243 (ship_leakfix243.sh), then B2 → 244, C → 245
+(worktree ready @ 751a71d6), D → 246 (brief + decisions + prompt ready; ADR 0236), B2b (ADR 0240), G19 bells (brief + decisions + prompt
+ready; ADR 0233), CL-073 (refresh deferred). Both devices 241; 242 undelivered. ADB: the phone is back (new port); the Shield is connected by
+the deploy script at install time.
+
 ## November9 21:1x Bangkok — both devices 241; 242 on CI attempt 3 (two different flakes); B2 in full gates; C/D staged
 
 Both devices = 0.7.193/code241 (20:02). 242 (CL-214 b1 = 751a71d6) pushed 20:01: CI attempt 1 red on the known startup-smoke leak
