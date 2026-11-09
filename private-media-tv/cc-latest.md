@@ -1,5 +1,20 @@
 # private-media-tv — lane 6: both devices 0.7.187/code235 (233→234→235 delivered); CL-175 (236) gating; 121 b (237) in lint; Sports/T4/IPTV/D1 remain open
 
+## November9 19:3x Bangkok — REQ-CLAUDE-303 RESOLVED (owner: "app on phone opens" on 240); 241 in CI; 242 gated; B2 in build
+
+Hotfix 0.7.192/code240 = 365c774a: CI green 18:51; Shield 18:57; phone 19:17 (the phone was off ADB 18:57–19:15 and came back on a new
+port; the watcher re-discovers the device each attempt); owner 19:2x "app on phone opens" → REQ-CLAUDE-303 RESOLVED. Delivery guard gap closed
+for future watchers: build84/phone_install_v2.sh defers while an interactive PMTV launch is < 20 min old (`PMTV_INSTALL_URGENT=1` overrides);
+the watcher template calls v2 since 19:18. Then: CL-214 a2 = 0.7.193/code241 = ecd8d927 (gated 3680/0; review APPROVE; pushed 19:10; CI
+42614785191); CL-214 b1 = 0.7.194/code242 = 751a71d6 (three-way merged onto 241 — one AGENTS.md conflict, both bullets kept; gated 6195/0 on a
+clean checkout; core-catalog left to CI on this aarch64 host; review's 1 docs P1 + 3 P2 applied and re-run green); its push fires automatically
+after 241's canonical download. CL-214 b2 (second-half continuation through the existing auto-next overlay, half line in both players,
+"מה לצפות?" also for watched matches / never remembered / Shield focus on `משחק מלא`, the "no working source" line at the top, the ≥ 90 %
+resume exception; ADR 0239; brief research/cl214b2-build-brief-20261109.md + planner decisions) in build on wt-cl214b2 @ 751a71d6; B2b (§13
+a/c/d, ADR 0240) after; then C (ADR 0235; wt-cl214c ready @ 751a71d6; brief + decisions) → D (0236) → G19 bells (0233) → CL-073 → REQ-271 →
+CL-312 A → CL-071 b → CL-209 → CL-191 → REQ-216. Owner reads still open: the Shield's cold start of 240; the 121 b look; the eye after a real
+highlights-worded clip (and no eye after an unworded one, 241); a real two-part game (242).
+
 ## November9 18:0x Bangkok — INCIDENT REQ-CLAUDE-303: phone ANR at the splash since 234 (lock-order deadlock) → HOTFIX 0.7.192/code240 pushed 17:56
 
 Owner 17:0x: "pmtv on phone wont start … stuck on logo screen and then android say app stuck". Phone on 238 (installed idle-only 15:28; first
