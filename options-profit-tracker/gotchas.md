@@ -1193,3 +1193,99 @@ Do not claim a clean exact-head review/gate until that placeholder is replaced w
 - A locked Android device may keep foreground-launched work under Doze/background restrictions.
   Temporary app-only exceptions must be bounded, removed afterward and never used until unfinished
   broker work is zero. Provider log+persistence evidence is not visual UI acceptance.
+
+### 2026-11-11 — a JVM test cannot see a regex cost that exists only on Android
+
+- Kotlin `Regex.findAll` reaches each further match through `MatchResult.next()`, which constructs a
+  NEW `java.util.regex.Matcher` over the whole input. On Android that construction is proportional
+  to the input, so a scan is matches × length: one pass over a 5.15 MB Flex payload with 1,600 rows
+  took 54.8 s, and 0.13 s with a single matcher. OpenJDK shows no difference (173 ms vs 121 ms), so
+  2,300 green JVM tests said nothing. Scan large inputs with `data/remote/RegexScan`.
+- To measure on the phone without the app or real data: `javac --release 11`, `d8 --min-api 26`,
+  `adb push` the dex to `/data/local/tmp/`, run with `CLASSPATH=<dex> app_process /system/bin <Class>`,
+  remove the file. The equivalence of the two iteration styles holds only for patterns that cannot
+  match the empty string (an empty pattern over a supplementary character gave 5 vs 4 matches).
+- A sync that runs for minutes is not just slow: Samsung stops background jobs on every app switch
+  (JobScheduler stop reason `olaf`) and Android stops them when hot (`thermal`), so it mostly never
+  finishes, and every stopped retry advances `FlexSyncCoordinator`'s payload revision.
+
+### 2026-11-11 — a refusal the screen does not draw is a button that does nothing
+
+- `ImportScreen` drew `errorMessage` only inside the sync card, which is not composed while the
+  parsed preview is. Every Import refusal or failure in the preview was therefore invisible, and the
+  stale-preview refusal also logged nothing. When the owner says "I press it and nothing happens",
+  look for a state change with no composable reading it before looking for a hang.
+- `reset()` built a bare state object and wiped form fields that are loaded once in `init`.
+
+### 2026-11-11 — "not listed" is zero only with proof, and a log line is not a broker fact
+
+- The stock snapshot merge only visits tickers the payload lists and the prune keeps any root with an
+  open/draft option, so a sold-out ticker under an open option kept its last share count for ever
+  (NEBX: a covered-call reminder for sold shares, and their value in holdings). Omission is read as
+  zero only when `FlexHoldingsCompleteness` proves the payload's `OpenPositions` section complete.
+- `partial close refused <contract> … broker_contract_namespace_alias_unproved` is logged by the
+  worker on EVERY sync for an open row whose broker contract identity is unproved, before any
+  quantity is compared, and the broker quantity is never logged. It does not show a discrepancy.
+  Read the emitting code before telling the owner what a log line means for their account.
+
+### 2026-11-11 — IBKR serves a statement generated earlier; the scheduled hour is an assumption
+
+- A Flex file requested at 15:10 New York carried `whenGenerated=20261111;093051` and
+  `toDate=20261110`. One sample cannot say in which zone that stamp is or what triggered the
+  generation. Automatic sync is now one daily run at 04:00 New York (owner ruling) that repeats
+  hourly within the day only while the statement's `toDate` has not reached the last trading day
+  before today. Before changing that hour, read the per-sync `SYNC_SCHED Flex file …` log lines.
+- The daily one-shot re-arms itself by REPLACING its own unique slot. A re-arm in the same breath as
+  `Result.retry()` cancels the retry, so a transient failure is left to WorkManager and NOT re-armed,
+  while every terminal exit must re-arm or the chain dies (one success exit used to skip it).
+- A device round that changes an owner preference (2026-11-06 left auto-sync OFF) must restore it or
+  tell the owner in plain words; the next "it doesn't work" report was exactly that.
+
+### 2026-11-12 — a build on the phone can end the phone's own background work; read the job list after the last install
+
+- Gradle on the phone heats it (thermal status 2, AP 56.8 °C) and takes most of its memory (1.2 GB of
+  11.4 GB available). Android then marks every job of the app `Restricted due to: thermal`, and an
+  idle app process is ended within seconds.
+- OPT re-registers its price-alert work on EVERY process start (`AlertWorker.schedule`,
+  `ExistingPeriodicWorkPolicy.UPDATE`). When the process was started by the alert job itself, that
+  cancels the system job that woke it (`JobScheduler: Job didn't exist in JobStore`) and the check
+  runs with nothing binding the process. Normally it finishes anyway (9 s). On the hot phone it lost
+  its process 7 s in: WorkManager's row stayed `RUNNING`, the system held no alert job, and no alert
+  check ran until the next app start (WorkManager resets a `RUNNING` row at start-up). Pre-existing;
+  not changed in the 2026-11-11 round; follow-up 7 in OPT `TODO.md`.
+- After the LAST install of a device round: `adb shell dumpsys jobscheduler` (the blocks whose header
+  names the package) and the WorkManager copy. A `RUNNING` row with `pidof` empty is a stranded
+  worker — tell the owner in plain words. `install -r` itself does not remove the app's system jobs.
+- The SDK's `aapt2` cannot run on this host (`Illegal instruction`); read the version from
+  `dumpsys package` after the install.
+
+### 2026-11-12 — "the next 04:00" and "the next sync at …" are both wrong at the edges
+
+- `FlexSyncQueue.nextDailySyncAt` (the next 04:00 New York) is right for filling an empty slot and
+  wrong for a worker that has just finished before 04:00: that is the same morning, an hour later,
+  and a second download of the same file. A finished daily run re-arms by DATE
+  (`nextDailySyncTomorrow`). The case was real on the first day: the request an older build left was
+  due at 15:00 Asia/Bangkok = 03:00 New York.
+- A dated "next sync: …" on a screen is a prediction. It was wrong whenever an hourly repeat or that
+  leftover request was pending. State the rule (the daily time, the repeat in words) or read
+  WorkManager's own next-run time; do not compute a date from the rule and call it the next run.
+- GitHub can be the reason nothing is reviewed: on 2026-11-11 20:26–21:07 UTC Actions was in a major
+  outage, runs stayed `queued` with no jobs and Codex answered "We couldn't complete this review".
+  Check `https://www.githubstatus.com/api/v2/components.json` before reading a stuck check as a
+  defect of the PR.
+
+### 2026-11-12 — an early return ahead of shared logic is where a review finds the gap; and a fix elsewhere does not outdate the thread
+
+- Both stock-snapshot merge sites had an exit for "the payload lists no open position" that returned
+  before the snapshot was read. The new sold-out zeroing was written inside the merge, so the case it
+  proves most strongly — `<OpenPositions />`, everything sold — never reached it (Codex P2). When
+  adding a rule to a long function, read every `return` above it.
+- The catch-up at app start/boot and the daily request live in different WorkManager slots, and only
+  `Kind.PERIODIC` coalesces: an overdue daily request plus a catch-up are two downloads (Codex P2).
+  `FlexSyncQueue.automaticCatchUpDue` withholds the catch-up while the daily slot serves today. A
+  WorkManager snapshot may decide to ADD or WITHHOLD a `KEEP` request; it may never decide a REPLACE.
+- The Codex Gate blocks on an unresolved, NON-outdated P1/P2 thread whatever the current-head review
+  says. A fix made away from the lines the thread is anchored to does not outdate it. The recorded
+  practice is: reply on the thread with the commit and the test, then resolve it — only after a fix
+  and a clean exact-head review, never with the `codex-p1-acknowledged` override. Thread state:
+  `gh api graphql … reviewThreads { isResolved isOutdated }`; resolve with `resolveReviewThread`.

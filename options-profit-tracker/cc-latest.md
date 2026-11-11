@@ -1,158 +1,132 @@
-# OptionsProfitTracker — 2026-11-06 stock-price recovery handoff
+# OptionsProfitTracker — 2026-11-11 handoff: fast IBKR sync, converging Import, one sync a day, no phantom shares
 
-This is the complete current handoff. It supersedes the earlier 2026-11-06 handoff while retaining
-that history in git and the appended state/roadmap/gotchas records.
+This is the complete current handoff. It supersedes the 2026-11-06 stock-price recovery handoff while
+retaining that history in git and the appended state/roadmap/gotchas records.
 
-## Heads, branch, PR and exact-head evidence
+## Heads, branch, PR
 
-- This follow-up started at OPT HEAD `6f13551b7c28b908e4a5a6e82a3fbf78f9cfa135`.
-- Final/pushed/reviewed OPT HEAD: `b928645dd3290909fe71367b6e480e925ddd3e3d`.
+- This round started at OPT HEAD `b928645dd3290909fe71367b6e480e925ddd3e3d`.
+- Final/pushed OPT HEAD: `cffe27df5441525355ff32fcd122ca523bdac60d` (three commits this round:
+  `319ff26`, `ccd36f0`, `cffe27d`).
 - Branch: `s2/ibkr-reconciliation-lifecycle-dashboard`; PR #19 remains OPEN and unmerged. No push to
   `main`. The owner's existing `local.properties` SDK path remains unstaged/excluded.
-- Agent-memory starting HEAD for this follow-up:
-  `bf55320494a05fb5252efdd89e5b5c94dbb96aa3`. The final memory SHA is the canonical finalizer
-  result and must be read from git, not typed in advance.
-- Trusted `chatgpt-codex-connector[bot]` receipt
-  [6692049538](https://github.com/funzi7/OptionsProfitTracker/pull/19#issuecomment-6692049538),
-  2026-11-06T18:14:46Z, reviewed `b928645dd3`: “Didn't find any major issues.” The authoritative
-  PR-head check `128068254240` is green and reports no unresolved non-outdated trusted P1/P2.
-- Exact-head PR Build Gate run `42268223284`, job `128065633929`: PASS. Workflow Scripts Tests run
-  `42268223214`, job `128065633553`: PASS. Codex evaluator run `42268932939`, job `128068119850`:
-  PASS. The first push-time evaluator ran before the review signal and failed historically; it is
-  superseded by the green PR-head status and later evaluator.
+- `319ff26` was pushed into a GitHub Actions major outage (GitHub's status page, 2026-11-11
+  20:26–21:07 UTC): its three runs never left `queued` and Codex answered the review request with
+  "We couldn't complete this review". Nothing was reviewed or gated for that head.
+- `ccd36f0`: PR Build Gate and Workflow Scripts Tests passed; the exact-head Codex review
+  (`5865444473`) found two P2 and no P1 — the sold-out zeroing was skipped when the report lists no
+  position at all, and an app-start/boot catch-up could run beside an overdue daily request. Both
+  are fixed in `cffe27d`.
+- Exact-head Codex review for `cffe27d` requested in PR comment
+  [6807755428](https://github.com/funzi7/OptionsProfitTracker/pull/19#issuecomment-6807755428).
+  For `cffe27d`: PR Build Gate success (`43105636380`), Workflow Scripts Tests success
+  (`43105636308`), and Codex's exact-head receipt
+  [6807873204](https://github.com/funzi7/OptionsProfitTracker/pull/19#issuecomment-6807873204):
+  "Didn't find any major issues. Reviewed commit: `cffe27df54`" (2026-11-11 21:50 UTC). The two P2
+  threads of the `ccd36f0` review were answered with the fix (replies `4543605799`, `4543606088`)
+  and resolved. The first (`4543319208`, `FlexSyncWorker.kt`) was NOT outdated — the fix is at the
+  early exits, not at the lines the thread is anchored to — so the Gate stayed red until it was
+  resolved; nothing was resolved without a fix and no `codex-p1-acknowledged` override was used.
+  `check-codex-status` turned green at 21:54 UTC ("Reviewed — clear"). PR #19 stays OPEN and
+  unmerged with `no-automerge` and `needs-owner`; Merge Bot ran twice after the green Gate and did
+  not merge; `main` is unchanged at `7225b7a`.
+- The final agent-memory SHA is the canonical finalizer result and must be read from git.
 
-## Installed stock-price failure: proven root cause and correction
+## Owner preference state on the phone
 
-The stock quote workflow had already been rewired away from Flex, but the installed package still had
-the earlier app-only `OEM_DENY_3` QA network deny. Logcat showed DNS failures and the canonical Yahoo
-extended-hours quote batch returned `0/8`. This was not a provider empty response and not a quote-merge
-regression.
+Auto-sync is ON — the owner switched it on during this round. It had been left OFF by the 2026-11-06
+device round, which is why the owner reported "sync from ibkr again dont work": no IBKR sync had
+completed since 2026-11-04.
 
-Read-only WorkManager inspection found four unfinished Flex slots waiting behind the same connectivity
-constraint:
+## What the owner reported, and what was done
 
-- `flex_price_sync`;
-- `pre_market_sync`;
-- `flex_sync_now_full`;
-- `flex_sync_now_regular`.
+1. "sync from ibkr again dont work" — after the switch, each sync ran 2.3–4.5 minutes and the system
+   stopped 5 of 7 worker runs. `Regex.findAll` over the 5.3 MB Flex payload costs matches × payload
+   length on Android (54.8 s per pass against 0.13 s with one matcher; no difference on OpenJDK).
+   `data/remote/RegexScan` now does every payload scan; output is pinned to the pre-change parser.
+2. "i press the ייבא 966 פעולות and nothing hapenes" / "so fix that why i need to make another sync
+   and be in the same situation again" — an automatic worker sync had superseded the Flex preview,
+   the refusal went to a message the preview does not draw, and Cancel blanked the credentials. An
+   Import tap on a superseded preview now fetches again under ONE `Kind.MANUAL_SYNC` ownership and
+   imports that payload in the same turn when it states exactly the tapped trades.
+3. "auto sync from ibkr is only 1 per day …" / "no need for hourly, it will pull the same file over
+   and over again" / "ibkr sync should be repeated if first one is failed" — SUPERSEDED, owner
+   approved: the periodic job and the Settings frequency choices. One scheduled sync a day at 04:00
+   `America/New_York`; it repeats hourly within the day only while it has not brought the day's
+   file; one catch-up at app start/boot only when nothing synced that New York day. A run that has
+   the day's file re-arms for 04:00 on the NEXT New York date (`nextDailySyncTomorrow`), never an
+   hour later the same morning. Settings states the daily time and the repeat rule, not a dated
+   "next sync".
+4. "why in cc reminder theres phantom ticker nebx …" — the snapshot kept `shares: 100` for a sold
+   holding under an open option. A payload whose holdings list is proven complete
+   (`FlexHoldingsCompleteness`) now zeroes the shares it does not list — also when the report lists
+   no position at all (`StockSnapshotSoldOut.zeroWhenNoPositionIsListed`, review fix).
+5. Review fix: the automatic catch-up at app start/boot is withheld while the daily slot already
+   holds a request that serves today (`FlexSyncQueue.automaticCatchUpDue`), so a phone that was
+   offline at 04:00 New York downloads the file once when the network returns.
 
-Simply removing the package deny could therefore have issued unauthorized broker requests. The source
-now makes the owner auto-sync preference a real broker-access admission boundary:
+No P&L, realized-ledger or reconciliation rule changed.
 
-- periodic, pre-market, app-start and boot work persists `requires_auto_sync=true`;
-- old work without origin metadata defaults true and fails closed while disabled;
-- the worker checks admission before credentials, Flex ownership or provider access;
-- OFF first persists the preference, then cancels and awaits all four named durable slots;
-- app start and boot perform the same disabled cleanup, and boot keeps `goAsync()` alive until
-  WorkManager persistence;
-- every pre-market re-arm rechecks the preference;
-- ON restores pre-market and periodic schedules;
-- a newly created explicit owner sync persists false and remains available while automatic sync is
-  off;
-- `OptionsTrackerApp` is the sole pre-market schedule owner; Dashboard no longer schedules it.
+## Validation
 
-Independent local review found no current-diff P1/P2. Two earlier review concerns were corrected before
-commit: Settings ON restores pre-market scheduling, and the boot disabled path awaits cancellation
-persistence. A rapid OFF→ON UI-toggle race remains lower risk: the already-started cancellation may
-win and require a later re-toggle/app start, but it cannot authorize an automatic broker call.
+Compile gate zero `^e:` lines; full JVM 2368 tests / 173 classes / 0 failures / 0 errors / 2 existing
+skips; `clean assembleDebug` passed (42/42). APK `1.0.0` / code `1`, 64,865,240 bytes, SHA-256
+`ab2a37e92edc68db8364e981c7e912ada2545c368af3916a7311d722dad0ab0d`, signer unchanged. An independent
+read-only review of the first diff found no serious defect and three small ones, all fixed.
 
-## Device recovery and physical evidence
+## Device
 
-The final APK was installed with `adb install -r`; user data and signing identity were preserved. A
-temporary signed instrumentation helper used only app-owned APIs to call `AppPreferences.setAutoSync`
-and await `FlexSyncWorker.cancel()`. It set auto-sync OFF, then was uninstalled and all temporary test
-source/configuration was removed.
+Six builds were installed in place during the session, each after the three signer gates of
+`PHONE_BUILD.md` §4 with the app idle and data preserved: 02:12:32 `0a868ac4…`, 03:10:02
+`2ca5f602…`, 03:25:23 `7d7c661f…` (= `319ff26`), 03:37:42 `c470f8c7…`, 04:01:58 `029bb44e…`
+(= `ccd36f0`), and the final one at 04:41:13 phone time (2026-11-11 21:41 UTC) `ab2a37e9…`
+(= `cffe27d`), also delivered to
+`/sdcard/Download/OptionsProfitTracker/OptionsProfitTracker-1.0.0.apk`. The agent never launched the
+app and started no sync, Import or provider request. The last three builds have not run on the
+phone.
 
-Before network restoration:
+Verified from the phone's log with the owner's own taps: the 5,344,309-character payload parsed in
+0.72 s (2 min 19 s before) with identical row counts; the Import completed ("ok manual import now
+work"); `flex_price_sync` is CANCELLED in WorkManager; `holdings list complete=true … zeroed sold-out
+shares: [NEBX 100→0]` with the stock value equal to IBKR's own 14,098.52 ("nebx is gone").
 
-- durable auto-sync value was false;
-- WorkManager database integrity was `ok`;
-- unfinished `FlexSyncWorker` rows were zero.
+NOT verified with real data: the superseded-preview refresh; the daily run and its repeat; the
+"tomorrow" re-arm; the new Settings line; the worker's copy of the sold-out zeroing; the "no position
+at all" zeroing; the withheld catch-up.
 
-After removing `OEM_DENY_3`, a locked-device Doze restriction still prevented the bounded foreground
-test. A temporary OPT-only device-idle/background allowance was applied only after the zero-Flex proof.
-The canonical live Yahoo run then returned **8/8 stock prices** and **4/4 indices**. DataStore recorded
-attempt sequence `8`, committed attempt `8`, requested `8`, usable `8`. No Flex worker/fetch/start was
-logged and no IBKR request or synchronization ran.
+## State of the phone's job queue when the round ended (04:03–04:41 phone time, read-only)
 
-The temporary allowlist/background allowance was removed, normal stopped/background policy restored,
-and OPT was force-stopped. Final device state: package network allowed, no temporary Doze allowlist,
-auto-sync OFF, zero unfinished Flex work, fresh 8/8 prices persisted. The phone stayed locked, so the
-screen itself was not visually inspected. On unlock/open, the owner should see the persisted prices;
-do not call visual UI acceptance passed until observed.
+- `pre_market_sync` is held by the system for 15:00 Asia/Bangkok on 2026-11-12 = 03:00 New York.
+  That is the request an older build left (`KEEP` keeps it) and it is the first automatic run; from
+  the run after it the time is 04:00 New York.
+- **The 15-minute price-alert check is not scheduled.** Its WorkManager row reads `RUNNING` with no
+  app process and the system holds no job for it. At 03:45:00 the system started the app for that
+  check; app start re-registers the alert work with `ExistingPeriodicWorkPolicy.UPDATE` (and after an
+  update WorkManager re-registers every job), which cancelled the job that woke the app; the check
+  ran unprotected and the process was gone 7 s later, the phone being at thermal status 2 from Gradle
+  builds. Pre-existing race, not changed. It heals at the next process start (the owner opening the
+  app, or the 15:00 job). The owner was told. At 04:41 the phone was back at thermal status 0 and
+  the same three system jobs were listed; the agent did not start the app to repair it.
 
-## Validation and artifact
+## First thing next session
 
-- Focused `FlexSyncQueueTest` + `FlexTerminalErrorPolicyTest`: **28 tests / 2 classes / 0 failures /
-  0 errors / 0 skips**, `BUILD SUCCESSFUL in 1m54s`.
-- Full JVM `:app:testDebugUnitTest`: **2336 tests / 169 classes / 0 failures / 0 errors / 2 skips**,
-  `BUILD SUCCESSFUL in 31s`.
-- Final `:app:compileDebugKotlin`: `BUILD SUCCESSFUL in 12s`, zero real compiler `^e:` lines.
-- Fresh `clean assembleDebug`: `BUILD SUCCESSFUL in 4m54s`; 42/42 actionable tasks executed.
-- `git diff --check`: clean before commit; only unrelated `local.properties` remained afterward.
-- APK version `1.0.0`, code `1`, 64,832,472 bytes; SHA-256
-  `50deec8ea135426b88633a23be2050ee8d38823d40a0380b2f8034d441cd7481`.
-- Original signer unchanged: SHA-256
-  `9e5307e1344917f0cdc495c5cc04a80d23a92c5965c779b6efb0faa1135b8221`; SHA-1
-  `5d3d855c6c6c397f817df2bd0c62f16f940b1551`.
-- Exact-hash copy delivered to
-  `/sdcard/Download/OptionsProfitTracker/OptionsProfitTracker-1.0.0.apk`; device copy matched.
+1. Confirm the alert check is scheduled again: `adb shell dumpsys jobscheduler` lists a fourth job for
+   `com.dima.optionstracker`, and the WorkManager row is not a `RUNNING` row without a process.
+2. Read the `SYNC_SCHED Flex file …`, `SYNC_SCHED Pre-market sync requested …` and (if present)
+   `Daily sync received the previous file …` lines of the first daily runs. The owner's file,
+   requested at 15:10 New York, was stamped `whenGenerated=20261111;093051`: whether IBKR's new file
+   exists at 03:00 / 04:00 New York is not yet known. A run that has the day's file must log a
+   re-arm for the NEXT New York date.
 
-No new IBKR Flex request, broker sync/import/resync, option-chain refresh, IV refresh, PUT scan,
-watchlist/news refresh, paid-key provider request, trade, uninstall, data clear or manual device-DB
-mutation occurred. The one bounded Yahoo quote test was the explicit recovery verification described
-above.
+## Open owner decisions
 
-## Financial/accounting state remains unchanged
+- OS-stop protection for explicit sync taps (recommendation: leave it now that a sync takes seconds).
+- With auto-sync OFF, app start's `cancelAll` also cancels the explicit owner slots.
+- November MULL / RKLX stock figures are held on the legacy aggregate (−3,529.10 not projected) —
+  P&L domain, needs explicit instruction.
+- The worker's `partial close refused IRE PUT 6.0 …` line is logged on every sync before any quantity
+  comparison; it is not evidence of a discrepancy. The app holds 12 open contracts.
+- The price-alert job's start-up re-registration (recommendation: `KEEP` unless the interval changed).
+- `TODO.md` 3b: a catch-up that is already enqueued is not re-checked when it finally runs.
 
-This follow-up changes no realized-P&L formula, ledger selection or persisted financial row.
-
-- WDCX exact local fixture remains: open `0.95`, 3 contracts, opening rebate `-1.46`, close `0.65`,
-  closing rebate `-1.47` → `+92.93`; displayed rounded `32%` cannot turn it into `94.13`.
-- Sep1–28 sanitized audit: 52 raw rows / 16 broker-backed / 36 local-only; raw `5089.44`, 49 canonical
-  rows `4844.09`, broker `4741.75`, unresolved `102.34`. Three proven duplicate representations remove
-  `245.35`; missing per-cycle broker evidence prevents attribution of the remainder.
-- Sep3–Oct2 canonical `5724.27` versus owner-reported broker `5518`, unresolved `206.27`.
-- September statement canonical/app `5832.48` versus IBKR equity+index options `5634.27`, unresolved
-  `198.21`. SOXL assigned 128C is local `199.23` versus broker option `0`; removing it still leaves
-  `-1.02`, and raw assignment evidence is absent.
-- YTD `38287.55` versus IBKR `37688.74`, gap `598.81`, without exact per-cycle broker evidence/cutoff.
-- November options match `+232.30`. November stock remains RKLX `-926.74` versus broker `-990.92` and
-  MULL `-5678.18` versus broker `-4563.93`; OPT total `-6604.92` versus IBKR headline `-5554.86`
-  (displayed broker rows add to `-5554.85`). Flex FIFO reproduces OPT, while displayed average anchors
-  can reproduce the broker values; changing accounting policy or history still requires owner choice
-  and authoritative basis evidence.
-
-No offset, hardcoded SOXL zero, guessed cost basis, cent correction or merge-by-resemblance was added.
-Overall financial parity therefore remains **FAILED**.
-
-## Retained S2.8 product contracts
-
-- Exact entered/executable price drives close money; percent is derived. Manual BTC price/percentage
-  and B-S Fill remain usable with warnings when tick proof is unavailable. Automatic actionable
-  recommendations require proven legal ticks; historical average fills are never quantized.
-- High-IV remains IV-only. Dedicated PUT page owns first current-NY-day scan then explicit refresh;
-  Dashboard/IV do not secretly scan. OI wording remains `חוזים פתוחים (OI)` / `OI`.
-- Historical assignments stay excluded from covered-call reminders; owner had confirmed BBAI, ASTX
-  and BTCI phantom reminders were gone. Settings displays generated app version without a bump.
-- `docs/STANDALONE_MARKET_AGENT_PLAN.md` remains unchanged. Implementation belongs to future private
-  `funzi7/opt-market-agent`, not this repository/round.
-
-## Remaining backlog / next work
-
-1. Owner-visible only: unlock/open OPT and confirm persisted fresh stock prices render. Auto-sync is
-   intentionally OFF; enabling it is a separate owner action.
-2. Obtain authoritative per-cycle broker evidence before changing Sep/YTD or November stock money.
-3. Preserve historical stock-ledger coverage gap, SOFI attribution, missing Flex `ibOrderID`, raw
-   assignment provenance, exact-series/non-penny/larger-tick proof gaps and non-standard multipliers.
-4. Preserve migration registration hazard, expired/null-close history, bidi debt and cross-store
-   process-death/permanent-projection limitations.
-5. Preserve PR #20 automation-core/fallback rollout and untested `issues:write`; do not fake fallback.
-6. Preserve OPT → Trading Tracker SPEC_ONLY, conditional ChatGPT daily report and Phase 3 personal
-   historical exit learning.
-7. ADB1 live scheduling and ADB2 broker E2E remain owner-gated; do not spend broker/provider quota to
-   re-prove the quote fix.
-
-Finalize memory only through
-`AGENT_MEMORY_PROJECT=options-profit-tracker /root/work/bin/agent-memory-finalize "<factual message>"`;
-do not run direct state-changing git commands in agent-memory.
+The financial-parity residuals and the standalone market-agent plan are unchanged.

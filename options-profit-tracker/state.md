@@ -1646,3 +1646,125 @@ No broker/provider QA or manual device DB write; network-capable physical UI rem
   superseded by the authoritative green PR-head check.
 - Existing Sep/YTD/November financial residuals and the separate standalone market-agent plan remain
   unchanged. No broker sync/import/resync, IV/chain/PUT/news refresh or trade ran.
+
+### 2026-11-11 S2.8 follow-up — fast IBKR sync, converging Import, one sync a day, no phantom shares
+- OPT: 319ff26 (branch `s2/ibkr-reconciliation-lifecycle-dashboard`, PR #19). `local.properties`
+  remained unstaged/excluded.
+- Owner reports on the phone, in order: "sync from ibkr again dont work"; "i press the ייבא 966 פעולות
+  and nothing hapenes"; "so fix that why i need to make another sync and be in the same situation
+  again"; "auto sync from ibkr is only 1 per day as ibkr updates the imported file once per day … a
+  new one is ready for pre market"; "the sync only 1 per day no need for hourly, it will pull the same
+  file over and over again"; "why in cc reminder theres phantom ticker nebx that i not have in my
+  portfolio as a bought stocks"; "ibkr sync should be repeated if first one is failed".
+- Found on the device (read-only): auto-sync had been persisted OFF since the 2026-11-06 round, so no
+  IBKR sync completed after 2026-11-04. The owner switched it ON. Then every sync ran 2.3–4.5 minutes
+  and the system stopped 5 of 7 worker runs (`olaf` on app switches, `thermal`).
+- Root cause of the duration: Kotlin `Regex.findAll` builds a new `Matcher` over the whole input for
+  every match; on Android that costs the input each time. One pass over a 5.15 MB payload with 1,600
+  rows: 54.8 s through `findAll`, 0.13 s with one matcher (measured on the phone with a synthetic
+  payload through `app_process`); OpenJDK shows no difference, so JVM tests never saw it. Fix:
+  `data/remote/RegexScan` in every payload scan; output pinned to the verbatim pre-change parser and
+  compared on the phone's runtime (32 of 32 patterns identical).
+- Dead Import tap: an automatic worker sync superseded the owner's Flex preview as it appeared; the
+  refusal went to `errorMessage`, which only the hidden sync card draws; nothing was logged; Cancel
+  blanked the saved Token / Query ID. Fix: the tap fetches the report again under ONE
+  `Kind.MANUAL_SYNC` ownership and imports that refreshed payload in the same turn only when
+  `FlexPreviewImportDecision` finds exactly the tapped trades; superseded XML is still never written;
+  outcome drawn beside the button; `reset()` keeps credentials.
+- Owner ruling, SUPERSEDED — owner approved: the periodic (hourly) automatic sync and its Settings
+  frequency choices. Now ONE scheduled sync a day at 04:00 `America/New_York`
+  (`FlexSyncQueue.nextDailySyncAt`; the old fixed 15:00 Asia/Bangkok is 03:00 New York in winter),
+  repeated hourly within the day only while it has not brought the day's file — threw, 1003, or the
+  statement's `toDate` is still the previous day's (`nextDailyRetryAt`, `isNewestDailyFile`); one
+  catch-up at app start/boot only when no sync completed on today's New York date. Explicit taps are
+  not gated; credential/configuration refusals are not repeated.
+- Phantom NEBX: the snapshot kept `shares: 100` for a sold holding because the merge only updates
+  listed tickers and the prune keeps any root with an open option. Fix: a payload whose holdings list
+  `FlexHoldingsCompleteness` proves complete zeroes the shares it does not list
+  (`StockSnapshotMerge.soldOut`, one adapter `data/StockSnapshotSoldOut`); manual overrides untouched.
+- Independent read-only review of the first diff: no serious defect; three small ones fixed (refresh
+  progress flag, stale `flexError` in the preview, refreshed NAV/funds read from screen state) plus a
+  busy guard on `importAll()`.
+- Validation: compile gate zero `^e:` lines; full JVM 2365 tests / 173 classes / 0 failures / 0 errors / 2
+  existing skips (`BUILD SUCCESSFUL in 1m 23s`); `clean assembleDebug` passed in 4m 19s (42/42).
+  APK version `1.0.0` / code `1`, 64,848,856 bytes, SHA-256
+  `7d7c661f1905430b1c1c42a61ea92a714ea4a47f4cbded8d6f2b5a1beba3ea83`; unchanged signer SHA-256
+  `9e5307e1344917f0cdc495c5cc04a80d23a92c5965c779b6efb0faa1135b8221`.
+- Device: three builds installed in place during the session (02:12:32 `0a868ac4…`, 03:10:02
+  `2ca5f602…`, final 03:25:23 phone time `7d7c661f…`), each after the three signer gates, with OPT
+  idle and data preserved; final bytes also at
+  `/sdcard/Download/OptionsProfitTracker/OptionsProfitTracker-1.0.0.apk`. The agent never launched
+  the app and started no sync, Import or provider request; every broker request was the owner's tap
+  or the app's own schedule. Auto-sync is ON (the owner's switch).
+- Verified on the phone with the owner's real data: same 5,344,309-char payload parsed in 0.72 s
+  (2 min 19 s before) with identical counts (1,592 rows, 173 rebate fills, 626 ledger rows, 106
+  tickers); Import completed ("ok manual import now work"); hourly job cancelled in WorkManager and
+  the daily run scheduled for 04:00 New York; `holdings list complete=true … zeroed sold-out shares:
+  [NEBX 100→0]`, stock value 14,098.52 = IBKR's own ("nebx is gone").
+- NOT verified with real data: the superseded-preview refresh; the daily run at its new hour and its
+  repeat; the worker's copy of the sold-out zeroing.
+- Gotcha for the next session: the owner's file, requested 15:10 New York, was stamped
+  `whenGenerated=20261111;093051` (`toDate=20261110`) — IBKR serves a statement generated earlier and
+  one sample cannot say in which zone. Read the `SYNC_SCHED Flex file …` lines of the first daily runs
+  before touching `DAILY_SYNC_HOUR_NEW_YORK`. The pre-market one-shot an older build left pending for
+  15:00 Asia/Bangkok is kept (`KEEP`) and runs first.
+- Gotcha: a worker log line such as `partial close refused IRE PUT 6.0 … alias_unproved` is emitted
+  whenever the open row's broker contract identity is unproved, BEFORE any quantity comparison; it is
+  not evidence that the broker quantity differs. Read the emitting code before telling the owner.
+- Gotcha: `AskUserQuestion` is denied in this setup; ask in plain text.
+- Open owner decisions (TODO.md): OS-stop protection for explicit sync taps; `cancelAll` cancels
+  explicit owner slots when auto-sync is OFF; November MULL/RKLX stock figures held on the legacy
+  aggregate (−3,529.10 not projected; P&L domain).
+- Review/Gates: pushed; exact-head Codex review requested in PR comment `6806446604`. Review result and
+  Build/scripts/Codex Gates for this head were NOT yet known when this block was written.
+
+### 2026-11-11 — OPT follow-up: review fixes, final head, phone state
+- OPT: cffe27d (PR #19, branch s2/ibkr-reconciliation-lifecycle-dashboard)
+- Supersedes the build, device and review facts of the 2026-11-11 block above (that block describes
+  the intermediate head `319ff26`). Three commits this round: `319ff26`, `ccd36f0`, `cffe27d`.
+- Source added in this follow-up: `FlexSyncQueue.nextDailySyncTomorrow` — a running daily worker that
+  is done for its day re-arms for 04:00 New York on the NEXT New York date, never for "the next
+  04:00" (the request an older build left is due at 15:00 Asia/Bangkok = 03:00 New York, and would
+  have downloaded the same file again an hour later). Settings states the daily time and the repeat
+  rule (`שעת הסנכרון היומי: HH:mm`) instead of a dated "next sync", which was wrong whenever a repeat
+  or that leftover request was pending. Then both P2 findings of the exact-head Codex review of
+  `ccd36f0` (`5865444473`; no P1): (1) a report that lists NO position at all — everything sold —
+  never reached the sold-out zeroing because the worker and the Import returned before the snapshot
+  was read; both exits now call `StockSnapshotSoldOut.zeroWhenNoPositionIsListed` with the same
+  proof; (2) app start/boot enqueued a catch-up beside an overdue daily request (phone offline at
+  04:00 New York) and both fetched; `FlexSyncQueue.automaticCatchUpDue` withholds it while the
+  daily slot serves today (`dailyRunServesToday`). Still open: OPT `TODO.md` 3b. No P&L,
+  realized-ledger or reconciliation rule changed.
+- Validation: compile gate zero `^e:` lines; full JVM 2368 tests / 173 classes / 0 failures / 0 errors
+  / 2 existing skips; `clean assembleDebug` passed (42/42). APK `1.0.0` / code `1`, 64,865,240 bytes,
+  SHA-256 `ab2a37e92edc68db8364e981c7e912ada2545c368af3916a7311d722dad0ab0d`, signer unchanged.
+- Device: six builds installed in place during the session, each after the three signer gates with
+  OPT idle and data preserved: 02:12:32 `0a868ac4…`, 03:10:02 `2ca5f602…`, 03:25:23 `7d7c661f…`
+  (= `319ff26`), 03:37:42 `c470f8c7…`, 04:01:58 `029bb44e…` (= `ccd36f0`), final 04:41:13 phone time
+  `ab2a37e9…` (= this head), also at
+  `/sdcard/Download/OptionsProfitTracker/OptionsProfitTracker-1.0.0.apk`. The agent never launched
+  the app and started no sync, Import or provider request. The last three builds have not run on the
+  phone. Auto-sync is ON (the owner's switch).
+- Phone state when the round ended (04:03–04:41 phone time, read-only): `pre_market_sync` held by the
+  system for 15:00 Asia/Bangkok on 2026-11-12 = 03:00 New York (the older build's request; first
+  automatic run). `flex_price_sync` CANCELLED. **The 15-minute price-alert check was NOT scheduled**:
+  WorkManager row `alert_price_check` = `RUNNING` with no app process, no system job. Cause measured
+  from the log: app start re-registers the alert work with `ExistingPeriodicWorkPolicy.UPDATE` on
+  every process start, cancelling the system job that woke the app; the check then runs unprotected,
+  and at 03:45 the phone (thermal status 2 from Gradle builds) ended the process 7 s in. Pre-existing,
+  not changed; heals at the next process start (owner opens the app, or the 15:00 job). The owner
+  was told. FIRST THING next session: confirm a fourth system job exists for the app.
+- NOT verified with real data: the superseded-preview refresh; the daily run and its repeat; the
+  "tomorrow" re-arm; the new Settings line; the worker's copy of the sold-out zeroing; the "no
+  position at all" zeroing; the withheld catch-up.
+- GitHub: `319ff26` was pushed into a GitHub Actions major outage (20:26–21:07 UTC): its runs never
+  left `queued` and Codex answered "We couldn't complete this review". Nothing was reviewed or gated
+  for that head. `ccd36f0`: PR Build Gate and Workflow Scripts Tests passed, Codex two P2 / no P1,
+  Codex Gate red on them as designed.
+- Final head `cffe27d`: PR Build Gate success (`43105636380`), Workflow Scripts Tests success
+  (`43105636308`), Codex exact-head receipt `6807873204` "Didn't find any major issues. Reviewed
+  commit: `cffe27df54`" (2026-11-11 21:50 UTC). The two P2 threads were answered with the fix
+  (`4543605799`, `4543606088`) and resolved — `4543319208` was not outdated because the fix is at the
+  early exits, so the Gate needed it resolved; nothing resolved without a fix, no override label.
+  `check-codex-status` green at 21:54 UTC ("Reviewed — clear"). PR #19 OPEN and unmerged
+  (`no-automerge`, `needs-owner`); Merge Bot did not merge; `main` unchanged at `7225b7a`.
