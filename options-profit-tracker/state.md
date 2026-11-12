@@ -1807,3 +1807,39 @@ No broker/provider QA or manual device DB write; network-capable physical UI rem
 - Final head `9006059`: PR Build Gate and Workflow Scripts Tests passed; Codex exact-head receipt
   `6815451948` "Didn't find any major issues. Reviewed commit: `90060599e5`" (2026-11-12 05:23 UTC);
   `check-codex-status` green. PR #19 OPEN and unmerged (`no-automerge`, `needs-owner`).
+
+### 2026-11-12 — OPT follow-up 2: New York dates for trades, draft-price job registered once
+- OPT: 5870eba (PR #19, branch s2/ibkr-reconciliation-lifecycle-dashboard)
+- Second follow-up of 2026-11-12; supersedes the build and device facts of the block above.
+- Owner decisions: "ok" to giving the daily draft-price update the same registration fix as the
+  alert work; and the date rule — "every trade … needs to be שייך to the timezone NY regardless the
+  time of my timezone, i mean if i close a trade on 1st but in NY is still 31st so in the pnl its in
+  the 31st aka last month and no in the new month. in ibkr i think its calculated based on my
+  timezone so there maybe could be some הפרשים if theres trades in end or start of months".
+- Source: `DraftUpdateWorker.ensureScheduled` (app start); shared pure rule
+  `PeriodicRegistration.needed`, on which `AlertRegistration.needed` rests. 45 zone-less
+  `LocalDate.now()` reads in eleven files now use `NewYorkMarketPeriod.currentDate()`: fallback
+  trade dates/years in the old file importers (`ImportViewModel`), the tax screen's default
+  year/month, the dashboard's "start of month" label and feed "today" boundary, day counts to an
+  expiry or an earnings date (add-position, watchlist, dashboard, portfolio events), days held,
+  calendar/history ranges, one diagnostic line. Realized P&L already used New York dates; no stored
+  realized figure changed. `NewYorkDateRuleTest` allows the phone's own date only in fifteen
+  housekeeping stamps.
+- STILL OPEN with the owner, NOT implemented (P&L domain): the November MULL / RKLX projection rule
+  (see the block above). The owner's reply was the date rule, not a yes or no; it is not the cause
+  (10-31 / 11-01 were a weekend; the hidden sales are dated 11-04 and 11-06). Asked again.
+- NOT established: how IBKR's own screens group trades. One check with stored execution times (Sep
+  1–28 options, app 4,844.09 vs IBKR 4,741.75) did not support "by the owner's timezone": no close
+  on 09-28; the three closes dated 08-31 are profits (+174.11), which would raise IBKR's figure.
+- Validation: compile gate zero `^e:` lines; full JVM 2375 tests / 175 classes / 0 failures / 0 errors
+  / 2 existing skips; `clean assembleDebug` passed (42/42). APK `1.0.0` / code `1`, 64,865,240 bytes,
+  SHA-256 `6a746e6df3a67d6e63c34ebe07a5a2d5cd6a27de622d25a04873a39722a35bc0`, signer unchanged.
+- Device: eighth install of the round at 13:01:07 phone time on 2026-11-12, after the three signer
+  gates, OPT not running, data preserved; same bytes in Download; not launched by the agent. Seen in
+  the log at 13:01:52 (the alert job started the app): `Alert work already registered at 15min —
+  left untouched`, `Draft B-S update already registered daily — left untouched`, `Pre-market sync
+  requested … (an existing pending/running one is kept)`, the check ended at once (outside its
+  trading window), no crash. Four system jobs listed; the daily Flex run due at 15:00 Asia/Bangkok.
+- Final head `5870eba`: PR Build Gate and Workflow Scripts Tests passed; Codex exact-head receipt
+  `6816115535` "Didn't find any major issues. Reviewed commit: `5870eba121`" (2026-11-12 06:07 UTC);
+  `check-codex-status` green. PR #19 OPEN and unmerged (`no-automerge`, `needs-owner`).

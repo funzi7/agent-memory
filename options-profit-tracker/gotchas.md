@@ -1319,3 +1319,22 @@ Do not claim a clean exact-head review/gate until that placeholder is replaced w
 - A shell command whose TEXT merely contains an adb install phrase (a doc edit, a commit message) is
   wrapped by the adb hook and takes the lease. Release afterwards, or keep such text out of shell
   commands by using the file tools.
+
+### 2026-11-12 — the phone is twelve hours ahead of New York: "today" must never be the phone's
+
+- The owner is in Thailand (UTC+7). Every trade after noon New York time happens on the NEXT
+  calendar day there, and from midnight to noon Thailand time the phone's date is one day ahead of
+  New York's. A zone-less `LocalDate.now()` therefore shows one day too few to an expiry for half of
+  every day, and around the 1st it names the wrong month. The owner's rule: every trade belongs to
+  its New York date. Use `NewYorkMarketPeriod.currentDate()`; `NewYorkDateRuleTest` fails the run
+  for a zone-less `LocalDate.now()` / `YearMonth.now()` outside its allowlist of housekeeping
+  stamps. Combining the phone's date with New York's midnight (`LocalDate.now().atStartOfDay(NY)`)
+  is the same mistake in disguise.
+- An owner's "I think IBKR does X" is a hypothesis to test with stored data, not a fact to build on.
+  Feed events carry execution instants (`activity_events.timestamp` for `POSITION_CLOSED` and
+  `STOCK_SOLD`), so a period-edge theory can be checked: list the closes dated on the days next to
+  the window's edges, with their New York and local clock times and their sign.
+- In a sqlite script, running a second query on the SAME cursor inside a loop over that cursor ends
+  the loop after one row. Use `con.execute` for the inner query.
+- A doc edit sent through the shell whose text contains build or device words is wrapped by the
+  heavy-build or ADB hook and waits in that queue. Edit documents with the file tools.

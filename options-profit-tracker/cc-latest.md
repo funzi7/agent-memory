@@ -1,4 +1,4 @@
-# OptionsProfitTracker — 2026-11-12 handoff: fast IBKR sync, converging Import, one sync a day, no phantom shares, alert registration
+# OptionsProfitTracker — 2026-11-12 handoff: fast IBKR sync, converging Import, one sync a day, no phantom shares, periodic jobs registered once, New York dates
 
 This is the complete current handoff. It supersedes the 2026-11-06 stock-price recovery handoff while
 retaining that history in git and the appended state/roadmap/gotchas records.
@@ -6,8 +6,8 @@ retaining that history in git and the appended state/roadmap/gotchas records.
 ## Heads, branch, PR
 
 - This round started at OPT HEAD `b928645dd3290909fe71367b6e480e925ddd3e3d`.
-- Final/pushed OPT HEAD: `90060599e547747d8fe73e45f1872fd7cc078a5d` (four commits this round:
-  `319ff26`, `ccd36f0`, `cffe27d`, `9006059`).
+- Final/pushed OPT HEAD: `5870eba1219f1623b0453890fc1a2da79b965946` (five commits this round:
+  `319ff26`, `ccd36f0`, `cffe27d`, `9006059`, `5870eba`).
 - Branch: `s2/ibkr-reconciliation-lifecycle-dashboard`; PR #19 remains OPEN and unmerged. No push to
   `main`. The owner's existing `local.properties` SDK path remains unstaged/excluded.
 - `319ff26` was pushed into a GitHub Actions major outage (2026-11-11 20:26–21:07 UTC): its runs
@@ -22,6 +22,12 @@ retaining that history in git and the appended state/roadmap/gotchas records.
   Result: PR Build Gate and Workflow Scripts Tests passed; Codex's exact-head receipt
   [6815451948](https://github.com/funzi7/OptionsProfitTracker/pull/19#issuecomment-6815451948):
   "Didn't find any major issues. Reviewed commit: `90060599e5`" (2026-11-12 05:23 UTC);
+  `check-codex-status` green ("Reviewed — clear").
+- `5870eba` (New York dates, draft-price job; owner's rule and "ok"): review requested in PR
+  comment [6816064139](https://github.com/funzi7/OptionsProfitTracker/pull/19#issuecomment-6816064139).
+  Result: PR Build Gate and Workflow Scripts Tests passed; Codex's exact-head receipt
+  [6816115535](https://github.com/funzi7/OptionsProfitTracker/pull/19#issuecomment-6816115535):
+  "Didn't find any major issues. Reviewed commit: `5870eba121`" (2026-11-12 06:07 UTC);
   `check-codex-status` green ("Reviewed — clear"). PR #19 stays OPEN and unmerged with
   `no-automerge` and `needs-owner`.
 - The final agent-memory SHA is the canonical finalizer result and must be read from git.
@@ -64,6 +70,17 @@ completed since 2026-11-04.
 6. 2026-11-12, owner: "3. yes" — to "check on IBKR that the IRE PUT 6.0 (Nov 20) open quantity is
    12, as the app shows". Read as confirmed; the worker's `partial close refused IRE …` line is
    noise.
+7. 2026-11-12, owner: "ok" — to "the daily draft-price update registers itself the same way … do
+   you want the same fix there?". App start calls `DraftUpdateWorker.ensureScheduled`; the shared
+   pure rule is `PeriodicRegistration.needed`.
+8. 2026-11-12, the owner's date rule: "every trade … needs to be שייך to the timezone NY regardless
+   the time of my timezone, i mean if i close a trade on 1st but in NY is still 31st so in the pnl
+   its in the 31st aka last month and no in the new month". Realized P&L already obeyed it (Flex
+   `tradeDate`, default date of a manual open/close, `NewYorkMarketPeriod` in the reports). 45
+   leftover zone-less `LocalDate.now()` reads in eleven files (old file importers' fallback dates,
+   tax screen default year/month, "start of month" label, feed "today" boundary, day counts to an
+   expiry or an earnings date) now use `NewYorkMarketPeriod.currentDate()`; `NewYorkDateRuleTest`
+   allows the phone's date only in fifteen housekeeping stamps.
 
 No P&L, realized-ledger or reconciliation rule changed.
 
@@ -79,20 +96,26 @@ published ticker-month only with prior authority, no published value or a cent-e
 next completed sync (11-11) also carried 11-04 and 11-06, so both pairs are HELD for ever. Candidate
 rule put to the owner, NOT implemented: a published total that equals the rows up to some day, with
 every other row dated after that day, is an older snapshot of the same month — rows take over.
+The owner's reply was the date rule of item 8, not a yes or no; it is not the cause here (10-31 and
+11-01 were a weekend; the hidden sales are dated 11-04 and 11-06). The question was asked again.
+The owner also thinks IBKR groups trades by their own timezone ("i think"); that is NOT
+established — one check with stored execution times (Sep 1–28 options, app 4,844.09 vs IBKR
+4,741.75) did not support it: no close on 09-28, and the three closes dated 08-31 are profits
+(+174.11), which would raise IBKR's figure, not lower it.
 
 ## Validation
 
-Compile gate zero `^e:` lines; full JVM 2371 tests / 174 classes / 0 failures / 0 errors / 2 existing
+Compile gate zero `^e:` lines; full JVM 2375 tests / 175 classes / 0 failures / 0 errors / 2 existing
 skips; `clean assembleDebug` passed (42/42). APK `1.0.0` / code `1`, 64,865,240 bytes, SHA-256
-`f4591b3925f53c6a296a5b845541f487e779455d1c3788870e9b6808f093bbb8`, signer unchanged.
+`6a746e6df3a67d6e63c34ebe07a5a2d5cd6a27de622d25a04873a39722a35bc0`, signer unchanged.
 
 ## Device
 
-Seven builds were installed in place, each after the three signer gates of `PHONE_BUILD.md` §4 with
+Eight builds were installed in place, each after the three signer gates of `PHONE_BUILD.md` §4 with
 the app idle and data preserved: on 2026-11-12 phone time 02:12:32 `0a868ac4…`, 03:10:02
 `2ca5f602…`, 03:25:23 `7d7c661f…` (= `319ff26`), 03:37:42 `c470f8c7…`, 04:01:58 `029bb44e…`
-(= `ccd36f0`), 04:41:13 `ab2a37e9…` (= `cffe27d`) and 12:13:34 `f4591b39…` (= `9006059`), the last
-also delivered to `/sdcard/Download/OptionsProfitTracker/OptionsProfitTracker-1.0.0.apk`. The agent
+(= `ccd36f0`), 04:41:13 `ab2a37e9…` (= `cffe27d`), 12:13:34 `f4591b39…` (= `9006059`) and 13:01:07
+`6a746e6d…` (= `5870eba`), the last also delivered to `/sdcard/Download/OptionsProfitTracker/OptionsProfitTracker-1.0.0.apk`. The agent
 never launched the app and started no sync, Import or provider request.
 
 Verified from the phone's log with the owner's own taps: the 5,344,309-character payload parsed in
@@ -100,15 +123,17 @@ Verified from the phone's log with the owner's own taps: the 5,344,309-character
 work"); `flex_price_sync` is CANCELLED in WorkManager; `holdings list complete=true … zeroed sold-out
 shares: [NEBX 100→0]` with the stock value equal to IBKR's own 14,098.52 ("nebx is gone").
 
-Seen in the log without anyone opening the app, 12:18 on the last build: the alert job started the
-app, `Alert work already registered at 15min — left untouched`, no `ALERT_WORKER SCHEDULED`, the
-check ended at once (00:18 New York is outside its trading window), the alert job stayed listed.
+Seen in the log without anyone opening the app: at 12:18 (build `f4591b39…`) and again at 13:01:52
+(the last build) the alert job started the app, the new code logged `Alert work already registered
+at 15min — left untouched` and, on the last build, `Draft B-S update already registered daily —
+left untouched`; no `ALERT_WORKER SCHEDULED`; each check ended at once (outside the alert's trading
+window); the alert job stayed listed; no crash.
 
 NOT verified with real data: the superseded-preview refresh; the daily run and its repeat; the
 "tomorrow" re-arm; the new Settings line; the worker's copy of the sold-out zeroing; the "no
 position at all" zeroing; the withheld catch-up; an alert check that works for seconds while bound.
 
-## State of the phone when the round ended (12:18 phone time on 2026-11-12, read-only)
+## State of the phone when the round ended (13:05 phone time on 2026-11-12, read-only)
 
 Four system jobs for the app: the daily Flex run held for 15:00 Asia/Bangkok = 03:00 New York (the
 request an older build left; `KEEP` keeps it; from the run after it the time is 04:00 New York), the
@@ -127,8 +152,6 @@ alert check (15 minutes), and two daily jobs. Thermal status normal.
 ## Open owner decisions
 
 - The November MULL / RKLX projection rule above (P&L domain).
-- `DraftUpdateWorker.schedule` re-registers the daily draft-price update with `UPDATE` and a
-  recomputed delay on every process start — same shape as the alert defect, not measured failing.
 - OS-stop protection for explicit sync taps (recommendation: leave it now that a sync takes seconds).
 - With auto-sync OFF, app start's `cancelAll` also cancels the explicit owner slots.
 - OPT `TODO.md` 3b: a catch-up that is already enqueued is not re-checked when it finally runs.
