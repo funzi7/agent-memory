@@ -1768,3 +1768,42 @@ No broker/provider QA or manual device DB write; network-capable physical UI rem
   early exits, so the Gate needed it resolved; nothing resolved without a fix, no override label.
   `check-codex-status` green at 21:54 UTC ("Reviewed — clear"). PR #19 OPEN and unmerged
   (`no-automerge`, `needs-owner`); Merge Bot did not merge; `main` unchanged at `7225b7a`.
+
+### 2026-11-12 — OPT follow-up: owner answers, alert registration fixed, November stock explained
+- OPT: 9006059 (PR #19, branch s2/ibkr-reconciliation-lifecycle-dashboard)
+- Follow-up to the block above. The owner answered the three open questions on 2026-11-12:
+  "1. yes fix. 2. why not from 1st? explain", then "3. yes".
+- Source (owner approved): `notification/AlertRegistration.kt` (pure rule) and
+  `AlertWorker.ensureScheduled`. App start and boot no longer re-register the alert work with
+  `ExistingPeriodicWorkPolicy.UPDATE` on every process start; an unfinished registration at the
+  wanted interval is left untouched, a missing or different one is registered, unreadable
+  WorkManager state falls back to `KEEP`. `AlertWorker.schedule` (`UPDATE`) remains for the two
+  explicit Settings actions. No P&L, realized-ledger or reconciliation rule changed.
+- IRE PUT 6.0 2026-11-20: owner "3. yes" to "check on IBKR that the open quantity is 12" — read as
+  confirmed. The worker's `partial close refused IRE …` log line is noise.
+- OPEN with the owner, NOT implemented (P&L domain): November MULL / RKLX stock. Displayed month
+  −7,382.88 holds the sales of Monday 11-02 only (MULL −5,678.18, RKLX −926.74); stored but not
+  shown: MULL 11-04 −868.07 and 11-06 −1,796.59, RKLX 11-04 −864.43 (−3,529.10); from all rows the
+  month is −10,911.98. Cause: `StockRealizedLedger.decideProjection` (since `3a76a75`, 2026-11-05)
+  holds a ticker-month whose rows do not equal its published total when no authority exists; the
+  11-02 totals were published by the 2026-11-04 20:38 New York sync, before authority existed, and
+  the next completed sync (11-11) also carried 11-04 and 11-06. Candidate rule put to the owner: a
+  published total equal to the rows up to some day, with every other row later, is an older snapshot
+  of the same month. Do not implement without an explicit yes.
+- Validation: compile gate zero `^e:` lines; full JVM 2371 tests / 174 classes / 0 failures / 0 errors
+  / 2 existing skips; `clean assembleDebug` passed (42/42). APK `1.0.0` / code `1`, 64,865,240 bytes,
+  SHA-256 `f4591b3925f53c6a296a5b845541f487e779455d1c3788870e9b6808f093bbb8`, signer unchanged.
+- Device: seventh install of the round at 12:13:34 phone time on 2026-11-12, after the three signer
+  gates, OPT not running, data preserved; same bytes in Download; not launched by the agent. Before
+  it (11:56, read-only): the owner had opened the app at 11:47 and the stranded alert check had
+  re-registered itself (four system jobs). After it (12:18, log only): the alert job started the
+  app, `Alert work already registered at 15min — left untouched`, no `ALERT_WORKER SCHEDULED`, the
+  check ended at once (outside its trading window), four system jobs listed, the daily Flex run
+  still held for 15:00 Asia/Bangkok.
+- NOT verified: an alert check that works for seconds while bound (from 04:00 New York); and
+  everything listed as not verified in the block above.
+- Same shape, recorded and not changed: `DraftUpdateWorker.schedule` (`UPDATE` with a recomputed
+  delay on every process start).
+- Final head `9006059`: PR Build Gate and Workflow Scripts Tests passed; Codex exact-head receipt
+  `6815451948` "Didn't find any major issues. Reviewed commit: `90060599e5`" (2026-11-12 05:23 UTC);
+  `check-codex-status` green. PR #19 OPEN and unmerged (`no-automerge`, `needs-owner`).

@@ -1289,3 +1289,33 @@ Do not claim a clean exact-head review/gate until that placeholder is replaced w
   practice is: reply on the thread with the commit and the test, then resolve it — only after a fix
   and a clean exact-head review, never with the `codex-p1-acknowledged` override. Thread state:
   `gh api graphql … reviewThreads { isResolved isOutdated }`; resolve with `resolveReviewThread`.
+
+### 2026-11-12 — re-registering periodic work on every process start cancels the job that woke the process
+
+- `enqueueUniquePeriodicWork(…, UPDATE, …)` of work that has not begun cancels its system job and
+  schedules a new one. On a phone the app is usually started BY that job, so a registration made in
+  `Application.onCreate` leaves the work running in a process nothing binds; if the system ends it,
+  the row stays `RUNNING` and no job is left until the next process start. Fix shape (OPT alert
+  work): a pure rule for "is a registration needed" (`AlertRegistration.needed`: no unfinished
+  request at the wanted interval) and `ensureScheduled` for start/boot; `UPDATE` only for an
+  explicit Settings change. `WorkInfo.periodicityInfo?.repeatIntervalMillis` tells the scheduled
+  interval — no tag or migration needed. `DraftUpdateWorker.schedule` still has the old shape.
+- WorkManager re-registers every job by itself ONCE at the first process start after a package
+  update (seen: same job ids, enqueue times reset). That is not the app's doing.
+- The alert worker leaves at once outside 04:00–19:59 New York on weekdays, so an alert-initiated
+  start at night proves the registration path and nothing about a long check.
+
+### 2026-11-12 — "legacy" in the stock projection is just the published total; and lease etiquette
+
+- `StockRealizedLedger.decideProjection`'s `legacy` argument is the currently published
+  ticker-month map. A total published before the authority rule existed (2026-11-05), for a month
+  that gained rows before the next completed sync, is held for ever (MULL / RKLX 2026-11): rows ≠
+  published, no authority. Read the store read-only: `shared_prefs/stock_realized_ledger.xml`, keys
+  `sr_` rows (`month|day|S/B|amount|C/O/-`), `sa_` authority pairs, `sl_` row-backed legacy. P&L
+  domain: explain and ask, never change on your own.
+- `adb-device-release` while a wrapped background command is still using the device leaves the lease
+  as "(released; a command is still running)": every further adb command, this session's included,
+  waits 100 s and exits 75 until that command ends. Release after the LAST device command.
+- A shell command whose TEXT merely contains an adb install phrase (a doc edit, a commit message) is
+  wrapped by the adb hook and takes the lease. Release afterwards, or keep such text out of shell
+  commands by using the file tools.
