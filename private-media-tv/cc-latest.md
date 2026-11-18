@@ -1,4 +1,51 @@
-# private-media-tv — lane 6: both devices 0.7.187/code235 (233→234→235 delivered); CL-175 (236) gating; 121 b (237) in lint; Sports/T4/IPTV/D1 remain open
+# private-media-tv — build284 software sealed; Shield exact; phone/physical pending; CL-020 continuation active
+
+## November18 13:18 UTC — records HEAD 91c80bf9 green; authoritative build284 on Shield; phone pending
+
+Exact project HEAD and `origin/main` are
+`91c80bf95b099b8289b41fb0a9740ec5945054a8`; the bounded build284 source is
+`f234c121ffb4980398e1081909323b6418b5e831`. Identity is `0.7.236` / code284.
+The source-head Android CI `44285192314` succeeded. Seven truthful release/state records were then
+committed and pushed at the records HEAD. Records-head CI `44298007014` attempt 1 failed only on
+three complete-TV-suite Compose timeouts; its failed-job rerun on the same SHA passed all core,
+catalog, shared-UI, phone and TV unit phases, inventory, lint, signed assembly and artifact upload.
+The transient first attempt remains evidence; it was not called PASS.
+
+The authoritative records-head APK is 282170290 bytes, SHA-256
+`f371f3d25546881d28014ad86bd6cd4cde8ae7902db22547b6a8a2abb7b4aefa`, signer SHA-256
+`2987a463ff6fcb6ca50e3e9b3118ded5a9055ea21967621192d991c350b63ab0`. TDLib, FFmpeg, GeckoView,
+manifest, package and signer checks passed. Canonical Download publication replaced the earlier
+source-head artifact. The records-head bytes are installed in place on the asleep Shield without
+launch; the package reports `0.7.236` / 284 and remote APK hash matches. The Termux-host ADB server
+does not see the phone, so phone installation remains PENDING. The ADB lease is released.
+
+Build283's international-row behavior remains PHYSICAL FAIL only on the owner-observed device whose
+identity was not reported; the other device is PENDING and neither has a PASS. Build284 adds a
+bounded persisted Home-only provider-observed tail so the international rows survive provider
+omission/process reopen for the decided 24-hour tail while authoritative non-finished revisions
+invalidate it. Canonical feed/browser/search/source refresh/rechecks and personalized ranking are
+not widened. Build284 omission, reopen, card actionability and exact expiry remain physically
+PENDING separately on phone and Shield; CI/install is not physical acceptance.
+
+Next is the already-qualified test-only `cl020g` guard in isolated worktree
+`scratchpad/wt-cl020g284`: one modified test path, focused 17 PASS, full app-mobile 2,231 PASS with
+six retained skips and zero failures/errors, `git diff --check` and independent P1/P2/P3=0 review.
+It is not yet committed/pushed. Its exact allowed-reader census is repository-relative, covers all
+included modules' Kotlin/Java main sources, fails on missing readers/roots and rejects unsupported
+settings syntax. It creates no runtime/version/APK/device behavior.
+
+After `cl020g`, the fresh phone `cl020m1` order is READY and independently CLEAN at
+`/root/work/_agent-coordination/private-media-tv/results/cl020m1-order-20261118/ORDER.md`
+(SHA-256 `39a73f9dbd628a91fb18010aadd40466be1cf24b2a3814bdf598f7861cd01334`). It wires the channels-only
+first Home row `מומלץ עכשיו` before personalized Sports without network/refresh/Telegram work; the
+visible `m1 -> t1 -> m2 -> t2` slices still ship together for both apps. A read-only exact-head TV
+re-anchor is preserved at `results/cl020t1-reanchor-20261118/REPORT.md`; no t1 order exists yet and
+its fresh order correctly waits for the real m1 postimage.
+
+Codex/root remains sole tracked/index/Git writer. No CI watcher, local heavy job, read-only helper,
+ADB/device lease, SSH or VPS process is active. Owner limits remain one builder/root and at most one
+read-only helper, one heavy job globally, no mutation/flip/stress or phone mutation runner. D1
+remains HOLD/OFF-safe, Tailscale OFF and D2 unauthorized. No physical PASS is inferred.
 
 ## November9 22:4x Bangkok — 243 pushed (the 242 CI leak fixed in the test harness; the halves ride with it); B2 in its review round; queue briefed to CL-073
 
