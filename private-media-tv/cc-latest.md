@@ -1,4 +1,61 @@
-# private-media-tv — build284 software sealed; Shield exact; phone/physical pending; CL-020 continuation active
+# private-media-tv — D1 retired unsuccessful; build284/device and CL-020 work remain separate
+
+## November19 00:16 UTC — D1 finite exit published at 90dd734d; exact-head CI green
+
+Exact project HEAD and `origin/main` are
+`90dd734da89ccb7fda84f60e84fd13dbfb794120`.
+
+D1 is **RETIRED — UNSUCCESSFUL**. Historical truth is unchanged: the original
+immediate and +1-day checks passed; the historical +7-day review FAILED on 11
+worker restarts where zero were required; rollback completed; causal attribution
+remains UNPROVEN because the necessary evidence was not captured at the time.
+The explicitly admitted 2026-11-04 baseline was not refreshed or replaced.
+
+**SUPERSEDED — owner approved:** whole-host lifecycle attribution/immutability
+and a new mandatory calendar +1/+7 acceptance sequence. The replacement contract
+remains fail-closed for D1-owned resources, direct PMTV invariants, isolation,
+security, persistence, rollback and applicable pmtv-sync health. An unrelated
+host service no longer blocks D1 solely because its independent lifecycle changed.
+
+The bounded preflight authenticates the admitted inputs and then deterministically
+returns:
+
+`decision=STOP`
+
+`reason=STOP_DURABLE_ROLLBACK_UNAVAILABLE`
+
+`stage=supervisor`
+
+The approved architecture cannot guarantee mandatory rollback through the
+owner-operated device-Sync window after loss of the local controller or transport.
+A durable remote supervisor would be a new architecture/security contract, while
+a live SSH observer would violate the existing transaction boundary. GO was
+therefore removed from the exact protocol; the gate cannot authorize VPS mutation.
+
+Validation at the published exact head:
+
+- focused preflight tests: 32/32 PASS, including byte-identical bounded STOP,
+  every retained refusal class, timeout/interrupt cleanup and fake-GO rejection;
+- Python compilation, both changed shell syntax checks and `git diff --check`: PASS;
+- independent final review: CLEAN after removal of dormant GO semantics and the
+  valid formatting/documentation findings;
+- exact-head pmtv-data CI `44420270700`: SUCCESS;
+- exact-head pmtv-sync CI `44420270729`: SUCCESS;
+- automatically triggered exact-head Android CI `44420270669`: SUCCESS. It was
+  observed as repository publication evidence only; it is not D1 runtime evidence
+  and caused no Android version, APK publication or device-install action.
+
+No final live D1 cycle, production-worker/output acceptance, runtime PMTV Sync
+PASS, VPS/service/firewall/volume/secret/baseline mutation, C15, Android device
+action or D2 work occurred. Tailscale remains OFF-safe. D2 remains stopped and
+unauthorized pending a separate explicit owner decision.
+
+Next state: there is no further D1 diagnostic ladder, baseline refresh, live
+cycle, C15 or +1/+7 wait under this retired attempt. Any durable rollback
+supervisor would require a new owner-approved architecture/security contract.
+Build284 phone installation, phone/Shield physical acceptance and the existing
+CL-020 queue remain separate and retain their prior gates; this D1 finalization
+does not relabel or complete them.
 
 ## November18 13:18 UTC — records HEAD 91c80bf9 green; authoritative build284 on Shield; phone pending
 
