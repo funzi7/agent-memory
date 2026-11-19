@@ -1,4 +1,82 @@
-# private-media-tv — D1 retired unsuccessful; build284/device and CL-020 work remain separate
+# private-media-tv — D1 and D1R retired unsuccessful; D2 remains unauthorized
+
+## November19 21:26 UTC — D1R finite exit published at eb7abba4; exact-head CI green
+
+Exact project HEAD and live `origin/main` are
+`eb7abba43c776f3d3e0ca8727f2c0eba856e3197`. Its qualified D1R source parent
+is `3fa1c9583d4293bd61e63d098fef20ce66b8893d`.
+
+Historical D1 remains **RETIRED — UNSUCCESSFUL** exactly as previously
+recorded. Its immediate/+1 checks remain PASS, its historical +7 remains
+FAILED on 11 worker restarts, rollback remains complete, attribution remains
+UNPROVEN, and the admitted 2026-11-04 baseline remains unchanged. D1R was the
+separate owner-approved successor for the durable server-side rollback
+architecture; it did not reopen or relabel D1.
+
+D1R source qualification passed:
+
+- 105 focused supervisor/bootstrap/isolation/preflight tests, Python
+  compilation and `git diff --check`;
+- independent exact-diff/security review, including a final records review
+  with no P1/P2;
+- source qualification and two byte-identical deterministic preflight GO
+  results; and
+- exact-source pmtv-data CI `44595225951`.
+
+The sole still-eligible live entry passed the selected schedule window, fresh
+held/admitted-baseline checks, pmtv-sync access/volume/member/isolation,
+owner-operated normal PMTV Sync, and exact bundle verification (134/134 files,
+37 directories). The source-bound sibling wrapper and resident supervisor
+installed, and the supervisor was active in `IDLE`.
+
+The final atomic `arm` then returned:
+
+`result=STOP`
+
+`reason=STOP_FILE`
+
+`phase=NONE`
+
+`lease_armed=false`
+
+This occurred before any pmtv-data deployment or reversible transaction
+mutation. There was no ACTIVE record, lease, pmtv-data deployment, natural
+worker cycle, facts/publication/resource/restart/recreate acceptance,
+`ACCEPTANCE_READY`, COMMIT or rollback. The one bounded correction had
+already been consumed, so the finite contract permits no diagnosis ladder,
+retry, rebaseline or replacement attempt.
+
+The exact original pmtv-sync wrapper was restored and verified. Fresh
+observe-only sibling deployment/health passed with exact isolation, zero
+sibling restart/OOM, no auth-key exposure and no host-published sync port.
+No local SSH/wrapper process remains; the owner confirmed Tailscale OFF.
+pmtv-data remains held/down/absent. Preparatory bundle/supervisor files remain
+installed and inert; this is not runtime or rollback PASS.
+
+Terminal records were independently reviewed CLEAN, committed task-only and
+pushed normally. Exact-records-head pmtv-data CI `44612083254` and
+automatically triggered Android CI `44612083341` are SUCCESS. Android CI is
+repository publication evidence only: no Android source/version transition,
+APK delivery/install, device action or physical PASS belongs to D1R.
+
+D1R is therefore **RETIRED — UNSUCCESSFUL**. D2/O-D4 and app wiring remain
+stopped and unauthorized until a separate explicit owner decision. No D1R
+runtime acceptance remains PENDING; the unrun operational gates are recorded
+as NOT RUN under the terminal finite exit.
+
+Canonical coordination remains
+`/root/work/_agent-coordination/private-media-tv/`. Codex/root was the sole
+tracked/Git/integration writer; Claude remained read-only. Both owner inboxes,
+TASKS, CLAIMS, CLAUDE_FINDINGS and CODEX_ACK remain mandatory session-start
+inputs, with semantic dedupe and Claude `READY_FOR_CODEX` consumption instead
+of repeated research. The D1R writer claim releases only after this
+agent-memory finalization is verified.
+
+Next work is outside D1R. D2 needs a new explicit owner decision. Existing
+product/device/CL-020 truth remains unchanged. `REQ-CODEX-194` records the
+later Telegram Deep Search recall defect for
+`DANG.S01E01.Pilot.1080p.NF.WEB-DL.AAC5.1.H.265-DUDU`; it was queued without
+interrupting D1R and has no current mutation/build/device authority.
 
 ## November19 00:16 UTC — D1 finite exit published at 90dd734d; exact-head CI green
 
