@@ -1,4 +1,68 @@
-# private-media-tv — D1 and D1R retired unsuccessful; D2 remains unauthorized
+# private-media-tv — D1, D1R and D1S retired unsuccessful; D2 remains unauthorized
+
+## November20 01:10 UTC — D1S finite exit published at ade04327; exact-head CI green
+
+Exact project HEAD and live `origin/main` are
+`ade043270fffa1d20cf1a39c6bafc9e5aebd60a7`. Its parent is the terminal D1R
+records HEAD `eb7abba43c776f3d3e0ca8727f2c0eba856e3197`.
+
+Historical truth is unchanged: D1 is **RETIRED — UNSUCCESSFUL**, its historical
++7 remains **FAILED/UNPROVEN**, D1R is **RETIRED — UNSUCCESSFUL**, and the
+admitted 2026-11-04 baseline was not refreshed. D1S was a distinct, one-shot
+successor limited to identifying the exact D1R `STOP_FILE` predicate, applying
+one correction only if a concrete persistent defect was proven, and then
+attempting one atomic arm. It did not reopen D1/D1R or authorize D2/O-D4.
+
+The retained D1R arm result did not include which one of the fixed 19
+`read_regular` predicates failed. A single external read-only classifier,
+SHA-256
+`19eef5fb3be9c78519de91635cad6bf07869c6896c3a66739057e307fc1b6c7c`,
+mirrored exactly those 19 calls before `Store.create()`. Its qualification
+passed local and embedded-remote compilation, exact slot/order/path/limit/mode/
+UID/GID parity, non-secret closed-output review, hard 60/70-second deadlines,
+and synthetic process-group cleanup after wrapper-leader loss. Independent
+review found no P1/P2.
+
+The one named live read returned:
+
+`schema=pmtv-d1s-stop-file-audit-v1`
+
+`result=PASS`
+
+`reason=ALL_CURRENT_FILE_PREDICATES_PASS`
+
+`checked_file_count=19`
+
+`private_values_printed=false`
+
+It exited normally, left no audit/SSH process and changed no VPS state. The
+owner subsequently confirmed Tailscale OFF.
+
+Because every current predicate passes and the original failed predicate was
+not retained, no concrete persistent file defect can be proven. The historical
+cause remains **UNPROVEN**. The finite contract therefore permits no
+speculative correction, guard publication, atomic arm, or further diagnostic
+generation. No lease became ACTIVE; no pmtv-data deployment, natural worker
+cycle, facts publication, COMMIT, rollback or runtime PASS occurred.
+pmtv-data remains held/down/absent. The last proved sibling state remains the
+D1R restoration result: the original sync wrapper was restored and pmtv-sync
+was healthy.
+
+The terminal D1S records and ADR 0302 were independently reviewed CLEAN with
+no P1/P2/P3. Local link validation and `git diff --check` passed. The task-only
+project commit was pushed normally and is remote-equal. Exact-head pmtv-data CI
+`44645352922` and automatically triggered Android CI `44645353079` are
+SUCCESS. Android CI is publication evidence only: D1S changed no Android
+product source/version, delivered no APK, performed no install/device action,
+and claimed no physical PASS.
+
+D1S is **RETIRED — UNSUCCESSFUL** at its pre-mutation finite exit. D2/O-D4
+remains unauthorized pending a separate explicit owner decision. Existing
+product backlog, device truth and `REQ-CODEX-194` remain unchanged and outside
+this task. Canonical coordination remains
+`/root/work/_agent-coordination/private-media-tv/`; Codex/root was the sole
+tracked/Git/integration writer and its COORD-152 claim releases only after this
+canonical agent-memory finalization is verified.
 
 ## November19 21:26 UTC — D1R finite exit published at eb7abba4; exact-head CI green
 
