@@ -1,5 +1,5 @@
 {
-  "last_processed_date": "2026-11-18",
+  "last_processed_date": "2026-11-19",
   "portfolios": {
     "benchmark_100": {
       "portfolio_id": "benchmark_100",
@@ -12,7 +12,7 @@
           "shares": 1.0,
           "avg_price": 86.56325664138794,
           "entry_date": "2026-06-24",
-          "bars_held": 81,
+          "bars_held": 82,
           "cost_basis": 87.42888964138794,
           "high_water": 91.72000122070312,
           "partial_exit_done": false
@@ -351,6 +351,10 @@
         [
           "2026-11-18",
           98.54111157931519
+        ],
+        [
+          "2026-11-19",
+          96.83111249484253
         ]
       ],
       "cash_history": [
@@ -681,6 +685,10 @@
         [
           "2026-11-18",
           12.57111035861206
+        ],
+        [
+          "2026-11-19",
+          12.57111035861206
         ]
       ],
       "stats": {
@@ -693,10 +701,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -87.43,
       "realized_pnl": 0.0,
-      "monthly_pace": -4.81,
+      "monthly_pace": -7.03,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 13
+      "pace_days": 14
     },
     "benchmark_10k": {
       "portfolio_id": "benchmark_10k",
@@ -709,7 +717,7 @@
           "shares": 13.0,
           "avg_price": 734.176902557373,
           "entry_date": "2026-06-23",
-          "bars_held": 82,
+          "bars_held": 83,
           "cost_basis": 9545.299733245849,
           "high_water": 779.0900268554688,
           "partial_exit_done": false
@@ -1048,6 +1056,10 @@
         [
           "2026-11-18",
           9947.300425445557
+        ],
+        [
+          "2026-11-19",
+          9761.010203277589
         ]
       ],
       "cash_history": [
@@ -1378,6 +1390,10 @@
         [
           "2026-11-18",
           454.700266754151
+        ],
+        [
+          "2026-11-19",
+          454.700266754151
         ]
       ],
       "stats": {
@@ -1390,10 +1406,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -9545.3,
       "realized_pnl": 0.0,
-      "monthly_pace": -535.92,
+      "monthly_pace": -777.07,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 13
+      "pace_days": 14
     },
     "rsi2_100": {
       "portfolio_id": "rsi2_100",
@@ -1406,7 +1422,7 @@
           "shares": 1.0,
           "avg_price": 86.96345816802977,
           "entry_date": "2026-11-17",
-          "bars_held": 2,
+          "bars_held": 3,
           "cost_basis": 87.83309316802978,
           "high_water": 86.96345816802977,
           "partial_exit_done": false
@@ -1745,6 +1761,10 @@
         [
           "2026-11-18",
           91.26516339700325
+        ],
+        [
+          "2026-11-19",
+          89.5551643125306
         ]
       ],
       "cash_history": [
@@ -2075,6 +2095,10 @@
         [
           "2026-11-18",
           5.295162176300124
+        ],
+        [
+          "2026-11-19",
+          5.295162176300124
         ]
       ],
       "stats": {
@@ -2087,10 +2111,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -94.7,
       "realized_pnl": -6.87,
-      "monthly_pace": -5.39,
+      "monthly_pace": -7.57,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 13
+      "pace_days": 14
     },
     "rsi2_10k": {
       "portfolio_id": "rsi2_10k",
@@ -2103,7 +2127,7 @@
           "shares": 13.0,
           "avg_price": 738.7592096557617,
           "entry_date": "2026-11-17",
-          "bars_held": 2,
+          "bars_held": 3,
           "cost_basis": 9604.8697255249,
           "high_water": 738.7592096557617,
           "partial_exit_done": false
@@ -2442,6 +2466,10 @@
         [
           "2026-11-18",
           10181.53196261597
+        ],
+        [
+          "2026-11-19",
+          9995.241740448002
         ]
       ],
       "cash_history": [
@@ -2772,6 +2800,10 @@
         [
           "2026-11-18",
           688.9318039245645
+        ],
+        [
+          "2026-11-19",
+          688.9318039245645
         ]
       ],
       "stats": {
@@ -2784,10 +2816,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -9311.07,
       "realized_pnl": 293.8,
-      "monthly_pace": -74.18,
+      "monthly_pace": -348.32,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 13
+      "pace_days": 14
     },
     "trend200_100": {
       "portfolio_id": "trend200_100",
@@ -3128,6 +3160,10 @@
         [
           "2026-11-18",
           100.0
+        ],
+        [
+          "2026-11-19",
+          100.0
         ]
       ],
       "cash_history": [
@@ -3458,6 +3494,10 @@
         [
           "2026-11-18",
           100.0
+        ],
+        [
+          "2026-11-19",
+          100.0
         ]
       ],
       "stats": {
@@ -3473,7 +3513,7 @@
       "monthly_pace": 0.0,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 13
+      "pace_days": 14
     },
     "trend200_10k": {
       "portfolio_id": "trend200_10k",
@@ -3814,6 +3854,10 @@
         [
           "2026-11-18",
           9111.574004028322
+        ],
+        [
+          "2026-11-19",
+          9111.574004028322
         ]
       ],
       "cash_history": [
@@ -4144,6 +4188,10 @@
         [
           "2026-11-18",
           9111.574004028322
+        ],
+        [
+          "2026-11-19",
+          9111.574004028322
         ]
       ],
       "stats": {
@@ -4156,10 +4204,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -888.43,
       "realized_pnl": -888.43,
-      "monthly_pace": -895.77,
+      "monthly_pace": -831.79,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 13
+      "pace_days": 14
     },
     "rotation_100": {
       "portfolio_id": "rotation_100",
@@ -4500,6 +4548,10 @@
         [
           "2026-11-18",
           99.17884969833376
+        ],
+        [
+          "2026-11-19",
+          99.17884969833376
         ]
       ],
       "cash_history": [
@@ -4830,6 +4882,10 @@
         [
           "2026-11-18",
           99.17884969833376
+        ],
+        [
+          "2026-11-19",
+          99.17884969833376
         ]
       ],
       "stats": {
@@ -4845,7 +4901,7 @@
       "monthly_pace": 0.0,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 13
+      "pace_days": 14
     },
     "rotation_10k": {
       "portfolio_id": "rotation_10k",
@@ -5186,6 +5242,10 @@
         [
           "2026-11-18",
           9004.544645812992
+        ],
+        [
+          "2026-11-19",
+          9004.544645812992
         ]
       ],
       "cash_history": [
@@ -5516,6 +5576,10 @@
         [
           "2026-11-18",
           9004.544645812992
+        ],
+        [
+          "2026-11-19",
+          9004.544645812992
         ]
       ],
       "stats": {
@@ -5528,10 +5592,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -995.46,
       "realized_pnl": -995.46,
-      "monthly_pace": -136.9,
+      "monthly_pace": -127.12,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 13
+      "pace_days": 14
     },
     "momentum_scan_100": {
       "portfolio_id": "momentum_scan_100",
@@ -5868,6 +5932,10 @@
         [
           "2026-11-18",
           66.13565781340029
+        ],
+        [
+          "2026-11-19",
+          66.13565781340029
         ]
       ],
       "cash_history": [
@@ -6198,6 +6266,10 @@
         [
           "2026-11-18",
           66.13565781340029
+        ],
+        [
+          "2026-11-19",
+          66.13565781340029
         ]
       ],
       "stats": {
@@ -6210,10 +6282,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -33.86,
       "realized_pnl": -33.86,
-      "monthly_pace": -18.33,
+      "monthly_pace": -17.02,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 13
+      "pace_days": 14
     },
     "momentum_scan_10k": {
       "portfolio_id": "momentum_scan_10k",
@@ -6550,6 +6622,10 @@
         [
           "2026-11-18",
           6483.628663055423
+        ],
+        [
+          "2026-11-19",
+          6483.628663055423
         ]
       ],
       "cash_history": [
@@ -6880,6 +6956,10 @@
         [
           "2026-11-18",
           6483.628663055423
+        ],
+        [
+          "2026-11-19",
+          6483.628663055423
         ]
       ],
       "stats": {
@@ -6892,10 +6972,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -3516.37,
       "realized_pnl": -3516.37,
-      "monthly_pace": -1486.29,
+      "monthly_pace": -1380.12,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 13
+      "pace_days": 14
     },
     "leveraged_momentum_100": {
       "portfolio_id": "leveraged_momentum_100",
@@ -7232,6 +7312,10 @@
         [
           "2026-11-18",
           64.37920118683628
+        ],
+        [
+          "2026-11-19",
+          64.37920118683628
         ]
       ],
       "cash_history": [
@@ -7562,6 +7646,10 @@
         [
           "2026-11-18",
           64.37920118683628
+        ],
+        [
+          "2026-11-19",
+          64.37920118683628
         ]
       ],
       "stats": {
@@ -7574,10 +7662,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -35.62,
       "realized_pnl": -35.62,
-      "monthly_pace": -20.96,
+      "monthly_pace": -19.46,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 13
+      "pace_days": 14
     },
     "leveraged_momentum_10k": {
       "portfolio_id": "leveraged_momentum_10k",
@@ -7914,6 +8002,10 @@
         [
           "2026-11-18",
           5270.830134474826
+        ],
+        [
+          "2026-11-19",
+          5270.830134474826
         ]
       ],
       "cash_history": [
@@ -8244,6 +8336,10 @@
         [
           "2026-11-18",
           5270.830134474826
+        ],
+        [
+          "2026-11-19",
+          5270.830134474826
         ]
       ],
       "stats": {
@@ -8256,10 +8352,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -4729.17,
       "realized_pnl": -4729.17,
-      "monthly_pace": -3216.34,
+      "monthly_pace": -2986.6,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 13
+      "pace_days": 14
     },
     "guru_track_100": {
       "portfolio_id": "guru_track_100",
@@ -8596,6 +8692,10 @@
         [
           "2026-11-18",
           100.0
+        ],
+        [
+          "2026-11-19",
+          100.0
         ]
       ],
       "cash_history": [
@@ -8926,6 +9026,10 @@
         [
           "2026-11-18",
           100.0
+        ],
+        [
+          "2026-11-19",
+          100.0
         ]
       ],
       "stats": {
@@ -8941,7 +9045,7 @@
       "monthly_pace": 0.0,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 13
+      "pace_days": 14
     },
     "guru_track_10k": {
       "portfolio_id": "guru_track_10k",
@@ -9278,6 +9382,10 @@
         [
           "2026-11-18",
           10000.0
+        ],
+        [
+          "2026-11-19",
+          10000.0
         ]
       ],
       "cash_history": [
@@ -9608,6 +9716,10 @@
         [
           "2026-11-18",
           10000.0
+        ],
+        [
+          "2026-11-19",
+          10000.0
         ]
       ],
       "stats": {
@@ -9623,7 +9735,7 @@
       "monthly_pace": 0.0,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 13
+      "pace_days": 14
     },
     "screener_track_100": {
       "portfolio_id": "screener_track_100",
@@ -9636,7 +9748,7 @@
           "shares": 1.0,
           "avg_price": 76.54324975204467,
           "entry_date": "2026-11-03",
-          "bars_held": 12,
+          "bars_held": 13,
           "cost_basis": 77.30868175204468,
           "high_water": 80.19000244140625,
           "partial_exit_done": false,
@@ -9972,6 +10084,10 @@
         [
           "2026-11-18",
           85.06954152786255
+        ],
+        [
+          "2026-11-19",
+          85.06954152786255
         ]
       ],
       "cash_history": [
@@ -10302,6 +10418,10 @@
         [
           "2026-11-18",
           16.46954305374146
+        ],
+        [
+          "2026-11-19",
+          16.46954305374146
         ]
       ],
       "stats": {
@@ -10314,10 +10434,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -83.53,
       "realized_pnl": -6.22,
-      "monthly_pace": -14.18,
+      "monthly_pace": -13.17,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 13
+      "pace_days": 14
     },
     "screener_track_10k": {
       "portfolio_id": "screener_track_10k",
@@ -10330,7 +10450,7 @@
           "shares": 4.0,
           "avg_price": 195.98293700408934,
           "entry_date": "2026-06-24",
-          "bars_held": 81,
+          "bars_held": 82,
           "cost_basis": 784.503176587786,
           "high_water": 291.5199890136719,
           "partial_exit_done": true,
@@ -10341,7 +10461,7 @@
           "shares": 5.0,
           "avg_price": 249.84486122131347,
           "entry_date": "2026-06-24",
-          "bars_held": 81,
+          "bars_held": 82,
           "cost_basis": 1250.2243061065674,
           "high_water": 250.0500030517578,
           "partial_exit_done": false,
@@ -10352,7 +10472,7 @@
           "shares": 3.0,
           "avg_price": 434.19199360656734,
           "entry_date": "2026-06-24",
-          "bars_held": 81,
+          "bars_held": 82,
           "cost_basis": 1303.575980819702,
           "high_water": 485.79998779296875,
           "partial_exit_done": false,
@@ -10363,7 +10483,7 @@
           "shares": 10.0,
           "avg_price": 115.16755561065673,
           "entry_date": "2026-08-04",
-          "bars_held": 53,
+          "bars_held": 54,
           "cost_basis": 1152.6755561065675,
           "high_water": 127.04000091552734,
           "partial_exit_done": false,
@@ -10374,7 +10494,7 @@
           "shares": 8.0,
           "avg_price": 131.75584744262696,
           "entry_date": "2026-10-05",
-          "bars_held": 30,
+          "bars_held": 31,
           "cost_basis": 1054.5801128743492,
           "high_water": 165.02000427246094,
           "partial_exit_done": true,
@@ -10385,7 +10505,7 @@
           "shares": 7.0,
           "avg_price": 159.01947244262695,
           "entry_date": "2026-11-03",
-          "bars_held": 12,
+          "bars_held": 13,
           "cost_basis": 1114.1363070983887,
           "high_water": 165.0399932861328,
           "partial_exit_done": false,
@@ -10396,7 +10516,7 @@
           "shares": 4.0,
           "avg_price": 235.13751427459715,
           "entry_date": "2026-11-03",
-          "bars_held": 12,
+          "bars_held": 13,
           "cost_basis": 941.5500570983886,
           "high_water": 235.8800048828125,
           "partial_exit_done": false,
@@ -10407,7 +10527,7 @@
           "shares": 1.0,
           "avg_price": 860.3599576721191,
           "entry_date": "2026-11-03",
-          "bars_held": 12,
+          "bars_held": 13,
           "cost_basis": 861.3599576721191,
           "high_water": 860.3599576721191,
           "partial_exit_done": false,
@@ -10418,7 +10538,7 @@
           "shares": 14.0,
           "avg_price": 76.54324975204467,
           "entry_date": "2026-11-03",
-          "bars_held": 12,
+          "bars_held": 13,
           "cost_basis": 1072.6054965286255,
           "high_water": 80.19000244140625,
           "partial_exit_done": false,
@@ -10754,6 +10874,10 @@
         [
           "2026-11-18",
           9815.835096395494
+        ],
+        [
+          "2026-11-19",
+          9668.465177572252
         ]
       ],
       "cash_history": [
@@ -11084,6 +11208,10 @@
         [
           "2026-11-18",
           1253.585248983385
+        ],
+        [
+          "2026-11-19",
+          1253.585248983385
         ]
       ],
       "stats": {
@@ -11096,10 +11224,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -8746.41,
       "realized_pnl": 788.8,
-      "monthly_pace": -1643.02,
+      "monthly_pace": -1746.72,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 13
+      "pace_days": 14
     },
     "swing_100": {
       "portfolio_id": "swing_100",
@@ -11107,24 +11235,7 @@
       "account_size": 100.0,
       "cash": 78.28566699435818,
       "positions": {},
-      "pending_orders": [
-        {
-          "ticker": "DIS",
-          "side": "BUY",
-          "reason": "פריצה #1 +2.3% מעל הרף, RSI 70",
-          "rank": 1,
-          "price": 122.36,
-          "qty": 0
-        },
-        {
-          "ticker": "TGT",
-          "side": "BUY",
-          "reason": "פריצה #2 +0.7% מעל הרף, RSI 61",
-          "rank": 2,
-          "price": 165.93,
-          "qty": 0
-        }
-      ],
+      "pending_orders": [],
       "equity_history": [
         [
           "2026-06-24",
@@ -11448,6 +11559,10 @@
         ],
         [
           "2026-11-18",
+          78.28566699435818
+        ],
+        [
+          "2026-11-19",
           78.28566699435818
         ]
       ],
@@ -11775,6 +11890,10 @@
         [
           "2026-11-18",
           78.28566699435818
+        ],
+        [
+          "2026-11-19",
+          78.28566699435818
         ]
       ],
       "stats": {
@@ -11787,91 +11906,49 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -21.71,
       "realized_pnl": -21.71,
-      "monthly_pace": -9.44,
+      "monthly_pace": -8.76,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 13
+      "pace_days": 14
     },
     "swing_10k": {
       "portfolio_id": "swing_10k",
       "strategy": "swing",
       "account_size": 10000.0,
-      "cash": 950.6198854217672,
+      "cash": 153.82010547257823,
       "positions": {
-        "CHTR": {
-          "ticker": "CHTR",
-          "shares": 6.0,
-          "avg_price": 115.79786786270141,
-          "entry_date": "2026-11-06",
-          "bars_held": 9,
-          "cost_basis": 695.2872071762084,
-          "high_water": 139.19000244140625,
-          "partial_exit_done": true
-        },
         "AVGO": {
           "ticker": "AVGO",
           "shares": 7.0,
           "avg_price": 356.71827854919434,
           "entry_date": "2026-11-13",
-          "bars_held": 4,
+          "bars_held": 5,
           "cost_basis": 2498.0279498443606,
           "high_water": 356.71827854919434,
           "partial_exit_done": false
         },
-        "XEL": {
-          "ticker": "XEL",
-          "shares": 33.0,
-          "avg_price": 81.76086122131348,
-          "entry_date": "2026-11-13",
-          "bars_held": 4,
-          "cost_basis": 2699.1084203033447,
-          "high_water": 81.76086122131348,
+        "DIS": {
+          "ticker": "DIS",
+          "shares": 24.0,
+          "avg_price": 122.03098622131347,
+          "entry_date": "2026-11-19",
+          "bars_held": 1,
+          "cost_basis": 2929.7436693115233,
+          "high_water": 122.03098622131347,
           "partial_exit_done": false
         },
-        "MOH": {
-          "ticker": "MOH",
-          "shares": 8.0,
-          "avg_price": 227.15351328277586,
-          "entry_date": "2026-11-17",
-          "bars_held": 2,
-          "cost_basis": 1818.228106262207,
-          "high_water": 227.15351328277586,
+        "TGT": {
+          "ticker": "TGT",
+          "shares": 18.0,
+          "avg_price": 167.05348622131348,
+          "entry_date": "2026-11-19",
+          "bars_held": 1,
+          "cost_basis": 3007.9627519836426,
+          "high_water": 167.4600067138672,
           "partial_exit_done": false
         }
       },
-      "pending_orders": [
-        {
-          "ticker": "CHTR",
-          "side": "SELL",
-          "reason": "לקיחת רווח +20%"
-        },
-        {
-          "ticker": "MOH",
-          "side": "SELL",
-          "reason": "סטופ הפסד -8%"
-        },
-        {
-          "ticker": "XEL",
-          "side": "SELL",
-          "reason": "המהלך נגמר — מתחת לממוצע 10"
-        },
-        {
-          "ticker": "DIS",
-          "side": "BUY",
-          "reason": "פריצה #1 +2.3% מעל הרף, RSI 70",
-          "rank": 1,
-          "price": 122.36,
-          "qty": 24
-        },
-        {
-          "ticker": "TGT",
-          "side": "BUY",
-          "reason": "פריצה #2 +0.7% מעל הרף, RSI 61",
-          "rank": 2,
-          "price": 165.93,
-          "qty": 18
-        }
-      ],
+      "pending_orders": [],
       "equity_history": [
         [
           "2026-06-24",
@@ -12196,6 +12273,10 @@
         [
           "2026-11-18",
           8578.03984544374
+        ],
+        [
+          "2026-11-19",
+          8480.650183597578
         ]
       ],
       "cash_history": [
@@ -12522,22 +12603,26 @@
         [
           "2026-11-18",
           950.6198854217672
+        ],
+        [
+          "2026-11-19",
+          153.82010547257823
         ]
       ],
       "stats": {
-        "n_trades": 55,
-        "n_wins": 21,
-        "gross_profit": 1220.9353975658485,
-        "gross_loss": 2559.663828557962
+        "n_trades": 58,
+        "n_wins": 22,
+        "gross_profit": 1346.716961370475,
+        "gross_loss": 2757.1624847583707
       },
-      "fees_paid_total": 112.5,
-      "cash_change_today": 693.45,
-      "cash_change_since_inception": -9049.38,
-      "realized_pnl": -1338.73,
-      "monthly_pace": -190.76,
+      "fees_paid_total": 117.5,
+      "cash_change_today": -796.8,
+      "cash_change_since_inception": -9846.18,
+      "realized_pnl": -1410.45,
+      "monthly_pace": -323.22,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 13
+      "pace_days": 14
     },
     "pullback_100": {
       "portfolio_id": "pullback_100",
@@ -12550,7 +12635,7 @@
           "shares": 1.0,
           "avg_price": 72.83640305328369,
           "entry_date": "2026-11-05",
-          "bars_held": 10,
+          "bars_held": 11,
           "cost_basis": 73.56476705328369,
           "high_water": 72.83999633789062,
           "partial_exit_done": false
@@ -12558,19 +12643,11 @@
       },
       "pending_orders": [
         {
-          "ticker": "DHR",
+          "ticker": "FDS",
           "side": "BUY",
-          "reason": "משיכה #3 — חוזק יחסי 90% · מרחק מממוצע 50 +2.2%",
-          "rank": 3,
-          "price": 228.58,
-          "qty": 0
-        },
-        {
-          "ticker": "EL",
-          "side": "BUY",
-          "reason": "משיכה #4 — חוזק יחסי 90% · מרחק מממוצע 50 +2.0%",
+          "reason": "משיכה #4 — חוזק יחסי 95% · מרחק מממוצע 50 +2.3%",
           "rank": 4,
-          "price": 104.04,
+          "price": 308.0,
           "qty": 0
         },
         {
@@ -12584,9 +12661,17 @@
         {
           "ticker": "RVTY",
           "side": "BUY",
-          "reason": "משיכה #2 — חוזק יחסי 99% · מרחק מממוצע 50 +0.5%",
+          "reason": "משיכה #2 — חוזק יחסי 99% · מרחק מממוצע 50 -0.5%",
           "rank": 2,
-          "price": 152.43,
+          "price": 151.59,
+          "qty": 0
+        },
+        {
+          "ticker": "TMO",
+          "side": "BUY",
+          "reason": "משיכה #3 — חוזק יחסי 98% · מרחק מממוצע 50 +1.7%",
+          "rank": 3,
+          "price": 688.75,
           "qty": 0
         }
       ],
@@ -12858,6 +12943,10 @@
         [
           "2026-11-18",
           87.31600679733282
+        ],
+        [
+          "2026-11-19",
+          87.266003745575
         ]
       ],
       "cash_history": [
@@ -13128,6 +13217,10 @@
         [
           "2026-11-18",
           14.566006797332818
+        ],
+        [
+          "2026-11-19",
+          14.566006797332818
         ]
       ],
       "stats": {
@@ -13140,35 +13233,25 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -85.43,
       "realized_pnl": -11.87,
-      "monthly_pace": -11.7,
+      "monthly_pace": -10.94,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 13
+      "pace_days": 14
     },
     "pullback_10k": {
       "portfolio_id": "pullback_10k",
       "strategy": "pullback",
       "account_size": 10000.0,
-      "cash": 209.84735572052887,
+      "cash": 209.09689216614652,
       "positions": {
         "WST": {
           "ticker": "WST",
           "shares": 4.0,
           "avg_price": 363.491652557373,
           "entry_date": "2026-10-09",
-          "bars_held": 26,
+          "bars_held": 27,
           "cost_basis": 1454.966610229492,
           "high_water": 417.79998779296875,
-          "partial_exit_done": false
-        },
-        "HUM": {
-          "ticker": "HUM",
-          "shares": 2.0,
-          "avg_price": 415.2075,
-          "entry_date": "2026-11-06",
-          "bars_held": 9,
-          "cost_basis": 831.415,
-          "high_water": 461.25,
           "partial_exit_done": false
         },
         "A": {
@@ -13176,19 +13259,9 @@
           "shares": 16.0,
           "avg_price": 172.94643061065673,
           "entry_date": "2026-11-18",
-          "bars_held": 1,
+          "bars_held": 2,
           "cost_basis": 2768.1428897705077,
           "high_water": 177.3300018310547,
-          "partial_exit_done": false
-        },
-        "MRNA": {
-          "ticker": "MRNA",
-          "shares": 13.0,
-          "avg_price": 206.90340305328368,
-          "entry_date": "2026-11-18",
-          "bars_held": 1,
-          "cost_basis": 2690.744239692688,
-          "high_water": 206.90340305328368,
           "partial_exit_done": false
         },
         "RVTY": {
@@ -13196,40 +13269,33 @@
           "shares": 18.0,
           "avg_price": 146.7333336639404,
           "entry_date": "2026-11-18",
-          "bars_held": 1,
+          "bars_held": 2,
           "cost_basis": 2642.2000059509273,
           "high_water": 152.42999267578125,
           "partial_exit_done": false
+        },
+        "PAYC": {
+          "ticker": "PAYC",
+          "shares": 7.0,
+          "avg_price": 245.96291633605955,
+          "entry_date": "2026-11-19",
+          "bars_held": 1,
+          "cost_basis": 1722.7404143524168,
+          "high_water": 245.96291633605955,
+          "partial_exit_done": false
+        },
+        "TECH": {
+          "ticker": "TECH",
+          "shares": 24.0,
+          "avg_price": 72.79638213729858,
+          "entry_date": "2026-11-19",
+          "bars_held": 1,
+          "cost_basis": 1748.113171295166,
+          "high_water": 72.79638213729858,
+          "partial_exit_done": false
         }
       },
-      "pending_orders": [
-        {
-          "ticker": "HUM",
-          "side": "SELL",
-          "reason": "התמיכה נשברה — מתחת לממוצע 50"
-        },
-        {
-          "ticker": "MRNA",
-          "side": "SELL",
-          "reason": "התמיכה נשברה — מתחת לממוצע 50"
-        },
-        {
-          "ticker": "PAYC",
-          "side": "BUY",
-          "reason": "משיכה #1 — חוזק יחסי 100% · מרחק מממוצע 50 +1.3%",
-          "rank": 1,
-          "price": 243.48,
-          "qty": 7
-        },
-        {
-          "ticker": "TECH",
-          "side": "BUY",
-          "reason": "משיכה #2 — חוזק יחסי 98% · מרחק מממוצע 50 +0.4%",
-          "rank": 2,
-          "price": 72.75,
-          "qty": 24
-        }
-      ],
+      "pending_orders": [],
       "equity_history": [
         [
           "2026-07-15",
@@ -13498,6 +13564,10 @@
         [
           "2026-11-18",
           10736.777119514474
+        ],
+        [
+          "2026-11-19",
+          10779.076674270638
         ]
       ],
       "cash_history": [
@@ -13768,22 +13838,26 @@
         [
           "2026-11-18",
           209.84735572052887
+        ],
+        [
+          "2026-11-19",
+          209.09689216614652
         ]
       ],
       "stats": {
-        "n_trades": 39,
+        "n_trades": 41,
         "n_wins": 17,
         "gross_profit": 2329.1299057553647,
-        "gross_loss": 1731.813804391222
+        "gross_loss": 1783.8699219907094
       },
-      "fees_paid_total": 77.0,
-      "cash_change_today": -79.02,
-      "cash_change_since_inception": -9790.15,
-      "realized_pnl": 597.32,
-      "monthly_pace": -308.83,
+      "fees_paid_total": 81.0,
+      "cash_change_today": -0.75,
+      "cash_change_since_inception": -9790.9,
+      "realized_pnl": 545.26,
+      "monthly_pace": -223.32,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 13
+      "pace_days": 14
     },
     "twitter_track_100": {
       "portfolio_id": "twitter_track_100",
@@ -13796,7 +13870,7 @@
           "shares": 7.0,
           "avg_price": 4.543086759034469,
           "entry_date": "2026-06-30",
-          "bars_held": 77,
+          "bars_held": 78,
           "cost_basis": 32.119622741812705,
           "high_water": 5.429999828338623,
           "partial_exit_done": false
@@ -13806,7 +13880,7 @@
           "shares": 1.0,
           "avg_price": 18.32915969467163,
           "entry_date": "2026-07-01",
-          "bars_held": 76,
+          "bars_held": 77,
           "cost_basis": 18.512451694671633,
           "high_water": 23.260000228881836,
           "partial_exit_done": false
@@ -14129,6 +14203,10 @@
         [
           "2026-11-18",
           92.51417638162326
+        ],
+        [
+          "2026-11-19",
+          92.51417638162326
         ]
       ],
       "cash_history": [
@@ -14447,6 +14525,10 @@
         [
           "2026-11-18",
           55.10417748788547
+        ],
+        [
+          "2026-11-19",
+          55.10417748788547
         ]
       ],
       "stats": {
@@ -14459,10 +14541,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -44.9,
       "realized_pnl": 5.74,
-      "monthly_pace": 1.55,
+      "monthly_pace": 1.44,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 13
+      "pace_days": 14
     },
     "twitter_track_10k": {
       "portfolio_id": "twitter_track_10k",
@@ -14475,7 +14557,7 @@
           "shares": 504.0,
           "avg_price": 5.192595057249069,
           "entry_date": "2026-06-30",
-          "bars_held": 77,
+          "bars_held": 78,
           "cost_basis": 2619.587908853531,
           "high_water": 5.429999828338623,
           "partial_exit_done": false
@@ -14485,7 +14567,7 @@
           "shares": 24.0,
           "avg_price": 97.35865255737305,
           "entry_date": "2026-06-30",
-          "bars_held": 77,
+          "bars_held": 78,
           "cost_basis": 2337.0782496122474,
           "high_water": 158.17999267578125,
           "partial_exit_done": false
@@ -14495,7 +14577,7 @@
           "shares": 138.0,
           "avg_price": 18.32915969467163,
           "entry_date": "2026-07-01",
-          "bars_held": 76,
+          "bars_held": 77,
           "cost_basis": 2530.182279622927,
           "high_water": 23.260000228881836,
           "partial_exit_done": false
@@ -14505,7 +14587,7 @@
           "shares": 128.0,
           "avg_price": 20.29014068698883,
           "entry_date": "2026-07-02",
-          "bars_held": 75,
+          "bars_held": 76,
           "cost_basis": 2598.1380079345704,
           "high_water": 29.34000015258789,
           "partial_exit_done": false
@@ -14828,6 +14910,10 @@
         [
           "2026-11-18",
           9530.657764858723
+        ],
+        [
+          "2026-11-19",
+          9530.657764858723
         ]
       ],
       "cash_history": [
@@ -15146,6 +15232,10 @@
         [
           "2026-11-18",
           88.47806972932722
+        ],
+        [
+          "2026-11-19",
+          88.47806972932722
         ]
       ],
       "stats": {
@@ -15158,10 +15248,10 @@
       "cash_change_today": 0.0,
       "cash_change_since_inception": -9911.52,
       "realized_pnl": 173.46,
-      "monthly_pace": -19.84,
+      "monthly_pace": -18.42,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 13
+      "pace_days": 14
     },
     "combined_100": {
       "portfolio_id": "combined_100",
@@ -15486,6 +15576,10 @@
         [
           "2026-11-18",
           100.0
+        ],
+        [
+          "2026-11-19",
+          100.0
         ]
       ],
       "cash_history": [
@@ -15804,6 +15898,10 @@
         [
           "2026-11-18",
           100.0
+        ],
+        [
+          "2026-11-19",
+          100.0
         ]
       ],
       "stats": {
@@ -15820,24 +15918,24 @@
       "monthly_pace": 0.0,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 13
+      "pace_days": 14
     },
     "combined_10k": {
       "portfolio_id": "combined_10k",
       "strategy": "combined",
       "account_size": 10000.0,
-      "cash": 6836.63,
+      "cash": 6753.5,
       "positions": {
         "A": {
           "ticker": "A",
           "shares": 1,
-          "avg_price": 177.33,
-          "entry_date": "2026-11-18",
+          "avg_price": 175.34,
+          "entry_date": "2026-11-19",
           "bars_held": 0,
-          "cost_basis": 177.33,
-          "high_water": 177.33,
+          "cost_basis": 175.34,
+          "high_water": 175.34,
           "partial_exit_done": false,
-          "weight": 0.0177,
+          "weight": 0.0175,
           "sources": [
             "pullback"
           ]
@@ -15846,7 +15944,7 @@
           "ticker": "ARDX",
           "shares": 48,
           "avg_price": 3.12,
-          "entry_date": "2026-11-18",
+          "entry_date": "2026-11-19",
           "bars_held": 0,
           "cost_basis": 149.76,
           "high_water": 3.12,
@@ -15856,11 +15954,25 @@
             "twitter_track"
           ]
         },
+        "DIS": {
+          "ticker": "DIS",
+          "shares": 2,
+          "avg_price": 120.25,
+          "entry_date": "2026-11-19",
+          "bars_held": 0,
+          "cost_basis": 240.5,
+          "high_water": 120.25,
+          "partial_exit_done": false,
+          "weight": 0.024,
+          "sources": [
+            "swing"
+          ]
+        },
         "MGNI": {
           "ticker": "MGNI",
           "shares": 12,
           "avg_price": 27.71,
-          "entry_date": "2026-11-18",
+          "entry_date": "2026-11-19",
           "bars_held": 0,
           "cost_basis": 332.52,
           "high_water": 27.71,
@@ -15870,25 +15982,11 @@
             "twitter_track"
           ]
         },
-        "MRNA": {
-          "ticker": "MRNA",
-          "shares": 1,
-          "avg_price": 196.79,
-          "entry_date": "2026-11-18",
-          "bars_held": 0,
-          "cost_basis": 196.79,
-          "high_water": 196.79,
-          "partial_exit_done": false,
-          "weight": 0.0197,
-          "sources": [
-            "pullback"
-          ]
-        },
         "NOW": {
           "ticker": "NOW",
           "shares": 2,
           "avg_price": 90.59,
-          "entry_date": "2026-11-18",
+          "entry_date": "2026-11-19",
           "bars_held": 0,
           "cost_basis": 181.18,
           "high_water": 90.59,
@@ -15902,7 +16000,7 @@
           "ticker": "PGY",
           "shares": 13,
           "avg_price": 15.57,
-          "entry_date": "2026-11-18",
+          "entry_date": "2026-11-19",
           "bars_held": 0,
           "cost_basis": 202.41,
           "high_water": 15.57,
@@ -15915,11 +16013,11 @@
         "RVTY": {
           "ticker": "RVTY",
           "shares": 1,
-          "avg_price": 152.43,
-          "entry_date": "2026-11-18",
+          "avg_price": 151.59,
+          "entry_date": "2026-11-19",
           "bars_held": 0,
-          "cost_basis": 152.43,
-          "high_water": 152.43,
+          "cost_basis": 151.59,
+          "high_water": 151.59,
           "partial_exit_done": false,
           "weight": 0.0152,
           "sources": [
@@ -15930,7 +16028,7 @@
           "ticker": "SE",
           "shares": 1,
           "avg_price": 68.6,
-          "entry_date": "2026-11-18",
+          "entry_date": "2026-11-19",
           "bars_held": 0,
           "cost_basis": 68.6,
           "high_water": 68.6,
@@ -15943,28 +16041,42 @@
         "SPY": {
           "ticker": "SPY",
           "shares": 2,
-          "avg_price": 730.2,
-          "entry_date": "2026-11-18",
+          "avg_price": 715.87,
+          "entry_date": "2026-11-19",
           "bars_held": 0,
-          "cost_basis": 1460.4,
-          "high_water": 730.2,
+          "cost_basis": 1431.74,
+          "high_water": 715.87,
           "partial_exit_done": false,
-          "weight": 0.146,
+          "weight": 0.1432,
           "sources": [
             "benchmark",
             "rsi2"
           ]
         },
-        "XEL": {
-          "ticker": "XEL",
-          "shares": 3,
-          "avg_price": 80.65,
-          "entry_date": "2026-11-18",
+        "TECH": {
+          "ticker": "TECH",
+          "shares": 2,
+          "avg_price": 72.7,
+          "entry_date": "2026-11-19",
           "bars_held": 0,
-          "cost_basis": 241.95,
-          "high_water": 80.65,
+          "cost_basis": 145.4,
+          "high_water": 72.7,
           "partial_exit_done": false,
-          "weight": 0.0242,
+          "weight": 0.0145,
+          "sources": [
+            "pullback"
+          ]
+        },
+        "TGT": {
+          "ticker": "TGT",
+          "shares": 1,
+          "avg_price": 167.46,
+          "entry_date": "2026-11-19",
+          "bars_held": 0,
+          "cost_basis": 167.46,
+          "high_water": 167.46,
+          "partial_exit_done": false,
+          "weight": 0.0167,
           "sources": [
             "swing"
           ]
@@ -16287,6 +16399,10 @@
         [
           "2026-11-18",
           10000.0
+        ],
+        [
+          "2026-11-19",
+          10000.0
         ]
       ],
       "cash_history": [
@@ -16605,6 +16721,10 @@
         [
           "2026-11-18",
           6836.63
+        ],
+        [
+          "2026-11-19",
+          6753.5
         ]
       ],
       "stats": {
@@ -16614,14 +16734,14 @@
         "gross_loss": 0.0
       },
       "fees_paid_total": 0.0,
-      "cash_change_today": -104.78,
-      "cash_change_since_inception": -3163.37,
+      "cash_change_today": -83.13,
+      "cash_change_since_inception": -3246.5,
       "realized_pnl": 0.0,
       "derived": true,
       "monthly_pace": 0.0,
       "monthly_pace_status": "ok",
       "monthly_pace_note": "",
-      "pace_days": 13
+      "pace_days": 14
     }
   },
   "migrations": [
