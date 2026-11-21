@@ -1,5 +1,11 @@
 # private-media-tv — worker qualified, production acceptance pending
 
+## November 21 · Recommended Now and owner device reports
+
+Build 285 (0.7.237) source 70208052ed131ed7cb8bd3f007b881fdf2e0a87e is verified on origin/main. All four CL-020 slices are together. Shield requires a fresh Sports projection and shares the phone’s match order, followed by publisher-live fixed channels; fresh YouTube-live channels are phone only. Shield host checks: 51 passed, zero failures/errors/skips. Release identity 1 and final NOW 8 passed separately, as did the delivery contract, diff check and independent release review. Retain the earlier missing dependency and superseded restored-readiness fixture failure. Android CI 44962245001 is running. One watcher is bound to that exact source and will invoke the canonical installer downloader after success. Check results/cl020t2-order-20261121/delivery-status.txt and delivery.log before claiming delivery. Installation and physical Home acceptance pending.
+
+REQ-CODEX-201: the owner watched the full Real Madrid–Celta game via LiveBall on Shield without an issue; the player backend and build are unknown. REQ-CODEX-202: phone סדרה של צרות appears under a movie with a poster/Details mismatch in חדש בטלגרם. Under the current movie-only contract, check series exclusion, film art and Details identity before changing matching. REQ-CODEX-189 (catalog query re-edit) is queued. The owner deferred the VPS member gate until a later prompt; Tailscale can stay OFF. D2 remains unauthorized.
+
 ## November 21 · REQ-CODEX-200 / COORD-154 · member gate qualified
 
 Project main is cc3212a51a17249b3faa3d93d674c2bc36b237c1. The independent PR/security review closed on source 5c512a17ea21db99930757eee8dcac8397d771de after resolving the protected-port timing finding. Each current member needs its own overlay ping and one TCP connect or genuine ECONNREFUSED on 22 or 443. Both protected ports use separate source-bound sockets inside one pinned namespace child within the existing timeout. A refusal or connection on either protected port fails isolation. The controller rechecks current member identity, health and port-independent firewall coverage. Receipts use aggregate counts and safe labels without private addresses.
