@@ -1,4 +1,12 @@
-# private-media-tv — shared VPS bootstrap committed; data acceptance failed and rollback verified
+# private-media-tv — worker qualified, production acceptance pending
+
+## November 21 · COORD-154 / REQ-CODEX-199 · live admission checkpoint
+
+Project main is 32dfa021d55977d82d488de56c5b41fb64a050ac. The worker and resident controller at b702be1cc71b74d6b83b6d05ad1a7de3045c2191 passed native pmtv-data Go CI 44951431256 and platform CI 44951431278, including race, root deploychecks, Compose security and server-owned controller loss. Independent review verified the worker error classification, privacy, first-cause retention across rollback, legacy status compatibility and the exact runtime code. The locally reproduced expired-record quota dead end is corrected. Attribution of the earlier +277s production exit remains UNPROVEN.
+
+After the owner connected Tailscale, the qualified read-only controller-update check returned ISOLATION_FAILED / sibling.positive_tcp.1.22. The host-to-member ping passed. This check made no changes. The installer and corrected pmtv-data release have not run. The operator client exited and the owner received a selectable OFF-safe notice. Resume at the named member access check after a confirmed fresh connection. Source packet and sanitized refusal are retained in canonical results/platform-worker-b702be1cc71b74d6b83b6d05ad1a7de3045c2191.
+
+The last accepted platform state is the committed five-range firewall, generation one, with pmtv-data held at generation zero and its lease disarmed. The previous transaction rolled back and verified pmtv-sync. Fresh member TCP reachability remains pending. Runtime acceptance requires the natural cycle, facts and publication validation, 192 MiB cap, zero OOM/unexpected restarts, persistence, headroom, sibling Sync and final commit verification. No new runtime PASS or rollback occurred. D1/D1R/D1S remain RETIRED — UNSUCCESSFUL and the original +7 FAILED/UNPROVEN. The calendar/host-wide contract remains SUPERSEDED — owner approved. D2/O-D4 remains unauthorized. Shield Telegram waiting is queued separately under REQ-CODEX-198.
 
 ## November 21 · reusable shared VPS bootstrap committed, pmtv-data adoption failed
 
