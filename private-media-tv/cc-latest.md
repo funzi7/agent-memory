@@ -1,5 +1,12 @@
 # private-media-tv — worker qualified, production acceptance pending
 
+## Build 290 full-reset correction and automatic queue continuation
+
+Build 290 source 451944099036168579affef875d38ad154f8e991 is verified on main. First-source CI 45059551373 failed two phone reset checks and produced no release APK. The shared phone/Shield full-reset list omitted the title subtitle action preferences. The four-file correction passed independent review, 26 focused host tests, core-designsystem lint and git diff --check. Corrected Android CI 45062698311 is running. Both devices were last verified on build 289. One observer handles verified delivery, installations when idle and the next subtitle-window test group. Device playback checks remain pending.
+
+The continuation goal stays active through CI and device deferrals. REQ-CLAUDE-335/337 subtitle window source/tests passed independent review, exact patch 82c3f698765c872b0b7f47b34f5d71a9bd28a3cba68a8d9b91360337f44cee2e, and both app and test source sets compiled during the reset repair. The dedicated window tests have not run. The following CL-154 part 1 draft covers source order, player labels and both movie and series arrival cards. Its corrected patch f47804edb320e1ddb4f22322c103f27def60f5352b7ff6d8ca1cbe00502a9e13 passed read-only review and remains unapplied. Survey findings from Debrid Stream and LightningFast remain in REQ-CODEX-205 under Home/Settings, Real-Debrid and Stremio pack-file selection. One writer, one heavy job. No new owner input at this checkpoint.
+
+
 ## Build 290 source and subtitle window continuation
 
 Build 290 / 0.7.242 source 7822336b10cdee92cfbfb298f830ddbe4ac57720 is pushed. Android CI 45059551373 was in progress at this checkpoint. Software evidence covers 75 playback and 12 phone tests, four Shield wiring cases in the corrected run, plus 22 manifest/reset/paired-sync checks. The separate earlier Shield wiring failure is retained. The four affected local Android lint reports have zero errors or fatals. Both devices last verified at 289. Deliver 290 after exact CI and APK verification; install when each device is idle. Runtime subtitle, paired-device playback and focus checks remain open.
