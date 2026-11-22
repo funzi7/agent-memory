@@ -1,5 +1,13 @@
 # private-media-tv — worker qualified, production acceptance pending
 
+## Build 290 installed on phone and Shield
+
+Build 290 (0.7.242), source 451944099036168579affef875d38ad154f8e991, passed Android CI 45062698311. The signed APK is 282301362 bytes, SHA-256 1f1c6e626b3f72422f8a2c0d389c23699edb22e3876bf0d27a42d1b25777b710. The phone and Shield both updated in place from build 289. Both installed APKs match the CI bytes and both first-install timestamps were preserved. PMTV was idle and neither app was launched. App-facing CI inventory: 6775 total, 6764 passed, 11 skipped, 0 failed. Compared with 289: 15 test identities added, 1 removed, 0 changed status.
+
+READY_FOR_CLAUDE: Build 290 remembers when subtitles were turned Off for a title and syncs that choice. Source cards show explicit burned-in subtitle evidence. Catalogue playback can fall back from Hebrew to a full English track or a matching English OpenSubtitles file. Manual choices remain in control. A normal phone and Shield viewing check, including title Off and paired sync, remains open.
+
+Continue REQ-CLAUDE-335/337: the two-tab phone and two-pane Shield subtitle window. Debrid Stream and LightningFast findings are already grouped with Home and Settings, Real-Debrid, and Stremio source work; preserve their queue position.
+
 ## Build 290 full-reset correction and automatic queue continuation
 
 Build 290 source 451944099036168579affef875d38ad154f8e991 is verified on main. First-source CI 45059551373 failed two phone reset checks and produced no release APK. The shared phone/Shield full-reset list omitted the title subtitle action preferences. The four-file correction passed independent review, 26 focused host tests, core-designsystem lint and git diff --check. Corrected Android CI 45062698311 is running. Both devices were last verified on build 289. One observer handles verified delivery, installations when idle and the next subtitle-window test group. Device playback checks remain pending.
