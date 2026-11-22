@@ -1,5 +1,11 @@
 # private-media-tv — worker qualified, production acceptance pending
 
+## Subtitle lookup, timing and source ownership · 22 November
+
+The final filename/release labels, title handoff and lazy English source callback passed all 97 focused tests. The independent review verified the source token before and after provider lookup, that the original file decides release fit, and that an English lookup is skipped for a marked burned-in file or a missing filename. This run overlaps the earlier 115- and 155-test runs.
+
+The local Media3 language selection now uses a full human Hebrew track first and an eligible found Hebrew file next. English fallback uses a full embedded English track before asking the configured OpenSubtitles provider for an exact release. An automatic English track can yield to late Hebrew at a cue gap or after eight seconds. On the initial integration, all 70 playback tests and 14 provider tests passed. Current follow-up covers a seek flush, changing native track inventory and runner-attempt ownership. Physical viewing and shipment remain pending. Keep REQ-CLAUDE-369/371 active through release qualification.
+
 ## Standing queue reminder and build 289 phone delivery
 
 When CI is running or a device is in use, advance the oldest independent owner-approved work from the canonical TASKS ledger. Keep related work in the same release group. One tracked writer, one heavy job and at most one read-only reviewer. Use the active PMTV thread continuation goal. Fold concrete survey findings into the existing Home, Settings, source-card and account playback work. The implementation checklist and qualified local patches are under REQ-CODEX-203/205.
