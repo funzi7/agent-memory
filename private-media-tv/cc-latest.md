@@ -1,5 +1,11 @@
 # private-media-tv — worker qualified, production acceptance pending
 
+## Build 292 source review and Shield startup qualification
+
+The next source-label release has an independently reviewed 29-file candidate, SHA-256 809a1b5db03ee418e20f0f3d17e16ec4f0d99e3aea5aec25b77fa804c8ffcec7. Movie and series cards are covered in the Telegram row. The scope excludes the survey and startup changes. The 23 source/test paths are applied in the integration checkout and the ten-suite runner is queued after verified build 291 delivery. Build 292 identity, packaging, CI, delivery and device checks are still pending.
+
+Two independently reviewed corrections for the next Shield startup group preserve the last accepted snapshot after a failed replacement and share each YouTube row measurement between layout reservation and display. The combined 67-path candidate in results/req361-startup-route-and-sync-20261122/startup-snapshot-and-youtube-candidate.patch passes git apply --check --whitespace=error. Its global-queue runner checks 586 expected methods across 36 suites. Those tests have not run. During normal Shield use, the current timing and frame effects still require evidence. Build 291 CI 45083096675 is running on cffc1fbb80948351fa67e34c3522b6cb6bcbc27c. Build 290 is the last verified installation on both devices.
+
 ## Termux storage and build 291 qualification · 2026-11-22
 
 REQ-CLAUDE-324 recurred. Deleting generated Gradle files from the clean merged build 279 and 280 worktrees freed 5,502,353,408 bytes across the two passes. After cleanup the filesystem had 19,663,552,512 bytes available. All 98 reviewed output directories are gone. Both registered worktrees and their tracked sources were verified. The current build inputs, current installer, test evidence, shared dependencies, user Downloads and app data were preserved. Check developer storage at release checkpoints. The measured receipts are in results/req324-termux-build-storage-20261122/.
