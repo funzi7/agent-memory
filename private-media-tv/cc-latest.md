@@ -1,5 +1,13 @@
 # private-media-tv — worker qualified, production acceptance pending
 
+## Standing queue reminder and build 289 phone delivery
+
+When CI is running or a device is in use, advance the oldest independent owner-approved work from the canonical TASKS ledger. Keep related work in the same release group. One tracked writer, one heavy job and at most one read-only reviewer. Use the active PMTV thread continuation goal. Fold concrete survey findings into the existing Home, Settings, source-card and account playback work. The implementation checklist and qualified local patches are under REQ-CODEX-203/205.
+
+Build 289 (0.7.241) at c5511053e9bc3126d83e668180fa36ba3a8c70b5 passed Android CI 45042702064. The 6,750 passes and 11 skips produced a verified signed installer. The code and SHA were verified on the phone after an in-place update with PMTV idle. The Shield was in use on 288. Its update is pending until idle. The relevant application logs, queue and device evidence are in /root/work/_agent-coordination/private-media-tv/results/req356-torrent-subtitle-facts-20261122. No app was opened.
+
+REQ-CLAUDE-369/371 is the next subtitle group. The separate English OpenSubtitles result path passed 27 targeted tests, and the burned-in subtitle change is undergoing shared and device-shell software checks. The source-card structured-size change from the LightningFast survey passed the 10-test JVM suite. These are local results. Physical playback and new feature delivery remain open.
+
 ## Build 288 installed on phone and Shield
 
 Build 288 (0.7.240), source d5d79c3d90b599cd3d4e4fe8de6cdeeeb7111b2a, passed Android CI 45034110054. The signed APK is 282252210 bytes, SHA-256 9871e2d4850690ef92e625262ef94849c17f4aa87bf17c1fd6a5ca1412f62dea. The phone and Shield both updated in place from build 287. Both installed APKs match the CI bytes and both first-install timestamps were preserved. PMTV was idle and neither app was launched. App-facing CI inventory: 6748 total, 6737 passed, 11 skipped, 0 failed. Compared with 287: 6 test identities added, 1 removed, 0 changed status.
