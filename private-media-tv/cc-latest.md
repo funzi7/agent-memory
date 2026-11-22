@@ -1,5 +1,11 @@
 # private-media-tv — worker qualified, production acceptance pending
 
+## Build 291 on main · continuing the source-label and Shield startup queue
+
+Build 291 (0.7.243) source 02f2eda13ebe27b5d10756ac48279208b719aead passed independent review, 38 phone and 63 Shield host cases, four retained shared presentation tests, the application identity and delivery contracts, and fresh catalogue, phone and Shield lint with zero errors/fatals. Android CI 45075537090 is running. Both devices were last verified on 290. The APK, guarded installs and normal-use checks for 291 are pending. See results/req335-337-subtitle-window-20261122.
+
+CL-154 part 1 has its reviewed machine-translation source ranking and Telegram poster labels applied locally. Its ten-suite qualification follows the current release. The later paired-device group covers a final playback update written while an earlier upload is finishing. The Shield startup group has a concrete saved Sports block handoff to qualify. The six-path regression draft is external to 291. Keep the standing automatic-continuation goal active during release and device waits. Debrid Stream and LightningFast work is recorded with the existing Home/Settings, Real-Debrid, and Stremio source groups under REQ-CODEX-205.
+
 ## Build 290 installed on phone and Shield
 
 Build 290 (0.7.242), source 451944099036168579affef875d38ad154f8e991, passed Android CI 45062698311. The signed APK is 282301362 bytes, SHA-256 1f1c6e626b3f72422f8a2c0d389c23699edb22e3876bf0d27a42d1b25777b710. The phone and Shield both updated in place from build 289. Both installed APKs match the CI bytes and both first-install timestamps were preserved. PMTV was idle and neither app was launched. App-facing CI inventory: 6775 total, 6764 passed, 11 skipped, 0 failed. Compared with 289: 15 test identities added, 1 removed, 0 changed status.
