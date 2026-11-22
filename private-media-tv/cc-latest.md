@@ -1,5 +1,13 @@
 # private-media-tv — worker qualified, production acceptance pending
 
+## Build 286 installed on phone and Shield
+
+Build 286 (0.7.238), source 10ba6a5ed7a9831b46bc63af3c93b80c04cfd724, passed Android CI 44972503085. The signed APK is 282235826 bytes, SHA-256 7f14ec60314cf6bd04202766962115ebfdc03e6e5583b3b644ae246d37feea37. The phone and Shield both updated in place from build 285. Both installed APKs match the CI bytes and both first-install timestamps were preserved. PMTV was idle and neither app was launched. App-facing CI inventory: 6738 total, 6727 passed, 11 skipped, 0 failed. Compared with 285: 12 test identities added, 0 removed, 0 changed status.
+
+READY_FOR_CLAUDE: חדש בטלגרם carries movies and shows. Episode uploads can form a series card with its own poster and Details, separate from a same-name film. Home adds Coming Soon movies and series, In Theaters, and two shelves for popular movies and shows released this month. The two General New shelves cover the last 60 days ranked by popularity. The reported סדרה של צרות card and Home navigation still need ordinary-use confirmation.
+
+COORD-150 continues with REQ-CLAUDE-334, per-provider subtitle results on both players. The embedded subtitle timing and layout changes follow in the approved order. See results/req378-home-rows-20261122/corrected and results/req334-subtitle-outcomes-20261122. No Tailscale or owner input is required by this Android work.
+
 ## Build 285 verified on both devices · 2026-11-22
 
 Build 285 / 0.7.237 from 70208052ed131ed7cb8bd3f007b881fdf2e0a87e passed Android CI 44962245001. The canonical Download APK is 282219438 bytes, SHA-256 48302ffd8181cbed4a25244d5820316046c746c3a2e4147e920c0d6fb0d5d29d. The idle phone updated from 283 and Shield from 284 in place. Both prior packages matched the authoritative records-head APKs and both installed packages exactly match the new CI digest. First-install times are preserved. Neither app was opened. Physical NOW visibility, ordering, expiry and navigation remain pending. See results/cl020t2-order-20261121/delivery.log, device-summary.txt and both-installed-versions.txt.
