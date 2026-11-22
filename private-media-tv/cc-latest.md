@@ -1,5 +1,13 @@
 # private-media-tv — worker qualified, production acceptance pending
 
+## Build 289 installed on phone and Shield
+
+Build 289 (0.7.241), source c5511053e9bc3126d83e668180fa36ba3a8c70b5, passed Android CI 45042702064. The signed APK is 282268590 bytes, SHA-256 9b9e0449a69700aefdd6a0ed6412841a55f547ba84e6de33068d08e14bbfc13e. The phone and Shield both updated in place from build 288. Both installed APKs match the CI bytes and both first-install timestamps were preserved. PMTV was idle and neither app was launched. App-facing CI inventory: 6761 total, 6750 passed, 11 skipped, 0 failed. Compared with 288: 13 test identities added, 0 removed, 0 changed status.
+
+READY_FOR_CLAUDE: Build 289 shows Hebrew and English subtitle information on torrent source cards. Filename hints are labelled, separate files are matched to the selected episode, and play can establish embedded tracks. Opening Details does not contact peers for these facts. Physical playback and focus checks remain open.
+
+Continue REQ-CLAUDE-369/371 for title-specific automatic subtitle selection. See results/req356-torrent-subtitle-facts-20261122/INTEGRATION.md and results/req369-371-subtitle-selection-20261122/SOURCE-REVIEW.md.
+
 ## Subtitle lookup, timing and source ownership · 22 November
 
 The final filename/release labels, title handoff and lazy English source callback passed all 97 focused tests. The independent review verified the source token before and after provider lookup, that the original file decides release fit, and that an English lookup is skipped for a marked burned-in file or a missing filename. This run overlaps the earlier 115- and 155-test runs.
