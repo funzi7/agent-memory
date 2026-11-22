@@ -1,5 +1,11 @@
 # private-media-tv — worker qualified, production acceptance pending
 
+## Termux storage and build 291 qualification · 2026-11-22
+
+REQ-CLAUDE-324 recurred. Deleting generated Gradle files from the clean merged build 279 and 280 worktrees freed 5,502,353,408 bytes across the two passes. After cleanup the filesystem had 19,663,552,512 bytes available. All 98 reviewed output directories are gone. Both registered worktrees and their tracked sources were verified. The current build inputs, current installer, test evidence, shared dependencies, user Downloads and app data were preserved. Check developer storage at release checkpoints. The measured receipts are in results/req324-termux-build-storage-20261122/.
+
+Corrected 291 source cffc1fbb80948351fa67e34c3522b6cb6bcbc27c is pushed. Seven targeted Shield tests passed and fresh Shield lint finished with zero errors and 13 warnings. Exact Android CI 45083096675 was dispatched. Earlier CI 45075537090 failed one Shield layer-budget test. Phone and Shield were last verified on build 290. Continue CI, delivery and guarded installs, then CL-154 and the Shield Home startup group. Physical acceptance remains open.
+
 ## Build 291 on main · continuing the source-label and Shield startup queue
 
 Build 291 (0.7.243) source 02f2eda13ebe27b5d10756ac48279208b719aead passed independent review, 38 phone and 63 Shield host cases, four retained shared presentation tests, the application identity and delivery contracts, and fresh catalogue, phone and Shield lint with zero errors/fatals. Android CI 45075537090 is running. Both devices were last verified on 290. The APK, guarded installs and normal-use checks for 291 are pending. See results/req335-337-subtitle-window-20261122.
