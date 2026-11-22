@@ -1,5 +1,18 @@
 # private-media-tv — worker qualified, production acceptance pending
 
+## Build 285 verified on both devices · 2026-11-22
+
+Build 285 / 0.7.237 from 70208052ed131ed7cb8bd3f007b881fdf2e0a87e passed Android CI 44962245001. The canonical Download APK is 282219438 bytes, SHA-256 48302ffd8181cbed4a25244d5820316046c746c3a2e4147e920c0d6fb0d5d29d. The idle phone updated from 283 and Shield from 284 in place. Both prior packages matched the authoritative records-head APKs and both installed packages exactly match the new CI digest. First-install times are preserved. Neither app was opened. Physical NOW visibility, ordering, expiry and navigation remain pending. See results/cl020t2-order-20261121/delivery.log, device-summary.txt and both-installed-versions.txt.
+
+READY_FOR_CLAUDE: for the owner, מומלץ עכשיו appears under Home with up to eight fresh cards. Live and recently started games precede live TV listings. Shield waits for fresh Sports data. Phone may include confirmed YouTube-live channels. A match can also remain in its competition and personalized rows.
+
+Next grouped work is REQ-CODEX-202 (movies and series in חדש בטלגרם, independent review and 29 host cases; affected lints pass with five core and two feature warnings) and REQ-CLAUDE-378/REQ-CODEX-068 (Home discovery rows and a stable month identity). Neither shipped in build 285. Tailscale can remain off. pmtv-data live admission and D2 authorization remain separate.
+
+## November 22 · Telegram movie and series identity
+
+REQ-CODEX-202 supersedes the prior movies-only interpretation. Both apps share typed film/series cards from selected Telegram chats. The three affected host test classes passed 29/29 and independent review closed the cache and identity findings. The phone report for סדרה של צרות and Shield behavior remain pending on-device. Build 285 is the separate Recommended Now release. Read the canonical CURRENT and TASKS for delivery state.
+
+
 ## November 21 · Recommended Now and owner device reports
 
 Build 285 (0.7.237) source 70208052ed131ed7cb8bd3f007b881fdf2e0a87e is verified on origin/main. All four CL-020 slices are together. Shield requires a fresh Sports projection and shares the phone’s match order, followed by publisher-live fixed channels; fresh YouTube-live channels are phone only. Shield host checks: 51 passed, zero failures/errors/skips. Release identity 1 and final NOW 8 passed separately, as did the delivery contract, diff check and independent release review. Retain the earlier missing dependency and superseded restored-readiness fixture failure. Android CI 44962245001 is running. One watcher is bound to that exact source and will invoke the canonical installer downloader after success. Check results/cl020t2-order-20261121/delivery-status.txt and delivery.log before claiming delivery. Installation and physical Home acceptance pending.
