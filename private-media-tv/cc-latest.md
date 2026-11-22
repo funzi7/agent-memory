@@ -1,5 +1,11 @@
 # private-media-tv — worker qualified, production acceptance pending
 
+## Build 290 source and subtitle window continuation
+
+Build 290 / 0.7.242 source 7822336b10cdee92cfbfb298f830ddbe4ac57720 is pushed. Android CI 45059551373 was in progress at this checkpoint. Software evidence covers 75 playback and 12 phone tests, four Shield wiring cases in the corrected run, plus 22 manifest/reset/paired-sync checks. The separate earlier Shield wiring failure is retained. The four affected local Android lint reports have zero errors or fatals. Both devices last verified at 289. Deliver 290 after exact CI and APK verification; install when each device is idle. Runtime subtitle, paired-device playback and focus checks remain open.
+
+The next queue group is REQ-CLAUDE-335/337 (two subtitle tabs on phone, choose/adjust panes on Shield). Its independently reviewed draft was applied on top of that exact source. Compile, host and physical checks are pending. See results/req335-337-subtitle-window-20261122/WORK.md and review.md. The active continuation goal advances eligible approved work at CI waits or device deferrals, with one writer and one heavy job. Debrid Stream and LightningFast findings stay under REQ-CODEX-205 and their existing Home/Settings/debrid/Stremio groups.
+
 ## Build 289 installed on phone and Shield
 
 Build 289 (0.7.241), source c5511053e9bc3126d83e668180fa36ba3a8c70b5, passed Android CI 45042702064. The signed APK is 282268590 bytes, SHA-256 9b9e0449a69700aefdd6a0ed6412841a55f547ba84e6de33068d08e14bbfc13e. The phone and Shield both updated in place from build 288. Both installed APKs match the CI bytes and both first-install timestamps were preserved. PMTV was idle and neither app was launched. App-facing CI inventory: 6761 total, 6750 passed, 11 skipped, 0 failed. Compared with 288: 13 test identities added, 0 removed, 0 changed status.
