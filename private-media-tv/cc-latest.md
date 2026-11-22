@@ -1,5 +1,13 @@
 # private-media-tv — worker qualified, production acceptance pending
 
+## Build 288 installed on phone and Shield
+
+Build 288 (0.7.240), source d5d79c3d90b599cd3d4e4fe8de6cdeeeb7111b2a, passed Android CI 45034110054. The signed APK is 282252210 bytes, SHA-256 9871e2d4850690ef92e625262ef94849c17f4aa87bf17c1fd6a5ca1412f62dea. The phone and Shield both updated in place from build 287. Both installed APKs match the CI bytes and both first-install timestamps were preserved. PMTV was idle and neither app was launched. App-facing CI inventory: 6748 total, 6737 passed, 11 skipped, 0 failed. Compared with 287: 6 test identities added, 1 removed, 0 changed status.
+
+READY_FOR_CLAUDE: Build 288 adds earlier, later and reset for the selected embedded subtitle on identifiable catalogue files. The step is a quarter second on both phone and Shield. Reopening the same copy restores the track offset on that device. Normal playback still needs physical confirmation.
+
+The next subtitle group is REQ-CLAUDE-356, language information for torrent source rows. Keep the dedicated fixture and physical acceptance boundaries in results/req372-embedded-timing-20261122/QUALIFICATION.md. See results/req356-torrent-subtitle-facts-20261122 for the next local work.
+
 ## Build 287 installed on phone and Shield
 
 Build 287 (0.7.239), source 6c66a7f3e3ce9481dd581918ec354bd9a262e0b1, passed Android CI 44977460445. The signed APK is 282235826 bytes, SHA-256 9a0261d22b4e95a2aca8fb6d94e62bd142846e2802f0f24fd532e63bbf174046. The phone and Shield both updated in place from build 286. Both installed APKs match the CI bytes and both first-install timestamps were preserved. PMTV was idle and neither app was launched. App-facing CI inventory: 6743 total, 6732 passed, 11 skipped, 0 failed. Compared with 286: 6 test identities added, 1 removed, 0 changed status.
