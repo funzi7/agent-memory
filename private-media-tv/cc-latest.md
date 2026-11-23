@@ -1,5 +1,13 @@
 # private-media-tv — worker qualified, production acceptance pending
 
+## Android build storage and saved-video Library work
+
+The November 23 Termux cleanup removed four disposable Gradle indexes from retired builds 279 and 280. Cumulative cleanup across the recorded passes is 6,279,479,296 bytes. The filesystem reported 20,414,283,776 bytes free immediately afterward. Both retired worktrees were still clean. Continue the developer-storage check at each release checkpoint under REQ-CLAUDE-324.
+
+Build 291 is pushed at fe2b263681e7d0cc4a88c68db515057e15d08cc5. Android CI 45086788206 passed the core, catalogue, shared UI and phone tests. Shield tests and release delivery are still pending. One existing observer owns delivery. Both devices were last verified on 290. The 292 source-label qualification follows 291 delivery; Shield startup remains the next performance group.
+
+The CL-243 / REQ-CODEX-131 Library work has a 14-file candidate with 106 named checks in 11 suites prepared. Review exposed lost Continue Watching evidence after a saved video's first play. The correction preserves title, exact artwork and source recovery after removing the Library entry or losing its feed. The candidate applies cleanly. Final review and actual host/device execution are pending. See the canonical TASKS ledger and results/cl243-library-navigation-20261123/library-saved-video-continuation.patch.
+
 ## Build 291 Shield playback test and current release
 
 Android CI 45083096675 at cffc1fbb80948351fa67e34c3522b6cb6bcbc27c passed the core, catalogue, shared UI and phone suites. One of 1,427 Shield tests timed out before the catalogue journal reported completion. The logs do not establish which listeners were present during that run. The test could send artificial playback samples after the controller was allocated but before its catalogue observer attached. Its correction waits for the runner and catalogue listeners and verifies the intermediate progress write before sending completion. The original completion, Back and restored-focus checks remain. Two fresh focused integration cases passed and independent review cleared the exact two-file change. Both earlier CI failures are retained.
