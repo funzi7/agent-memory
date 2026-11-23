@@ -1,5 +1,11 @@
 # private-media-tv — worker qualified, production acceptance pending
 
+## Build 291 Shield playback test and current release
+
+Android CI 45083096675 at cffc1fbb80948351fa67e34c3522b6cb6bcbc27c passed the core, catalogue, shared UI and phone suites. One of 1,427 Shield tests timed out before the catalogue journal reported completion. The logs do not establish which listeners were present during that run. The test could send artificial playback samples after the controller was allocated but before its catalogue observer attached. Its correction waits for the runner and catalogue listeners and verifies the intermediate progress write before sending completion. The original completion, Back and restored-focus checks remain. Two fresh focused integration cases passed and independent review cleared the exact two-file change. Both earlier CI failures are retained.
+
+The correction is pushed at fe2b263681e7d0cc4a88c68db515057e15d08cc5. Android CI 45086788206 and its single delivery observer are active. Both devices were last verified on 290. The unchanged 29 build-292 candidate file preimages are verified on the new parent. After 291 delivery and the device guards, continue its ten-suite source-label qualification. Physical subtitle-window and performance checks are open.
+
 ## Build 292 source review and Shield startup qualification
 
 The next source-label release has an independently reviewed 29-file candidate, SHA-256 809a1b5db03ee418e20f0f3d17e16ec4f0d99e3aea5aec25b77fa804c8ffcec7. Movie and series cards are covered in the Telegram row. The scope excludes the survey and startup changes. The 23 source/test paths are applied in the integration checkout and the ten-suite runner is queued after verified build 291 delivery. Build 292 identity, packaging, CI, delivery and device checks are still pending.
