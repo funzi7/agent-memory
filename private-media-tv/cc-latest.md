@@ -1,5 +1,11 @@
 # private-media-tv — worker qualified, production acceptance pending
 
+## Build 297 installed on phone and Shield
+
+Build 297 (0.7.249) passed Android CI 45273828409 at 74cc5f4284a42b2c40de78c22d0b44dc212809ef. The signed APK is 282483914 bytes, SHA-256 6d77c01b1f80661ad180884fb0cc0bb2e7a2200b35b0a2d18264f4f590e95039. The guarded update preserved first-install time on both devices, and separate installed-package reads matched the delivered APK. The CI inventory reports 6965 passed and 11 skipped across 796 XML reports, with zero failed.
+
+Shield Home opens with its menu above the picture. Initial focus enters the first playable card once it is available. A Down from the בית submenu can complete when a late row arrives. A later remote action and an explicit Back to Search keep their own focus. Normal-use Shield cold entry, Down navigation and Back remain pending. This is a TV change in the shared APK.
+
 ## Build 296 installed on phone and Shield
 
 Build 296 (0.7.248) passed Android CI 45250976240 at 3d2f0ba74ada42375db9606e898435a72c8a1cef. The signed APK is 282483914 bytes, SHA-256 5df8c092e417a81e151e9a972239ac7213a646eb31b7d67bdfb42286b967bcaa. The guarded update preserved first-install time on both devices, and separate installed-package reads matched the delivered APK. The CI inventory reports 6957 passed and 11 skipped across 796 XML reports, with zero failed.
