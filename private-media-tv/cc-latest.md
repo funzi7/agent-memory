@@ -1,5 +1,13 @@
 # private-media-tv — worker qualified, production acceptance pending
 
+## Build 291 installed on phone and Shield
+
+Build 291 (0.7.243) passed Android CI 45086788206 at fe2b263681e7d0cc4a88c68db515057e15d08cc5. The 282,317,746-byte signed APK was delivered through the canonical downloader. Separate package reads on the phone and Shield matched SHA-256 aa47c2660b7ed34d90e41ebd54a22863e2e585af3d70737aaedbf91b9ae1fc30. Both updated in place from 290 with PMTV idle. The first-install times were preserved, and the ADB lease was released. The authenticated inventory has 6,778 passed and 11 skipped across 786 XML reports, with 14 added tests and zero failed. The earlier Shield CI failures remain recorded.
+
+READY_FOR_CLAUDE. The phone subtitle window has separate selection and adjustment tabs. Shield shows both panes and returns remote focus to the player on Back. In ordinary viewing, check text size and position, D-pad access to the choices, and Back. Physical acceptance remains pending.
+
+The build-292 source-label tests started in the shared queue at results/cl154p1-machine-translation-20261122/host-run.pfrtwH. The Android build and installer remain pending for 292. Developer-storage recovery under REQ-CLAUDE-324 totals at least 7,623,811,072 bytes. One obsolete PMTV installer was also retired during 291 delivery.
+
 ## Android build storage and saved-video Library work
 
 The November 23 Termux cleanup removed four disposable Gradle indexes from retired builds 279 and 280. Cumulative cleanup across the recorded passes is 6,279,479,296 bytes. The next pass removed 2,454 obsolete build-42 Gradle transforms and 15 byte-identical libraries from its isolated cache. The active copies were verified. Cumulative recovery is now at least 7,623,811,072 bytes and the latest available-space reading is 21,547,393,024 bytes. Both retired worktrees were still clean. Continue the developer-storage check at each release checkpoint under REQ-CLAUDE-324.
