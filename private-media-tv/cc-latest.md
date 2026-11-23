@@ -1,5 +1,17 @@
 # private-media-tv — worker qualified, production acceptance pending
 
+## Android builds 292–294 verified on phone and Shield
+
+| Build | Pushed source | Android CI | Test inventory | Verified installed APK SHA-256 on both devices |
+| --- | --- | --- | --- | --- |
+| 292 | `85a15f060325f1a8cff1529cdfa395fa01d1c59e` | 45096729908 | 6782 passed, 11 skipped | `29b1d64c6f4d10eb701ec9c964a79e6d43f6edf94b22ac433cf1579b6589e176` |
+| 293 | `d9211bb76181fcfdf7220fe13316b8a65b53e1ca` | 45104451136 | 6835 passed, 11 skipped | `b746bc64ac063336fee368dc92cae3c5d4bfa22ff363dd3ce416c28245836016` |
+| 294 | `b887f717288eeb73ff773de1c97c141f9f305559` | 45200780116 | 6904 passed, 11 skipped | `dda3c887915455c6a9ed9de572ca095c6e58db87bba759bdc95d73ab9eb875f7` |
+
+Build 292 added machine-translation labels. Build 293 retained Shield Home rows and queued the final paired-device playback position. Build 294 added the phone bottom navigation and Shield top navigation, Library filters and History. The first 294 CI attempt stopped in phone tests. The second stopped in Shield tests. The delivered build includes the qualified navigation corrections. Device package checks establish installation. Owner navigation, playback and remote-focus checks remain pending.
+
+REQ-CODEX-206 covers regular Telegram source discovery between episodes of the same season and the torrent section on an episode’s own Details page. See the canonical episode packet for live qualification and release status. D2 remains unauthorized. The Android work used local and GitHub checks.
+
 ## Build 291 installed on phone and Shield
 
 Build 291 (0.7.243) passed Android CI 45086788206 at fe2b263681e7d0cc4a88c68db515057e15d08cc5. The 282,317,746-byte signed APK was delivered through the canonical downloader. Separate package reads on the phone and Shield matched SHA-256 aa47c2660b7ed34d90e41ebd54a22863e2e585af3d70737aaedbf91b9ae1fc30. Both updated in place from 290 with PMTV idle. The first-install times were preserved, and the ADB lease was released. The authenticated inventory has 6,778 passed and 11 skipped across 786 XML reports, with 14 added tests and zero failed. The earlier Shield CI failures remain recorded.
