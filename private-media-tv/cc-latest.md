@@ -1,5 +1,13 @@
 # private-media-tv — worker qualified, production acceptance pending
 
+## Build 295 installed on phone and Shield
+
+Build 295 / 0.7.247, source cd9ffb5faa6ac680665cda6fcd555f83398ff511, passed Android CI 45216932033. Its app-facing inventory had 6,921 passed, 11 skipped and no failures. Both idle-guarded updates preserved the original installation. Separate installed-package reads on phone and Shield matched the signed delivery with SHA-256 0d96fa84b7de54e57008717d24777f9eb06a772729c4444c5aa5ab83ce5567ea.
+
+An ordinary Telegram search now checks a selected chat that found another episode from the same season. Episode Details carries the exact episode into torrent search and distinguishes an unavailable provider from a completed empty search. The owner’s original episode pair and device playback remain pending normal use.
+
+Next Android work covers Upcoming and monthly row eligibility, visible release dates, and saved series premieres in Continue Watching. The 14-to-15 migration preserved synthetic progress and the source review is complete. Android host qualification and both device checks are pending. Real-Debrid account selection is a later group. D2 remains unauthorized.
+
 ## Android builds 292–294 verified on phone and Shield
 
 | Build | Pushed source | Android CI | Test inventory | Verified installed APK SHA-256 on both devices |
