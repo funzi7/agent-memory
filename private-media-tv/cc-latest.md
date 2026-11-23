@@ -1,5 +1,11 @@
 # private-media-tv — worker qualified, production acceptance pending
 
+## Build 296 installed on phone and Shield
+
+Build 296 (0.7.248) passed Android CI 45250976240 at 3d2f0ba74ada42375db9606e898435a72c8a1cef. The signed APK is 282483914 bytes, SHA-256 5df8c092e417a81e151e9a972239ac7213a646eb31b7d67bdfb42286b967bcaa. The guarded update preserved first-install time on both devices, and separate installed-package reads matched the delivered APK. The CI inventory reports 6957 passed and 11 skipped across 796 XML reports, with zero failed.
+
+On phone and Shield, upcoming cards show the full premiere date. A movie showing in the current In Theaters shelf leaves Upcoming. The monthly rows show releases for their month. Saving an upcoming series in My List or Want to Watch adds a waiting first-episode card to Continue Watching; it becomes playable when PMTV has first-episode and release evidence. Existing playback progress wins. Removing the premiere keeps the saved title. Normal-use checks are still open for Dig on both devices, date labels, month rollover, and cross-device dismissal.
+
 ## Build 295 installed on phone and Shield
 
 Build 295 / 0.7.247, source cd9ffb5faa6ac680665cda6fcd555f83398ff511, passed Android CI 45216932033. Its app-facing inventory had 6,921 passed, 11 skipped and no failures. Both idle-guarded updates preserved the original installation. Separate installed-package reads on phone and Shield matched the signed delivery with SHA-256 0d96fa84b7de54e57008717d24777f9eb06a772729c4444c5aa5ab83ce5567ea.
