@@ -1,5 +1,9 @@
 # private-media-tv — worker qualified, production acceptance pending
 
+## Shield 299 installed; Shield Home build 300 in CI
+
+The Shield installed the signed build 299 / 0.7.251, and a separate package read matched 09c8aec9b2d972437a40b4da19cb328518a7fb3d678991dffcc3d47e4b0c4480. Its first install time was preserved. The phone was last verified at 298, with 299 in Downloads and no phone transport during this installation. Build 299 adds separate episode-file choices in torrent sources. The Shield startup, Continue Watching and Sports card changes are in build 300 at 3bba9429bafe3ae2632d777f8acc5c28bdfed472, Android CI 45312040284. Build 300 publication and installation remain pending. Physical performance/visibility is unmeasured. READY_FOR_CLAUDE.
+
 ## Build 298 installed on phone and Shield
 
 Build 298 (0.7.250) passed Android CI 45293484130 at 0f601116733be91c8c7442d7dcd6d000b79749c6. The signed APK is 282680518 bytes, SHA-256 a52ee240a60ec3963372bf346b0f6b1b96519c8c67fc83c7cbdc5c1a72ed1485. The guarded update preserved first-install time on both devices, and separate installed-package reads matched the delivered APK. The CI inventory reports 6987 passed and 11 skipped across 797 XML reports, with zero failed.
