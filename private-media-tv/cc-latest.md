@@ -1,5 +1,11 @@
 # private-media-tv — worker qualified, production acceptance pending
 
+## Build 301 installed on phone and Shield
+
+Build 301 (0.7.253) passed Android CI 45323879157 at 9164f77ed7854d97cf00a41ae0dfc3cc0361bd1c. The authenticated inventory passed all 18 new Home cases. Separate installed-package reads matched the delivered SHA-256 21323a86c0c08313485c3a102be15d6622dee110bd8c192ad805d9e2d9710ec7 on phone and Shield. Both updates preserved first-install time.
+
+Shield Home shows the installed version beside Search and artwork for the focused Sports match. A Down press while the first content row is loading can move to the next playable row when it arrives. Reopening Home in the same process reuses a saved-row read. Usual Shield use is still needed to confirm artwork, remote navigation and startup latency.
+
 ## Build 300 installed on phone and Shield
 
 Build 300 (0.7.252) passed Android CI 45315540753 at 05157cb75f8b214626de0d50af25388eb5b4dbae. The authenticated inventory passed all 13 new Home cases. Separate installed-package reads matched the delivered SHA-256 6250b327943676b65774dfb01f103fac3eff768c857d6ca2b190764316f40cf4 on phone and Shield. Both updates preserved first-install time.
