@@ -1,5 +1,11 @@
 # private-media-tv — worker qualified, production acceptance pending
 
+## Build 298 installed on phone and Shield
+
+Build 298 (0.7.250) passed Android CI 45293484130 at 0f601116733be91c8c7442d7dcd6d000b79749c6. The signed APK is 282680518 bytes, SHA-256 a52ee240a60ec3963372bf346b0f6b1b96519c8c67fc83c7cbdc5c1a72ed1485. The guarded update preserved first-install time on both devices, and separate installed-package reads matched the delivered APK. The CI inventory reports 6987 passed and 11 skipped across 797 XML reports, with zero failed.
+
+A phone owner can connect a Real-Debrid account in Settings and transfer the credential to Shield through the existing encrypted phone-to-TV receiver. Details can search the connected account’s download history, play a matching file in PMTV or save the choice for that title. The picker distinguishes an incomplete search from an empty result. Signing out or resetting closes access on the current page. Linux CI verified all seven saved-attachment database cases. Account sign-in, encrypted transfer, native playback, seek and resume on real devices remain pending. The add-on torrent workflow is queued separately.
+
 ## Build 297 installed on phone and Shield
 
 Build 297 (0.7.249) passed Android CI 45273828409 at 74cc5f4284a42b2c40de78c22d0b44dc212809ef. The signed APK is 282483914 bytes, SHA-256 6d77c01b1f80661ad180884fb0cc0bb2e7a2200b35b0a2d18264f4f590e95039. The guarded update preserved first-install time on both devices, and separate installed-package reads matched the delivered APK. The CI inventory reports 6965 passed and 11 skipped across 796 XML reports, with zero failed.
