@@ -1,5 +1,11 @@
 # private-media-tv — worker qualified, production acceptance pending
 
+## Build 300 installed on phone and Shield
+
+Build 300 (0.7.252) passed Android CI 45315540753 at 05157cb75f8b214626de0d50af25388eb5b4dbae. The authenticated inventory passed all 13 new Home cases. Separate installed-package reads matched the delivered SHA-256 6250b327943676b65774dfb01f103fac3eff768c857d6ca2b190764316f40cf4 on phone and Shield. Both updates preserved first-install time.
+
+On Shield, reopening Home reads the saved catalogue early and keeps the rows visible during background refresh. The five dated shelves can restore their cards when the request day still matches. The focused Continue Watching episode and Home Sports match have more vertical space. Time to first usable card, font-scale behaviour and D-pad navigation on the physical Shield are pending normal use.
+
 ## Build 299 installed on phone and Shield
 
 Build 299 (0.7.251) passed Android CI 45303891031 at 26f07b51cf62dcfb22cdfa9e241efd3dd2f74982. All six added app-facing tests passed. Separate installed-package reads matched the delivered SHA-256 09c8aec9b2d972437a40b4da19cb328518a7fb3d678991dffcc3d47e4b0c4480 on phone and Shield, and each update preserved first-install time.
